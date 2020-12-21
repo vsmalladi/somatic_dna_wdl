@@ -14,26 +14,26 @@ workflow PrepFlowcell {
 	scatter(fastqs in listOfFastqPairs {
 		call prepFlowcell.AlignBwaMem {
 			input:
-				fastqs = fastqs
-				bwaReference = bwaReference
-				mem = mem
-				threads = threads
+				fastqs = fastqs,
+				bwaReference = bwaReference,
+				mem = mem,
+				threads = threads,
 				dockerImage = dockerImage
 		}
 		
 		call prepFlowcell.ShortAlignMark {
 			input:
-				laneBam = prepFlowcell.AlignBwaMem.laneBam
-				bamBase = fastqs.bamBase
-				mem = mem
+				laneBam = prepFlowcell.AlignBwaMem.laneBam,
+				bamBase = fastqs.bamBase,
+				mem = mem,
 				dockerImage = dockerImage
 		}
 		
 		call prepFlowcell.Fixmate {
 			input:
-				laneBamMark = prepFlowcell.ShortAlignMark.laneBamMark
-				bamBase = fastqs.bamBase
-				mem = mem
+				laneBamMark = prepFlowcell.ShortAlignMark.laneBamMark,
+				bamBase = fastqs.bamBase,
+				mem = mem,
 				dockerImage = dockerImage
 		
 		}
