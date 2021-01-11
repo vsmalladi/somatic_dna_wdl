@@ -1,0 +1,40 @@
+{
+    "#Prep",
+    "RunFlowcell.listOfFastqPairs" : [{"fastqR1" : "/gpfs/internal/groups/sweng/test/mkher/analysis/control/Project_TEST_GRM_WGS_20200323/Sample_NA12878-tiny/fastq/NA12878-tiny_001.R1.fastq.gz",
+        "fastqR2" : "/gpfs/internal/groups/sweng/test/mkher/analysis/control/Project_TEST_GRM_WGS_20200323/Sample_NA12878-tiny/fastq/NA12878-tiny_001.R2.fastq.gz",
+        "bamBase" : "/gpfs/commons/groups/compbio/jshelton/tests/lumpy/NA12878-tiny_001.lane_bam",
+        "rgInfo" : "'@RG\tID:NA12878_AGATCGCA_HYVLCCCXX_L005\tPL:illumina\tPM:HiSeq-X\tLB:NA12878\tDS:GRCh38_decoy\tSM:NA12878\tCN:NYGenome\tPU:HYVLCCCXX.L005.AGATCGCA'"
+    }],
+  "RunFlowcell.bwaReference": {"fasta" : "/gpfs/commons/datasets/old-nygc-resources/GRCh38_1000genomes/GRCh38_full_analysis_set_plus_decoy_hla.fa",
+      "sa" : "/gpfs/commons/datasets/old-nygc-resources/GRCh38_1000genomes/GRCh38_full_analysis_set_plus_decoy_hla.fa.sa",
+      "pac" : "/gpfs/commons/datasets/old-nygc-resources/GRCh38_1000genomes/GRCh38_full_analysis_set_plus_decoy_hla.fa.pac",
+      "bwt" : "/gpfs/commons/datasets/old-nygc-resources/GRCh38_1000genomes/GRCh38_full_analysis_set_plus_decoy_hla.fa.bwt",
+      "ann" : "/gpfs/commons/datasets/old-nygc-resources/GRCh38_1000genomes/GRCh38_full_analysis_set_plus_decoy_hla.fa.ann",
+      "alt" : "/gpfs/commons/datasets/old-nygc-resources/GRCh38_1000genomes/GRCh38_full_analysis_set_plus_decoy_hla.fa.alt",
+      "amb" : "/gpfs/commons/datasets/old-nygc-resources/GRCh38_1000genomes/GRCh38_full_analysis_set_plus_decoy_hla.fa.amb"
+  },
+  "RunFlowcell.mem": "16000",
+  "RunFlowcell.threads": "8",
+  "RunFlowcell.bwaDockerImage": "nygc_bwa_0.7.15.tar",
+  "RunFlowcell.shortAlignDockerImage": "",
+  "RunFlowcell.gatkDockerImage": "broadinstitute/gatk:4.1.0.0",
+  "#Merge",
+  "RunFlowcell.indexedReference" : {"fasta" : "/gpfs/commons/datasets/old-nygc-resources/GRCh38_1000genomes/GRCh38_full_analysis_set_plus_decoy_hla.fa",
+      "dict" : "/gpfs/commons/datasets/old-nygc-resources/GRCh38_1000genomes/GRCh38_full_analysis_set_plus_decoy_hla.dict",
+      "index" : "/gpfs/commons/datasets/old-nygc-resources/GRCh38_1000genomes/GRCh38_full_analysis_set_plus_decoy_hla.fa.fai"
+  },
+  "RunFlowcell.sampleId" : "NA12878",
+  "RunFlowcell.tempDir" : "",
+  "RunFlowcell.novosortDockerImage" : "",
+  "RunFlowcell.samtoolsDockerImage" : "",
+  "RunFlowcell.chromFile" : "",
+  "RunFlowcell.MillsAnd1000G" : {"vcf" : "/gpfs/commons/datasets/old-nygc-resources/GatkBundle/hg38bundle/Mills_and_1000G_gold_standard.indels.hg38.vcf.gz",
+      "index" : "/gpfs/commons/datasets/old-nygc-resources/GatkBundle/hg38bundle/Mills_and_1000G_gold_standard.indels.hg38.vcf.gz.tbi"
+  },
+  "RunFlowcell.Indels" : {"vcf" : "/gpfs/commons/datasets/old-nygc-resources/GatkBundle/hg38bundle/Homo_sapiens_assembly38.known_indels.vcf.gz",
+      "index" : "/gpfs/commons/datasets/old-nygc-resources/GatkBundle/hg38bundle/Homo_sapiens_assembly38.known_indels.vcf.gz.tbi"
+  }
+  "RunFlowcell.DbSnp" : {"vcf" : "/gpfs/commons/datasets/old-nygc-resources/GatkBundle/hg38bundle/Homo_sapiens_assembly38.dbsnp138.vcf",
+      "index" : "/gpfs/commons/datasets/old-nygc-resources/GatkBundle/hg38bundle/Homo_sapiens_assembly38.dbsnp138.vcf.idx"
+  }
+}

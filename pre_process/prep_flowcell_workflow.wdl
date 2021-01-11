@@ -1,15 +1,31 @@
 version 1.0
 
 import "prep_flowcell.wdl" as prepFlowcell
+import "merge_flowcells.wdl" as mergeFlowcells
 
-workflow PrepFlowcell {
-	# command
+workflow RunFlowcell {
+	# command 
+	# 	prep flowcell
 	Array[Fastqs]+ listOfFastqPairs
 	BwaReference bwaReference
+	#	command merge flowcell
+	String sampleId
+	IndexedReference indexedReference
+	Directory tempDir
+	IndexedVcf MillsAnd1000G
+	IndexedVcf Indels
+	IndexedVcf DbSnp
+	File chromFile
 	# resources
+	#	prep flowcell
 	Int mem
 	Int threads
-	String dockerImage
+	String bwaDockerImage
+	String shortAlignDockerImage
+	String gatkDockerImage
+	#	merge flowcell
+	String novosortDockerImage
+	String samtoolsDockerImage
 	
 	scatter(fastqs in listOfFastqPairs {
 		call prepFlowcell.AlignBwaMem {
@@ -18,7 +34,7 @@ workflow PrepFlowcell {
 				bwaReference = bwaReference,
 				mem = mem,
 				threads = threads,
-				dockerImage = dockerImage
+				dockerImage = bwaDockerImage
 		}
 		
 		call prepFlowcell.ShortAlignMark {
@@ -26,7 +42,7 @@ workflow PrepFlowcell {
 				laneBam = prepFlowcell.AlignBwaMem.laneBam,
 				bamBase = fastqs.bamBase,
 				mem = mem,
-				dockerImage = dockerImage
+				dockerImage = shortAlignDockerImage
 		}
 		
 		call prepFlowcell.Fixmate {
@@ -34,11 +50,49 @@ workflow PrepFlowcell {
 				laneBamMark = prepFlowcell.ShortAlignMark.laneBamMark,
 				bamBase = fastqs.bamBase,
 				mem = mem,
-				dockerImage = dockerImage
-		
+				dockerImage = gatkDockerImage
 		}
 	
 	output {
 		Bam prepFlowcell.Fixmate.laneFixmateBam
+	}
+	
+	call mergeFlowcells.NovosortMarkDup {
+		input:
+			laneBams = prepFlowcell.Fixmate.laneFixmateBam,
+			laneBamsLists = prepFlowcell.Fixmate.laneFixmateBamPath,
+			temp_dir = tempDir,
+			sampleId = sampleId
+			dockerImage = novosortDockerImage
+	}
+	
+	call mergeFlowcells.IndexBam as novosortMarkDupIndexed {
+		input:
+			bam = mergeFlowcells.NovosortMarkDup.mergedDedupBamOnly,
+			indexedReference = indexedReference,
+			dockerImage = samtoolsDockerImage
+	}
+	
+	call mergeFlowcells.Bqsr38 {
+		input:
+			tempDir = tempDir
+			mergedDedupBam = novosortMarkDupIndexed.indexedBam
+			MillsAnd1000G = MillsAnd1000G
+			Indels = Indels
+			DbSnp = DbSnp
+			chromFile = chromFile
+			sampleId = sampleId
+			
+	}
+	call mergeFlowcells.PrintReads {
+		input:
+			tempDir = tempDir
+			mergedDedupBam = novosortMarkDupIndexed.indexedBam
+			recalGrp = mergeFlowcells.Bqsr38.recalGrp
+			sampleId = sampleId
+			
+	}
+	output {
+		Bam mergeFlowcells.PrintReads.finalBam
 	}
 }
