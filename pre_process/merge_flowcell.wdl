@@ -87,8 +87,8 @@ task Bqsr38 {
 		--java-options "-Xmx24576m -XX:ParallelGCThreads=1" \
 		--tmp-dir ~{tempDir} \
 		-L ~{chromFile} \
-		-R ~{indexedReference}.fasta \
-		-I ~{mergedDedupBam}.bam \
+		-R ~{indexedReference.fasta} \
+		-I ~{mergedDedupBam.bam} \
 		-O ~{recalGrpPath} \
 		--known-sites ~{MillsAnd1000G} \
 		--known-sites ~{Indels} \
@@ -126,8 +126,8 @@ task PrintReads {
 		ApplyBQSR \
 		--java-options "-Xmx24576m -XX:ParallelGCThreads=1" \
 		--tmp-dir ~{tempDir} \
-		-R ~{indexedReference}.fasta \
-		-I ~{mergedDedupBam}.bam \
+		-R ~{indexedReference.fasta} \
+		-I ~{mergedDedupBam.bam} \
 		-O ~{finalBamPath} \
 		--bqsr-recal-file ~{recalGrp}
 	}
