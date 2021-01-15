@@ -1,7 +1,6 @@
 version 1.0
 
 import "prep_flowcell.wdl" as prepFlowcell
-#import "prep_flowcell.wdl"
 import "merge_flowcell.wdl" as mergeFlowcells
 import "wdl_structs.wdl"
 
@@ -17,6 +16,7 @@ workflow RunFlowcell {
         IndexedVcf Indels
         IndexedVcf DbSnp
         File chromFile
+        IndexedReference indexedReference
         # resources
         #    prep flowcell
         Int mem
@@ -82,6 +82,7 @@ workflow RunFlowcell {
     }
     call mergeFlowcells.PrintReads {
         input:
+            indexedReference = indexedReference,
             mergedDedupBam = novosortMarkDupIndexed.indexedBam,
             recalGrp = Bqsr38.recalGrp,
             sampleId = sampleId

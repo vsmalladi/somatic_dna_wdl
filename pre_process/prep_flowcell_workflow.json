@@ -1,5 +1,4 @@
 {
-    "#Prep",
     "RunFlowcell.listOfFastqPairs" : [{"fastqR1" : "/gpfs/internal/groups/sweng/test/mkher/analysis/control/Project_TEST_GRM_WGS_20200323/Sample_NA12878-tiny/fastq/NA12878-tiny_001.R1.fastq.gz",
         "fastqR2" : "/gpfs/internal/groups/sweng/test/mkher/analysis/control/Project_TEST_GRM_WGS_20200323/Sample_NA12878-tiny/fastq/NA12878-tiny_001.R2.fastq.gz",
         "bamBase" : "/gpfs/commons/groups/compbio/jshelton/tests/lumpy/NA12878-tiny_001.lane_bam",
@@ -18,7 +17,6 @@
   "RunFlowcell.bwaDockerImage": "nygc_bwa_0.7.15.tar",
   "RunFlowcell.shortAlignDockerImage": "",
   "RunFlowcell.gatkDockerImage": "broadinstitute/gatk:4.1.0.0",
-  "#Merge",
   "RunFlowcell.indexedReference" : {"fasta" : "/gpfs/commons/datasets/old-nygc-resources/GRCh38_1000genomes/GRCh38_full_analysis_set_plus_decoy_hla.fa",
       "dict" : "/gpfs/commons/datasets/old-nygc-resources/GRCh38_1000genomes/GRCh38_full_analysis_set_plus_decoy_hla.dict",
       "index" : "/gpfs/commons/datasets/old-nygc-resources/GRCh38_1000genomes/GRCh38_full_analysis_set_plus_decoy_hla.fa.fai"
@@ -33,7 +31,7 @@
   },
   "RunFlowcell.Indels" : {"vcf" : "/gpfs/commons/datasets/old-nygc-resources/GatkBundle/hg38bundle/Homo_sapiens_assembly38.known_indels.vcf.gz",
       "index" : "/gpfs/commons/datasets/old-nygc-resources/GatkBundle/hg38bundle/Homo_sapiens_assembly38.known_indels.vcf.gz.tbi"
-  }
+  },
   "RunFlowcell.DbSnp" : {"vcf" : "/gpfs/commons/datasets/old-nygc-resources/GatkBundle/hg38bundle/Homo_sapiens_assembly38.dbsnp138.vcf",
       "index" : "/gpfs/commons/datasets/old-nygc-resources/GatkBundle/hg38bundle/Homo_sapiens_assembly38.dbsnp138.vcf.idx"
   }
