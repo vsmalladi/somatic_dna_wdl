@@ -61,7 +61,9 @@ workflow RunFlowcell {
             laneBams = Fixmate.laneFixmateBam,
             laneBamsLists = Fixmate.laneFixmateBamPath,
             sampleId = sampleId,
-            dockerImage = novosortDockerImage
+            dockerImage = novosortDockerImage,
+            mem = mem,
+            threads = threads
     }
     
     call mergeFlowcells.IndexBam as novosortMarkDupIndexed {
@@ -74,10 +76,14 @@ workflow RunFlowcell {
         input:
             mergedDedupBam = novosortMarkDupIndexed.indexedBam,
             MillsAnd1000G = MillsAnd1000G,
+            indexedReference = indexedReference,
             Indels = Indels,
             DbSnp = DbSnp,
             chromFile = chromFile,
-            sampleId = sampleId
+            sampleId = sampleId,
+            mem = mem,
+            threads = threads,
+            dockerImage = gatkDockerImage
             
     }
     call mergeFlowcells.PrintReads {
@@ -85,7 +91,10 @@ workflow RunFlowcell {
             indexedReference = indexedReference,
             mergedDedupBam = novosortMarkDupIndexed.indexedBam,
             recalGrp = Bqsr38.recalGrp,
-            sampleId = sampleId
+            sampleId = sampleId,
+            mem = mem,
+            threads = threads,
+            dockerImage = gatkDockerImage
             
     }
     #output {
