@@ -1,6 +1,6 @@
 version 1.0
 
-import "prep_flowcell.wdl" as prepFlowcell
+import "align_fastq.wdl" as alignFastq
 import "../wdl_structs.wdl"
 
 workflow AlignFastq {
@@ -19,7 +19,7 @@ workflow AlignFastq {
     }
     
     scatter(fastqs in listOfFastqPairs) {
-        call prepFlowcell.AlignBwaMem {
+        call alignFastq.AlignBwaMem {
             input:
                 fastqs = fastqs,
                 bwaReference = bwaReference,
@@ -28,7 +28,7 @@ workflow AlignFastq {
                 dockerImage = bwaDockerImage
         }
         
-        call prepFlowcell.ShortAlignMark {
+        call alignFastq.ShortAlignMark {
             input:
                 laneBam = AlignBwaMem.laneBam,
                 bamBase = fastqs.bamBase,
@@ -36,7 +36,7 @@ workflow AlignFastq {
                 dockerImage = shortAlignDockerImage
         }
         
-        call prepFlowcell.Fixmate {
+        call alignFastq.Fixmate {
             input:
                 laneBamMark = ShortAlignMark.laneBamMark,
                 bamBase = fastqs.bamBase,
