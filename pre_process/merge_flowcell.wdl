@@ -1,6 +1,6 @@
 version 1.0
 
-import "wdl_structs.wdl"
+import "../wdl_structs.wdl"
 
 task NovosortMarkDup {
    input {
