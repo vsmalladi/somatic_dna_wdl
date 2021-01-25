@@ -111,7 +111,7 @@ task MergePrepSupport {
         --vcf ~{renameMetaVcf} \
         --out ~{prepCallerVcfPath} \
         --tool ~{tool} \
-        --support \
+        --support
     }
 
     output {
@@ -141,7 +141,7 @@ task MergePrep{
         merge_prep.py \
         --vcf ~{renameMetaVcf} \
         --out ~{prepCallerVcfPath} \
-        --tool ~{tool} \
+        --tool ~{tool}
     }
 
     output {
@@ -175,7 +175,7 @@ task RenameVcf {
         ~{renameVcfPath} \
         ~{normal} \
         ~{tumor} \
-        ~{tool} \
+        ~{tool}
     }
 
     output {
@@ -208,7 +208,7 @@ task SplitMultiAllelic {
         --no-version \
         -f ~{referenceFa.fasta} \
         -o ~{splitVcfPath} \
-        ~{vcfCompressedIndexed} \
+        ~{vcfCompressedIndexed}
     }
 
     output {
@@ -237,7 +237,7 @@ task SplitMnv {
         split_mnv.py \
         ~{splitVcf} \
         ~{mnvVcfPath} \
-        ~{tool} \
+        ~{tool}
     }
 
     output {
@@ -265,7 +265,7 @@ task RemoveContig {
         python2.7 \
         remove_contig.py \
         ~{removeChromVcf} \
-        ~{removeChromVcfPath} \
+        ~{removeChromVcfPath}
     }
 
     output {
@@ -303,6 +303,45 @@ task Gatk4MergeSortVcf {
                 vcf : "~{sortedVcfPath}", 
                 vcfIndex : "~{sortedVcfPath}.idx"
             }
+    }
+
+    runtime {
+        cpu : threads
+        memory : memory_gb + "GB"
+        docker : dockerImage
+    }
+}
+
+# Merge Callers Section
+
+task MergeCallers {
+    input {
+        Int threads
+        Int memory_gb
+        String dockerImage
+        String chrom
+        String pairName
+        String mergedChromVcfPath = "~{pairName}.merged_supported.v6.chrX.vcf"
+        String allVcfCompressedList
+        Array[IndexedVcf] allVcfCompressed
+    }
+
+    command {
+        bcftools \
+        merge \
+        -r ~{chrom} \
+        --force-samples \
+        --no-version \
+        -f PASS,SUPPORT \
+        -F x \
+        -m none \
+        -o ~{mergedChromVcfPath} \
+        -i called_by:join,num_callers:sum,MNV_ID:join,supported_by:join \
+        ~{sep=" " allVcfCompressedList}
+    }
+
+    output {
+        File mergedChromVcf = "~{pairName}.merged_supported.v6.chrX.vcf"
     }
 
     runtime {
