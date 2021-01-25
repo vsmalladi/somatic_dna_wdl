@@ -3,7 +3,7 @@ version 1.0
 import "merge_vcf.wdl" as merge_vcf
 import "../wdl_structs.wdl"
 
-workflow MergeVcf {
+workflow PrepMergeVcf {
     input {
         String tumor
         String normal
