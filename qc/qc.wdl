@@ -52,7 +52,7 @@ task MultipleMetricsPreBqsr{
         Int threads
         Int memory_gb
         String dockerImage
-        String MultipleMetricsBasePreBqsr
+        String MultipleMetricsBasePreBqsrBasename
         IndexedReference referenceFa
         Bam mergedDedupBam
         String sampleId
@@ -68,7 +68,7 @@ task MultipleMetricsPreBqsr{
         --VALIDATION_STRINGENCY SILENT \
         --INCLUDE_UNPAIRED true \
         --REFERENCE_SEQUENCE ~{referenceFa.fasta} \
-        -O ~{MultipleMetricsBasePreBqsr} \
+        -O ~{MultipleMetricsBasePreBqsrBasename} \
         -I ~{mergedDedupBam.bam}
     }
 
