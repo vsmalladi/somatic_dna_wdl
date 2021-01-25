@@ -1,6 +1,6 @@
 version 1.0
 
-import "merge_flowcell.wdl" as mergeFlowcells
+import "merge_bams.wdl" as mergeBams
 import "../wdl_structs.wdl"
 
 workflow MergeBams {
@@ -24,7 +24,7 @@ workflow MergeBams {
         String samtoolsDockerImage
     }
     
-    call mergeFlowcells.NovosortMarkDup {
+    call mergeBams.NovosortMarkDup {
         input:
             laneBams = laneFixmateBams,
             laneBamsLists = laneFixmateBamPaths,
@@ -34,13 +34,13 @@ workflow MergeBams {
             threads = threads
     }
     
-    call mergeFlowcells.IndexBam as novosortMarkDupIndexed {
+    call mergeBams.IndexBam as novosortMarkDupIndexed {
         input:
             bam = NovosortMarkDup.mergedDedupBamOnly,
             dockerImage = samtoolsDockerImage
     }
     
-    call mergeFlowcells.Bqsr38 {
+    call mergeBams.Bqsr38 {
         input:
             mergedDedupBam = novosortMarkDupIndexed.indexedBam,
             MillsAnd1000G = MillsAnd1000G,
@@ -54,7 +54,7 @@ workflow MergeBams {
             dockerImage = gatkDockerImage
             
     }
-    call mergeFlowcells.PrintReads {
+    call mergeBams.PrintReads {
         input:
             indexedReference = indexedReference,
             mergedDedupBam = novosortMarkDupIndexed.indexedBam,
