@@ -117,6 +117,7 @@ workflow PrepMergeVcf {
             dockerImage = gatkDockerImage
             
     }
+    
     output {
         IndexedVcf preppedVcf = Gatk4MergeSortVcf.sortedVcf
     }
