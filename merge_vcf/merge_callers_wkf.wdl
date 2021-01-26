@@ -329,10 +329,6 @@ workflow MergeCallers {
         
     }
     
-    #  =================================================================
-    #                     ?
-    #  =================================================================
-    
     output {
             Array[File] finalChromVcf = SnvstomnvsCountsbasedfilterAnnotatehighconf.finalChromVcf
         }
