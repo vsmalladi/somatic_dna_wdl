@@ -274,3 +274,75 @@ task LancetExome {
         docker : dockerImage
     }
 }
+
+task Mutect2Wgs {
+    input {
+        Int threads
+        Int memory_gb
+        String dockerImage
+        String chrom
+        String tumor
+        String normal
+        String pairName
+        String mutect2ChromRawVcfPath = "~{pairName}_~{chrom}.mutect2.v4.0.5.1.raw.vcf"
+        IndexedReference referenceFa
+        Bam normalFinalBam
+        Bam tumorFinalBam
+    }
+
+    command {
+        gatk \
+        Mutect2 \
+        --java-options "-Xmx8196m -XX:ParallelGCThreads=4" \
+        --reference ~{referenceFa.fasta} \
+        -L ~{chrom} \
+        -I ~{tumorFinalBam.bam} \
+        -I ~{normalFinalBam.bam} \
+        -tumor ~{tumor} \
+        -normal ~{normal} \
+        -O ~{mutect2ChromRawVcfPath}
+    }
+
+    output {
+        File mutect2ChromRawVcf = "~{mutect2ChromRawVcfPath}"
+    }
+
+    runtime {
+        cpu : threads
+        memory : memory_gb + "GB"
+        docker : dockerImage
+    }
+}
+
+task Mutect2Filter {
+    input {
+        Int threads
+        Int memory_gb
+        String dockerImage
+        String pairName
+        String chrom
+        String mutect2ChromVcfPath = "~{pairName}_~{chrom}.mutect2.v4.0.5.1.vcf"
+        IndexedReference referenceFa
+        File mutect2ChromRawVcf
+    }
+
+    command {
+        gatk \
+        FilterMutectCalls \
+        --java-options "-Xmx8196m -XX:ParallelGCThreads=4" \
+        --reference ~{referenceFa.fasta} \
+        -V ~{mutect2ChromRawVcf} \
+        -O ~{mutect2ChromVcfPath}
+    }
+
+    output {
+        File mutect2ChromVcf = "~{mutect2ChromVcfPath}"
+    }
+
+    runtime {
+        cpu : threads
+        memory : memory_gb + "GB"
+        docker : dockerImage
+    }
+}
+

@@ -62,7 +62,7 @@ workflow Lancet {
             tumor = tumor,
             normal = normal,
             rawVcf = lancetAddVcfCommand.outVcf,
-            orderedVcfPath = "~{pairName}.lancet.v1.0.7.sorted.vcf",
+            orderedVcfPath = "~{pairName}.lancet.v1.0.7.vcf",
             memory_gb = memory_gb,
             threads = threads,
             dockerImage = pysamDockerImage
