@@ -13,9 +13,7 @@ workflow Mutect2 {
         Int threads
         Int memory_gb
         String mutect2GatkDockerImage
-        String dockerImage
         String gatkDockerImage
-        String pysamDockerImage
         String pairName
         IndexedReference referenceFa
         Bam normalFinalBam

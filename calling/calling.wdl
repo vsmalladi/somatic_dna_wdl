@@ -346,3 +346,53 @@ task Mutect2Filter {
     }
 }
 
+task SvabaWgs {
+    input {
+        Int threads
+        Int memory_gb
+        String dockerImage
+        String cores
+        String pairName
+        IndexedReference referenceFa
+        Bam normalFinalBam
+        File dbsnp
+        Bam tumorFinalBam
+    }
+
+    command {
+        svaba \
+        run \
+        -t ~{tumorFinalBam.bam} \
+        -n ~{normalFinalBam.bam} \
+        -p ~{cores} \
+        -D ~{dbsnp} \
+        -a ~{pairName} \
+        -G ~{referenceFa.fasta} \
+        -z on
+    }
+
+    output {
+        Array[File] svabaInternalInput = ["~{pairName}.svaba.unfiltered.somatic.indel.vcf.gz",
+                        "~{pairName}.svaba.unfiltered.germline.indel.vcf.gz",
+                        "~{pairName}.bps.txt.gz",
+                        "~{pairName}.log",
+                        "~{pairName}.svaba.germline.indel.vcf.gz",
+                        "~{pairName}.contigs.bam",
+                        "~{pairName}.discordant.txt.gz",
+                        "~{pairName}.svaba.unfiltered.germline.sv.vcf.gz",
+                        "~{pairName}.alignments.txt.gz",
+                        "~{pairName}.svaba.germline.sv.vcf.gz",
+                        "~{pairName}.svaba.unfiltered.somatic.sv.vcf.gz"
+                        ]
+        File svabaIndelGz = "~{pairName}.svaba.somatic.indel.vcf.gz"
+        File svabaGz = "~{pairName}.svaba.somatic.sv.vcf.gz"
+    }
+
+    runtime {
+        cpu : threads
+        memory : memory_gb + "GB"
+        docker : dockerImage
+    }
+}
+
+
