@@ -11,7 +11,7 @@ workflow Mutect2 {
         String normal
         Array[String]+ listOfChroms
         Int threads
-        Int memory_gb
+        Int memoryGb
         String mutect2GatkDockerImage
         String gatkDockerImage
         String pairName
@@ -29,7 +29,7 @@ workflow Mutect2 {
                 referenceFa = referenceFa,
                 normalFinalBam = normalFinalBam,
                 tumorFinalBam = tumorFinalBam,
-                memory_gb = memory_gb,
+                memoryGb = memoryGb,
                 threads = threads,
                 dockerImage = mutect2GatkDockerImage
         }
@@ -40,7 +40,7 @@ workflow Mutect2 {
                 referenceFa = referenceFa,
                 # mutect2ChromRawVcf = select_first([Mutect2Wgs.mutect2ChromRawVcf, Mutect2Exome.mutect2ChromRawVcf])
                 mutect2ChromRawVcf = Mutect2Wgs.mutect2ChromRawVcf,
-                memory_gb = memory_gb,
+                memoryGb = memoryGb,
                 threads = threads,
                 dockerImage = mutect2GatkDockerImage
         }
@@ -51,7 +51,7 @@ workflow Mutect2 {
         input:
             sortedVcfPath = "~{pairName}.mutect2.v4.0.5.1.sorted.vcf",
             tempChromVcfs = Mutect2Filter.mutect2ChromVcf,
-            memory_gb = memory_gb,
+            memoryGb = memoryGb,
             threads = threads,
             dockerImage = gatkDockerImage
     }
@@ -60,7 +60,7 @@ workflow Mutect2 {
         input:
             inVcf = filteredGatk4MergeSortVcf.sortedVcf.vcf,
             jsonLog = jsonLog,
-            memory_gb = memory_gb,
+            memoryGb = memoryGb,
             threads = threads,
             dockerImage = pysamDockerImage
     }
@@ -71,7 +71,7 @@ workflow Mutect2 {
             normal = normal,
             rawVcf = filteredAddVcfCommand.outVcf,
             orderedVcfPath = "~{pairName}.mutect2.v4.0.5.1.vcf",
-            memory_gb = memory_gb,
+            memoryGb = memoryGb,
             threads = threads,
             dockerImage = pysamDockerImage
     }
@@ -81,7 +81,7 @@ workflow Mutect2 {
         input:
             sortedVcfPath = "~{pairName}.mutect2.v4.0.5.1.unfiltered.sorted.vcf",
             tempChromVcfs = Mutect2Wgs.mutect2ChromRawVcf,
-            memory_gb = memory_gb,
+            memoryGb = memoryGb,
             threads = threads,
             dockerImage = gatkDockerImage
     }
@@ -90,7 +90,7 @@ workflow Mutect2 {
         input:
             inVcf = unfilteredGatk4MergeSortVcf.sortedVcf.vcf,
             jsonLog = jsonLog,
-            memory_gb = memory_gb,
+            memoryGb = memoryGb,
             threads = threads,
             dockerImage = pysamDockerImage
     }
@@ -101,7 +101,7 @@ workflow Mutect2 {
             normal = normal,
             rawVcf = unfilteredAddVcfCommand.outVcf,
             orderedVcfPath = "~{pairName}.mutect2.v4.0.5.1.unfiltered.vcf",
-            memory_gb = memory_gb,
+            memoryGb = memoryGb,
             threads = threads,
             dockerImage = pysamDockerImage
     }

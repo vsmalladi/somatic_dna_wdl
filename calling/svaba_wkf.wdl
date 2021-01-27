@@ -10,7 +10,7 @@ workflow Mutect2 {
         String tumor
         String normal
         Int threads
-        Int memory_gb
+        Int memoryGb
         String svabaDockerImage
         String gatkDockerImage
         String pysamDockerImage
@@ -29,7 +29,7 @@ workflow Mutect2 {
             normalFinalBam = normalFinalBam,
             tumorFinalBam = tumorFinalBam,
             dbsnp = dbsnp,
-            memory_gb = memory_gb,
+            memoryGb = memoryGb,
             threads = threads,
             dockerImage = svabaDockerImage
             
@@ -40,7 +40,7 @@ workflow Mutect2 {
         input:
             inVcf = SvabaWgs.svabaGz,
             jsonLog = jsonLog,
-            memory_gb = memory_gb,
+            memoryGb = memoryGb,
             threads = threads,
             dockerImage = pysamDockerImage
     }
@@ -51,7 +51,7 @@ workflow Mutect2 {
             normal = normal,
             rawVcf = svAddVcfCommand.outVcf,
             orderedVcfPath = "~{pairName}.sv.svaba.v0.2.1.vcf",
-            memory_gb = memory_gb,
+            memoryGb = memoryGb,
             threads = threads,
             dockerImage = pysamDockerImage
     }
@@ -61,7 +61,7 @@ workflow Mutect2 {
         input:
             inVcf = SvabaWgs.svabaIndelGz,
             jsonLog = jsonLog,
-            memory_gb = memory_gb,
+            memoryGb = memoryGb,
             threads = threads,
             dockerImage = pysamDockerImage
     }
@@ -72,7 +72,7 @@ workflow Mutect2 {
             normal = normal,
             rawVcf = indelAddVcfCommand.outVcf,
             orderedVcfPath = "~{pairName}.indel.svaba.v0.2.1.vcf",
-            memory_gb = memory_gb,
+            memoryGb = memoryGb,
             threads = threads,
             dockerImage = pysamDockerImage
     }
