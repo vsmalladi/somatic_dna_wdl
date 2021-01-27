@@ -20,7 +20,7 @@ workflow Strelka2 {
         String strelka2SnvPath = "~{pairName}.snv.strelka2.v2.9.3.vcf"
         String strelka2IndelPath = "~{pairName}.indel.strelka2.v2.9.3.vcf"
         # resources
-        Int memory_gb
+        Int memoryGb
         Int threads
         String strelka2DockerImage
         String pysamDockerImage
@@ -35,7 +35,7 @@ workflow Strelka2 {
             candidateSmallIndels = candidateSmallIndels,
             normalFinalBam = normalFinalBam,
             tumorFinalBam = tumorFinalBam,
-            memory_gb = memory_gb,
+            memoryGb = memoryGb,
             threads = threads,
             dockerImage = strelka2DockerImage
     }
@@ -44,7 +44,7 @@ workflow Strelka2 {
         input:
             inVcf = Strelka2.strelka2Snvs.vcf,
             jsonLog = jsonLog,
-            memory_gb = memory_gb,
+            memoryGb = memoryGb,
             threads = threads,
             dockerImage = pysamDockerImage
     }
@@ -55,7 +55,7 @@ workflow Strelka2 {
             normal = normal,
             rawVcf = strelka2SnvAddVcfCommand.outVcf,
             orderedVcfPath = strelka2SnvPath,
-            memory_gb = memory_gb,
+            memoryGb = memoryGb,
             threads = threads,
             dockerImage = pysamDockerImage
     }
@@ -64,7 +64,7 @@ workflow Strelka2 {
         input:
             inVcf = Strelka2.strelka2Indels.vcf,
             jsonLog = jsonLog,
-            memory_gb = memory_gb,
+            memoryGb = memoryGb,
             threads = threads,
             dockerImage = pysamDockerImage
     }
@@ -75,7 +75,7 @@ workflow Strelka2 {
             normal = normal,
             rawVcf = strelka2IndelAddVcfCommand.outVcf,
             orderedVcfPath = strelka2IndelPath,
-            memory_gb = memory_gb,
+            memoryGb = memoryGb,
             threads = threads,
             dockerImage = pysamDockerImage
     }

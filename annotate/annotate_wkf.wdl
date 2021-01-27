@@ -36,14 +36,14 @@ workflow Annotate {
         String bgzipDockerImage
         String bcftoolsDockerImage
         Int threads
-        Int memory_gb
+        Int memoryGb
         IndexedReference referenceFa
     }
         
     call merge_vcf.CompressVcf as unannotatedCompressVcf {
         input:
             vcf = unannotatedVcf,
-            memory_gb = memory_gb,
+            memoryGb = memoryGb,
             threads = threads,
             dockerImage = bgzipDockerImage
     }
@@ -51,7 +51,7 @@ workflow Annotate {
     call merge_vcf.IndexVcf as unannotatedIndexVcf {
         input:
             vcfCompressed = unannotatedCompressVcf.vcfCompressed,
-            memory_gb = memory_gb,
+            memoryGb = memoryGb,
             threads = threads,
             dockerImage = gatkDockerImage
     }
@@ -68,7 +68,7 @@ workflow Annotate {
             vepGnomadExomes = vepGnomadExomes,
             vepCaddIndel = vepCaddIndel,
             vepGnomadGenomes = vepGnomadGenomes,
-            memory_gb = memory_gb,
+            memoryGb = memoryGb,
             threads = threads,
             dockerImage = vepFathmmDockerImage
     }
@@ -78,7 +78,7 @@ workflow Annotate {
             pairName = pairName,
             cosmicCensus = cosmicCensus,
             vcfAnnotatedVep = Vep.vcfAnnotatedVep,
-            memory_gb = memory_gb,
+            memoryGb = memoryGb,
             threads = threads,
             dockerImage = pysamDockerImage
     }
@@ -89,7 +89,7 @@ workflow Annotate {
             cancerResistanceMutations = cancerResistanceMutations,
             genome = genome,
             vcfAnnotatedCancerGeneCensus = AddCosmic.vcfAnnotatedCancerGeneCensus,
-            memory_gb = memory_gb,
+            memoryGb = memoryGb,
             threads = threads,
             dockerImage = pysamDockerImage
     }
@@ -98,7 +98,7 @@ workflow Annotate {
         input:
             pairName = pairName,
             vcfAnnotatedResistance = AddCancerResistanceMutations.vcfAnnotatedResistance,
-            memory_gb = memory_gb,
+            memoryGb = memoryGb,
             threads = threads,
             dockerImage = pysamDockerImage
     }
@@ -107,7 +107,7 @@ workflow Annotate {
         input:
             pairName = pairName,
             vcfAnnotatedId = AnnotateId.vcfAnnotatedId,
-            memory_gb = memory_gb,
+            memoryGb = memoryGb,
             threads = threads,
             dockerImage = pysamDockerImage
     }
@@ -116,7 +116,7 @@ workflow Annotate {
         input:
             pairName = pairName,
             vcfAnnotated = RenameCsqVcf.vcfCsqRenamed,
-            memory_gb = memory_gb,
+            memoryGb = memoryGb,
             threads = threads,
             dockerImage = pysamDockerImage
     }
@@ -127,7 +127,7 @@ workflow Annotate {
             normal = normal,
             pairName = pairName,
             mainVcf = MainVcf.mainVcf,
-            memory_gb = memory_gb,
+            memoryGb = memoryGb,
             threads = threads,
             dockerImage = pysamDockerImage
     }
@@ -141,7 +141,7 @@ workflow Annotate {
             library = library,
             vepVersion = vepVersion,
             ensemblEntrez = ensemblEntrez,
-            memory_gb = memory_gb,
+            memoryGb = memoryGb,
             threads = threads,
             dockerImage = pysamDockerImage
     }

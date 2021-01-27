@@ -8,7 +8,7 @@ import "../wdl_structs.wdl"
 task Vep{
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb
         String dockerImage
         String vepVersion
         IndexedVcf cosmicCoding
@@ -83,7 +83,7 @@ task Vep{
 
     runtime {
         cpu : threads
-        memory : memory_gb + "GB"
+        memory : memoryGb + "GB"
         docker : dockerImage
     }
 }
@@ -91,7 +91,7 @@ task Vep{
 task AddCosmic {
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb
         String dockerImage
         String pairName
         String vcfAnnotatedCancerGeneCensusPath = "~{pairName}.v6.cosmic_census.vep.annotated.vcf"
@@ -113,7 +113,7 @@ task AddCosmic {
 
     runtime {
         cpu : threads
-        memory : memory_gb + "GB"
+        memory : memoryGb + "GB"
         docker : dockerImage
     }
 }
@@ -121,7 +121,7 @@ task AddCosmic {
 task AddCancerResistanceMutations {
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb
         String dockerImage
         String genome
         String pairName
@@ -145,7 +145,7 @@ task AddCancerResistanceMutations {
 
     runtime {
         cpu : threads
-        memory : memory_gb + "GB"
+        memory : memoryGb + "GB"
         docker : dockerImage
     }
 }
@@ -153,7 +153,7 @@ task AddCancerResistanceMutations {
 task AnnotateId {
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb
         String dockerImage
         String pairName
         String vcfAnnotatedIdPath = "~{pairName}.v6.id.vep.annotated.vcf"
@@ -173,7 +173,7 @@ task AnnotateId {
 
     runtime {
         cpu : threads
-        memory : memory_gb + "GB"
+        memory : memoryGb + "GB"
         docker : dockerImage
     }
 }
@@ -181,7 +181,7 @@ task AnnotateId {
 task RenameCsqVcf {
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb
         String dockerImage
         String pairName
         String vcfCsqRenamedPath = "~{pairName}.snv.indel.supplemental.v6.annotated.vcf"
@@ -201,7 +201,7 @@ task RenameCsqVcf {
 
     runtime {
         cpu : threads
-        memory : memory_gb + "GB"
+        memory : memoryGb + "GB"
         docker : dockerImage
     }
 }
@@ -209,7 +209,7 @@ task RenameCsqVcf {
 task MainVcf {
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb
         String dockerImage
         String pairName
         String mainVcfPath = "~{pairName}.snv.indel.final.v6.annotated.vcf"
@@ -229,7 +229,7 @@ task MainVcf {
 
     runtime {
         cpu : threads
-        memory : memory_gb + "GB"
+        memory : memoryGb + "GB"
         docker : dockerImage
     }
 }
@@ -237,7 +237,7 @@ task MainVcf {
 task TableVcf {
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb
         String dockerImage
         String pairName
         String vcfAnnotatedTxtPath = "~{pairName}.snv.indel.final.v6.annotated.txt"
@@ -260,7 +260,7 @@ task TableVcf {
 
     runtime {
         cpu : threads
-        memory : memory_gb + "GB"
+        memory : memoryGb + "GB"
         docker : dockerImage
     }
 }
@@ -268,7 +268,7 @@ task TableVcf {
 task VcfToMaf {
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb
         String dockerImage
         String pairName
         String mafPath = "~{pairName}.snv.indel.final.v6.annotated.maf"
@@ -298,7 +298,7 @@ task VcfToMaf {
 
     runtime {
         cpu : threads
-        memory : memory_gb + "GB"
+        memory : memoryGb + "GB"
         docker : dockerImage
     }
 }

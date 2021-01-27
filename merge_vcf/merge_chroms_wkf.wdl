@@ -14,7 +14,7 @@ workflow MergeChroms {
         Array[File]+ finalChromVcf
         IndexedReference referenceFa
         Int threads
-        Int memory_gb
+        Int memoryGb
         String gatkDockerImage
         String pysamDockerImage
     }
@@ -24,7 +24,7 @@ workflow MergeChroms {
                 tempVcfs = finalChromVcf,
                 sortedVcfPath = sortedVcfPath,
                 referenceFa = referenceFa,
-                memory_gb = memory_gb,
+                memoryGb = memoryGb,
                 threads = threads,
                 dockerImage = gatkDockerImage 
         }
@@ -35,7 +35,7 @@ workflow MergeChroms {
             normal = normal,
             rawVcf = Gatk4MergeSortVcf.sortedVcf.vcf,
             orderedVcfPath = orderedVcfPath,
-            memory_gb = memory_gb,
+            memoryGb = memoryGb,
             threads = threads,
             dockerImage = pysamDockerImage
     }

@@ -15,14 +15,14 @@ workflow PrepMergeVcf {
         String bgzipDockerImage
         String bcftoolsDockerImage
         Int threads
-        Int memory_gb
+        Int memoryGb
         IndexedReference referenceFa
     }
     
     call merge_vcf.RenameMetadata {
         input:
             callerVcf = callerVcf,
-            memory_gb = memory_gb,
+            memoryGb = memoryGb,
             threads = threads,
             dockerImage = pysamDockerImage
     }
@@ -31,7 +31,7 @@ workflow PrepMergeVcf {
             input:
                 tool = tool,
                 renameMetaVcf = RenameMetadata.renameMetaVcf,
-                memory_gb = memory_gb,
+                memoryGb = memoryGb,
                 threads = threads,
                 dockerImage = pysamDockerImage
         }
@@ -41,7 +41,7 @@ workflow PrepMergeVcf {
             input:
                 tool = tool,
                 renameMetaVcf = RenameMetadata.renameMetaVcf,
-                memory_gb = memory_gb,
+                memoryGb = memoryGb,
                 threads = threads,
                 dockerImage = pysamDockerImage
         }
@@ -55,7 +55,7 @@ workflow PrepMergeVcf {
             normal = normal,
             tool = tool,
             prepCallerVcf = select_first([MergePrepSupport.prepCallerVcf, MergePrep.prepCallerVcf]),
-            memory_gb = memory_gb,
+            memoryGb = memoryGb,
             threads = threads,
             dockerImage = pysamDockerImage
     }
@@ -63,7 +63,7 @@ workflow PrepMergeVcf {
     call merge_vcf.CompressVcf as renameCompressVcf {
         input:
             vcf = RenameVcf.renameVcf,
-            memory_gb = memory_gb,
+            memoryGb = memoryGb,
             threads = threads,
             dockerImage = bgzipDockerImage
     }
@@ -71,7 +71,7 @@ workflow PrepMergeVcf {
     call merge_vcf.IndexVcf as renameIndexVcf {
         input:
             vcfCompressed = renameCompressVcf.vcfCompressed,
-            memory_gb = memory_gb,
+            memoryGb = memoryGb,
             threads = threads,
             dockerImage = gatkDockerImage
     }
@@ -80,7 +80,7 @@ workflow PrepMergeVcf {
         input:
             vcfCompressedIndexed = renameIndexVcf.vcfCompressedIndexed,
             splitVcfPath = sub(renameIndexVcf.vcfCompressedIndexed.vcf, ".rename.vcf.gz$", ".split.vcf"),
-            memory_gb = memory_gb,
+            memoryGb = memoryGb,
             threads = threads,
             dockerImage = bcftoolsDockerImage
     }
@@ -90,7 +90,7 @@ workflow PrepMergeVcf {
             tool = tool,
             mnvVcfPath = sub(renameIndexVcf.vcfCompressedIndexed.vcf, ".rename.vcf.gz$", ".split.vcf"),
             splitVcf = prepSplitMultiAllelic.splitVcf,
-            memory_gb = memory_gb,
+            memoryGb = memoryGb,
             threads = threads,
             dockerImage = pysamDockerImage
             
@@ -99,7 +99,7 @@ workflow PrepMergeVcf {
     if (tool != 'svaba') {
         call merge_vcf.RemoveContig {
             input:
-                memory_gb = memory_gb,
+                memoryGb = memoryGb,
                 threads = threads,
                 dockerImage = pysamDockerImage, 
                 mnvVcfPath = sub(renameIndexVcf.vcfCompressedIndexed.vcf, ".rename.vcf.gz$", ".split.vcf"),
@@ -112,7 +112,7 @@ workflow PrepMergeVcf {
             tempVcfs = [select_first([RemoveContig.removeContigVcf, SplitMnv.mnvVcf])],
             sortedVcfPath = sub(select_first([RemoveContig.removeContigVcf, SplitMnv.mnvVcf]), "$", ".gz"),
             referenceFa = referenceFa,
-            memory_gb = memory_gb,
+            memoryGb = memoryGb,
             threads = threads,
             dockerImage = gatkDockerImage
             
