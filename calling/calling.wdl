@@ -7,7 +7,7 @@ import "../wdl_structs.wdl"
 task Gatk4MergeSortVcf {
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb
         String dockerImage
         String pairName
         String sortedVcfPath
@@ -33,7 +33,7 @@ task Gatk4MergeSortVcf {
 
     runtime {
         cpu : threads
-        memory : memory_gb + "GB"
+        memory : memoryGb + "GB"
         docker : dockerImage
     }
 }
@@ -41,7 +41,7 @@ task Gatk4MergeSortVcf {
 task ReorderVcfColumns{
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb
         String dockerImage
         String normal
         String tumor
@@ -63,7 +63,7 @@ task ReorderVcfColumns{
 
     runtime {
         cpu : threads
-        memory : memory_gb + "GB"
+        memory : memoryGb + "GB"
         docker : dockerImage
     }
 }
@@ -71,7 +71,7 @@ task ReorderVcfColumns{
 task AddVcfCommand{
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb
         String dockerImage
         File inVcf
         String outVcfPath = sub(inVcf, ".vcf$", "_w_command.vcf")
@@ -92,7 +92,7 @@ task AddVcfCommand{
 
     runtime {
         cpu : threads
-        memory : memory_gb + "GB"
+        memory : memoryGb + "GB"
         docker : dockerImage
     }
 }
@@ -102,7 +102,7 @@ task AddVcfCommand{
 task MantaWgs{
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb
         String dockerImage
         String intHVmem
         IndexedReference referenceFa
@@ -148,7 +148,7 @@ task MantaWgs{
 
     runtime {
         cpu : threads
-        memory : memory_gb + "GB"
+        memory : memoryGb + "GB"
         docker : dockerImage
     }
 }
@@ -156,7 +156,7 @@ task MantaWgs{
 task FilterNonpass {
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb
         String dockerImage
         String pairName
         String outVcfPath = "~{pairName}.manta.v1.4.0.filtered.vcf"
@@ -180,7 +180,7 @@ task FilterNonpass {
 
     runtime {
         cpu : threads
-        memory : memory_gb + "GB"
+        memory : memoryGb + "GB"
         docker : dockerImage
     }
 }
@@ -188,7 +188,7 @@ task FilterNonpass {
 task Strelka2 {
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb
         String dockerImage
         String intHVmem
         IndexedReference referenceFa
@@ -229,7 +229,7 @@ task Strelka2 {
 
     runtime {
         cpu : threads
-        memory : memory_gb + "GB"
+        memory : memoryGb + "GB"
         docker : dockerImage
     }
 }
@@ -237,7 +237,7 @@ task Strelka2 {
 task LancetExome {
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb
         String dockerImage
         String pairName
         String chrom
@@ -270,7 +270,7 @@ task LancetExome {
 
     runtime {
         cpu : threads
-        memory : memory_gb + "GB"
+        memory : memoryGb + "GB"
         docker : dockerImage
     }
 }
@@ -278,7 +278,7 @@ task LancetExome {
 task Mutect2Wgs {
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb
         String dockerImage
         String chrom
         String tumor
@@ -309,7 +309,7 @@ task Mutect2Wgs {
 
     runtime {
         cpu : threads
-        memory : memory_gb + "GB"
+        memory : memoryGb + "GB"
         docker : dockerImage
     }
 }
@@ -317,7 +317,7 @@ task Mutect2Wgs {
 task Mutect2Filter {
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb
         String dockerImage
         String pairName
         String chrom
@@ -341,7 +341,7 @@ task Mutect2Filter {
 
     runtime {
         cpu : threads
-        memory : memory_gb + "GB"
+        memory : memoryGb + "GB"
         docker : dockerImage
     }
 }
@@ -349,7 +349,7 @@ task Mutect2Filter {
 task SvabaWgs {
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb
         String dockerImage
         String cores
         String pairName
@@ -390,9 +390,135 @@ task SvabaWgs {
 
     runtime {
         cpu : threads
-        memory : memory_gb + "GB"
+        memory : memoryGb + "GB"
         docker : dockerImage
     }
 }
+
+task UniqReads {
+    input {
+        Int threads
+        Int memoryGb
+        String tumor
+        String normal
+        String dockerImage
+        String tempTumorPrefix = "~{tumor}/~{tumor}_"
+        String tempNormalPrefix = "~{normal}/~{normal}"
+        Array[String] tempNormalSeqsPaths
+        Array[String] tempTumorSeqsPaths
+        Bam tumorFinalBam
+        Bam normalFinalBam
+    }
+
+    command {
+        mkdir ~{tumor} \
+        && \
+        mkdir ~{normal} \
+        && \
+        samtools \
+        view \
+        -U "BWA,~{tempTumorPrefix},N,N" \
+        ~{tumorFinalBam.bam} \
+        && \
+        samtools \
+        view \
+        -U "BWA,~{tempNormalPrefix},N,N" \
+        ~{normalFinalBam.bam}
+    }
+    
+    output {
+        Array[File] tempNormalSeqs = tempNormalSeqsPaths
+        Array[File] tempTumorSeqs = tempTumorSeqsPaths
+    }
+
+    runtime {
+        cpu : threads
+        memory : memoryGb + "GB"
+        docker : dockerImage
+    }
+}
+
+
+task Bicseq2Norm {
+    input {
+        Int threads
+        Int memoryGb
+        String dockerImage
+        Int readLength
+        Int medianInsertSize
+        String GCvsRDPath = "~{sampleId}/~{sampleId}.GCvsRD.pdf"
+        String paramsPath
+        String sampleId
+        Array[File] tempSeqs
+        Array[File] uniqCoords
+        Array[String] tempNormPaths
+        File configFile
+        Bam FinalBam
+        Array[IndexedReference] chromFastas
+    }
+
+    command {
+        mkdir ~{sampleId} \
+        && \
+        perl \
+        BICseq2-norm.pl \
+        -l=~{readLength} \
+        -s=~{medianInsertSize} \
+        -fig=~{GCvsRDPath} \
+        -tmp=~{sampleId} \
+        ~{configFile} \
+        ~{paramsPath}
+    }
+
+    output {
+        Array[File] tempNorm = tempNormPaths
+        File GCvsRD = "~{GCvsRDPath}"
+        File params = paramsPath
+    }
+
+    runtime {
+        cpu : threads
+        memory : memoryGb + "GB"
+        docker : dockerImage
+    }
+}
+
+
+task Bicseq2Wgs {
+    input {
+        Int threads
+        Int memoryGb
+        String dockerImage
+        String pairName
+        String bicseq2PngPath = "~{pairName}.bicseq2.v0.2.6.png"
+        String bicseq2Path = "~{pairName}.bicseq2.v0.2.6.txt"
+        Array[File] tempTumorNorms
+        Array[File] tempNormalNorms
+        File segConfigFile
+    }
+
+    command {
+        perl \
+        NBICseq-seg.pl \
+        --control \
+        --fig=~{bicseq2PngPath} \
+        --title=~{pairName} \
+        --lambda=4 \
+        ~{segConfigFile} \
+        ~{bicseq2Path}
+    }
+
+    output {
+        File bicseq2Png = "~{pairName}.bicseq2.v0.2.6.png"
+        File bicseq2 = "~{pairName}.bicseq2.v0.2.6.txt"
+    }
+
+    runtime {
+        cpu : threads
+        memory : memoryGb + "GB"
+        docker : dockerImage
+    }
+}
+
 
 
