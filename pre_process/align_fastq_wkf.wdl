@@ -4,7 +4,7 @@ import "align_fastq.wdl" as alignFastq
 import "../wdl_structs.wdl"
 
 workflow AlignFastq {
-    # command 
+    # command
     #   align FASTQ files
     input {
         Array[Fastqs]+ listOfFastqPairs
@@ -17,7 +17,7 @@ workflow AlignFastq {
         String gatkDockerImage
 
     }
-    
+
     scatter(fastqs in listOfFastqPairs) {
         call alignFastq.AlignBwaMem {
             input:
@@ -27,7 +27,7 @@ workflow AlignFastq {
                 threads = threads,
                 dockerImage = bwaDockerImage
         }
-        
+
         call alignFastq.ShortAlignMark {
             input:
                 laneBam = AlignBwaMem.laneBam,
@@ -35,7 +35,7 @@ workflow AlignFastq {
                 mem = mem,
                 dockerImage = shortAlignDockerImage
         }
-        
+
         call alignFastq.Fixmate {
             input:
                 laneBamMark = ShortAlignMark.laneBamMark,
@@ -44,9 +44,9 @@ workflow AlignFastq {
                 dockerImage = gatkDockerImage
         }
     }
-    
+
     output {
-        Array[Bam] laneFixmateBam = Fixmate.laneFixmateBam
+        Array[File] laneFixmateBam = Fixmate.laneFixmateBam
         Array[String] laneFixmateBamPath = Fixmate.laneFixmateBamPath
     }
 }

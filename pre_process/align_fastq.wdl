@@ -28,16 +28,13 @@ task AlignBwaMem {
         -Shb \
         -o ~{laneBamPath} \
         -
-        
+
     }
-    
+
     output {
-        Bam laneBam = object {
-                bam : laneBamPath, 
-                bamIndex : sub(laneBamPath, ".bam$", ".bai")
-            }
+        File laneBam = laneBamPath
     }
-    
+
     runtime {
         cpu : threads
         memory : mem
@@ -48,18 +45,18 @@ task AlignBwaMem {
 task ShortAlignMark {
     input {
         # command
-        Bam laneBam
+        File laneBam
         String bamBase
         String laneBamMarkPath = "~{bamBase}.readgroup_mark.bam"
         # resources
         Int mem
         String dockerImage
     }
-    
+
     command {
         set -e -o pipefail
         filter_bam \
-        -I ~{laneBam.bam} \
+        -I ~{laneBam} \
         -A1 30 \
         -A2 30 \
         -o ~{laneBamMarkPath} \
@@ -68,14 +65,11 @@ task ShortAlignMark {
         -o ~{laneBamMarkPath} \
         -
     }
-    
+
     output {
-        Bam laneBamMark = object {
-                bam : laneBamMarkPath, 
-                bamIndex : sub(laneBamMarkPath, ".bam$", ".bai")
-            }
+        File laneBamMark = laneBamMarkPath
     }
-    
+
     runtime {
         memory : mem
         docker : dockerImage
@@ -85,14 +79,14 @@ task ShortAlignMark {
 task Fixmate {
     input {
         #command
-        Bam laneBamMark
+        File laneBamMark
         String bamBase
         String laneFixmateBamPath = "~{bamBase}.readgroup_fixmate.bam"
         # resources
         Int mem
         String dockerImage
     }
-    
+
     command {
         gatk \
         FixMateInformation \
@@ -102,18 +96,14 @@ task Fixmate {
         --VALIDATION_STRINGENCY SILENT \
         --ADD_MATE_CIGAR true \
         --ASSUME_SORTED true \
-        -I laneBamMark.bam \
+        -I laneBamMark \
         -O laneFixmateBamPath
     }
-    
+
     output {
-        String laneFixmateBamPath = "~{bamBase}.readgroup_fixmate.bam"
-        Bam laneFixmateBam = object {
-                bam : laneFixmateBamPath, 
-                bamIndex : sub(laneFixmateBamPath, ".bam$", ".bai")
-            }
+        File laneFixmateBam = laneFixmateBamPath
     }
-    
+
     runtime {
         memory : mem
         docker : dockerImage
