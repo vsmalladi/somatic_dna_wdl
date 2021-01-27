@@ -5,7 +5,7 @@ import "../wdl_structs.wdl"
 task MultipleMetrics{
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb
         String dockerImage
         String MultipleMetricsBase
         IndexedReference referenceFa
@@ -42,7 +42,7 @@ task MultipleMetrics{
 
     runtime {
         cpu : threads
-        memory : memory_gb + "GB"
+        memory : memoryGb + "GB"
         docker : dockerImage
     }
 }
@@ -50,7 +50,7 @@ task MultipleMetrics{
 task MultipleMetricsPreBqsr{
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb
         String dockerImage
         String MultipleMetricsBasePreBqsrBasename
         IndexedReference referenceFa
@@ -81,7 +81,7 @@ task MultipleMetricsPreBqsr{
 
     runtime {
         cpu : threads
-        memory : memory_gb + "GB"
+        memory : memoryGb + "GB"
         docker : dockerImage
     }
 }
@@ -89,7 +89,7 @@ task MultipleMetricsPreBqsr{
 task CollectGcBiasMetrics{
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb
         String dockerImage
         String sampleId
         String gcBiasPdfPath = "~{sampleId}.GcBiasMetrics.gc_bias.pdf"
@@ -120,7 +120,7 @@ task CollectGcBiasMetrics{
 
     runtime {
         cpu : threads
-        memory : memory_gb + "GB"
+        memory : memoryGb + "GB"
         docker : dockerImage
     }
 }
@@ -128,7 +128,7 @@ task CollectGcBiasMetrics{
 task Flagstat{
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb
         String dockerImage
         String sampleId
         String FlagStatPath = "~{sampleId}.FlagStat.txt"
@@ -152,7 +152,7 @@ task Flagstat{
 
     runtime {
         cpu : threads
-        memory : memory_gb + "GB"
+        memory : memoryGb + "GB"
         docker : dockerImage
     }
 }
@@ -160,7 +160,7 @@ task Flagstat{
 task HsMetrics{
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb
         String dockerImage
         String sampleId
         String HsMetricsPath = "~{sampleId}.HsMetrics.txt"
@@ -195,7 +195,7 @@ task HsMetrics{
 
     runtime {
         cpu : threads
-        memory : memory_gb + "GB"
+        memory : memoryGb + "GB"
         docker : dockerImage
     }
 }
@@ -203,7 +203,7 @@ task HsMetrics{
 task CollectOxoGMetricsWgs{
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb
         String dockerImage
         String sampleId
         String CollectOxoGMetricsPath = "~{sampleId}.CollectOxoGMetrics.txt"
@@ -227,7 +227,7 @@ task CollectOxoGMetricsWgs{
 
     runtime {
         cpu : threads
-        memory : memory_gb + "GB"
+        memory : memoryGb + "GB"
         docker : dockerImage
     }
 }
@@ -235,7 +235,7 @@ task CollectOxoGMetricsWgs{
 task CollectWgsMetricsWgsDecoy{
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb
         String dockerImage
         String sampleId
         String CollectWgsMetricsPath = "~{sampleId}.CollectWgsMetrics.txt"
@@ -266,7 +266,7 @@ task CollectWgsMetricsWgsDecoy{
 
     runtime {
         cpu : threads
-        memory : memory_gb + "GB"
+        memory : memoryGb + "GB"
         docker : dockerImage
     }
 }
@@ -274,7 +274,7 @@ task CollectWgsMetricsWgsDecoy{
 task Binest{
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb
         String dockerImage
         String sampleId
         String binestCovPath = "~{sampleId}.binest.coverage.txt"
@@ -294,7 +294,7 @@ task Binest{
 
     runtime {
         cpu : threads
-        memory : memory_gb + "GB"
+        memory : memoryGb + "GB"
         docker : dockerImage
     }
 }
@@ -302,7 +302,7 @@ task Binest{
 task PlotBinCov{
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb
         String dockerImage
         String genome
         IndexedVcf genomeTemplates
@@ -325,7 +325,7 @@ task PlotBinCov{
 
     runtime {
         cpu : threads
-        memory : memory_gb + "GB"
+        memory : memoryGb + "GB"
         docker : dockerImage
     }
 }
@@ -333,7 +333,7 @@ task PlotBinCov{
 task Pileup{
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb
         String dockerImage
         String sampleId
         String pileupsTablePath = "~{sampleId}_pileups_table.table"
@@ -356,7 +356,7 @@ task Pileup{
 
     runtime {
         cpu : threads
-        memory : memory_gb + "GB"
+        memory : memoryGb + "GB"
         docker : dockerImage
     }
 }
@@ -364,7 +364,7 @@ task Pileup{
 task CalculateContamination{
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb
         String dockerImage
         String sampleId
         String contaminationTablePath = "~{sampleId}.contamination.table"
@@ -385,7 +385,7 @@ task CalculateContamination{
 
     runtime {
         cpu : threads
-        memory : memory_gb + "GB"
+        memory : memoryGb + "GB"
         docker : dockerImage
     }
 }
@@ -393,7 +393,7 @@ task CalculateContamination{
 task ConpairPileup{
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb
         String dockerImage
         IndexedReference referenceFa
         String sampleId
@@ -423,7 +423,7 @@ task ConpairPileup{
 
     runtime {
         cpu : threads
-        memory : memory_gb + "GB"
+        memory : memoryGb + "GB"
         docker : dockerImage
     }
 }

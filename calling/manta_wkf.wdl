@@ -20,7 +20,7 @@ workflow Manta {
         String mantaPath = "~{pairName}.manta.v1.4.0.vcf"
         String filteredMantafPath = "~{pairName}.manta.v1.4.0.filtered.vcf"
         # resources
-        Int memory_gb
+        Int memoryGb
         Int threads
         String mantaDockerImage
         String pysamDockerImage
@@ -35,7 +35,7 @@ workflow Manta {
             callRegions = callRegions,
             normalFinalBam = normalFinalBam,
             tumorFinalBam = tumorFinalBam,
-            memory_gb = memory_gb,
+            memoryGb = memoryGb,
             threads = threads,
             dockerImage = mantaDockerImage
     }
@@ -44,7 +44,7 @@ workflow Manta {
         input:
             inVcf = MantaWgs.somaticSV.vcf,
             jsonLog = jsonLog,
-            memory_gb = memory_gb,
+            memoryGb = memoryGb,
             threads = threads,
             dockerImage = pysamDockerImage
     }
@@ -55,7 +55,7 @@ workflow Manta {
             normal = normal,
             rawVcf = mantaAddVcfCommand.outVcf,
             orderedVcfPath = mantaPath,
-            memory_gb = memory_gb,
+            memoryGb = memoryGb,
             threads = threads,
             dockerImage = pysamDockerImage
     }
@@ -65,7 +65,7 @@ workflow Manta {
             referenceFa = referenceFa,
             pairName = pairName,
             vcf = mantaReorderVcfColumns.orderedVcf,
-            memory_gb = memory_gb,
+            memoryGb = memoryGb,
             threads = threads,
             dockerImage = gatkDockerImage
             
@@ -77,7 +77,7 @@ workflow Manta {
             normal = normal,
             rawVcf = FilterNonpass.outVcf,
             orderedVcfPath = FilterNonpass.outVcf,
-            memory_gb = memory_gb,
+            memoryGb = memoryGb,
             threads = threads,
             dockerImage = pysamDockerImage
     }

@@ -7,7 +7,7 @@ import "../wdl_structs.wdl"
 task CompressVcf {
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb
         String dockerImage
         File vcf
         String vcfCompressedPath = sub(vcf, "$", ".gz")
@@ -26,7 +26,7 @@ task CompressVcf {
 
     runtime {
         cpu : threads
-        memory : memory_gb + "GB"
+        memory : memoryGb + "GB"
         docker : dockerImage
     }
 }
@@ -34,7 +34,7 @@ task CompressVcf {
 task IndexVcf {
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb
         String dockerImage
         File vcfCompressed
     }
@@ -55,7 +55,7 @@ task IndexVcf {
 
     runtime {
         cpu : threads
-        memory : memory_gb + "GB"
+        memory : memoryGb + "GB"
         docker : dockerImage
     }
 }
@@ -66,7 +66,7 @@ task IndexVcf {
 task RenameMetadata {
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb
         String dockerImage
         String pairName
         File callerVcf
@@ -89,7 +89,7 @@ task RenameMetadata {
 
     runtime {
         cpu : threads
-        memory : memory_gb + "GB"
+        memory : memoryGb + "GB"
         docker : dockerImage
     }
 }
@@ -97,7 +97,7 @@ task RenameMetadata {
 task MergePrepSupport {
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb
         String dockerImage
         String pairName
         File renameMetaVcf
@@ -120,7 +120,7 @@ task MergePrepSupport {
 
     runtime {
         cpu : threads
-        memory : memory_gb + "GB"
+        memory : memoryGb + "GB"
         docker : dockerImage
     }
 }
@@ -128,7 +128,7 @@ task MergePrepSupport {
 task MergePrep{
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb
         String dockerImage
         String pairName
         File renameMetaVcf
@@ -150,7 +150,7 @@ task MergePrep{
 
     runtime {
         cpu : threads
-        memory : memory_gb + "GB"
+        memory : memoryGb + "GB"
         docker : dockerImage
     }
 }
@@ -158,7 +158,7 @@ task MergePrep{
 task RenameVcf {
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb
         String dockerImage
         File prepCallerVcf
         String pairName
@@ -184,7 +184,7 @@ task RenameVcf {
 
     runtime {
         cpu : threads
-        memory : memory_gb + "GB"
+        memory : memoryGb + "GB"
         docker : dockerImage
     }
 }
@@ -192,7 +192,7 @@ task RenameVcf {
 task SplitMultiAllelic {
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb
         String dockerImage
         String pairName
         String splitVcfPath
@@ -217,7 +217,7 @@ task SplitMultiAllelic {
 
     runtime {
         cpu : threads
-        memory : memory_gb + "GB"
+        memory : memoryGb + "GB"
         docker : dockerImage
     }
 }
@@ -225,7 +225,7 @@ task SplitMultiAllelic {
 task SplitMnv {
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb
         String dockerImage
         File splitVcf
         String mnvVcfPath = sub(splitVcf, ".split.vcf", ".split_mnvs.vcf")
@@ -246,7 +246,7 @@ task SplitMnv {
 
     runtime {
         cpu : threads
-        memory : memory_gb + "GB"
+        memory : memoryGb + "GB"
         docker : dockerImage
     }
 }
@@ -254,7 +254,7 @@ task SplitMnv {
 task RemoveContig {
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb
         String dockerImage
         String mnvVcfPath
         String removeChromVcfPath = "~{mnvVcfPath}"
@@ -274,7 +274,7 @@ task RemoveContig {
 
     runtime {
         cpu : threads
-        memory : memory_gb + "GB"
+        memory : memoryGb + "GB"
         docker : dockerImage
     }
 }
@@ -282,7 +282,7 @@ task RemoveContig {
 task Gatk4MergeSortVcf {
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb
         String dockerImage
         String sortedVcfPath
         Array[File] tempVcfs
@@ -307,7 +307,7 @@ task Gatk4MergeSortVcf {
 
     runtime {
         cpu : threads
-        memory : memory_gb + "GB"
+        memory : memoryGb + "GB"
         docker : dockerImage
     }
 }
@@ -317,7 +317,7 @@ task Gatk4MergeSortVcf {
 task MergeCallers {
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb
         String dockerImage
         String chrom
         String pairName
@@ -346,7 +346,7 @@ task MergeCallers {
 
     runtime {
         cpu : threads
-        memory : memory_gb + "GB"
+        memory : memoryGb + "GB"
         docker : dockerImage
     }
 }
@@ -355,7 +355,7 @@ task MergeCallers {
 task StartCandidates {
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb
         String dockerImage
         String pairName
         String chrom
@@ -380,7 +380,7 @@ task StartCandidates {
 
     runtime {
         cpu : threads
-        memory : memory_gb + "GB"
+        memory : memoryGb + "GB"
         docker : dockerImage
     }
 }
@@ -388,7 +388,7 @@ task StartCandidates {
 task GetCandidates {
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb
         String dockerImage
         String pairName
         String chrom
@@ -409,7 +409,7 @@ task GetCandidates {
 
     runtime {
         cpu : threads
-        memory : memory_gb + "GB"
+        memory : memoryGb + "GB"
         docker : dockerImage
     }
 }
@@ -417,7 +417,7 @@ task GetCandidates {
 task VcfToBed {
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb
         String dockerImage
         String pairName
         String chrom
@@ -440,7 +440,7 @@ task VcfToBed {
 
     runtime {
         cpu : threads
-        memory : memory_gb + "GB"
+        memory : memoryGb + "GB"
         docker : dockerImage
     }
 }
@@ -448,7 +448,7 @@ task VcfToBed {
 task LancetConfirm {
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb
         String dockerImage
         String pairName
         String chrom
@@ -487,7 +487,7 @@ task LancetConfirm {
 
     runtime {
         cpu : threads
-        memory : memory_gb + "GB"
+        memory : memoryGb + "GB"
         docker : dockerImage
     }
 }
@@ -495,7 +495,7 @@ task LancetConfirm {
 task IntersectVcfs {
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb
         String dockerImage
         String pairName
         String chrom
@@ -521,7 +521,7 @@ task IntersectVcfs {
 
     runtime {
         cpu : threads
-        memory : memory_gb + "GB"
+        memory : memoryGb + "GB"
         docker : dockerImage
     }
 }
@@ -529,7 +529,7 @@ task IntersectVcfs {
 task MergeColumns {
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb
         String dockerImage
         String pairName
         String chrom
@@ -554,7 +554,7 @@ task MergeColumns {
 
     runtime {
         cpu : threads
-        memory : memory_gb + "GB"
+        memory : memoryGb + "GB"
         docker : dockerImage
     }
 }
@@ -562,7 +562,7 @@ task MergeColumns {
 task AddNygcAlleleCountsToVcf {
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb
         String dockerImage
         String pairName
         String chrom
@@ -589,7 +589,7 @@ task AddNygcAlleleCountsToVcf {
 
     runtime {
         cpu : threads
-        memory : memory_gb + "GB"
+        memory : memoryGb + "GB"
         docker : dockerImage
     }
 }
@@ -597,7 +597,7 @@ task AddNygcAlleleCountsToVcf {
 task AddFinalAlleleCountsToVcf {
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb
         String dockerImage
         String pairName
         String chrom
@@ -618,7 +618,7 @@ task AddFinalAlleleCountsToVcf {
 
     runtime {
         cpu : threads
-        memory : memory_gb + "GB"
+        memory : memoryGb + "GB"
         docker : dockerImage
     }
 }
@@ -626,7 +626,7 @@ task AddFinalAlleleCountsToVcf {
 task FilterPon {
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb
         String dockerImage
         String chrom
         String pairName
@@ -650,7 +650,7 @@ task FilterPon {
 
     runtime {
         cpu : threads
-        memory : memory_gb + "GB"
+        memory : memoryGb + "GB"
         docker : dockerImage
     }
 }
@@ -658,7 +658,7 @@ task FilterPon {
 task FilterVcf {
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb
         String dockerImage
         String pairName
         String chrom
@@ -681,7 +681,7 @@ task FilterVcf {
 
     runtime {
         cpu : threads
-        memory : memory_gb + "GB"
+        memory : memoryGb + "GB"
         docker : dockerImage
     }
 }
@@ -689,7 +689,7 @@ task FilterVcf {
 task SnvstomnvsCountsbasedfilterAnnotatehighconf {
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb
         String dockerImage
         String pairName
         String chrom
@@ -710,7 +710,7 @@ task SnvstomnvsCountsbasedfilterAnnotatehighconf {
 
     runtime {
         cpu : threads
-        memory : memory_gb + "GB"
+        memory : memoryGb + "GB"
         docker : dockerImage
     }
 }
