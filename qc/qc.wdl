@@ -455,7 +455,7 @@ task ConpairPileup {
         String sampleId
         String pileupsConpairPath = "~{sampleId}_pileups_table.txt"
         Bam finalBam
-        File markerFile
+        File markerBedFile
     }
 
     command {
@@ -465,7 +465,7 @@ task ConpairPileup {
         -T Pileup \
         -R ~{referenceFa.fasta} \
         -I ~{finalBam.bam} \
-        -L ~{markerFile} \
+        -L ~{markerBedFile} \
         -o ~{pileupsConpairPath} \
         -verbose \
         -rf DuplicateRead \
@@ -475,6 +475,105 @@ task ConpairPileup {
 
     output {
         File pileupsConpair = "~{pileupsConpairPath}"
+    }
+
+    runtime {
+        cpu : threads
+        memory : memoryGb + "GB"
+        docker : dockerImage
+    }
+}
+
+task VerifyConcordanceAll {
+    input {
+        Int threads
+        Int memoryGb
+        String dockerImage
+        File pileupsTumorConpair
+        File pileupsNormalConpair
+        File markerTxtFile
+        String pairName
+        String concordanceAllPath = "~{pairName}.concordance.all.conpair-0.1.txt"
+    }
+
+    command {
+        verify_concordance.py \
+        -T ~{pileupsTumorConpair} \
+        -N ~{pileupsNormalConpair} \
+        -O ~{concordanceAllPath} \
+        -D "./" \
+        -M ~{markerTxtFile}
+    }
+
+    output {
+        File concordanceAll = "~{concordanceAllPath}"
+    }
+
+    runtime {
+        cpu : threads
+        memory : memoryGb + "GB"
+        docker : dockerImage
+    }
+}
+
+task VerifyConcordanceHomoz {
+    input {
+        Int threads
+        Int memoryGb
+        String dockerImage
+        File pileupsTumorConpair
+        File pileupsNormalConpair
+        File markerTxtFile
+        String pairName
+        String concordanceHomozPath = "~{pairName}.concordance.homoz.conpair-0.1.txt"
+    }
+
+    command {
+        verify_concordance.py \
+        -T ~{pileupsTumorConpair} \
+        -N ~{pileupsNormalConpair} \
+        -O ~{concordanceHomozPath} \
+        -D "./" \
+        -M ~{markerTxtFile} \
+        -H
+    }
+
+    output {
+        File concordanceHomoz = "~{concordanceHomozPath}"
+    }
+
+    runtime {
+        cpu : threads
+        memory : memoryGb + "GB"
+        docker : dockerImage
+    }
+}
+
+task Contamination {
+    input {
+        Int threads
+        Int memoryGb
+        String dockerImage
+        File pileupsTumorConpair
+        File pileupsNormalConpair
+        File markerTxtFile
+        String pairName
+        String contaminationPath = "~{pairName}.contamination.conpair-0.1.txt"
+    }
+
+    command {
+        verify_concordance.py \
+        -T ~{pileupsTumorConpair} \
+        -N ~{pileupsNormalConpair} \
+        -O ~{contaminationPath} \
+        -P 0.001 \
+        -Q 10 \
+        -D "./" \
+        -M ~{markerTxtFile}
+    }
+
+    output {
+        File contamination = "~{contaminationPath}"
     }
 
     runtime {
