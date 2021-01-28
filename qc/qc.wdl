@@ -203,7 +203,7 @@ task HsMetrics {
 task FormatHsMetrics {
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb
         String dockerImage
         String sampleId
         String HsMetricsPerTargetCoverageAutocorrPath = "~{sampleId}.HsMetrics.perTargetCoverage.txt.autocorr"
@@ -222,7 +222,7 @@ task FormatHsMetrics {
 
     runtime {
         cpu : threads
-        memory : memory_gb + "GB"
+        memory : memoryGb + "GB"
         docker : dockerImage
     }
 }
@@ -230,7 +230,7 @@ task FormatHsMetrics {
 task Autocorrelations {
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb
         String dockerImage
         String sampleId
         File HsMetricsPerTargetCoverageAutocorr
@@ -251,7 +251,7 @@ task Autocorrelations {
 
     runtime {
         cpu : threads
-        memory : memory_gb + "GB"
+        memory : memoryGb + "GB"
         docker : dockerImage
     }
 }
@@ -335,7 +335,7 @@ task Binest {
         String dockerImage
         String sampleId
         String binestCovPath = "~{sampleId}.binest.coverage.txt"
-        File finalBam
+        Bam finalBam
     }
 
     command {

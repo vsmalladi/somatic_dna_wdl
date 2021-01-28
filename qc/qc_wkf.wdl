@@ -16,6 +16,8 @@ workflow QcMetrics {
         
         File randomIntervals
         
+        File genomeTemplates
+        
         Int threads
         Int memoryGb
         String gatkDockerImage
@@ -47,7 +49,7 @@ workflow QcMetrics {
                 dockerImage = gatkDockerImage
     }
     
-    call qc.CollectGcBiasMetric {
+    call qc.CollectGcBiasMetrics {
             input:
                 referenceFa = referenceFa,
                 finalBam = finalBam,
@@ -115,8 +117,6 @@ workflow QcMetrics {
             threads = threads,
             dockerImage = gatkDockerImage
     }
-    
-    
     
     call qc.Binest {
             input:
