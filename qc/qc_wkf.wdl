@@ -28,73 +28,73 @@ workflow QcMetrics {
     }
     
     call qc.MultipleMetrics {
-            input:
-                MultipleMetricsBase = MultipleMetricsBase,
-                referenceFa = referenceFa,
-                finalBam = finalBam,
-                sampleId = sampleId,
-                memoryGb = memoryGb,
-                threads = threads,
-                dockerImage = gatkDockerImage
-        }
+        input:
+            MultipleMetricsBase = MultipleMetricsBase,
+            referenceFa = referenceFa,
+            finalBam = finalBam,
+            sampleId = sampleId,
+            memoryGb = memoryGb,
+            threads = threads,
+            dockerImage = gatkDockerImage
+    }
         
     call qc.MultipleMetricsPreBqsr {
-            input:
-                MultipleMetricsBasePreBqsrBasename = MultipleMetricsBasePreBqsrBasename,
-                referenceFa = referenceFa,
-                mergedDedupBam = mergedDedupBam,
-                sampleId = sampleId,
-                memoryGb = memoryGb,
-                threads = threads,
-                dockerImage = gatkDockerImage
+        input:
+            MultipleMetricsBasePreBqsrBasename = MultipleMetricsBasePreBqsrBasename,
+            referenceFa = referenceFa,
+            mergedDedupBam = mergedDedupBam,
+            sampleId = sampleId,
+            memoryGb = memoryGb,
+            threads = threads,
+            dockerImage = gatkDockerImage
     }
     
     call qc.CollectGcBiasMetrics {
-            input:
-                referenceFa = referenceFa,
-                finalBam = finalBam,
-                sampleId = sampleId,
-                memoryGb = memoryGb,
-                threads = threads,
-                dockerImage = gatkDockerImage
+        input:
+            referenceFa = referenceFa,
+            finalBam = finalBam,
+            sampleId = sampleId,
+            memoryGb = memoryGb,
+            threads = threads,
+            dockerImage = gatkDockerImage
     }
     
     call qc.Flagstat {
-            input:
-                referenceFa = referenceFa,
-                finalBam = finalBam,
-                sampleId = sampleId,
-                memoryGb = memoryGb,
-                threads = threads,
-                dockerImage = gatkDockerImage
+        input:
+            referenceFa = referenceFa,
+            finalBam = finalBam,
+            sampleId = sampleId,
+            memoryGb = memoryGb,
+            threads = threads,
+            dockerImage = gatkDockerImage
     }
     
     call qc.HsMetrics {
-            input:
-                referenceFa = referenceFa,
-                finalBam = finalBam,
-                sampleId = sampleId,
-                memoryGb = memoryGb,
-                threads = threads,
-                dockerImage = gatkDockerImage
+        input:
+            referenceFa = referenceFa,
+            finalBam = finalBam,
+            sampleId = sampleId,
+            memoryGb = memoryGb,
+            threads = threads,
+            dockerImage = gatkDockerImage
     }
     
     call qc.FormatHsMetrics {
-            input:
-                HsMetricsPerTargetCoverage = HsMetrics.HsMetricsPerTargetCoverage,
-                sampleId = sampleId,
-                memoryGb = memoryGb,
-                threads = threads,
-                dockerImage = perlDockerImage
+        input:
+            HsMetricsPerTargetCoverage = HsMetrics.HsMetricsPerTargetCoverage,
+            sampleId = sampleId,
+            memoryGb = memoryGb,
+            threads = threads,
+            dockerImage = perlDockerImage
     }
     
     call qc.Autocorrelations {
-            input:
-                HsMetricsPerTargetCoverageAutocorr = FormatHsMetrics.HsMetricsPerTargetCoverageAutocorr,
-                sampleId = sampleId,
-                memoryGb = memoryGb,
-                threads = threads,
-                dockerImage = rDockerImage
+        input:
+            HsMetricsPerTargetCoverageAutocorr = FormatHsMetrics.HsMetricsPerTargetCoverageAutocorr,
+            sampleId = sampleId,
+            memoryGb = memoryGb,
+            threads = threads,
+            dockerImage = rDockerImage
     }
     
     call qc.CollectOxoGMetricsWgs {
@@ -119,20 +119,20 @@ workflow QcMetrics {
     }
     
     call qc.Binest {
-            input:
-                finalBam = finalBam,
-                sampleId = sampleId,
-                memoryGb = memoryGb,
-                threads = threads,
-                dockerImage = binestDockerImage
+        input:
+            finalBam = finalBam,
+            sampleId = sampleId,
+            memoryGb = memoryGb,
+            threads = threads,
+            dockerImage = binestDockerImage
     }
     
     call qc.PlotBinCov {
-            input:
-                genomeTemplates = genomeTemplates,
-                sampleId = sampleId,
-                memoryGb = memoryGb,
-                threads = threads,
-                dockerImage = rDockerImage
+        input:
+            genomeTemplates = genomeTemplates,
+            sampleId = sampleId,
+            memoryGb = memoryGb,
+            threads = threads,
+            dockerImage = rDockerImage
     }
 }
