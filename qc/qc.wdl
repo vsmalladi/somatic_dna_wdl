@@ -446,6 +446,37 @@ task CalculateContamination {
     }
 }
 
+task CalculateContaminationPaired {
+    input {
+        Int threads
+        Int memoryGb
+        String dockerImage
+        String pairName
+        String contaminationTablePath = "~{pairName}.contamination.table"
+        File pileupsNormalTable
+        File pileupsTumorTable
+    }
+
+    command {
+        gatk \
+        --java-options "-Xmx30g" \
+        CalculateContamination \
+        -I ~{pileupsTumorTable} \
+        -matched ~{pileupsNormalTable} \
+        -O ~{contaminationTablePath}
+    }
+
+    output {
+        File contaminationTable = "~{contaminationTablePath}"
+    }
+
+    runtime {
+        cpu : threads
+        memory : memoryGb + "GB"
+        docker : dockerImage
+    }
+}
+
 task ConpairPileup {
     input {
         Int threads
