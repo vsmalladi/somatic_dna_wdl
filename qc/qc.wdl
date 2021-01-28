@@ -200,6 +200,63 @@ task HsMetrics {
     }
 }
 
+task FormatHsMetrics {
+    input {
+        Int threads
+        Int memory_gb
+        String dockerImage
+        String sampleId
+        String HsMetricsPerTargetCoverageAutocorrPath = "~{sampleId}.HsMetrics.perTargetCoverage.txt.autocorr"
+        File HsMetricsPerTargetCoverage
+    }
+
+    command {
+        create_autocorrelation_input.v.0.1.pl \
+        -input ~{HsMetricsPerTargetCoverage} \
+        > ~{HsMetricsPerTargetCoverageAutocorrPath} \
+    }
+
+    output {
+        File HsMetricsPerTargetCoverageAutocorr = "~{HsMetricsPerTargetCoverageAutocorrPath}"
+    }
+
+    runtime {
+        cpu : threads
+        memory : memory_gb + "GB"
+        docker : dockerImage
+    }
+}
+
+task Autocorrelations {
+    input {
+        Int threads
+        Int memory_gb
+        String dockerImage
+        String sampleId
+        File HsMetricsPerTargetCoverageAutocorr
+    }
+
+    command {
+        R --no-save \
+        --args \
+        "./" \
+        ~{HsMetricsPerTargetCoverageAutocorr} \
+        ~{sampleId} \
+        < ASP_modified_final.v.0.1.R \
+    }
+
+    output {
+        File autocorroutput1100 = "~{sampleId}.autocorroutput.1.100.txt"
+    }
+
+    runtime {
+        cpu : threads
+        memory : memory_gb + "GB"
+        docker : dockerImage
+    }
+}
+
+
 task CollectOxoGMetricsWgs {
     input {
         Int threads
@@ -278,13 +335,13 @@ task Binest {
         String dockerImage
         String sampleId
         String binestCovPath = "~{sampleId}.binest.coverage.txt"
-        File finalBai
+        File finalBam
     }
 
     command {
         binest \
         size \
-        ~{finalBai} \
+        ~{finalBam.bamIndex} \
         > ~{binestCovPath}
     }
 
