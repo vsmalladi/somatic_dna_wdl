@@ -2,7 +2,7 @@ version 1.0
 
 import "../wdl_structs.wdl"
 
-task MultipleMetrics{
+task MultipleMetrics {
     input {
         Int threads
         Int memoryGb
@@ -47,7 +47,7 @@ task MultipleMetrics{
     }
 }
 
-task MultipleMetricsPreBqsr{
+task MultipleMetricsPreBqsr {
     input {
         Int threads
         Int memoryGb
@@ -86,7 +86,7 @@ task MultipleMetricsPreBqsr{
     }
 }
 
-task CollectGcBiasMetrics{
+task CollectGcBiasMetrics {
     input {
         Int threads
         Int memoryGb
@@ -113,9 +113,9 @@ task CollectGcBiasMetrics{
     }
 
     output {
-        File gcBiasMetrics = "~{sampleId}.GcBiasMetrics.gc_bias_metrics"
-        File gcBiasSummary = "~{sampleId}.GcBiasMetrics.gc_bias_summary"
-        File gcBiasPdf = "~{sampleId}.GcBiasMetrics.gc_bias.pdf"
+        File gcBiasMetrics = "~{gcBiasMetricsPath}"
+        File gcBiasSummary = "~{gcBiasSummaryPath}"
+        File gcBiasPdf = "~{gcBiasPdfPath}"
     }
 
     runtime {
@@ -125,7 +125,7 @@ task CollectGcBiasMetrics{
     }
 }
 
-task Flagstat{
+task Flagstat {
     input {
         Int threads
         Int memoryGb
@@ -147,7 +147,7 @@ task Flagstat{
     }
 
     output {
-        File FlagStat = "~{sampleId}.FlagStat.txt"
+        File FlagStat = "~{FlagStatPath}"
     }
 
     runtime {
@@ -157,7 +157,7 @@ task Flagstat{
     }
 }
 
-task HsMetrics{
+task HsMetrics {
     input {
         Int threads
         Int memoryGb
@@ -189,8 +189,8 @@ task HsMetrics{
     }
 
     output {
-        File HsMetrics = "~{sampleId}.HsMetrics.txt"
-        File HsMetricsPerTargetCoverage = "~{sampleId}.HsMetrics.perTargetCoverage.txt"
+        File HsMetrics = "~{HsMetricsPath}"
+        File HsMetricsPerTargetCoverage = "~{HsMetricsPerTargetCoveragePath}"
     }
 
     runtime {
@@ -200,7 +200,7 @@ task HsMetrics{
     }
 }
 
-task CollectOxoGMetricsWgs{
+task CollectOxoGMetricsWgs {
     input {
         Int threads
         Int memoryGb
@@ -222,7 +222,7 @@ task CollectOxoGMetricsWgs{
     }
 
     output {
-        File CollectOxoGMetrics = "~{sampleId}.CollectOxoGMetrics.txt"
+        File CollectOxoGMetrics = "~{CollectOxoGMetricsPath}"
     }
 
     runtime {
@@ -232,7 +232,7 @@ task CollectOxoGMetricsWgs{
     }
 }
 
-task CollectWgsMetricsWgsDecoy{
+task CollectWgsMetricsWgsDecoy {
     input {
         Int threads
         Int memoryGb
@@ -261,7 +261,7 @@ task CollectWgsMetricsWgsDecoy{
     }
 
     output {
-        File CollectWgsMetrics = "~{sampleId}.CollectWgsMetrics.txt"
+        File CollectWgsMetrics = "~{CollectWgsMetricsPath}"
     }
 
     runtime {
@@ -271,7 +271,7 @@ task CollectWgsMetricsWgsDecoy{
     }
 }
 
-task Binest{
+task Binest {
     input {
         Int threads
         Int memoryGb
@@ -289,37 +289,6 @@ task Binest{
     }
 
     output {
-        File binestCov = "~{sampleId}.binest.coverage.txt"
-    }
-
-    runtime {
-        cpu : threads
-        memory : memoryGb + "GB"
-        docker : dockerImage
-    }
-}
-
-task PlotBinCov{
-    input {
-        Int threads
-        Int memoryGb
-        String dockerImage
-        String genome
-        IndexedVcf genomeTemplates
-        String sampleId
-        String binestCovPath = "~{sampleId}.binest.coverage.txt"
-    }
-
-    command {
-        plot_bin_cov.R \
-        "--binestOutput=~{binestCovPath}" \
-        "--genome=~{genome}" \
-        "--genomeTemplates=~{genomeTemplates.vcf}" \
-        "--sample=~{sampleId}"
-    }
-
-    output {
-        File normCoverageByChrPng = "~{sampleId}.binest.coverage.png"
         File binestCov = "~{binestCovPath}"
     }
 
@@ -330,7 +299,37 @@ task PlotBinCov{
     }
 }
 
-task Pileup{
+task PlotBinCov {
+    input {
+        Int threads
+        Int memoryGb
+        String dockerImage
+        String genome
+        File genomeTemplates
+        String sampleId
+        File binestCov
+    }
+
+    command {
+        plot_bin_cov.R \
+        "--binestOutput=~{binestCov}" \
+        "--genome=~{genome}" \
+        "--genomeTemplates=~{genomeTemplates}" \
+        "--sample=~{sampleId}"
+    }
+
+    output {
+        File normCoverageByChrPng = "~{sampleId}.binest.coverage.png"
+    }
+
+    runtime {
+        cpu : threads
+        memory : memoryGb + "GB"
+        docker : dockerImage
+    }
+}
+
+task Pileup {
     input {
         Int threads
         Int memoryGb
@@ -351,7 +350,7 @@ task Pileup{
     }
 
     output {
-        File pileupsTable = "~{sampleId}_pileups_table.table"
+        File pileupsTable = "~{pileupsTablePath}"
     }
 
     runtime {
@@ -361,7 +360,7 @@ task Pileup{
     }
 }
 
-task CalculateContamination{
+task CalculateContamination {
     input {
         Int threads
         Int memoryGb
@@ -380,7 +379,7 @@ task CalculateContamination{
     }
 
     output {
-        File contaminationTable = "~{sampleId}.contamination.table"
+        File contaminationTable = "~{contaminationTablePath}"
     }
 
     runtime {
@@ -390,7 +389,7 @@ task CalculateContamination{
     }
 }
 
-task ConpairPileup{
+task ConpairPileup {
     input {
         Int threads
         Int memoryGb
@@ -418,7 +417,7 @@ task ConpairPileup{
     }
 
     output {
-        File pileupsConpair = "~{sampleId}.pileup.conpair-v.0.1.txt"
+        File pileupsConpair = "~{pileupsConpairPath}"
     }
 
     runtime {
