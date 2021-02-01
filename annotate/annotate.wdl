@@ -410,7 +410,7 @@ task GermVep {
         --custom ~{customMitomapDisease} \
         --custom ~{customMtFuncLoc} \
         --input_file ~{vcfCompressed.vcf} \
-        --output_file ~{vcfAnnotatedVepPath} \
+        --output_file ~{vcfAnnotatedVepPath}
     }
 
     output {

@@ -45,9 +45,6 @@ workflow AnnotateGermline {
         
         String vepFathmmDockerImage
         String pysamDockerImage
-        String gatkDockerImage
-        String bgzipDockerImage
-        String bcftoolsDockerImage
         Int threads
         Int memoryGb
         IndexedReference referenceFa
