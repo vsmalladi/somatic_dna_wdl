@@ -26,7 +26,6 @@ workflow Baf {
             memoryGb = memoryGb,
             threads = threads,
             dockerImage = bcftoolsDockerImage
-        
     }
     
     call baf.FilterForHetSnps {
@@ -37,7 +36,6 @@ workflow Baf {
             memoryGb = memoryGb,
             threads = threads,
             dockerImage = gatkDockerImage
-        
     }
     
     call baf.FilterBaf {
@@ -59,7 +57,6 @@ workflow Baf {
             memoryGb = memoryGb,
             threads = threads,
             dockerImage = pysamDockerImage
-        
     }
     
     call baf.CalcBaf {
