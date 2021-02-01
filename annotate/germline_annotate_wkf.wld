@@ -3,9 +3,6 @@ version 1.0
 import "../wdl_structs.wdl"
 import "../annotate/annotate.wdl"
 
-#import "../germline/germline.wdl"
-#import "../calling/calling.wdl"
-#import "../merge_vcf/merge_vcf.wdl"
 
 workflow AnnotateGermline {
     # command 
@@ -83,5 +80,48 @@ workflow AnnotateGermline {
             memoryGb = memoryGb,
             threads = threads,
             dockerImage = vepFathmmDockerImage
+    }
+    
+    call annotate.AddCosmic {
+        input:
+            pairName = sampleId,
+            cosmicCensus = cosmicCensus,
+            vcfAnnotatedVep = GermVep.vcfAnnotatedVep,
+            memoryGb = memoryGb,
+            threads = threads,
+            dockerImage = pysamDockerImage
+    }
+    
+    call annotate.AddCancerResistanceMutations {
+        input:
+            pairName = sampleId,
+            cancerResistanceMutations = cancerResistanceMutations,
+            genome = genome,
+            vcfAnnotatedCancerGeneCensus = AddCosmic.vcfAnnotatedCancerGeneCensus,
+            memoryGb = memoryGb,
+            threads = threads,
+            dockerImage = pysamDockerImage
+    }
+    
+    call annotate.AnnotateId {
+        input:
+            pairName = sampleId,
+            vcfAnnotatedResistance = AddCancerResistanceMutations.vcfAnnotatedResistance,
+            memoryGb = memoryGb,
+            threads = threads,
+            dockerImage = pysamDockerImage
+    }
+    
+    call annotate.RenameCsqVcf {
+        input:
+            pairName = sampleId,
+            vcfAnnotatedId = AnnotateId.vcfAnnotatedId,
+            memoryGb = memoryGb,
+            threads = threads,
+            dockerImage = pysamDockerImage
+    }
+
+    output {
+        File finalGermlineVcf = RenameCsqVcf.vcfCsqRenamed
     }
 }
