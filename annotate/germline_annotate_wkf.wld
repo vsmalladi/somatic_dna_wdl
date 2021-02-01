@@ -1,0 +1,87 @@
+version 1.0
+
+import "../wdl_structs.wdl"
+import "../annotate/annotate.wdl"
+
+#import "../germline/germline.wdl"
+#import "../calling/calling.wdl"
+#import "../merge_vcf/merge_vcf.wdl"
+
+workflow AnnotateGermline {
+    # command 
+    input {
+        String normal
+        String sampleId = "~{normal}"
+        IndexedVcf haplotypecallerNormVcf
+        
+        String vepVersion
+        IndexedVcf cosmicCoding
+        IndexedVcf cosmicNoncoding
+        IndexedVcf vepClinvarXMLTrait
+        IndexedTable vepCaddSnp
+        IndexedVcf vepGnomadExomes
+        IndexedVcf vcfCompressed
+        IndexedTable vepCaddIndel
+        IndexedVcf vepGnomadGenomes
+        IndexedReference vepFastaReference
+        
+        File phylop100
+        File phastcons100
+        IndexedVcf clinvarXMLDisease
+        IndexedVcf acmg
+        IndexedVcf pgx
+        IndexedVcf arExtended
+        IndexedVcf revel
+        IndexedVcf ccrs
+        IndexedVcf mitimpact
+        IndexedVcf mitomapDisease
+        IndexedVcf mitomapPolymorphisms
+        IndexedVcf mtFuncLoc
+        
+        File cosmicCensus
+        
+        File cancerResistanceMutations
+        String genome
+        
+        File ensemblEntrez
+        String library
+        
+        String vepFathmmDockerImage
+        String pysamDockerImage
+        String gatkDockerImage
+        String bgzipDockerImage
+        String bcftoolsDockerImage
+        Int threads
+        Int memoryGb
+        IndexedReference referenceFa
+    }
+    
+    call annotate.GermVep {
+        input:
+            sampleId = sampleId,
+            vcfCompressed = haplotypecallerNormVcf,
+            vepVersion = vepVersion,
+            cosmicCoding = cosmicCoding,
+            cosmicNoncoding = cosmicNoncoding,
+            vepClinvarXMLTrait = vepClinvarXMLTrait,
+            vepCaddSnp = vepCaddSnp,
+            vepGnomadExomes = vepGnomadExomes,
+            vepCaddIndel = vepCaddIndel,
+            vepGnomadGenomes = vepGnomadGenomes,
+            phylop100 = phylop100,
+            phastcons100 = phastcons100,
+            clinvarXMLDisease = clinvarXMLDisease,
+            acmg = acmg,
+            pgx = pgx,
+            arExtended = arExtended,
+            revel = revel,
+            ccrs = ccrs,
+            mitimpact = mitimpact,
+            mitomapDisease = mitomapDisease,
+            mitomapPolymorphisms = mitomapPolymorphisms,
+            mtFuncLoc = mtFuncLoc,
+            memoryGb = memoryGb,
+            threads = threads,
+            dockerImage = vepFathmmDockerImage
+    }
+}
