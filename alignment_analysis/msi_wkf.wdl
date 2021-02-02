@@ -1,6 +1,6 @@
 version 1.0
 
-import "bam_analysis.wdl" as bam_analysis
+import "alignment_analysis.wdl" as alignment_analysis
 import "../wdl_structs.wdl"
 
 workflow Msi {
@@ -21,7 +21,7 @@ workflow Msi {
         Int memoryGb
     }
     
-    call bam_analysis.BedtoolsIntersect {
+    call alignment_analysis.BedtoolsIntersect {
         input:
             mantisBedByIntervalListPath = mantisBedByIntervalListPath,
             mantisBed = mantisBed,
@@ -31,7 +31,7 @@ workflow Msi {
             dockerImage = bedtoolsDockerImage
     }
     
-    call bam_analysis.MantisExome {
+    call alignment_analysis.MantisExome {
         input:
             tumorFinalBam = tumorFinalBam,
             normalFinalBam = normalFinalBam,
@@ -42,7 +42,7 @@ workflow Msi {
             referenceFa = referenceFa
     }
     
-    call bam_analysis.MantisRethreshold {
+    call alignment_analysis.MantisRethreshold {
         input:
             normal = normal,
             pairName = pairName,
