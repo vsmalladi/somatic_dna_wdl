@@ -1,6 +1,6 @@
 version 1.0
 
-import "calling_analysis.wdl" as calling_analysis
+import "variant_analysis.wdl" as variant_analysis
 import "../wdl_structs.wdl"
 
 workflow DeconstructSig {
@@ -20,7 +20,7 @@ workflow DeconstructSig {
         String bcftoolsDockerImage
     }
     
-    call calling_analysis.DeconstructsigPrep38 {
+    call variant_analysis.DeconstructsigPrep38 {
         input:
             mainVcf = mainVcf,
             header = header,
@@ -31,7 +31,7 @@ workflow DeconstructSig {
         
     }
     
-    call calling_analysis.Deconstructsig {
+    call variant_analysis.Deconstructsig {
         input:
             highconfidence = DeconstructsigPrep38.highconfidence,
             deconstructsigsBs = deconstructsigsBs,
