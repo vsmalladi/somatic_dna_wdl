@@ -13,7 +13,7 @@ struct BwaReference {
     File bwt
     File ann
     File alt
-    File amb    
+    File amb
 }
 
 struct IndexedReference {
@@ -24,11 +24,14 @@ struct IndexedReference {
 
 struct Fastqs {
     File fastqR1
-    String bamBase
-    String rgInfo
     String? md5sumR1
     File fastqR2
-    String? md5sumR1
+    String? md5sumR2
+    String sampleId
+    String readgroupId
+    String flowcell
+    String lane
+    String barcode
 }
 
 struct IndexedVcf {

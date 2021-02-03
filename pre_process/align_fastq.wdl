@@ -7,7 +7,7 @@ task AlignBwaMem {
     # command
     Fastqs fastqs
     BwaReference bwaReference
-    String laneBamPath = "~{fastqs.bamBase}.readgroup.bam"
+    String laneBamPath = "~{fastqs.readgroupId}.readgroup.bam"
     # resources
     Int mem
     Int threads
@@ -20,7 +20,7 @@ task AlignBwaMem {
         -Y \
         -K 100000000 \
         -t ~{threads} \
-        -R ~{fastqs.rgInfo} \
+        -R '@RG\tID:~{fastqs.readgroupId}\tPL:illumina\tPM:NovaSeq\tLB:~{fastqs.sampleId}\tDS:hg38\tSM:~{fastqs.sampleId}\tCN:NYGenome\tPU:${fastqs.flowcell}.${fastqs.lane}.${fastqs.barcode}' \
         ~{bwaReference.fasta} \
         ~{fastqs.fastqR1} \
         ~{fastqs.fastqR2} \
@@ -37,7 +37,7 @@ task AlignBwaMem {
 
     runtime {
         cpu : threads
-        memory : mem
+        memory : mem + " GB"
         docker : dockerImage
     }
 }
@@ -71,7 +71,7 @@ task ShortAlignMark {
     }
 
     runtime {
-        memory : mem
+        memory : mem + " GB"
         docker : dockerImage
     }
 }
@@ -90,8 +90,7 @@ task Fixmate {
     command {
         gatk \
         FixMateInformation \
-        --java-options \
-        -Xmx24g -XX:ParallelGCThreads=1 \
+        --java-options -XX:ParallelGCThreads=1 \
         --MAX_RECORDS_IN_RAM 2000000 \
         --VALIDATION_STRINGENCY SILENT \
         --ADD_MATE_CIGAR true \
@@ -105,7 +104,7 @@ task Fixmate {
     }
 
     runtime {
-        memory : mem
+        memory : mem + " GB"
         docker : dockerImage
     }
 }

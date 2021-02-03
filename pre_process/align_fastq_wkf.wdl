@@ -10,7 +10,7 @@ workflow AlignFastq {
         Array[Fastqs]+ listOfFastqPairs
         BwaReference bwaReference
         # resources
-        Int mem
+        Int bwaMem
         Int threads
         String bwaDockerImage
         String shortAlignDockerImage
@@ -23,7 +23,7 @@ workflow AlignFastq {
             input:
                 fastqs = fastqs,
                 bwaReference = bwaReference,
-                mem = mem,
+                mem = bwaMem,
                 threads = threads,
                 dockerImage = bwaDockerImage
         }
@@ -31,22 +31,21 @@ workflow AlignFastq {
         call alignFastq.ShortAlignMark {
             input:
                 laneBam = AlignBwaMem.laneBam,
-                bamBase = fastqs.bamBase,
-                mem = mem,
+                bamBase = fastqs.readgroupId,
+                mem = 16,
                 dockerImage = shortAlignDockerImage
         }
 
         call alignFastq.Fixmate {
             input:
                 laneBamMark = ShortAlignMark.laneBamMark,
-                bamBase = fastqs.bamBase,
-                mem = mem,
+                bamBase = fastqs.readgroupId,
+                mem = 8,
                 dockerImage = gatkDockerImage
         }
     }
 
     output {
         Array[File] laneFixmateBam = Fixmate.laneFixmateBam
-        Array[String] laneFixmateBamPath = Fixmate.laneFixmateBamPath
     }
 }

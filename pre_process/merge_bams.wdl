@@ -5,8 +5,7 @@ import "../wdl_structs.wdl"
 task NovosortMarkDup {
    input {
     # command
-    Array[Bam]+ laneBams
-    Array[String]+ laneBamsLists
+    Array[File]+ laneBams
     String sampleId
     String mergedDedupBamPath = "~{sampleId}.merged_dedup.bam"
     # resources
@@ -16,23 +15,26 @@ task NovosortMarkDup {
    }
 
     command {
-        novosort \
+        /bin/novosort \
         -c ~{threads} \
-        -m ~{mem} \
+        -m 9216M \
         -i \
-        -o mergedDedupBamPath \
+        -o ~{mergedDedupBamPath} \
         --forcesort \
         --markDuplicates \
-        ${sep=' ' laneBamsLists}
+        ${sep=' ' laneBams}
     }
-    
+
     output {
-        File mergedDedupBamOnly = mergedDedupBamPath
+        Bam mergedDedupBam = object {
+            bam : mergedDedupBamPath,
+            bamIndex : mergedDedupBamPath + ".bai"
+        }
     }
-    
+
     runtime {
         cpu : threads
-        memory : mem
+        memory : mem + " GB"
         docker : dockerImage
     }
 }
@@ -50,14 +52,14 @@ task IndexBam {
         index \
         ~{bam}
     }
-    
+
     output {
         Bam indexedBam = object {
-                bam : bam, 
+                bam : bam,
                 bamIndex : sub(bam, ".bam$", ".bai")
             }
     }
-    
+
     runtime {
         docker : dockerImage
     }
@@ -83,23 +85,23 @@ task Bqsr38 {
     command {
         gatk \
         BaseRecalibrator \
-        --java-options "-Xmx24576m -XX:ParallelGCThreads=1" \
+        --java-options "-XX:ParallelGCThreads=1" \
         -L ~{chromFile} \
         -R ~{indexedReference.fasta} \
         -I ~{mergedDedupBam.bam} \
         -O ~{recalGrpPath} \
-        --known-sites ~{MillsAnd1000G} \
-        --known-sites ~{Indels} \
-        --known-sites ~{DbSnp}
+        --known-sites ~{MillsAnd1000G.vcf} \
+        --known-sites ~{Indels.vcf} \
+        --known-sites ~{DbSnp.vcf}
     }
-    
+
     output {
         File recalGrp = recalGrpPath
     }
-    
+
     runtime {
         cpu : threads
-        memory : mem
+        memory : mem + " GB"
         docker : dockerImage
     }
 }
@@ -127,14 +129,14 @@ task PrintReads {
         -O ~{finalBamPath} \
         --bqsr-recal-file ~{recalGrp}
     }
-    
+
     output {
         Bam finalBam = object {
-                bam : finalBamPath, 
+                bam : finalBamPath,
                 bamIndex : sub(finalBamPath, ".bam$", ".bai")
             }
     }
-    
+
     runtime {
         cpu : threads
         memory : mem

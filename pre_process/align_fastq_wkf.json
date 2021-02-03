@@ -1,7 +1,7 @@
 {
-  "AlignFastq.mem": 8,
+  "AlignFastq.mem": "8 GB",
   "AlignFastq.threads": 8,
-  "AlignFastq.bwaDockerImage": "gcr.io/nygc-public/bwa-kit:0.7.15",
+  "AlignFastq.bwaDockerImage": "gcr.io/nygc-public/genome-utils:v8",
   "AlignFastq.shortAlignDockerImage": "gcr.io/nygc-public/nygc-short-alignment-marking:v2.1",
   "AlignFastq.gatkDockerImage":"us.gcr.io/broad-gatk/gatk:4.1.1.0",
   "AlignFastq.bwaReference": {
@@ -19,6 +19,6 @@
     "fastqR1": "gs://nygc-comp-s-82ed-input/WGS/NA12878-tiny/fastq/NA12878-tiny_001.R1.fastq.gz",
     "fastqR2": "gs://nygc-comp-s-82ed-input/WGS/NA12878-tiny/fastq/NA12878-tiny_001.R2.fastq.gz",
     "bamBase": "NA12878-tiny_001",
-    "rgInfo": "\"@RG\tID:NA12878_L001\tPL:ilumina\tPU:NovaSeq\tLB:NA12878\tDS:GRCh38_decoy\tSM:NA12878\tCN:NYGenome\""
+    "rgInfo": "'@RG\tID:NA12878_L001\tPL:ilumina\tPU:NovaSeq\tLB:NA12878\tDS:GRCh38_decoy\tSM:NA12878\tCN:NYGenome'"
   }]
 }
