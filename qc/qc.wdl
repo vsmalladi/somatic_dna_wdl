@@ -2,7 +2,7 @@ version 1.0
 
 import "../wdl_structs.wdl"
 
-task MultipleMetrics{
+task MultipleMetrics {
     input {
         Int threads
         Int memoryGb
@@ -47,7 +47,7 @@ task MultipleMetrics{
     }
 }
 
-task MultipleMetricsPreBqsr{
+task MultipleMetricsPreBqsr {
     input {
         Int threads
         Int memoryGb
@@ -86,7 +86,7 @@ task MultipleMetricsPreBqsr{
     }
 }
 
-task CollectGcBiasMetrics{
+task CollectGcBiasMetrics {
     input {
         Int threads
         Int memoryGb
@@ -113,9 +113,9 @@ task CollectGcBiasMetrics{
     }
 
     output {
-        File gcBiasMetrics = "~{sampleId}.GcBiasMetrics.gc_bias_metrics"
-        File gcBiasSummary = "~{sampleId}.GcBiasMetrics.gc_bias_summary"
-        File gcBiasPdf = "~{sampleId}.GcBiasMetrics.gc_bias.pdf"
+        File gcBiasMetrics = "~{gcBiasMetricsPath}"
+        File gcBiasSummary = "~{gcBiasSummaryPath}"
+        File gcBiasPdf = "~{gcBiasPdfPath}"
     }
 
     runtime {
@@ -125,7 +125,7 @@ task CollectGcBiasMetrics{
     }
 }
 
-task Flagstat{
+task Flagstat {
     input {
         Int threads
         Int memoryGb
@@ -147,7 +147,7 @@ task Flagstat{
     }
 
     output {
-        File FlagStat = "~{sampleId}.FlagStat.txt"
+        File FlagStat = "~{FlagStatPath}"
     }
 
     runtime {
@@ -157,7 +157,7 @@ task Flagstat{
     }
 }
 
-task HsMetrics{
+task HsMetrics {
     input {
         Int threads
         Int memoryGb
@@ -189,8 +189,8 @@ task HsMetrics{
     }
 
     output {
-        File HsMetrics = "~{sampleId}.HsMetrics.txt"
-        File HsMetricsPerTargetCoverage = "~{sampleId}.HsMetrics.perTargetCoverage.txt"
+        File HsMetrics = "~{HsMetricsPath}"
+        File HsMetricsPerTargetCoverage = "~{HsMetricsPerTargetCoveragePath}"
     }
 
     runtime {
@@ -200,7 +200,64 @@ task HsMetrics{
     }
 }
 
-task CollectOxoGMetricsWgs{
+task FormatHsMetrics {
+    input {
+        Int threads
+        Int memoryGb
+        String dockerImage
+        String sampleId
+        String HsMetricsPerTargetCoverageAutocorrPath = "~{sampleId}.HsMetrics.perTargetCoverage.txt.autocorr"
+        File HsMetricsPerTargetCoverage
+    }
+
+    command {
+        create_autocorrelation_input.v.0.1.pl \
+        -input ~{HsMetricsPerTargetCoverage} \
+        > ~{HsMetricsPerTargetCoverageAutocorrPath} \
+    }
+
+    output {
+        File HsMetricsPerTargetCoverageAutocorr = "~{HsMetricsPerTargetCoverageAutocorrPath}"
+    }
+
+    runtime {
+        cpu : threads
+        memory : memoryGb + "GB"
+        docker : dockerImage
+    }
+}
+
+task Autocorrelations {
+    input {
+        Int threads
+        Int memoryGb
+        String dockerImage
+        String sampleId
+        File HsMetricsPerTargetCoverageAutocorr
+    }
+
+    command {
+        R --no-save \
+        --args \
+        "./" \
+        ~{HsMetricsPerTargetCoverageAutocorr} \
+        ~{sampleId} \
+        < ASP_modified_final.v.0.1.R \
+    }
+
+    output {
+        File autocorroutput1100 = "~{sampleId}.autocorroutput.1.100.txt"
+    }
+
+    runtime {
+        cpu : threads
+        memory : memoryGb + "GB"
+        docker : dockerImage
+    }
+}
+
+
+task CollectOxoGMetricsWgs {
     input {
         Int threads
         Int memoryGb
@@ -222,7 +279,7 @@ task CollectOxoGMetricsWgs{
     }
 
     output {
-        File CollectOxoGMetrics = "~{sampleId}.CollectOxoGMetrics.txt"
+        File CollectOxoGMetrics = "~{CollectOxoGMetricsPath}"
     }
 
     runtime {
@@ -232,7 +289,7 @@ task CollectOxoGMetricsWgs{
     }
 }
 
-task CollectWgsMetricsWgsDecoy{
+task CollectWgsMetricsWgsDecoy {
     input {
         Int threads
         Int memoryGb
@@ -261,7 +318,7 @@ task CollectWgsMetricsWgsDecoy{
     }
 
     output {
-        File CollectWgsMetrics = "~{sampleId}.CollectWgsMetrics.txt"
+        File CollectWgsMetrics = "~{CollectWgsMetricsPath}"
     }
 
     runtime {
@@ -271,55 +328,24 @@ task CollectWgsMetricsWgsDecoy{
     }
 }
 
-task Binest{
+task Binest {
     input {
         Int threads
         Int memoryGb
         String dockerImage
         String sampleId
         String binestCovPath = "~{sampleId}.binest.coverage.txt"
-        File finalBai
+        Bam finalBam
     }
 
     command {
         binest \
         size \
-        ~{finalBai} \
+        ~{finalBam.bamIndex} \
         > ~{binestCovPath}
     }
 
     output {
-        File binestCov = "~{sampleId}.binest.coverage.txt"
-    }
-
-    runtime {
-        cpu : threads
-        memory : memoryGb + "GB"
-        docker : dockerImage
-    }
-}
-
-task PlotBinCov{
-    input {
-        Int threads
-        Int memoryGb
-        String dockerImage
-        String genome
-        IndexedVcf genomeTemplates
-        String sampleId
-        String binestCovPath = "~{sampleId}.binest.coverage.txt"
-    }
-
-    command {
-        plot_bin_cov.R \
-        "--binestOutput=~{binestCovPath}" \
-        "--genome=~{genome}" \
-        "--genomeTemplates=~{genomeTemplates.vcf}" \
-        "--sample=~{sampleId}"
-    }
-
-    output {
-        File normCoverageByChrPng = "~{sampleId}.binest.coverage.png"
         File binestCov = "~{binestCovPath}"
     }
 
@@ -330,7 +356,37 @@ task PlotBinCov{
     }
 }
 
-task Pileup{
+task PlotBinCov {
+    input {
+        Int threads
+        Int memoryGb
+        String dockerImage
+        String genome
+        File genomeTemplates
+        String sampleId
+        File binestCov
+    }
+
+    command {
+        plot_bin_cov.R \
+        "--binestOutput=~{binestCov}" \
+        "--genome=~{genome}" \
+        "--genomeTemplates=~{genomeTemplates}" \
+        "--sample=~{sampleId}"
+    }
+
+    output {
+        File normCoverageByChrPng = "~{sampleId}.binest.coverage.png"
+    }
+
+    runtime {
+        cpu : threads
+        memory : memoryGb + "GB"
+        docker : dockerImage
+    }
+}
+
+task Pileup {
     input {
         Int threads
         Int memoryGb
@@ -351,7 +407,7 @@ task Pileup{
     }
 
     output {
-        File pileupsTable = "~{sampleId}_pileups_table.table"
+        File pileupsTable = "~{pileupsTablePath}"
     }
 
     runtime {
@@ -361,7 +417,7 @@ task Pileup{
     }
 }
 
-task CalculateContamination{
+task CalculateContamination {
     input {
         Int threads
         Int memoryGb
@@ -380,7 +436,7 @@ task CalculateContamination{
     }
 
     output {
-        File contaminationTable = "~{sampleId}.contamination.table"
+        File contaminationTable = "~{contaminationTablePath}"
     }
 
     runtime {
@@ -390,7 +446,38 @@ task CalculateContamination{
     }
 }
 
-task ConpairPileup{
+task CalculateContaminationPaired {
+    input {
+        Int threads
+        Int memoryGb
+        String dockerImage
+        String pairName
+        String contaminationTablePath = "~{pairName}.contamination.table"
+        File pileupsNormalTable
+        File pileupsTumorTable
+    }
+
+    command {
+        gatk \
+        --java-options "-Xmx30g" \
+        CalculateContamination \
+        -I ~{pileupsTumorTable} \
+        -matched ~{pileupsNormalTable} \
+        -O ~{contaminationTablePath}
+    }
+
+    output {
+        File contaminationTable = "~{contaminationTablePath}"
+    }
+
+    runtime {
+        cpu : threads
+        memory : memoryGb + "GB"
+        docker : dockerImage
+    }
+}
+
+task ConpairPileup {
     input {
         Int threads
         Int memoryGb
@@ -399,7 +486,7 @@ task ConpairPileup{
         String sampleId
         String pileupsConpairPath = "~{sampleId}_pileups_table.txt"
         Bam finalBam
-        File markerFile
+        File markerBedFile
     }
 
     command {
@@ -409,7 +496,7 @@ task ConpairPileup{
         -T Pileup \
         -R ~{referenceFa.fasta} \
         -I ~{finalBam.bam} \
-        -L ~{markerFile} \
+        -L ~{markerBedFile} \
         -o ~{pileupsConpairPath} \
         -verbose \
         -rf DuplicateRead \
@@ -418,7 +505,106 @@ task ConpairPileup{
     }
 
     output {
-        File pileupsConpair = "~{sampleId}.pileup.conpair-v.0.1.txt"
+        File pileupsConpair = "~{pileupsConpairPath}"
+    }
+
+    runtime {
+        cpu : threads
+        memory : memoryGb + "GB"
+        docker : dockerImage
+    }
+}
+
+task VerifyConcordanceAll {
+    input {
+        Int threads
+        Int memoryGb
+        String dockerImage
+        File pileupsTumorConpair
+        File pileupsNormalConpair
+        File markerTxtFile
+        String pairName
+        String concordanceAllPath = "~{pairName}.concordance.all.conpair-0.1.txt"
+    }
+
+    command {
+        verify_concordance.py \
+        -T ~{pileupsTumorConpair} \
+        -N ~{pileupsNormalConpair} \
+        -O ~{concordanceAllPath} \
+        -D "./" \
+        -M ~{markerTxtFile}
+    }
+
+    output {
+        File concordanceAll = "~{concordanceAllPath}"
+    }
+
+    runtime {
+        cpu : threads
+        memory : memoryGb + "GB"
+        docker : dockerImage
+    }
+}
+
+task VerifyConcordanceHomoz {
+    input {
+        Int threads
+        Int memoryGb
+        String dockerImage
+        File pileupsTumorConpair
+        File pileupsNormalConpair
+        File markerTxtFile
+        String pairName
+        String concordanceHomozPath = "~{pairName}.concordance.homoz.conpair-0.1.txt"
+    }
+
+    command {
+        verify_concordance.py \
+        -T ~{pileupsTumorConpair} \
+        -N ~{pileupsNormalConpair} \
+        -O ~{concordanceHomozPath} \
+        -D "./" \
+        -M ~{markerTxtFile} \
+        -H
+    }
+
+    output {
+        File concordanceHomoz = "~{concordanceHomozPath}"
+    }
+
+    runtime {
+        cpu : threads
+        memory : memoryGb + "GB"
+        docker : dockerImage
+    }
+}
+
+task Contamination {
+    input {
+        Int threads
+        Int memoryGb
+        String dockerImage
+        File pileupsTumorConpair
+        File pileupsNormalConpair
+        File markerTxtFile
+        String pairName
+        String contaminationPath = "~{pairName}.contamination.conpair-0.1.txt"
+    }
+
+    command {
+        verify_concordance.py \
+        -T ~{pileupsTumorConpair} \
+        -N ~{pileupsNormalConpair} \
+        -O ~{contaminationPath} \
+        -P 0.001 \
+        -Q 10 \
+        -D "./" \
+        -M ~{markerTxtFile}
+    }
+
+    output {
+        File contamination = "~{contaminationPath}"
     }
 
     runtime {

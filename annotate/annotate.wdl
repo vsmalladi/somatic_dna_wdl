@@ -19,6 +19,7 @@ task Vep{
         IndexedVcf vcfCompressed
         IndexedTable vepCaddIndel
         IndexedVcf vepGnomadGenomes
+        IndexedReference vepFastaReference
         String pluginFathmm = "FATHMM,\" python fathmm.py \""
         String pluginFathmmSomatic = "FATHMMSOMATIC,\" python fathmm.py -w Cancer \""
         String pluginCadd = "CADD, ~{vepCaddSnp.table},~{vepCaddIndel.table}"
@@ -29,7 +30,6 @@ task Vep{
         String customCosmicNoncoding = "~{cosmicNoncoding.vcf},CosmicNonCoding,vcf,exact,0"
         String pairName
         String vcfAnnotatedVepPath = "~{pairName}.v6.vep.annotated.vcf"
-        IndexedReference vepFastaReference
     }
 
     command {
@@ -302,6 +302,128 @@ task VcfToMaf {
         docker : dockerImage
     }
 }
+
+task GermVep {
+    input {    
+        Int threads
+        Int memoryGb
+        String dockerImage
+        String vepVersion
+        IndexedVcf cosmicCoding
+        IndexedVcf cosmicNoncoding
+        IndexedVcf vepClinvarXMLTrait
+        IndexedTable vepCaddSnp
+        IndexedVcf vepGnomadExomes
+        IndexedVcf vcfCompressed
+        IndexedTable vepCaddIndel
+        IndexedVcf vepGnomadGenomes
+        IndexedReference vepFastaReference
+        
+        File phylop100
+        File phastcons100
+        IndexedVcf clinvarXMLDisease
+        IndexedVcf acmg
+        IndexedVcf pgx
+        IndexedVcf arExtended
+        IndexedVcf revel
+        IndexedVcf ccrs
+        IndexedVcf mitimpact
+        IndexedVcf mitomapDisease
+        IndexedVcf mitomapPolymorphisms
+        IndexedVcf mtFuncLoc
+        
+        String pluginFathmm = "FATHMM,\" python fathmm.py \""
+        String pluginFathmmSomatic = "FATHMMSOMATIC,\" python fathmm.py -w Cancer \""
+        String custmoCosmicCoding = "~{cosmicCoding.vcf},CosmicCoding,vcf,exact,0,CNT,CDS,AA"
+        String customCosmicNoncoding = "~{cosmicNoncoding.vcf},CosmicNonCoding,vcf,exact,0"
+        String customClinvarXMLTrait = "~{vepClinvarXMLTrait.vcf},CLN,vcf,exact,0,VARIATIONID,MOLECULARCONSEQUENCE,CLINICALSIGNIFICANCE,CONFLICTED,REVIEWSTATUS,TRAITS,PMIDS,XREFS,ORIGIN"
+        String pluginCadd = "CADD, ~{vepCaddSnp.table},~{vepCaddIndel.table}"
+        String customGnomadExome = "~{vepGnomadExomes.vcf},GnomadExomes,vcf,exact,0,AF,AN,Hom,AFAFR,AFAMR,AFASJ,AFEAS,AFFIN,AFNFE,AFOTH"
+        String customGnomadGenomes = "~{vepGnomadGenomes.vcf},GnomadGenomes,vcf,exact,0,AF,AN,Hom,AFAFR,AFAMR,AFASJ,AFEAS,AFFIN,AFNFE,AFOTH"
+        String customPhylop100 = "~{phylop100},phyloP100,bigwig"
+        String customPhastcons100 = "~{phastcons100},phastcons100,bigwig"
+        String customClinvarXMLDisease = "~{clinvarXMLDisease},CLN,vcf,overlap,0,DiseaseName"
+        String customAcmg = "~{acmg},ACMG59,vcf,overlap,0,GENE,DISEASE"
+        String customPgx = "~{pgx},PGx,vcf,exact,0,pgxRsid"
+        String customArExtended = "~{arExtended},AR,vcf,overlap,0,ARGENE"
+        String customRevel = "~{revel},REVEL,vcf,exact,0,REVELSCORE"
+        String customCcrs = "~{ccrs},CCRS,vcf,overlap,0,ccrPct"
+        String customMitimpact = "~{mitimpact},mitimpact,vcf,exact,0,OXPHOSComplex"
+        String customMitomapPolymorphisms = "~{mitomapPolymorphisms},mitomap,vcf,exact,0,AC,AF"
+        String customMitomapDisease = "~{mitomapDisease},mitomap,vcf,exact,0,AC,AF,homoplasmy,heteroplasmy,PubmedIDs,Disease,DiseaseStatus"
+        String customMtFuncLoc = "~{mtFuncLoc},mtfl,vcf,overlap,0,FUNCLOC"
+        String sampleId
+        String vcfAnnotatedVepPath = "~{sampleId}.v6.vep.annotated.vcf"
+    }
+
+    command {
+        vep \
+        --force_overwrite \
+        --buffer_size 10000000 \
+        --fork 8 \
+        --no_stats \
+        --use_transcript_ref \
+        --offline \
+        --assembly ~{vepVersion} \
+        --cache \
+        --dir_cache "/opt/vep/.vep" \
+        --gencode_basic \
+        --exclude_predicted \
+        --fasta ~{vepFastaReference.fasta} \
+        --sift p \
+        --polyphen p \
+        --hgvs \
+        --symbol \
+        --numbers \
+        --domains \
+        --regulatory \
+        --nearest symbol \
+        --biotype \
+        --tsl \
+        --af \
+        --af_1kg \
+        --appris \
+        --gene_phenotype \
+        --pubmed \
+        --variant_class \
+        --vcf \
+        --pick_allele \
+        --dir_plugins "/opt/vep/.vep/Plugins/" \
+        --plugin ~{pluginFathmm} \
+        --plugin ~{pluginFathmmSomatic} \
+        --plugin ~{pluginCadd} \
+        --custom ~{customGnomadExome} \
+        --custom ~{customGnomadGenomes} \
+        --custom ~{customClinvarXMLTrait} \
+        --custom ~{custmoCosmicCoding} \
+        --custom ~{customCosmicNoncoding} \
+        --custom ~{customPhylop100} \
+        --custom ~{customPhastcons100} \
+        --custom ~{customClinvarXMLDisease} \
+        --custom ~{customAcmg} \
+        --custom ~{customPgx} \
+        --custom ~{customArExtended} \
+        --custom ~{customRevel} \
+        --custom ~{customCcrs} \
+        --custom ~{customMitimpact} \
+        --custom ~{customMitomapPolymorphisms} \
+        --custom ~{customMitomapDisease} \
+        --custom ~{customMtFuncLoc} \
+        --input_file ~{vcfCompressed.vcf} \
+        --output_file ~{vcfAnnotatedVepPath}
+    }
+
+    output {
+        File vcfAnnotatedVep = "~{vcfAnnotatedVepPath}"
+    }
+
+    runtime {
+        cpu : threads
+        memory : memoryGb + "GB"
+        docker : dockerImage
+    }
+}
+
 
 
 
