@@ -38,3 +38,9 @@ struct IndexedVcf {
     File vcf
     File index
 }
+
+struct IndexedTable {
+    File table
+    File index
+}
+

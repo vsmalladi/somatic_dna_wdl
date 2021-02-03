@@ -12,7 +12,7 @@ workflow Lancet {
         Array[String]+ listOfChroms
         Map[String, File] chromBeds
         Int threads
-        Int memory_gb
+        Int memoryGb
         String lancetDockerImage
         String dockerImage
         String gatkDockerImage
@@ -33,7 +33,7 @@ workflow Lancet {
                 referenceFa = referenceFa,
                 normalFinalBam = normalFinalBam,
                 tumorFinalBam = tumorFinalBam,
-                memory_gb = memory_gb,
+                memoryGb = memoryGb,
                 threads = threads,
                 dockerImage = lancetDockerImage
         }
@@ -43,7 +43,7 @@ workflow Lancet {
         input:
             sortedVcfPath = "~{pairName}.lancet.v1.0.7.sorted.vcf",
             tempChromVcfs = LancetExome.lancetChromVcf,
-            memory_gb = memory_gb,
+            memoryGb = memoryGb,
             threads = threads,
             dockerImage = gatkDockerImage
     }
@@ -52,7 +52,7 @@ workflow Lancet {
         input:
             inVcf = Gatk4MergeSortVcf.sortedVcf.vcf,
             jsonLog = jsonLog,
-            memory_gb = memory_gb,
+            memoryGb = memoryGb,
             threads = threads,
             dockerImage = pysamDockerImage
     }
@@ -62,8 +62,8 @@ workflow Lancet {
             tumor = tumor,
             normal = normal,
             rawVcf = lancetAddVcfCommand.outVcf,
-            orderedVcfPath = "~{pairName}.lancet.v1.0.7.sorted.vcf",
-            memory_gb = memory_gb,
+            orderedVcfPath = "~{pairName}.lancet.v1.0.7.vcf",
+            memoryGb = memoryGb,
             threads = threads,
             dockerImage = pysamDockerImage
     }

@@ -7,7 +7,7 @@ import "../wdl_structs.wdl"
 task CompressVcf {
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb
         String dockerImage
         File vcf
         String vcfCompressedPath = sub(vcf, "$", ".gz")
@@ -26,7 +26,7 @@ task CompressVcf {
 
     runtime {
         cpu : threads
-        memory : memory_gb + "GB"
+        memory : memoryGb + "GB"
         docker : dockerImage
     }
 }
@@ -34,7 +34,7 @@ task CompressVcf {
 task IndexVcf {
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb
         String dockerImage
         File vcfCompressed
     }
@@ -55,7 +55,7 @@ task IndexVcf {
 
     runtime {
         cpu : threads
-        memory : memory_gb + "GB"
+        memory : memoryGb + "GB"
         docker : dockerImage
     }
 }
@@ -66,7 +66,7 @@ task IndexVcf {
 task RenameMetadata {
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb
         String dockerImage
         String pairName
         File callerVcf
@@ -89,7 +89,7 @@ task RenameMetadata {
 
     runtime {
         cpu : threads
-        memory : memory_gb + "GB"
+        memory : memoryGb + "GB"
         docker : dockerImage
     }
 }
@@ -97,7 +97,7 @@ task RenameMetadata {
 task MergePrepSupport {
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb
         String dockerImage
         String pairName
         File renameMetaVcf
@@ -120,7 +120,7 @@ task MergePrepSupport {
 
     runtime {
         cpu : threads
-        memory : memory_gb + "GB"
+        memory : memoryGb + "GB"
         docker : dockerImage
     }
 }
@@ -128,7 +128,7 @@ task MergePrepSupport {
 task MergePrep{
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb
         String dockerImage
         String pairName
         File renameMetaVcf
@@ -150,7 +150,7 @@ task MergePrep{
 
     runtime {
         cpu : threads
-        memory : memory_gb + "GB"
+        memory : memoryGb + "GB"
         docker : dockerImage
     }
 }
@@ -158,7 +158,7 @@ task MergePrep{
 task RenameVcf {
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb
         String dockerImage
         File prepCallerVcf
         String pairName
@@ -184,7 +184,7 @@ task RenameVcf {
 
     runtime {
         cpu : threads
-        memory : memory_gb + "GB"
+        memory : memoryGb + "GB"
         docker : dockerImage
     }
 }
@@ -192,7 +192,7 @@ task RenameVcf {
 task SplitMultiAllelic {
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb
         String dockerImage
         String pairName
         String splitVcfPath
@@ -217,7 +217,7 @@ task SplitMultiAllelic {
 
     runtime {
         cpu : threads
-        memory : memory_gb + "GB"
+        memory : memoryGb + "GB"
         docker : dockerImage
     }
 }
@@ -225,7 +225,7 @@ task SplitMultiAllelic {
 task SplitMnv {
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb
         String dockerImage
         File splitVcf
         String mnvVcfPath = sub(splitVcf, ".split.vcf", ".split_mnvs.vcf")
@@ -246,7 +246,7 @@ task SplitMnv {
 
     runtime {
         cpu : threads
-        memory : memory_gb + "GB"
+        memory : memoryGb + "GB"
         docker : dockerImage
     }
 }
@@ -254,7 +254,7 @@ task SplitMnv {
 task RemoveContig {
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb
         String dockerImage
         String mnvVcfPath
         String removeChromVcfPath = "~{mnvVcfPath}"
@@ -274,7 +274,7 @@ task RemoveContig {
 
     runtime {
         cpu : threads
-        memory : memory_gb + "GB"
+        memory : memoryGb + "GB"
         docker : dockerImage
     }
 }
@@ -282,7 +282,7 @@ task RemoveContig {
 task Gatk4MergeSortVcf {
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb
         String dockerImage
         String sortedVcfPath
         Array[File] tempVcfs
@@ -307,7 +307,7 @@ task Gatk4MergeSortVcf {
 
     runtime {
         cpu : threads
-        memory : memory_gb + "GB"
+        memory : memoryGb + "GB"
         docker : dockerImage
     }
 }
@@ -317,13 +317,13 @@ task Gatk4MergeSortVcf {
 task MergeCallers {
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb
         String dockerImage
         String chrom
         String pairName
-        String mergedChromVcfPath = "~{pairName}.merged_supported.v6.chrX.vcf"
-        String allVcfCompressedList
+        String mergedChromVcfPath = "~{pairName}.merged_supported.v6.~{chrom}.vcf"
         Array[IndexedVcf] allVcfCompressed
+        Array[File] allVcfCompressedList
     }
 
     command {
@@ -341,15 +341,382 @@ task MergeCallers {
     }
 
     output {
-        File mergedChromVcf = "~{pairName}.merged_supported.v6.chrX.vcf"
+        File mergedChromVcf = "~{mergedChromVcfPath}"
     }
 
     runtime {
         cpu : threads
-        memory : memory_gb + "GB"
+        memory : memoryGb + "GB"
         docker : dockerImage
     }
 }
+
+
+task StartCandidates {
+    input {
+        Int threads
+        Int memoryGb
+        String dockerImage
+        String pairName
+        String chrom
+        String startChromVcfPath = "~{pairName}.start.merged.v6.~{chrom}.vcf"
+        File knownGeneBed
+        File mergedChromVcf
+    }
+
+    command {
+        bedtools \
+        intersect \
+        -header \
+        -a ~{mergedChromVcf} \
+        -b ~{knownGeneBed} \
+        -v \
+        > ~{startChromVcfPath}
+    }
+
+    output {
+        File startChromVcf = "~{startChromVcfPath}"
+    }
+
+    runtime {
+        cpu : threads
+        memory : memoryGb + "GB"
+        docker : dockerImage
+    }
+}
+
+task GetCandidates {
+    input {
+        Int threads
+        Int memoryGb
+        String dockerImage
+        String pairName
+        String chrom
+        String candidateChromVcfPath = "~{pairName}.candidate.merged.v6.~{chrom}.vcf"
+        File startChromVcf
+    }
+
+    command {
+        python \
+        get_candidates.py \
+        ~{startChromVcf} \
+        ~{candidateChromVcfPath}
+    }
+
+    output {
+        File candidateChromVcf = "~{candidateChromVcfPath}"
+    }
+
+    runtime {
+        cpu : threads
+        memory : memoryGb + "GB"
+        docker : dockerImage
+    }
+}
+
+task VcfToBed {
+    input {
+        Int threads
+        Int memoryGb
+        String dockerImage
+        String pairName
+        String chrom
+        String candidateChromBedPath = "~{pairName}.candidate.merged.v6.~{chrom}.bed"
+        File candidateChromVcf
+    }
+
+    command {
+        python \
+        vcf_to_bed.py \
+        ~{candidateChromVcf} \
+        | bedtools \
+        merge \
+        > ~{candidateChromBedPath}
+    }
+
+    output {
+        File candidateChromBed = "~{candidateChromBedPath}"
+    }
+
+    runtime {
+        cpu : threads
+        memory : memoryGb + "GB"
+        docker : dockerImage
+    }
+}
+
+task LancetConfirm {
+    input {
+        Int threads
+        Int memoryGb
+        String dockerImage
+        String pairName
+        String chrom
+        String lancetChromVcfPath = "~{pairName}.lancet.merged.v6.~{chrom}.vcf"
+        IndexedReference referenceFa
+        Bam normalFinalBam
+        File candidateChromBed
+        Bam tumorFinalBam
+    }
+
+    command {
+        mkdir ~{chrom} \
+        && \
+        cd ~{chrom} \
+        && \
+        lancet \
+        --normal ~{normalFinalBam.bam} \
+        --tumor ~{tumorFinalBam.bam} \
+        --bed ~{candidateChromBed} \
+        --ref ~{referenceFa.fasta} \
+        --min-k 11 \
+        --low-cov 1 \
+        --min-phred-fisher 5 \
+        --min-strand-bias 1 \
+        --min-alt-count-tumor 3 \
+        --min-vaf-tumor 0.04 \
+        --padding 250 \
+        --window-size 2000 \
+        --num-threads ~{threads} \
+        > ~{lancetChromVcfPath}
+    }
+
+    output {
+        File lancetChromVcf = "~{lancetChromVcfPath}"
+    }
+
+    runtime {
+        cpu : threads
+        memory : memoryGb + "GB"
+        docker : dockerImage
+    }
+}
+
+task IntersectVcfs {
+    input {
+        Int threads
+        Int memoryGb
+        String dockerImage
+        String pairName
+        String chrom
+        String vcfConfirmedCandidatePath = "~{pairName}.confirmed_lancet.merged.v6.~{chrom}.vcf"
+        IndexedVcf vcfCompressedLancet
+        IndexedVcf vcfCompressedCandidate
+    }
+
+    command {
+        bcftools \
+        isec \
+        -w 1 \
+        -c none \
+        -n =2 \
+        ~{vcfCompressedLancet.vcf} \
+        ~{vcfCompressedCandidate.vcf} \
+        > ~{vcfConfirmedCandidatePath}
+    }
+
+    output {
+        File vcfConfirmedCandidate = "~{vcfConfirmedCandidatePath}"
+    }
+
+    runtime {
+        cpu : threads
+        memory : memoryGb + "GB"
+        docker : dockerImage
+    }
+}
+
+task MergeColumns {
+    input {
+        Int threads
+        Int memoryGb
+        String dockerImage
+        String pairName
+        String chrom
+        String columnChromVcfPath = "~{pairName}.single_column.v6.~{chrom}.vcf"
+        String tumor
+        String normal
+        File supportedChromVcf
+    }
+
+    command {
+        python \
+        merge_columns.py \
+        ~{supportedChromVcf} \
+        ~{columnChromVcfPath} \
+        ~{tumor} \
+        ~{normal}
+    }
+
+    output {
+        File columnChromVcf = "~{columnChromVcfPath}"
+    }
+
+    runtime {
+        cpu : threads
+        memory : memoryGb + "GB"
+        docker : dockerImage
+    }
+}
+
+task AddNygcAlleleCountsToVcf {
+    input {
+        Int threads
+        Int memoryGb
+        String dockerImage
+        String pairName
+        String chrom
+        String preCountsChromVcfPath = "~{pairName}.pre_count.v6.~{chrom}.vcf"
+        Bam normalFinalBam
+        Bam tumorFinalBam
+        File columnChromVcf
+    }
+
+    command {
+        python \
+        add_nygc_allele_counts_to_vcf.py \
+        -t ~{tumorFinalBam.bam} \
+        -n ~{normalFinalBam.bam} \
+        -v ~{columnChromVcf} \
+        -b 10 \
+        -m 10 \
+        -o ~{preCountsChromVcfPath}
+    }
+
+    output {
+        File preCountsChromVcf = "~{preCountsChromVcfPath}"
+    }
+
+    runtime {
+        cpu : threads
+        memory : memoryGb + "GB"
+        docker : dockerImage
+    }
+}
+
+task AddFinalAlleleCountsToVcf {
+    input {
+        Int threads
+        Int memoryGb
+        String dockerImage
+        String pairName
+        String chrom
+        String countsChromVcfPath = "~{pairName}.final.v6.~{chrom}.vcf"
+        File preCountsChromVcf
+    }
+
+    command {
+        python \
+        add_final_allele_counts_to_vcf.py \
+        -v ~{preCountsChromVcf} \
+        -o ~{countsChromVcfPath} \
+    }
+
+    output {
+        File countsChromVcf = "~{countsChromVcfPath}"
+    }
+
+    runtime {
+        cpu : threads
+        memory : memoryGb + "GB"
+        docker : dockerImage
+    }
+}
+
+task FilterPon {
+    input {
+        Int threads
+        Int memoryGb
+        String dockerImage
+        String chrom
+        String pairName
+        String ponOutFilePath = "~{pairName}.pon.final.v6.~{chrom}.vcf"
+        File countsChromVcf
+        File ponFile
+    }
+
+    command {
+        python \
+        filter_pon.py \
+        --bed ~{ponFile} \
+        --chrom ~{chrom} \
+        --vcf ~{countsChromVcf} \
+        --out ~{ponOutFilePath} \
+    }
+
+    output {
+        File ponOutFile = "~{ponOutFilePath}"
+    }
+
+    runtime {
+        cpu : threads
+        memory : memoryGb + "GB"
+        docker : dockerImage
+    }
+}
+
+task FilterVcf {
+    input {
+        Int threads
+        Int memoryGb
+        String dockerImage
+        String pairName
+        String chrom
+        String filteredOutFilePath = "~{pairName}.final.v6.filtered.~{chrom}.vcf"
+        IndexedVcf germFile
+        File ponOutFile
+    }
+
+    command {
+        python \
+        filter_vcf.py \
+        ~{germFile.vcf} \
+        ~{ponOutFile} \
+        ~{filteredOutFilePath}
+    }
+
+    output {
+        File filteredOutFile = "~{filteredOutFilePath}"
+    }
+
+    runtime {
+        cpu : threads
+        memory : memoryGb + "GB"
+        docker : dockerImage
+    }
+}
+
+task SnvstomnvsCountsbasedfilterAnnotatehighconf {
+    input {
+        Int threads
+        Int memoryGb
+        String dockerImage
+        String pairName
+        String chrom
+        String finalChromVcfPath = "~{pairName}.mnv.final.v6.filtered.~{chrom}.vcf"
+        File filteredOutFile
+    }
+
+    command {
+        python2.7 \
+        SNVsToMNVs_CountsBasedFilter_AnnotateHighConf.py \
+        -i ~{filteredOutFile} \
+        -o ~{finalChromVcfPath} \
+    }
+
+    output {
+        File finalChromVcf = "~{finalChromVcfPath}"
+    }
+
+    runtime {
+        cpu : threads
+        memory : memoryGb + "GB"
+        docker : dockerImage
+    }
+}
+
+
+
 
 
 
