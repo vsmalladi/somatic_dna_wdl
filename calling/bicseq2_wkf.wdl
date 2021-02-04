@@ -15,7 +15,7 @@ workflow BicSeq2 {
         Bam normalFinalBam
         Bam tumorFinalBam
         Int readLength
-        Array[Int][File] uniq_coords
+        Map[Int, Array[File]] uniqCoords
         
         File tumorConfigFile
         File normalConfigFile
