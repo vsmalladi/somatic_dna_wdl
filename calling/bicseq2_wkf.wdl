@@ -14,11 +14,11 @@ workflow BicSeq2 {
         
         Bam normalFinalBam
         Bam tumorFinalBam
-        Array[File] uniq_coords
+        Int readLength
+        Array[Int][File] uniq_coords
         
         File tumorConfigFile
         File normalConfigFile
-        Int readLength
         Int tumorMedianInsertSize
         Int normalMedianInsertSize
         String tumorParamsPath
@@ -72,7 +72,7 @@ workflow BicSeq2 {
             paramsPath = tumorParamsPath,
             tempNormPaths = tempTumorNormPaths,
             chromFastas = chromFastas,
-            uniq_coords = uniqCoords,
+            uniqCoords = uniqCoords[readLength],
             memoryGb = memoryGb,
             threads = threads,
             dockerImage = bicseq2DockerImage
@@ -94,7 +94,7 @@ workflow BicSeq2 {
             paramsPath = normalParamsPath,
             tempNormPaths = tempNormalNormPaths,
             chromFastas = chromFastas,
-            uniq_coords = uniqCoords,
+            uniqCoords = uniqCoords[readLength],
             memoryGb = memoryGb,
             threads = threads,
             dockerImage = bicseq2DockerImage
