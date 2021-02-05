@@ -7,16 +7,15 @@ task MultipleMetrics {
         Int threads
         Int memoryGb
         String dockerImage
-        String MultipleMetricsBase
         IndexedReference referenceFa
         Bam finalBam
         String sampleId
+        String MultipleMetricsBase = "~{sampleId}.MultipleMetrics"
     }
 
     command {
         gatk \
         CollectMultipleMetrics \
-        --java-options "-Xmx24576m -XX:ParallelGCThreads=1" \
         --PROGRAM CollectAlignmentSummaryMetrics \
         --PROGRAM CollectInsertSizeMetrics \
         --PROGRAM QualityScoreDistribution \
@@ -29,15 +28,15 @@ task MultipleMetrics {
     }
 
     output {
-        File alignmentSummaryMetrics = "~{sampleId}.MultipleMetrics.alignment_summary_metrics"
-        File qualityByCyclePdf = "~{sampleId}.MultipleMetrics.quality_by_cycle.pdf"
-        File baseDistributionByCycleMetrics = "~{sampleId}.MultipleMetrics.base_distribution_by_cycle_metrics"
-        File qualityByCycleMetrics = "~{sampleId}.MultipleMetrics.quality_by_cycle_metrics"
-        File baseDistributionByCyclePdf = "~{sampleId}.MultipleMetrics.base_distribution_by_cycle.pdf"
-        File qualityDistributionPdf = "~{sampleId}.MultipleMetrics.quality_distribution.pdf"
-        File qualityDistributionMetrics = "~{sampleId}.MultipleMetrics.quality_distribution_metrics"
-        File insertSizeHistogramPdf = "~{sampleId}.MultipleMetrics.insert_size_histogram.pdf"
-        File insertSizeMetrics = "~{sampleId}.MultipleMetrics.insert_size_metrics"
+        File alignmentSummaryMetrics = "~{MultipleMetricsBase}.alignment_summary_metrics"
+        File qualityByCyclePdf = "~{MultipleMetricsBase}.quality_by_cycle.pdf"
+        File baseDistributionByCycleMetrics = "~{MultipleMetricsBase}.base_distribution_by_cycle_metrics"
+        File qualityByCycleMetrics = "~{MultipleMetricsBase}.quality_by_cycle_metrics"
+        File baseDistributionByCyclePdf = "~{MultipleMetricsBase}.base_distribution_by_cycle.pdf"
+        File qualityDistributionPdf = "~{MultipleMetricsBase}.quality_distribution.pdf"
+        File qualityDistributionMetrics = "~{MultipleMetricsBase}.quality_distribution_metrics"
+        File insertSizeHistogramPdf = "~{MultipleMetricsBase}.insert_size_histogram.pdf"
+        File insertSizeMetrics = "~{MultipleMetricsBase}.insert_size_metrics"
     }
 
     runtime {
@@ -61,7 +60,7 @@ task MultipleMetricsPreBqsr {
     command {
         gatk \
         CollectMultipleMetrics \
-        --java-options "-Xmx24576m -XX:ParallelGCThreads=1" \
+        --java-options "-XX:ParallelGCThreads=1" \
         --PROGRAM QualityScoreDistribution \
         --PROGRAM MeanQualityByCycle \
         --PROGRAM CollectGcBiasMetrics \
@@ -72,11 +71,13 @@ task MultipleMetricsPreBqsr {
         -I ~{mergedDedupBam.bam}
     }
 
+
+
     output {
-        File qualityDistributionPdfPreBqsr = "~{sampleId}.dedup.MultipleMetrics.quality_distribution.pdf"
-        File qualityByCycleMetricsPreBqsr = "~{sampleId}.dedup.MultipleMetrics.quality_by_cycle_metrics"
-        File qualityByCyclePdfPreBqsr = "~{sampleId}.dedup.MultipleMetrics.quality_by_cycle.pdf"
-        File qualityDistributionMetricsPreBqsr = "~{sampleId}.dedup.MultipleMetrics.quality_distribution_metrics"
+        File qualityDistributionPdfPreBqsr = "~{MultipleMetricsBasePreBqsrBasename}.quality_distribution.pdf"
+        File qualityByCycleMetricsPreBqsr = "~{MultipleMetricsBasePreBqsrBasename}.quality_by_cycle_metrics"
+        File qualityByCyclePdfPreBqsr = "~{MultipleMetricsBasePreBqsrBasename}.quality_by_cycle.pdf"
+        File qualityDistributionMetricsPreBqsr = "~{MultipleMetricsBasePreBqsrBasename}.quality_distribution_metrics"
     }
 
     runtime {
@@ -102,7 +103,7 @@ task CollectGcBiasMetrics {
     command {
         gatk \
         CollectGcBiasMetrics \
-        --java-options "-Xmx24576m -XX:ParallelGCThreads=1" \
+        --java-options "-XX:ParallelGCThreads=1" \
         --CHART_OUTPUT ~{gcBiasPdfPath} \
         -O ~{gcBiasMetricsPath} \
         -I ~{finalBam.bam} \
@@ -139,7 +140,6 @@ task Flagstat {
     command {
         gatk \
         FlagStat \
-        --java-options "-Xmx24576m" \
         --verbosity INFO \
         --reference ~{referenceFa.fasta} \
         -I ~{finalBam.bam} \
@@ -173,7 +173,6 @@ task HsMetrics {
     command {
         gatk \
         CollectHsMetrics \
-        --java-options "-Xmx24576m -XX:ParallelGCThreads=1" \
         --BAIT_INTERVALS ~{hsMetricsIntervals} \
         --TARGET_INTERVALS ~{hsMetricsIntervals} \
         --BAIT_SET_NAME ~{sampleId} \
@@ -271,7 +270,6 @@ task CollectOxoGMetricsWgs {
     command {
         gatk \
         CollectOxoGMetrics \
-        --java-options "-Xmx24576m -XX:ParallelGCThreads=1" \
         --VALIDATION_STRINGENCY SILENT \
         -I ~{finalBam.bam} \
         -O ~{CollectOxoGMetricsPath} \
@@ -304,7 +302,6 @@ task CollectWgsMetricsWgsDecoy {
     command {
         gatk \
         CollectWgsMetrics \
-        --java-options "-Xmx24576m -XX:ParallelGCThreads=1" \
         --VALIDATION_STRINGENCY SILENT \
         -I ~{finalBam.bam} \
         -O ~{CollectWgsMetricsPath} \
@@ -399,7 +396,6 @@ task Pileup {
 
     command {
         gatk \
-        --java-options "-Xmx30g" \
         GetPileupSummaries \
         -I ~{finalBam.bam} \
         -V ~{gnomadBiallelic} \
@@ -429,7 +425,6 @@ task CalculateContamination {
 
     command {
         gatk \
-        --java-options "-Xmx30g" \
         CalculateContamination \
         -I ~{pileupsTable} \
         -O ~{contaminationTablePath}
@@ -459,7 +454,6 @@ task CalculateContaminationPaired {
 
     command {
         gatk \
-        --java-options "-Xmx30g" \
         CalculateContamination \
         -I ~{pileupsTumorTable} \
         -matched ~{pileupsNormalTable} \
@@ -491,7 +485,6 @@ task ConpairPileup {
 
     command {
         java \
-        "-Xmx12g" \
         -jar GenomeAnalysisTK.jar \
         -T Pileup \
         -R ~{referenceFa.fasta} \
@@ -613,12 +606,3 @@ task Contamination {
         docker : dockerImage
     }
 }
-
-
-
-
-
-
-
-
-
