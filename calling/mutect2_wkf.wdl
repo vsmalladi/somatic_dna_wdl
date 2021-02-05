@@ -13,11 +13,13 @@ workflow Mutect2 {
         Int threads
         Int memoryGb
         String mutect2GatkDockerImage
+        String pysamDockerImage
         String gatkDockerImage
         String pairName
         IndexedReference referenceFa
         Bam normalFinalBam
-        File chromBed
+        # Add when Exome are added
+        # Map[String, File] chromBeds
         Bam tumorFinalBam
         File jsonLog
     }

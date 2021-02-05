@@ -454,7 +454,7 @@ task Bicseq2Norm {
         Array[String] tempNormPaths
         File configFile
         Bam FinalBam
-        Array[IndexedReference] chromFastas
+        Array[File] chromFastas
     }
 
     command {

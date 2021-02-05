@@ -18,7 +18,7 @@ struct BwaReference {
 
 struct IndexedReference {
     File fasta
-    File dict
+    File? dict
     File index
 }
 

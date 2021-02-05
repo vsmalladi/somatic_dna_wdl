@@ -11,7 +11,7 @@ workflow DeconstructSig {
         File mainVcf
         File header
         
-        IndexedReference customFasta
+        File deconstructsigsFasta
         File deconstructsigsBs
         
         Int threads
@@ -35,7 +35,7 @@ workflow DeconstructSig {
         input:
             highconfidence = DeconstructsigPrep38.highconfidence,
             deconstructsigsBs = deconstructsigsBs,
-            customFasta = customFasta,
+            deconstructsigsFasta = deconstructsigsFasta,
             pairName = pairName,
             memoryGb = memoryGb,
             threads = threads,
