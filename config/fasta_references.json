@@ -1,5 +1,10 @@
 {
     "Human_GRCh38_full_analysis_set_plus_decoy_hla" : {
+        "chromLengths" : {
+            "type" : "File",
+            "description" : "",
+            "object" : "/gpfs/commons/datasets/old-nygc-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/chrom_lengths.txt"
+        },
         "mantisBed" : {
             "type" : "File",
             "description" : "/gpfs/commons/datasets/old-nygc-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/README_mantis_repeatfinder.md",
@@ -335,7 +340,7 @@
             "intervalList" : {
                 "type" : "File",
                 "description" : "",
-                "object" : "/gpfs/commons/datasets/old-nygc-resources/Annotation/exome_capture_intervals/sureselect/SureSelect_V6plusCOSMIC.target.GRCh38_full_analysis_set_plus_decoy_hla.interval_list"
+                "object" : "/gpfs/commons/datasets/old-nygc-resources/Annotation/wgs_capture_intervals/GRCh38.autosomes.random.interval_list"
             }
         },
         "deconstructsigsBs" : {
