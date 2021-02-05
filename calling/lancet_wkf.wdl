@@ -20,7 +20,6 @@ workflow Lancet {
         String pairName
         IndexedReference referenceFa
         Bam normalFinalBam
-        File chromBed
         Bam tumorFinalBam
         File jsonLog
     }

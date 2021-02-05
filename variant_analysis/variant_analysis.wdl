@@ -44,7 +44,7 @@ task Deconstructsig {
         String pairName
         String suffix = "~{pairName}.deconstructSigs.v1.8.0.signatures.highconfidence"
         File deconstructsigsBs
-        IndexedReference customFasta
+        File deconstructsigsFasta
         File highconfidence
     }
 
@@ -54,7 +54,7 @@ task Deconstructsig {
         ~{highconfidence} \
         ~{suffix} \
         ~{deconstructsigsBs} \
-        ~{customFasta.fasta} \
+        ~{deconstructsigsFasta} \
         plotting.R \
     }
 
