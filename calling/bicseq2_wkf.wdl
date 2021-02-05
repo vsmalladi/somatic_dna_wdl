@@ -23,7 +23,7 @@ workflow BicSeq2 {
         Int normalMedianInsertSize
         String tumorParamsPath
         String normalParamsPath
-        Array[IndexedReference] chromFastas
+        Map[String, File] chromFastas
         
         IndexedReference referenceFa
         
@@ -39,9 +39,11 @@ workflow BicSeq2 {
     scatter (chrom in listOfChroms) {
             String tempNormalSeq = "~{normal}/~{normal}_~{chrom}.seq"
             String tempTumorSeq = "~{tumor}/~{tumor}_~{chrom}.seq"
+            File chromFastaFile = chromFastas[chrom]
         }
     Array[String] tempNormalSeqsPaths = tempNormalSeq
     Array[String] tempTumorSeqsPaths = tempTumorSeq
+    Array[File] chromFastaFiles = chromFastaFile
     
     call calling.UniqReads {
         input:
@@ -71,7 +73,7 @@ workflow BicSeq2 {
             medianInsertSize = tumorMedianInsertSize,
             paramsPath = tumorParamsPath,
             tempNormPaths = tempTumorNormPaths,
-            chromFastas = chromFastas,
+            chromFastas = chromFastaFiles,
             uniqCoords = uniqCoords[readLength],
             memoryGb = memoryGb,
             threads = threads,
