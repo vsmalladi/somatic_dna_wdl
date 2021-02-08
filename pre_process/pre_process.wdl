@@ -36,7 +36,7 @@ workflow Preprocess {
         input:
             listOfFastqPairs = listOfFastqPairs,
             bwaReference = bwaReference,
-            mem = mem,
+            bwaMem = mem,
             threads = threads,
             bwaDockerImage = bwaDockerImage,
             shortAlignDockerImage = shortAlignDockerImage,
@@ -46,7 +46,6 @@ workflow Preprocess {
     call mergeBams.MergeBams {
         input:
             laneFixmateBams = AlignFastq.laneFixmateBam,
-            laneFixmateBamPaths = AlignFastq.laneFixmateBamPath,
             sampleId = sampleId,
             MillsAnd1000G = MillsAnd1000G,
             Indels = Indels,
