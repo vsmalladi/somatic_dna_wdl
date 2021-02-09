@@ -6,7 +6,7 @@ task MultipleMetrics {
     input {
         Int threads
         Int memoryGb
-        String dockerImage
+        Int diskSize
         IndexedReference referenceFa
         Bam finalBam
         String sampleId
@@ -42,7 +42,8 @@ task MultipleMetrics {
     runtime {
         cpu : threads
         memory : memoryGb + "GB"
-        docker : dockerImage
+        disks: "local-disk " + diskSize + " SSD"
+        docker : "us.gcr.io/broad-gatk/gatk:4.1.0.0"
     }
 }
 
@@ -50,7 +51,7 @@ task MultipleMetricsPreBqsr {
     input {
         Int threads
         Int memoryGb
-        String dockerImage
+        Int diskSize
         String MultipleMetricsBasePreBqsrBasename
         IndexedReference referenceFa
         Bam mergedDedupBam
@@ -71,8 +72,6 @@ task MultipleMetricsPreBqsr {
         -I ~{mergedDedupBam.bam}
     }
 
-
-
     output {
         File qualityDistributionPdfPreBqsr = "~{MultipleMetricsBasePreBqsrBasename}.quality_distribution.pdf"
         File qualityByCycleMetricsPreBqsr = "~{MultipleMetricsBasePreBqsrBasename}.quality_by_cycle_metrics"
@@ -83,7 +82,8 @@ task MultipleMetricsPreBqsr {
     runtime {
         cpu : threads
         memory : memoryGb + "GB"
-        docker : dockerImage
+        disks: "local-disk " + diskSize + " SSD"
+        docker : "us.gcr.io/broad-gatk/gatk:4.1.0.0"
     }
 }
 
@@ -91,7 +91,7 @@ task CollectGcBiasMetrics {
     input {
         Int threads
         Int memoryGb
-        String dockerImage
+        Int diskSize
         String sampleId
         String gcBiasPdfPath = "~{sampleId}.GcBiasMetrics.gc_bias.pdf"
         String gcBiasMetricsPath = "~{sampleId}.GcBiasMetrics.gc_bias_metrics"
@@ -122,7 +122,8 @@ task CollectGcBiasMetrics {
     runtime {
         cpu : threads
         memory : memoryGb + "GB"
-        docker : dockerImage
+        disks: "local-disk " + diskSize + " SSD"
+        docker : "us.gcr.io/broad-gatk/gatk:4.1.0.0"
     }
 }
 
@@ -130,7 +131,7 @@ task Flagstat {
     input {
         Int threads
         Int memoryGb
-        String dockerImage
+        Int diskSize
         String sampleId
         String FlagStatPath = "~{sampleId}.FlagStat.txt"
         IndexedReference referenceFa
@@ -153,7 +154,8 @@ task Flagstat {
     runtime {
         cpu : threads
         memory : memoryGb + "GB"
-        docker : dockerImage
+        disks: "local-disk " + diskSize + " SSD"
+        docker : "us.gcr.io/broad-gatk/gatk:4.1.0.0"
     }
 }
 
@@ -161,7 +163,7 @@ task HsMetrics {
     input {
         Int threads
         Int memoryGb
-        String dockerImage
+        Int diskSize
         String sampleId
         String HsMetricsPath = "~{sampleId}.HsMetrics.txt"
         String HsMetricsPerTargetCoveragePath = "~{sampleId}.HsMetrics.perTargetCoverage.txt"
@@ -195,7 +197,8 @@ task HsMetrics {
     runtime {
         cpu : threads
         memory : memoryGb + "GB"
-        docker : dockerImage
+        disks: "local-disk " + diskSize + " SSD"
+        docker : "us.gcr.io/broad-gatk/gatk:4.1.0.0"
     }
 }
 
@@ -203,7 +206,6 @@ task FormatHsMetrics {
     input {
         Int threads
         Int memoryGb
-        String dockerImage
         String sampleId
         String HsMetricsPerTargetCoverageAutocorrPath = "~{sampleId}.HsMetrics.perTargetCoverage.txt.autocorr"
         File HsMetricsPerTargetCoverage
@@ -222,7 +224,7 @@ task FormatHsMetrics {
     runtime {
         cpu : threads
         memory : memoryGb + "GB"
-        docker : dockerImage
+        docker : "dockerImage"
     }
 }
 
@@ -230,7 +232,6 @@ task Autocorrelations {
     input {
         Int threads
         Int memoryGb
-        String dockerImage
         String sampleId
         File HsMetricsPerTargetCoverageAutocorr
     }
@@ -251,7 +252,7 @@ task Autocorrelations {
     runtime {
         cpu : threads
         memory : memoryGb + "GB"
-        docker : dockerImage
+        docker : "dockerImage"
     }
 }
 
@@ -260,7 +261,7 @@ task CollectOxoGMetricsWgs {
     input {
         Int threads
         Int memoryGb
-        String dockerImage
+        Int diskSize
         String sampleId
         String CollectOxoGMetricsPath = "~{sampleId}.CollectOxoGMetrics.txt"
         IndexedReference referenceFa
@@ -283,7 +284,8 @@ task CollectOxoGMetricsWgs {
     runtime {
         cpu : threads
         memory : memoryGb + "GB"
-        docker : dockerImage
+        disks: "local-disk " + diskSize + " SSD"
+        docker : "us.gcr.io/broad-gatk/gatk:4.1.0.0"
     }
 }
 
@@ -291,7 +293,7 @@ task CollectWgsMetricsWgsDecoy {
     input {
         Int threads
         Int memoryGb
-        String dockerImage
+        Int diskSize
         String sampleId
         String CollectWgsMetricsPath = "~{sampleId}.CollectWgsMetrics.txt"
         IndexedReference referenceFa
@@ -321,7 +323,8 @@ task CollectWgsMetricsWgsDecoy {
     runtime {
         cpu : threads
         memory : memoryGb + "GB"
-        docker : dockerImage
+        disks: "local-disk " + diskSize + " SSD"
+        docker : "us.gcr.io/broad-gatk/gatk:4.1.0.0"
     }
 }
 
@@ -329,7 +332,7 @@ task Binest {
     input {
         Int threads
         Int memoryGb
-        String dockerImage
+        Int diskSize
         String sampleId
         String binestCovPath = "~{sampleId}.binest.coverage.txt"
         Bam finalBam
@@ -349,7 +352,8 @@ task Binest {
     runtime {
         cpu : threads
         memory : memoryGb + "GB"
-        docker : dockerImage
+        disks: "local-disk " + diskSize + " SSD"
+        docker : "gcr.io/nygc-compbio/binest:0.8.4"
     }
 }
 
@@ -357,7 +361,6 @@ task PlotBinCov {
     input {
         Int threads
         Int memoryGb
-        String dockerImage
         String genome
         File genomeTemplates
         String sampleId
@@ -379,7 +382,7 @@ task PlotBinCov {
     runtime {
         cpu : threads
         memory : memoryGb + "GB"
-        docker : dockerImage
+        docker : "dockerImage"  # "gcr.io/nygc-public/r:v3.2.1"
     }
 }
 
@@ -387,7 +390,7 @@ task Pileup {
     input {
         Int threads
         Int memoryGb
-        String dockerImage
+        Int diskSize
         String sampleId
         String pileupsTablePath = "~{sampleId}_pileups_table.table"
         Bam finalBam
@@ -409,7 +412,8 @@ task Pileup {
     runtime {
         cpu : threads
         memory : memoryGb + "GB"
-        docker : dockerImage
+        disks: "local-disk " + diskSize + " SSD"
+        docker : "us.gcr.io/broad-gatk/gatk:4.0.0.0"
     }
 }
 
@@ -417,7 +421,6 @@ task CalculateContamination {
     input {
         Int threads
         Int memoryGb
-        String dockerImage
         String sampleId
         String contaminationTablePath = "~{sampleId}.contamination.table"
         File pileupsTable
@@ -437,7 +440,7 @@ task CalculateContamination {
     runtime {
         cpu : threads
         memory : memoryGb + "GB"
-        docker : dockerImage
+        docker : "us.gcr.io/broad-gatk/gatk:4.0.0.0"
     }
 }
 
@@ -445,7 +448,6 @@ task CalculateContaminationPaired {
     input {
         Int threads
         Int memoryGb
-        String dockerImage
         String pairName
         String contaminationTablePath = "~{pairName}.contamination.table"
         File pileupsNormalTable
@@ -467,7 +469,7 @@ task CalculateContaminationPaired {
     runtime {
         cpu : threads
         memory : memoryGb + "GB"
-        docker : dockerImage
+        docker : "us.gcr.io/broad-gatk/gatk:4.0.0.0"
     }
 }
 
@@ -475,7 +477,7 @@ task ConpairPileup {
     input {
         Int threads
         Int memoryGb
-        String dockerImage
+        Int diskSize
         IndexedReference referenceFa
         String sampleId
         String pileupsConpairPath = "~{sampleId}_pileups_table.txt"
@@ -504,7 +506,8 @@ task ConpairPileup {
     runtime {
         cpu : threads
         memory : memoryGb + "GB"
-        docker : dockerImage
+        disks: "local-disk " + diskSize + " SSD"
+        docker : "us.gcr.io/broad-gatk/gatk:3.4.0"
     }
 }
 
@@ -512,7 +515,6 @@ task VerifyConcordanceAll {
     input {
         Int threads
         Int memoryGb
-        String dockerImage
         File pileupsTumorConpair
         File pileupsNormalConpair
         File markerTxtFile
@@ -536,7 +538,7 @@ task VerifyConcordanceAll {
     runtime {
         cpu : threads
         memory : memoryGb + "GB"
-        docker : dockerImage
+        docker : "us.gcr.io/broad-gatk/gatk:4.1.0.0"
     }
 }
 
@@ -544,7 +546,6 @@ task VerifyConcordanceHomoz {
     input {
         Int threads
         Int memoryGb
-        String dockerImage
         File pileupsTumorConpair
         File pileupsNormalConpair
         File markerTxtFile
@@ -569,7 +570,7 @@ task VerifyConcordanceHomoz {
     runtime {
         cpu : threads
         memory : memoryGb + "GB"
-        docker : dockerImage
+        docker : "us.gcr.io/broad-gatk/gatk:4.1.0.0"
     }
 }
 
@@ -577,7 +578,6 @@ task Contamination {
     input {
         Int threads
         Int memoryGb
-        String dockerImage
         File pileupsTumorConpair
         File pileupsNormalConpair
         File markerTxtFile
@@ -603,6 +603,6 @@ task Contamination {
     runtime {
         cpu : threads
         memory : memoryGb + "GB"
-        docker : dockerImage
+        docker : "us.gcr.io/broad-gatk/gatk:4.1.0.0"
     }
 }

@@ -1,8 +1,8 @@
 version 1.0
 
 
-import "qc/qc.wdl" as qc
-import "./wdl_structs.wdl"
+import "qc.wdl" as qc
+import "../wdl_structs.wdl"
 
 workflow QcMetrics {
     # command
@@ -19,11 +19,6 @@ workflow QcMetrics {
 
         Int threads
         Int memoryGb
-        String gatkDockerImage
-        String MultipleMetricsBase
-        String binestDockerImage
-        String rDockerImage
-        #String perlDockerImage
     }
 
     call qc.MultipleMetrics {
@@ -34,7 +29,6 @@ workflow QcMetrics {
             sampleId = sampleId,
             memoryGb = memoryGb,
             threads = threads,
-            dockerImage = gatkDockerImage
     }
 
     call qc.MultipleMetricsPreBqsr {
@@ -45,7 +39,6 @@ workflow QcMetrics {
             sampleId = sampleId,
             memoryGb = memoryGb,
             threads = threads,
-            dockerImage = gatkDockerImage
     }
 
     call qc.CollectGcBiasMetrics {
@@ -55,7 +48,6 @@ workflow QcMetrics {
             sampleId = sampleId,
             memoryGb = memoryGb,
             threads = threads,
-            dockerImage = gatkDockerImage
     }
 
     call qc.Flagstat {
@@ -65,7 +57,6 @@ workflow QcMetrics {
             sampleId = sampleId,
             memoryGb = memoryGb,
             threads = threads,
-            dockerImage = gatkDockerImage
     }
 
     call qc.HsMetrics {
@@ -76,7 +67,6 @@ workflow QcMetrics {
             sampleId = sampleId,
             memoryGb = 40,
             threads = threads,
-            dockerImage = gatkDockerImage
     }
 
     # call qc.FormatHsMetrics {
@@ -85,7 +75,6 @@ workflow QcMetrics {
     #         sampleId = sampleId,
     #         memoryGb = memoryGb,
     #         threads = threads,
-    #         dockerImage = perlDockerImage
     # }
 
     # call qc.Autocorrelations {
@@ -94,7 +83,6 @@ workflow QcMetrics {
     #         sampleId = sampleId,
     #         memoryGb = memoryGb,
     #         threads = threads,
-    #         dockerImage = rDockerImage
     # }
 
     call qc.CollectOxoGMetricsWgs {
@@ -104,7 +92,6 @@ workflow QcMetrics {
             sampleId = sampleId,
             memoryGb = memoryGb,
             threads = threads,
-            dockerImage = gatkDockerImage
     }
 
     # call qc.CollectWgsMetricsWgsDecoy {
@@ -115,7 +102,6 @@ workflow QcMetrics {
     #         sampleId = sampleId,
     #         memoryGb = memoryGb,
     #         threads = threads,
-    #         dockerImage = gatkDockerImage
     # }
 
     call qc.Binest {
@@ -124,7 +110,6 @@ workflow QcMetrics {
             sampleId = sampleId,
             memoryGb = memoryGb,
             threads = threads,
-            dockerImage = binestDockerImage
     }
 
     # call qc.PlotBinCov {
@@ -133,6 +118,5 @@ workflow QcMetrics {
     #         sampleId = sampleId,
     #         memoryGb = memoryGb,
     #         threads = threads,
-    #         dockerImage = rDockerImage
     #}
 }

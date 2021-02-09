@@ -30,7 +30,6 @@ workflow Conpair {
             sampleId = tumor,
             memoryGb = memoryGb,
             threads = threads,
-            dockerImage = gatkDockerImage
     }
     
     call qc.ConpairPileup as normalConpairPileup {
@@ -41,7 +40,6 @@ workflow Conpair {
             sampleId = normal,
             memoryGb = memoryGb,
             threads = threads,
-            dockerImage = gatkDockerImage
     }
     
     call qc.VerifyConcordanceAll {
@@ -52,7 +50,6 @@ workflow Conpair {
             pairName = pairName,
             memoryGb = memoryGb,
             threads = threads,
-            dockerImage = conpairDockerImage
     }
     
     call qc.VerifyConcordanceHomoz {
@@ -63,7 +60,6 @@ workflow Conpair {
             pairName = pairName,
             memoryGb = memoryGb,
             threads = threads,
-            dockerImage = conpairDockerImage
     }
     
     call qc.Contamination {
@@ -74,7 +70,6 @@ workflow Conpair {
             pairName = pairName,
             memoryGb = memoryGb,
             threads = threads,
-            dockerImage = conpairDockerImage
     }
     
     output {
