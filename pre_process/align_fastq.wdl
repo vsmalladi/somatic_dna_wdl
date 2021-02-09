@@ -11,7 +11,6 @@ task AlignBwaMem {
     # resources
     Int mem
     Int threads
-    String dockerImage
    }
 
     command {
@@ -38,7 +37,7 @@ task AlignBwaMem {
     runtime {
         cpu : threads
         memory : mem + " GB"
-        docker : dockerImage
+        docker : "gcr.io/nygc-public/bwa-kit:0.7.15"
     }
 }
 
@@ -95,8 +94,8 @@ task Fixmate {
         --VALIDATION_STRINGENCY SILENT \
         --ADD_MATE_CIGAR true \
         --ASSUME_SORTED true \
-        -I laneBamMark \
-        -O laneFixmateBamPath
+        -I ~{laneBamMark} \
+        -O ~{laneFixmateBamPath}
     }
 
     output {

@@ -4,7 +4,7 @@ import "../wdl_structs.wdl"
 import "qc.wdl"
 
 workflow CalculateContamination {
-    # command 
+    # command
     input {
         Bam finalNormalBam
         Bam finalTumorBam
@@ -12,14 +12,16 @@ workflow CalculateContamination {
         String tumor
         String normal
         String pairName
-        
+
         File gnomadBiallelic
-    
-        Int threads
-        Int memoryGb
-        String gatkDockerImage
+        Int threads = 1
+        Int memoryGb = 16
     }
-    
+
+    Int additionalDiskSize = 100
+    Int tumorSize = ceil(size(finalTumorBam.bam, "GB") + size(finalTumorBam.bamIndex, "GB"))
+    Int normalSize = ceil(size(finalNormalBam.bam, "GB") + size(finalNormalBam.bamIndex, "GB"))
+
     call qc.Pileup as normalPileup {
         input:
             sampleId = normal,
@@ -27,9 +29,9 @@ workflow CalculateContamination {
             gnomadBiallelic = gnomadBiallelic,
             memoryGb = memoryGb,
             threads = threads,
-            dockerImage = gatkDockerImage     
+            diskSize = normalSize + additionalDiskSize
     }
-    
+
     call qc.Pileup as tumorPileup {
         input:
             sampleId = tumor,
@@ -37,16 +39,15 @@ workflow CalculateContamination {
             gnomadBiallelic = gnomadBiallelic,
             memoryGb = memoryGb,
             threads = threads,
-            dockerImage = gatkDockerImage     
+            diskSize = tumorSize + additionalDiskSize
     }
-    
+
     call qc.CalculateContaminationPaired {
         input:
             pairName = pairName,
             pileupsNormalTable = normalPileup.pileupsTable,
             pileupsTumorTable = tumorPileup.pileupsTable,
             memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = gatkDockerImage    
+            threads = threads
     }
 }
