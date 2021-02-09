@@ -15,7 +15,7 @@ workflow QcMetrics {
         String MultipleMetricsBasePreBqsrBasename
         File hsMetricsIntervals
         #File randomIntervals
-        #File genomeTemplates
+        #File chromLengths
 
         Int threads
         Int memoryGb
@@ -114,7 +114,7 @@ workflow QcMetrics {
 
     # call qc.PlotBinCov {
     #     input:
-    #         genomeTemplates = genomeTemplates,
+    #         chromLengths = chromLengths,
     #         sampleId = sampleId,
     #         memoryGb = memoryGb,
     #         threads = threads,

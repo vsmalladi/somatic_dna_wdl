@@ -14,16 +14,16 @@ workflow BicSeq2 {
         
         Bam normalFinalBam
         Bam tumorFinalBam
-        Array[File] uniq_coords
+        Int readLength
+        Map[Int, Array[File]] uniqCoords
         
         File tumorConfigFile
         File normalConfigFile
-        Int readLength
         Int tumorMedianInsertSize
         Int normalMedianInsertSize
         String tumorParamsPath
         String normalParamsPath
-        Array[IndexedReference] chromFastas
+        Map[String, File] chromFastas
         
         IndexedReference referenceFa
         
@@ -39,9 +39,11 @@ workflow BicSeq2 {
     scatter (chrom in listOfChroms) {
             String tempNormalSeq = "~{normal}/~{normal}_~{chrom}.seq"
             String tempTumorSeq = "~{tumor}/~{tumor}_~{chrom}.seq"
+            File chromFastaFile = chromFastas[chrom]
         }
     Array[String] tempNormalSeqsPaths = tempNormalSeq
     Array[String] tempTumorSeqsPaths = tempTumorSeq
+    Array[File] chromFastaFiles = chromFastaFile
     
     call calling.UniqReads {
         input:
@@ -61,7 +63,7 @@ workflow BicSeq2 {
     }
     Array[String]+ tempTumorNormPaths = tempTumorNormFile
     
-    call calling.Bicseq2Norm tumorBicseq2Norm {
+    call calling.Bicseq2Norm as tumorBicseq2Norm {
         input:
             sampleId = tumor,
             tempSeqs = UniqReads.tempTumorSeqs,
@@ -71,8 +73,8 @@ workflow BicSeq2 {
             medianInsertSize = tumorMedianInsertSize,
             paramsPath = tumorParamsPath,
             tempNormPaths = tempTumorNormPaths,
-            chromFastas = chromFastas,
-            uniq_coords = uniqCoords,
+            chromFastas = chromFastaFiles,
+            uniqCoords = uniqCoords[readLength],
             memoryGb = memoryGb,
             threads = threads,
             dockerImage = bicseq2DockerImage
@@ -83,7 +85,7 @@ workflow BicSeq2 {
     }
     Array[File]+ tempNormalNormPaths = tempNormalNormFile
     
-    call calling.Bicseq2Norm normalBicseq2Norm {
+    call calling.Bicseq2Norm as normalBicseq2Norm {
         input:
             sampleId = normal,
             tempSeqs = UniqReads.tempNormalSeqs,
@@ -93,8 +95,8 @@ workflow BicSeq2 {
             medianInsertSize = normalMedianInsertSize,
             paramsPath = normalParamsPath,
             tempNormPaths = tempNormalNormPaths,
-            chromFastas = chromFastas,
-            uniq_coords = uniqCoords,
+            chromFastas = chromFastaFiles,
+            uniqCoords = uniqCoords[readLength],
             memoryGb = memoryGb,
             threads = threads,
             dockerImage = bicseq2DockerImage
@@ -102,10 +104,8 @@ workflow BicSeq2 {
     
     call calling.Bicseq2Wgs {
         input:
-            tumor = tumor,
-            normal = normal,
-            tempTumorNorms = tumorBicseq2Norm.tempNorms,
-            tempNormalNorms = normalBicseq2Norm.tempNorms,
+            tempTumorNorms = tumorBicseq2Norm.tempNorm,
+            tempNormalNorms = normalBicseq2Norm.tempNorm,
             memoryGb = memoryGb,
             threads = threads,
             dockerImage = bicseq2DockerImage

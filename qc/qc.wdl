@@ -361,8 +361,7 @@ task PlotBinCov {
     input {
         Int threads
         Int memoryGb
-        String genome
-        File genomeTemplates
+        File chromLengths
         String sampleId
         File binestCov
     }
@@ -370,8 +369,7 @@ task PlotBinCov {
     command {
         plot_bin_cov.R \
         "--binestOutput=~{binestCov}" \
-        "--genome=~{genome}" \
-        "--genomeTemplates=~{genomeTemplates}" \
+        "--chrom_lengths=~{chromLengths}" \
         "--sample=~{sampleId}"
     }
 
