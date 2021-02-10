@@ -12,9 +12,9 @@ workflow MergeBams {
         String sampleId
         IndexedVcf MillsAnd1000G
         IndexedVcf Indels
-        IndexedVcf DbSnp
-        File chromFile
-        IndexedReference indexedReference
+        IndexedVcf dbsnp
+        IndexedTable callRegions
+        IndexedReference referenceFa
         # resources
         Int mem
         Int threads
@@ -37,10 +37,10 @@ workflow MergeBams {
         input:
             mergedDedupBam = novosort.mergedDedupBam,
             MillsAnd1000G = MillsAnd1000G,
-            indexedReference = indexedReference,
+            referenceFa = referenceFa,
             Indels = Indels,
-            DbSnp = DbSnp,
-            chromFile = chromFile,
+            dbsnp = dbsnp,
+            callRegions = callRegions,
             sampleId = sampleId,
             mem = mem,
             threads = threads,
@@ -49,7 +49,7 @@ workflow MergeBams {
     }
     call mergeBams.PrintReads {
         input:
-            indexedReference = indexedReference,
+            referenceFa = referenceFa,
             mergedDedupBam = novosort.mergedDedupBam,
             recalGrp = Bqsr38.recalGrp,
             sampleId = sampleId,

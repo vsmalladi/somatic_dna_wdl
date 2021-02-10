@@ -7,7 +7,7 @@ workflow AlignFastq {
     # command
     #   align FASTQ files
     input {
-        Array[Fastqs]+ listOfFastqPairs
+        Array[Fastqs] listOfFastqPairs
         BwaReference bwaReference
         # resources
         Int bwaMem

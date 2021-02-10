@@ -69,13 +69,13 @@ task Bqsr38 {
    input {
     # command
     Bam mergedDedupBam
-    IndexedReference indexedReference
-    File chromFile
+    IndexedReference referenceFa
+    IndexedTable callRegions
     String sampleId
     String recalGrpPath = "~{sampleId}.recal_data.grp"
     IndexedVcf MillsAnd1000G
     IndexedVcf Indels
-    IndexedVcf DbSnp
+    IndexedVcf dbsnp
     # resources
     Int mem
     Int threads
@@ -86,13 +86,13 @@ task Bqsr38 {
         gatk \
         BaseRecalibrator \
         --java-options "-XX:ParallelGCThreads=1" \
-        -L ~{chromFile} \
-        -R ~{indexedReference.fasta} \
+        -L ~{callRegions.table} \
+        -R ~{referenceFa.fasta} \
         -I ~{mergedDedupBam.bam} \
         -O ~{recalGrpPath} \
         --known-sites ~{MillsAnd1000G.vcf} \
         --known-sites ~{Indels.vcf} \
-        --known-sites ~{DbSnp.vcf}
+        --known-sites ~{dbsnp.vcf}
     }
 
     output {
@@ -111,7 +111,7 @@ task PrintReads {
     # command
     Bam mergedDedupBam
     File recalGrp
-    IndexedReference indexedReference
+    IndexedReference referenceFa
     String sampleId
     String finalBamPath = "~{sampleId}.final.bam"
     # resources
@@ -124,7 +124,7 @@ task PrintReads {
         gatk \
         ApplyBQSR \
         --java-options "-Xmx24576m -XX:ParallelGCThreads=1" \
-        -R ~{indexedReference.fasta} \
+        -R ~{referenceFa.fasta} \
         -I ~{mergedDedupBam.bam} \
         -O ~{finalBamPath} \
         --bqsr-recal-file ~{recalGrp}
