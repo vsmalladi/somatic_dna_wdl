@@ -3,15 +3,16 @@ version 1.0
 import "../wdl_structs.wdl"
 
 task AlignBwaMem {
-   input {
-    # command
-    Fastqs fastqs
-    BwaReference bwaReference
-    String laneBamPath = "~{fastqs.readgroupId}.readgroup.bam"
-    # resources
-    Int mem
-    Int threads
-   }
+    input {
+        # command
+        Fastqs fastqs
+        BwaReference bwaReference
+        String laneBamPath = "~{fastqs.readgroupId}.readgroup.bam"
+        # resources
+        Int mem
+        Int threads
+        Int diskSize
+    }
 
     command {
         set -e -o pipefail
@@ -37,6 +38,7 @@ task AlignBwaMem {
     runtime {
         cpu : threads
         memory : mem + " GB"
+        disks: "local-disk " + diskSize + " SSD"
         docker : "gcr.io/nygc-public/bwa-kit:0.7.15"
     }
 }
@@ -48,8 +50,8 @@ task ShortAlignMark {
         String bamBase
         String laneBamMarkPath = "~{bamBase}.readgroup_mark.bam"
         # resources
-        Int mem
-        String dockerImage
+        Int mem = 16
+        Int diskSize
     }
 
     command {
@@ -71,7 +73,8 @@ task ShortAlignMark {
 
     runtime {
         memory : mem + " GB"
-        docker : dockerImage
+        docker : "gcr.io/nygc-public/nygc-short-alignment-marking:v2.1"
+        disks: "local-disk " + diskSize + " SSD"
     }
 }
 
@@ -82,8 +85,8 @@ task Fixmate {
         String bamBase
         String laneFixmateBamPath = "~{bamBase}.readgroup_fixmate.bam"
         # resources
-        Int mem
-        String dockerImage
+        Int mem = 8
+        Int diskSize
     }
 
     command {
@@ -104,6 +107,7 @@ task Fixmate {
 
     runtime {
         memory : mem + " GB"
-        docker : dockerImage
+        docker : "us.gcr.io/broad-gatk/gatk:4.1.1.0"
+        disks: "local-disk " + diskSize + " SSD"
     }
 }

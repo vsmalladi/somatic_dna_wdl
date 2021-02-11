@@ -4,14 +4,14 @@ import "../wdl_structs.wdl"
 
 task NovosortMarkDup {
    input {
-    # command
-    Array[File]+ laneBams
-    String sampleId
-    String mergedDedupBamPath = "~{sampleId}.merged_dedup.bam"
-    # resources
-    Int mem
-    Int threads
-    String dockerImage
+       # command
+       Array[File]+ laneBams
+       String sampleId
+       String mergedDedupBamPath = "~{sampleId}.merged_dedup.bam"
+       # resources
+       Int mem = 80
+       Int threads = 8
+       Int diskSize
    }
 
     command {
@@ -35,16 +35,17 @@ task NovosortMarkDup {
     runtime {
         cpu : threads
         memory : mem + " GB"
-        docker : dockerImage
+        docker :  "gcr.io/nygc-compbio/novosort:v1.03.01"
+        disks: "local-disk " + diskSize + " SSD"
     }
 }
 
 task IndexBam {
-   input {
-    # command
-    File bam
-    # resources
-    String dockerImage
+    input {
+        # command
+        File bam
+        # resources
+        Int diskSize
    }
 
     command {
@@ -61,25 +62,26 @@ task IndexBam {
     }
 
     runtime {
-        docker : dockerImage
+        docker : "gcr.io/nygc-public/samtools:1.9.1"
+        disks: "local-disk " + diskSize + " SSD"
     }
 }
 
 task Bqsr38 {
-   input {
-    # command
-    Bam mergedDedupBam
-    IndexedReference indexedReference
-    File chromFile
-    String sampleId
-    String recalGrpPath = "~{sampleId}.recal_data.grp"
-    IndexedVcf MillsAnd1000G
-    IndexedVcf Indels
-    IndexedVcf DbSnp
-    # resources
-    Int mem
-    Int threads
-    String dockerImage
+    input {
+        # command
+        Bam mergedDedupBam
+        IndexedReference indexedReference
+        File chromFile
+        String sampleId
+        String recalGrpPath = "~{sampleId}.recal_data.grp"
+        IndexedVcf MillsAnd1000G
+        IndexedVcf Indels
+        IndexedVcf DbSnp
+        # resources
+        Int mem = 36
+        Int cpu = 2
+        Int diskSize
    }
 
     command {
@@ -100,25 +102,26 @@ task Bqsr38 {
     }
 
     runtime {
-        cpu : threads
+        cpu : cpu
         memory : mem + " GB"
-        docker : dockerImage
+        docker : "us.gcr.io/broad-gatk/gatk:4.1.1.0"
+        disks: "local-disk " + diskSize + " SSD"
     }
 }
 
 task PrintReads {
-   input {
-    # command
-    Bam mergedDedupBam
-    File recalGrp
-    IndexedReference indexedReference
-    String sampleId
-    String finalBamPath = "~{sampleId}.final.bam"
-    # resources
-    Int mem
-    Int threads
-    String dockerImage
-   }
+    input {
+        # command
+        Bam mergedDedupBam
+        File recalGrp
+        IndexedReference indexedReference
+        String sampleId
+        String finalBamPath = "~{sampleId}.final.bam"
+        # resources
+        Int mem = 36
+        Int cpu = 2
+        Int diskSize
+    }
 
     command {
         gatk \
@@ -138,8 +141,9 @@ task PrintReads {
     }
 
     runtime {
-        cpu : threads
+        cpu : cpu
         memory : mem
-        docker : dockerImage
-    }
+        docker : "us.gcr.io/broad-gatk/gatk:4.1.1.0"
+        disks: "local-disk " + diskSize + " SSD"
+     }
 }

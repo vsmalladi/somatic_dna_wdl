@@ -5,9 +5,9 @@ import "merge_bams_wkf.wdl" as mergeBams
 import "../wdl_structs.wdl"
 
 workflow Preprocess {
-    # command 
+    # command
     #   align FASTQ files
-    #   and 
+    #   and
     #   merge lane level BAMs
     input {
         Array[Fastqs]+ listOfFastqPairs
@@ -21,45 +21,32 @@ workflow Preprocess {
         IndexedReference indexedReference
         # resources
         #    prep flowcell
-        Int mem
-        Int threads
-        String bwaDockerImage
-        String shortAlignDockerImage
-        String gatkDockerImage
-        #    merge flowcell
-        String novosortDockerImage
-        String samtoolsDockerImage
-
+        Int bwaMem = 24
+        Int novosortMem = 80
+        Int threads = 8
     }
-    
+
     call alignFastq.AlignFastq {
         input:
             listOfFastqPairs = listOfFastqPairs,
             bwaReference = bwaReference,
-            mem = mem,
-            threads = threads,
-            bwaDockerImage = bwaDockerImage,
-            shortAlignDockerImage = shortAlignDockerImage,
-            gatkDockerImage = gatkDockerImage,
+            bwaMem = bwaMem,
+            threads = threads
     }
-    
+
     call mergeBams.MergeBams {
         input:
             laneFixmateBams = AlignFastq.laneFixmateBam,
-            laneFixmateBamPaths = AlignFastq.laneFixmateBamPath,
             sampleId = sampleId,
             MillsAnd1000G = MillsAnd1000G,
             Indels = Indels,
             DbSnp = DbSnp,
             chromFile = chromFile,
             indexedReference = indexedReference,
-            mem = mem,
-            threads = threads,
-            gatkDockerImage = gatkDockerImage,
-            novosortDockerImage = novosortDockerImage,
-            samtoolsDockerImage = samtoolsDockerImage
+            mem = novosortMem,
+            threads = threads
     }
-    
+
     output {
         Bam mergedDedupBam = MergeBams.mergedDedupBam
         Bam finalBam = MergeBams.finalBam

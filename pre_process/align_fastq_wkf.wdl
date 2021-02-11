@@ -12,20 +12,19 @@ workflow AlignFastq {
         # resources
         Int bwaMem
         Int threads
-        String bwaDockerImage
-        String shortAlignDockerImage
-        String gatkDockerImage
-
     }
 
+    Int additionalDiskSize = 50
     scatter(fastqs in listOfFastqPairs) {
+        Int fastqsSize = ceil(size(fastqs.fastqR1, "GB") + size (fastqs.fastqR2, "GB"))
+        Int diskSize = fastqsSize + additionalDiskSize
         call alignFastq.AlignBwaMem {
             input:
                 fastqs = fastqs,
                 bwaReference = bwaReference,
                 mem = bwaMem,
                 threads = threads,
-                dockerImage = bwaDockerImage
+                diskSize = diskSize
         }
 
         call alignFastq.ShortAlignMark {
@@ -33,7 +32,7 @@ workflow AlignFastq {
                 laneBam = AlignBwaMem.laneBam,
                 bamBase = fastqs.readgroupId,
                 mem = 16,
-                dockerImage = shortAlignDockerImage
+                diskSize = diskSize
         }
 
         call alignFastq.Fixmate {
@@ -41,11 +40,13 @@ workflow AlignFastq {
                 laneBamMark = ShortAlignMark.laneBamMark,
                 bamBase = fastqs.readgroupId,
                 mem = 8,
-                dockerImage = gatkDockerImage
+                diskSize = diskSize
         }
+        Int fixmate_bam_size = ceil(size(Fixmate.laneFixmateBam, "GB"))
     }
 
     output {
         Array[File] laneFixmateBam = Fixmate.laneFixmateBam
+        Array[Int] laneFixmateBamSizes = fixmate_bam_size
     }
 }

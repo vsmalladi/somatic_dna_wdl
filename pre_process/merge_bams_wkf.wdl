@@ -9,6 +9,7 @@ workflow MergeBams {
     input {
         #    command merge flowcell
         Array[File] laneFixmateBams
+        Array[Int] sample_bam_sizes
         String sampleId
         IndexedVcf MillsAnd1000G
         IndexedVcf Indels
@@ -18,18 +19,24 @@ workflow MergeBams {
         # resources
         Int mem
         Int threads
-        String gatkDockerImage
-        String novosortDockerImage
-        String samtoolsDockerImage
+
     }
+
+    # There has to be a better way to add over a range of array. But I haven't found it.
+    call SumFloats {
+        input:
+            sizes = sample_bam_sizes
+    }
+
+    Int diskSize = ceil(SumFloats.total_size) + 50
 
     call mergeBams.NovosortMarkDup as novosort {
         input:
             laneBams = laneFixmateBams,
             sampleId = sampleId,
-            dockerImage = novosortDockerImage,
             mem = mem,
-            threads = threads
+            threads = threads,
+            diskSize = diskSize
     }
 
 
@@ -42,25 +49,39 @@ workflow MergeBams {
             DbSnp = DbSnp,
             chromFile = chromFile,
             sampleId = sampleId,
-            mem = mem,
-            threads = threads,
-            dockerImage = gatkDockerImage
-
+            diskSize = diskSize
     }
+
     call mergeBams.PrintReads {
         input:
             indexedReference = indexedReference,
             mergedDedupBam = novosort.mergedDedupBam,
             recalGrp = Bqsr38.recalGrp,
             sampleId = sampleId,
-            mem = mem,
-            threads = threads,
-            dockerImage = gatkDockerImage
-
+            diskSize = diskSize
     }
 
     output {
         Bam mergedDedupBam = novosort.mergedDedupBam
         Bam finalBam = PrintReads.finalBam
+    }
+}
+
+# This task should live in some shared utils.
+task SumFloats {
+    input {
+        Array[Float] sizes
+    }
+
+    command {
+        python -c "print ~{sep="+" sizes}"
+    }
+
+    output {
+        Float total_size = read_float(stdout())
+    }
+
+    runtime {
+        docker: "python:2.7"
     }
 }

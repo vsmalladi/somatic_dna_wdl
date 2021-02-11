@@ -4,8 +4,8 @@ import "../wdl_structs.wdl"
 
 task MultipleMetrics {
     input {
-        Int threads
-        Int memoryGb
+        Int threads = 2
+        Int memoryGb = 40
         Int diskSize
         IndexedReference referenceFa
         Bam finalBam
@@ -49,8 +49,8 @@ task MultipleMetrics {
 
 task MultipleMetricsPreBqsr {
     input {
-        Int threads
-        Int memoryGb
+        Int threads = 2
+        Int memoryGb = 40
         Int diskSize
         String MultipleMetricsBasePreBqsrBasename
         IndexedReference referenceFa
@@ -89,8 +89,8 @@ task MultipleMetricsPreBqsr {
 
 task CollectGcBiasMetrics {
     input {
-        Int threads
-        Int memoryGb
+        Int threads = 2
+        Int memoryGb = 32
         Int diskSize
         String sampleId
         String gcBiasPdfPath = "~{sampleId}.GcBiasMetrics.gc_bias.pdf"
@@ -129,8 +129,8 @@ task CollectGcBiasMetrics {
 
 task Flagstat {
     input {
-        Int threads
-        Int memoryGb
+        Int threads = 2
+        Int memoryGb = 32
         Int diskSize
         String sampleId
         String FlagStatPath = "~{sampleId}.FlagStat.txt"
@@ -161,8 +161,8 @@ task Flagstat {
 
 task HsMetrics {
     input {
-        Int threads
-        Int memoryGb
+        Int threads = 2
+        Int memoryGb = 40
         Int diskSize
         String sampleId
         String HsMetricsPath = "~{sampleId}.HsMetrics.txt"
@@ -204,15 +204,15 @@ task HsMetrics {
 
 task FormatHsMetrics {
     input {
-        Int threads
-        Int memoryGb
+        Int threads = 1
+        Int memoryGb = 4
         String sampleId
         String HsMetricsPerTargetCoverageAutocorrPath = "~{sampleId}.HsMetrics.perTargetCoverage.txt.autocorr"
         File HsMetricsPerTargetCoverage
     }
 
     command {
-        create_autocorrelation_input.v.0.1.pl \
+        perl /create_autocorrelation_input.v.0.1.pl \
         -input ~{HsMetricsPerTargetCoverage} \
         > ~{HsMetricsPerTargetCoverageAutocorrPath} \
     }
@@ -224,14 +224,14 @@ task FormatHsMetrics {
     runtime {
         cpu : threads
         memory : memoryGb + "GB"
-        docker : "dockerImage"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools"
     }
 }
 
 task Autocorrelations {
     input {
-        Int threads
-        Int memoryGb
+        Int threads = 1
+        Int memoryGb = 4
         String sampleId
         File HsMetricsPerTargetCoverageAutocorr
     }
@@ -242,7 +242,7 @@ task Autocorrelations {
         "./" \
         ~{HsMetricsPerTargetCoverageAutocorr} \
         ~{sampleId} \
-        < ASP_modified_final.v.0.1.R \
+        < /ASP_modified_final.v.0.1.R \
     }
 
     output {
@@ -252,15 +252,15 @@ task Autocorrelations {
     runtime {
         cpu : threads
         memory : memoryGb + "GB"
-        docker : "dockerImage"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools"
     }
 }
 
 
 task CollectOxoGMetricsWgs {
     input {
-        Int threads
-        Int memoryGb
+        Int threads = 2
+        Int memoryGb = 8
         Int diskSize
         String sampleId
         String CollectOxoGMetricsPath = "~{sampleId}.CollectOxoGMetrics.txt"
@@ -291,8 +291,8 @@ task CollectOxoGMetricsWgs {
 
 task CollectWgsMetricsWgsDecoy {
     input {
-        Int threads
-        Int memoryGb
+        Int threads = 2
+        Int memoryGb = 32
         Int diskSize
         String sampleId
         String CollectWgsMetricsPath = "~{sampleId}.CollectWgsMetrics.txt"
@@ -330,8 +330,8 @@ task CollectWgsMetricsWgsDecoy {
 
 task Binest {
     input {
-        Int threads
-        Int memoryGb
+        Int threads = 1
+        Int memoryGb = 4
         Int diskSize
         String sampleId
         String binestCovPath = "~{sampleId}.binest.coverage.txt"
@@ -359,15 +359,15 @@ task Binest {
 
 task PlotBinCov {
     input {
-        Int threads
-        Int memoryGb
+        Int threads = 1
+        Int memoryGb = 4
         File chromLengths
         String sampleId
         File binestCov
     }
 
     command {
-        plot_bin_cov.R \
+        /plot_bin_cov.R \
         "--binestOutput=~{binestCov}" \
         "--chrom_lengths=~{chromLengths}" \
         "--sample=~{sampleId}"
@@ -380,7 +380,7 @@ task PlotBinCov {
     runtime {
         cpu : threads
         memory : memoryGb + "GB"
-        docker : "dockerImage"  # "gcr.io/nygc-public/r:v3.2.1"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools"  # "gcr.io/nygc-public/r:v3.2.1"
     }
 }
 
