@@ -39,7 +39,8 @@
             "type": "object",
             "properties": {
                 "pairId": {"type" : "string" },
-                "bam": {"$ref": "#/definitions/bam"},
+                "tumorFinalBam": {"$ref": "#/definitions/bam"},
+                "normalFinalBam": {"$ref": "#/definitions/bam"},
                 "tumor": {"type" : "string" },
                 "normal": {"type" : "string" }
             },

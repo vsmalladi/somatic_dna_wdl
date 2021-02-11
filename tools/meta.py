@@ -65,31 +65,41 @@ def load_pairs(file):
     pairs['pairId'] = pairs.apply(lambda row: row.tumor + '--' + row.normal, axis=1)
     return pairs[['tumor', 'normal', 'pairId']]
 
-def load_bam(row, pair_info):
+def load_bam(row, pair_info, kind):
     '''temp version to add bam file replace once GCP file manifest format is known'''
-    bam = {"bam" : "/gpfs/commons/groups/compbio/projects/CancerAlliance/Project_CLIR_12083_B01_SOM_WGS/Sample_CA-0110T-D-W/analysis/CA-0110T-D-W.final.bam",
-            "bamIndex" : "/gpfs/commons/groups/compbio/projects/CancerAlliance/Project_CLIR_12083_B01_SOM_WGS/Sample_CA-0110T-D-W/analysis/CA-0110T-D-W.final.bai"}
+    if kind == 'tumor':
+        bam = {"bam" : "gs://nygc-comp-s-82ed-input/WGS/CA-103/CA-0103T-D-W.25x.bam",
+               "bamIndex" : "gs://nygc-comp-s-82ed-input/WGS/CA-103/CA-0103T-D-W.25x.bai"}
+    if kind == 'normal':
+        bam = {"bam" : "gs://nygc-comp-s-82ed-input/WGS/CA-103/CA-0103T-D-W.15x.bam",
+               "bamIndex" : "gs://nygc-comp-s-82ed-input/WGS/CA-103/CA-0103T-D-W.15x.bai"}
     return bam
  
 def load_sample_info(sample_id):
     '''temp version to add FASTQ file replace once GCP file manifest format is known'''
     sample_info = {"sampleId" : sample_id}
-    fastq_pair = {'fastqR1': "/gpfs/commons/groups/compbio/projects/CancerAlliance/Project_CLIR_12083_B01_SOM_WGS/Sample_CA-0110N-D-W/fastq/CA-0110N-D-W_AAGGTACA_HY7KNCCXX_L001_001.R1.fastq.gz",
-                   'fastqR2': "/gpfs/commons/groups/compbio/projects/CancerAlliance/Project_CLIR_12083_B01_SOM_WGS/Sample_CA-0110N-D-W/fastq/CA-0110N-D-W_AAGGTACA_HY7KNCCXX_L001_001.R2.fastq.gz",
+    fastq_pair = {'fastqR1': "gs://nygc-comp-s-82ed-input/WGS/CA-103/fastq/CA-0103N-D-W_CCGAAGTA_HYVLCCCXX_L001_001.R1.fastq.gz",
+                   'fastqR2': "gs://nygc-comp-s-82ed-input/WGS/CA-103/fastq/CA-0103N-D-W_CCGAAGTA_HYVLCCCXX_L001_001.R2.fastq.gz",
                    'readgroupId': 'CA-0110N-D-W_AAGGTACA_HY7KNCCXX_L001',
                    'flowcell': 'HY7KNCCXX',
                    'lane': 'L001',
                    'barcode': 'AAGGTACA'}
-    sample_info['listOfFastqPairs']  = [fastq_pair, fastq_pair]
+    fastq_pair2 = {'fastqR1': "gs://nygc-comp-s-82ed-input/WGS/CA-103/fastq/CA-0103N-D-W_CCGAAGTA_HYVLCCCXX_L002_001.R1.fastq.gz",
+                   'fastqR2': "gs://nygc-comp-s-82ed-input/WGS/CA-103/fastq/CA-0103N-D-W_CCGAAGTA_HYVLCCCXX_L002_001.R2.fastq.gz",
+                   'readgroupId': 'CA-0110N-D-W_AAGGTACA_HY7KNCCXX_L001',
+                   'flowcell': 'HY7KNCCXX',
+                   'lane': 'L002',
+                   'barcode': 'AAGGTACA'}
+    sample_info['listOfFastqPairs']  = [fastq_pair, fastq_pair2]
     return sample_info
         
 
 def fill_pair(row):
     '''Add pair and sample level info to object'''
     pair_info = {"pairId" : row.pairId}
-    bam = load_bam(row, pair_info)
-    if bam:
-        pair_info['bam'] = bam
+    if load_bam(row, pair_info, kind='tumor') and load_bam(row, pair_info, kind='normal'):
+        pair_info['tumorFinalBam'] = load_bam(row, pair_info, kind='tumor')
+        pair_info['normalFinalBam'] = load_bam(row, pair_info, kind='normal')
     pair_info['normal'] = row['normal']
     pair_info['tumor'] = row['tumor']
     return pair_info
