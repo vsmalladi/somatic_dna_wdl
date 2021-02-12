@@ -40,6 +40,14 @@ struct sampleInfo {
     Array[Fastqs] listOfFastqPairs
 }
 
+struct pairInfo {
+    String pairId
+    Bam tumorFinalBam
+    Bam normalFinalBam
+    String tumor
+    String normal
+}
+
 struct IndexedVcf {
     File vcf
     File index
