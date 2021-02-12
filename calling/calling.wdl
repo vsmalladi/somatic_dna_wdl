@@ -6,10 +6,8 @@ import "../wdl_structs.wdl"
 
 task Gatk4MergeSortVcf {
     input {
-        Int threads
+        Int diskSize
         Int memoryGb
-        String dockerImage
-        String pairName
         String sortedVcfPath
         Array[File] tempChromVcfs
         IndexedReference referenceFa
@@ -32,17 +30,16 @@ task Gatk4MergeSortVcf {
     }
 
     runtime {
-        cpu : threads
+        disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : dockerImage
+        docker : "us.gcr.io/broad-gatk/gatk:4.1.1.0"
     }
 }
 
 task ReorderVcfColumns{
     input {
-        Int threads
+        Int diskSize
         Int memoryGb
-        String dockerImage
         String normal
         String tumor
         File rawVcf
@@ -62,17 +59,16 @@ task ReorderVcfColumns{
     }
 
     runtime {
-        cpu : threads
+        disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : dockerImage
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:0.9.2"
     }
 }
 
 task AddVcfCommand{
     input {
-        Int threads
+        Int diskSize
         Int memoryGb
-        String dockerImage
         File inVcf
         String outVcfPath = sub(inVcf, ".vcf$", "_w_command.vcf")
         File jsonLog
@@ -91,9 +87,9 @@ task AddVcfCommand{
     }
 
     runtime {
-        cpu : threads
+        disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : dockerImage
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:0.9.2"
     }
 }
 
@@ -277,9 +273,8 @@ task LancetExome {
 
 task Mutect2Wgs {
     input {
-        Int threads
         Int memoryGb
-        String dockerImage
+        Int diskSize
         String chrom
         String tumor
         String normal
@@ -308,17 +303,16 @@ task Mutect2Wgs {
     }
 
     runtime {
-        cpu : threads
         memory : memoryGb + "GB"
-        docker : dockerImage
+        docker : "us.gcr.io/broad-gatk/gatk:4.0.5.1"
+        disks: "local-disk " + diskSize + " SSD"
     }
 }
 
 task Mutect2Filter {
     input {
-        Int threads
         Int memoryGb
-        String dockerImage
+        Int diskSize
         String pairName
         String chrom
         String mutect2ChromVcfPath = "~{pairName}_~{chrom}.mutect2.v4.0.5.1.vcf"
@@ -340,9 +334,9 @@ task Mutect2Filter {
     }
 
     runtime {
-        cpu : threads
         memory : memoryGb + "GB"
-        docker : dockerImage
+        docker : "us.gcr.io/broad-gatk/gatk:4.0.5.1"
+        disks: "local-disk " + diskSize + " HDD"
     }
 }
 

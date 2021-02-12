@@ -186,8 +186,6 @@ def write_wdl_json(args, project_info, project_info_file):
                       genome=args['genome'],
                       project_info_file=project_info_file)
     file_out = os.path.basename(args['wdl_file']).replace('.wdl', '') + 'Input.json'
-    #print('INPUT')
-    #pprint.pprint(input.inputs)
     with open(file_out, 'w') as input_info_file:
         json.dump(input.inputs, input_info_file, indent=4)
             

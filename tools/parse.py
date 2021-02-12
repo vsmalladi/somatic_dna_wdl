@@ -45,9 +45,7 @@ class Wdl():
         for variable in self.inputs:
             # skip resource vars because these will be hardcoded
             if not variable.endswith('DockerImage') and not variable.endswith('threads') and not variable.endswith('Mem') and not variable.endswith('mem'):
-                print(variable)
                 if variable in self.input_objects:
-                    print('true')
                     self.inputs[variable] = self.input_objects[variable]
                     
     def add_from_project(self):
