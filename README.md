@@ -139,9 +139,16 @@ python wdl_port/tools/meta.py \
 5. Validate you workflow and inputs
 
 ```
+# validate new files
 womtool validate \
 --inputs new_wkfInput.json \
 new_wkf.wdl
+
+# Also confirm that all workflows continue to be valid before commiting your changes
+for file in */*wdl *wdl; do 
+  echo $file; 
+  womtool validate $file; 
+done
 ```
 
 6. Update the dependencies zip file
@@ -151,6 +158,8 @@ cd wdl_port
 rm dependencies.zip
 zip dependencies.zip wdl_structs.wdl */*.wdl
 ```
+
+8. 
 
 7. [Run](#run) the new workflow as before
 
