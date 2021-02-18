@@ -228,8 +228,7 @@ def get_args():
                         'If not supplied the default (the SureSelect '
                         'interval list for your genome) will be used',
                         dest='intervalList',
-                        choices=['WGS',
-                                 'Exome'],
+                        choices=['SureSelect_V6plusCOSMIC.target.GRCh38_full_analysis_set_plus_decoy_hla'],
                         required=False
                         )
     parser.add_argument('--genome',
