@@ -10,41 +10,41 @@ workflow Mutect2 {
         String tumor
         String normal
         Array[String]+ listOfChroms
-        Int threads
-        Int memoryGb
-        String mutect2GatkDockerImage
-        String pysamDockerImage
-        String gatkDockerImage
         String pairName
         IndexedReference referenceFa
         Bam normalFinalBam
         # Add when Exome are added
         # Map[String, File] chromBeds
         Bam tumorFinalBam
-        File jsonLog
+        Int diskSize = ceil( size(tumorFinalBam.bam, "GB") + size(normalFinalBam.bam, "GB")) + 20
+        Int memoryGb = 8
+        # remove definition after replacing the command step for gcp
+        File jsonLog = "gs://nygc-comp-s-fd4e-input/mutect2_4.0.5.1_COLO-829-NovaSeq_80--COLO-829BL-NovaSeq_40.json"
     }
     
     scatter(chrom in listOfChroms) {
         call calling.Mutect2Wgs {
             input:
                 chrom = chrom,
+                tumor = tumor,
+                normal = normal,
+                pairName = pairName,
                 referenceFa = referenceFa,
                 normalFinalBam = normalFinalBam,
                 tumorFinalBam = tumorFinalBam,
                 memoryGb = memoryGb,
-                threads = threads,
-                dockerImage = mutect2GatkDockerImage
+                diskSize = diskSize
         }
         
         call calling.Mutect2Filter {
             input:
                 chrom = chrom,
+                pairName = pairName,
                 referenceFa = referenceFa,
                 # mutect2ChromRawVcf = select_first([Mutect2Wgs.mutect2ChromRawVcf, Mutect2Exome.mutect2ChromRawVcf])
                 mutect2ChromRawVcf = Mutect2Wgs.mutect2ChromRawVcf,
                 memoryGb = memoryGb,
-                threads = threads,
-                dockerImage = mutect2GatkDockerImage
+                diskSize = diskSize
         }
     }
     
@@ -53,9 +53,9 @@ workflow Mutect2 {
         input:
             sortedVcfPath = "~{pairName}.mutect2.v4.0.5.1.sorted.vcf",
             tempChromVcfs = Mutect2Filter.mutect2ChromVcf,
+            referenceFa = referenceFa,
             memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = gatkDockerImage
+            diskSize = diskSize
     }
     
     call calling.AddVcfCommand as filteredAddVcfCommand {
@@ -63,8 +63,7 @@ workflow Mutect2 {
             inVcf = filteredGatk4MergeSortVcf.sortedVcf.vcf,
             jsonLog = jsonLog,
             memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = pysamDockerImage
+            diskSize = diskSize
     }
     
     call calling.ReorderVcfColumns as filteredReorderVcfColumns {
@@ -74,8 +73,7 @@ workflow Mutect2 {
             rawVcf = filteredAddVcfCommand.outVcf,
             orderedVcfPath = "~{pairName}.mutect2.v4.0.5.1.vcf",
             memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = pysamDockerImage
+            diskSize = diskSize
     }
     
     # unfiltered
@@ -83,9 +81,9 @@ workflow Mutect2 {
         input:
             sortedVcfPath = "~{pairName}.mutect2.v4.0.5.1.unfiltered.sorted.vcf",
             tempChromVcfs = Mutect2Wgs.mutect2ChromRawVcf,
+            referenceFa = referenceFa,
             memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = gatkDockerImage
+            diskSize = diskSize
     }
     
     call calling.AddVcfCommand as unfilteredAddVcfCommand {
@@ -93,8 +91,7 @@ workflow Mutect2 {
             inVcf = unfilteredGatk4MergeSortVcf.sortedVcf.vcf,
             jsonLog = jsonLog,
             memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = pysamDockerImage
+            diskSize = diskSize
     }
     
     call calling.ReorderVcfColumns as unfilteredReorderVcfColumns {
@@ -104,8 +101,7 @@ workflow Mutect2 {
             rawVcf = unfilteredAddVcfCommand.outVcf,
             orderedVcfPath = "~{pairName}.mutect2.v4.0.5.1.unfiltered.vcf",
             memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = pysamDockerImage
+            diskSize = diskSize
     }
     
     output {

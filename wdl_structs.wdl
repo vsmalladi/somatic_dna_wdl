@@ -1,5 +1,6 @@
 version 1.0
 
+
 struct Bam {
     File bam
     File bamIndex
@@ -32,6 +33,19 @@ struct Fastqs {
     String flowcell
     String lane
     String barcode
+}
+
+struct sampleInfo {
+    String sampleId
+    Array[Fastqs] listOfFastqPairs
+}
+
+struct pairInfo {
+    String pairId
+    Bam tumorFinalBam
+    Bam normalFinalBam
+    String tumor
+    String normal
 }
 
 struct IndexedVcf {

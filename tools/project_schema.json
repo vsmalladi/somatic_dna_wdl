@@ -1,0 +1,83 @@
+{
+    "$schema": "http://json-schema.org/draft/2019-09/schema#",
+    
+    "type": "object",
+    
+    "definitions": {
+        "fastqPair": {
+            "type": "object",
+            "properties": {
+                "fastqR1": { "type": "string" },
+                "fastqR2": { "type": "string" },
+                "readgroupId": { "type": "string" },
+                "flowcell": { "type": "string" },
+                "lane": { "type": "string" },
+                "barcode": { "type": "string" }
+            },
+            "required": ["fastqR1", "fastqR2", "readgroupId",
+                "flowcell", "lane", "barcode"]
+        },
+        "bam" : {
+            "type": "object",
+            "properties": {
+                "bam": { "type": "string" },
+                "bamIndex": { "type": "string" }
+            },
+            "required": ["bam"]
+        },
+        "sampleInfo": {
+            "type": "object",
+            "properties": {
+                "sampleId" : { "type": "string" },
+                "listOfFastqPairs" : { "type": "array",
+                    "items": { "$ref": "#/definitions/fastqPair" }
+                }
+            },
+            "required": ["sampleId"]
+        },
+        "pairInfo": {
+            "type": "object",
+            "properties": {
+                "pairId": {"type" : "string" },
+                "tumorFinalBam": {"$ref": "#/definitions/bam"},
+                "normalFinalBam": {"$ref": "#/definitions/bam"},
+                "tumor": {"type" : "string" },
+                "normal": {"type" : "string" }
+            },
+            "required": ["pairId", "tumor", "normal"]
+        }
+    },
+    
+    "properties": {
+        "pairIds" : {"type": "array",
+            "items": {"type": "string"}},
+        "sampleIds" : {"type": "array",
+            "items": {"type": "string"}},
+        "normals" : {"type": "array",
+            "items": {"type": "string"}},
+        "tumors" : {"type": "array",
+            "items": {"type": "string"}},
+        "commit": { "type": "string"},
+        "tag": { "type": "string"},
+        "uniq_tag": { "type": "string"},
+        "branch": { "type": "string"},
+        "project": { "type": "string"},
+        "pairInfos": { "type": "array",
+            "items": { "$ref": "#/definitions/pairInfo" }
+            
+        },
+        "sampleInfos": { "type": "array",
+            "items": { "$ref": "#/definitions/sampleInfo" }
+            
+        },
+        "library": { "type": "string",
+            "enum": ["WGS", "Exome"]
+        },
+        "genome": { "type": "string",
+            "enum": ["Human_GRCh38_full_analysis_set_plus_decoy_hla"]
+        },
+        "intervalList": { "type": "string"}
+    },
+    
+    "required": ["library", "genome", "project"]
+}
