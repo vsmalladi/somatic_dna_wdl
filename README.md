@@ -39,29 +39,40 @@ module load gcloud cromwell-tools jq
 
 ```
 usage: meta.py [-h] [--library {WGS,Exome}] [--interval-list {WGS,Exome}]
-               [--genome {Human_GRCh38_full_analysis_set_plus_decoy_hla}] [--project PROJECT] [--pairs-file PAIRS_FILE]
-               [--samples-file SAMPLES_FILE] [--wdl-file WDL_FILE] [--project-data PROJECT_DATA]
+               [--genome {Human_GRCh38_full_analysis_set_plus_decoy_hla}] 
+               [--project PROJECT] [--pairs-file PAIRS_FILE]
+               [--samples-file SAMPLES_FILE] [--wdl-file WDL_FILE] 
+               [--project-data PROJECT_DATA]
 
 optional arguments:
   -h, --help            show this help message and exit
   --library {WGS,Exome}
-                        Sequence library type. If not supplied define library using --project-data
+                        Sequence library type. If not supplied define library using 
+                        --project-data
   --interval-list {SureSelect_V6plusCOSMIC.target.GRCh38_full_analysis_set_plus_decoy_hla}
-                        File basename for interval list.If not supplied the default (the SureSelect interval list for your genome)
+                        File basename for interval list.If not supplied the default
+                        (the SureSelect interval list for your genome)
                         will be used
   --genome {Human_GRCh38_full_analysis_set_plus_decoy_hla}
-                        Genome key to use for pipeline. If not supplied define genome using --project-data
-  --project PROJECT     Project name associated with account. If not supplied define genome using --project-data
+                        Genome key to use for pipeline. If not supplied define 
+                        genome using --project-data
+  --project PROJECT     Project name associated with account. 
+                        If not supplied define genome using --project-data
   --pairs-file PAIRS_FILE
-                        JSON file with items that are required to have "tumor", "normal" sample_ids defined. If not supplied
+                        JSON file with items that are required to have 
+                        "tumor", "normal" sample_ids defined. If not supplied
                         define pairing using --project-data
   --samples-file SAMPLES_FILE
-                        Not generally required. If steps run only require sample_id and do not use pairing information sample info
-                        can be populated with a CSV file. The CSV file requires a columns named ["sampleId"]. If not supplied
+                        Not generally required. If steps run only require sample_id 
+                        and do not use pairing information sample info
+                        can be populated with a CSV file. The CSV file requires 
+                        a columns named ["sampleId"]. If not supplied
                         define samples using --project-data
-  --wdl-file WDL_FILE   WDL workflow. To output an input JSON that matches a WDL workflow parse the workflow file in as a flag.
+  --wdl-file WDL_FILE   WDL workflow. To output an input JSON that matches a 
+                        WDL workflow parse the workflow file in as a flag.
   --project-data PROJECT_DATA
-                        Optional JSON file with project pairing, sample, genome build, library and interval list information
+                        Optional JSON file with project pairing, sample, genome 
+                        build, library and interval list information
 ```
 Command
 ```
