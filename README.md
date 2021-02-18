@@ -84,7 +84,10 @@ python wdl_port/tools/meta.py \
 --genome Human_GRCh38_full_analysis_set_plus_decoy_hla \
 --wdl-file wdl_port/calling_wkf.wdl
 ```
-Output is `calling_wkfInput.json`
+Output:
+
+  1. `calling_wkfInput.json` - inputs for cromwell
+  2. `lab-number_projectInfo.json` - contains project info like the current list of samples/pairs and the library type as well as the pipeline version (tag and commit). Subsequent runs can use `--project-data  lab-number_projectInfo.json` and skip defining pair, library, interval list, genome, etc. 
 
 ### Run
 <a name="run"/>
