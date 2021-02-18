@@ -104,3 +104,50 @@ wdl_port/dependencies.zip )
 ### Create new workflow
 <a name="create_new_workflow"/>
 
+Use a [style guide](https://biowdl.github.io/styleGuidelines.html) to write you WDL files.
+
+1. Write a new workflow (e.g. `wdl_port/new_wkf.wdl`) using structs from `wdl_structs.wdl` were needed. Use the variable from `config/fasta_references.json` and `config/interval_references.json` in your workflow (e.g. `referenceFa`)
+  - keep your tasks and sub workflow in a separate WDL file in a subdirectory. That workflow should run a section of the pipeline on one sample/pair. 
+  - In the main directory make a WDL that runs the sub workflow(s) for a list of `sampleInfo` or `pairInfo` objects.
+  - Alternately add your subworkflow to an existing main workflow (e.g. `calling_wkf.wdl`)
+2. Add any new required resource files to `config/fasta_references.json` and `config/interval_references.json`.
+3. Upload any new resource files:
+```
+# modified or in-house files
+gsutil cp \
+${file} \
+gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/
+# external reference files
+gsutil cp \
+${file} \
+gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/external/
+```
+4. Create an input JSON. This will create `new_wkfInput.json`
+
+```
+python wdl_port/tools/meta.py \
+--project ${lab_quote_number} \
+--pairs-file tumor_normal_pairs.csv \
+--library WGS \
+--genome Human_GRCh38_full_analysis_set_plus_decoy_hla \
+--wdl-file wdl_port/new_wkf.wdl
+```
+
+5. Validate you workflow and inputs
+
+```
+womtool validate \
+--inputs new_wkfInput.json \
+new_wkf.wdl
+```
+
+6. Update the dependencies zip file
+
+```
+cd wdl_port
+rm dependencies.zip
+zip dependencies.zip wdl_structs.wdl */*.wdl
+```
+
+7. [Run](#run) the new workflow as before
+
