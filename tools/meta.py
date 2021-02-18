@@ -71,8 +71,8 @@ def load_bam(row, pair_info, kind):
         bam = {"bam" : "gs://nygc-comp-s-82ed-input/WGS/CA-103/CA-0103T-D-W.25x.bam",
                "bamIndex" : "gs://nygc-comp-s-82ed-input/WGS/CA-103/CA-0103T-D-W.25x.bai"}
     if kind == 'normal':
-        bam = {"bam" : "gs://nygc-comp-s-82ed-input/WGS/CA-103/CA-0103T-D-W.15x.bam",
-               "bamIndex" : "gs://nygc-comp-s-82ed-input/WGS/CA-103/CA-0103T-D-W.15x.bai"}
+        bam = {"bam" : "gs://nygc-comp-s-82ed-input/WGS/CA-103/CA-0103N-D-W.15x.bam",
+               "bamIndex" : "gs://nygc-comp-s-82ed-input/WGS/CA-103/CA-0103N-D-W.15x.bai"}
     return bam
  
 def load_sample_info(sample_id):
