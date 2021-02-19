@@ -101,11 +101,11 @@
         },
         "referenceFa" : {
             "type" : "IndexedReference",
-            "description" : "https://github.com/igsr/1000Genomes_data_indexes/blob/master/data_collections/1000_genomes_project/README.1000genomes.GRCh38DH.alignment",
+            "description" : "ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/GRCh38_reference_genome/README.20150309.GRCh38_full_analysis_set_plus_decoy_hla",
             "object" : {
-                "fasta" : "gs://nygc-comp-s-82ed-resources/GRCh38_1000genomes/GGRCh38_full_analysis_set_plus_decoy_hla.fa",
-                "dict" : "gs://nygc-comp-s-82ed-resources/GRCh38_1000genomes/GGRCh38_full_analysis_set_plus_decoy_hla.dict",
-                "index" : "gs://nygc-comp-s-82ed-resources/GRCh38_1000genomes/GGRCh38_full_analysis_set_plus_decoy_hla.fa.fai"
+                "fasta" : "gs://nygc-comp-s-82ed-resources/GRCh38_1000genomes/GRCh38_full_analysis_set_plus_decoy_hla.fa",
+                "dict" : "gs://nygc-comp-s-82ed-resources/GRCh38_1000genomes/GRCh38_full_analysis_set_plus_decoy_hla.dict",
+                "index" : "gs://nygc-comp-s-82ed-resources/GRCh38_1000genomes/GRCh38_full_analysis_set_plus_decoy_hla.fa.fai"
             }
         },
         "uniqCoords" : {
@@ -300,7 +300,7 @@
         },
         "bwaReference" : {
             "type" : "BwaReference",
-            "description" : "",
+            "description" : "ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/GRCh38_reference_genome/README.20150309.GRCh38_full_analysis_set_plus_decoy_hla",
             "object" : {
                 "fasta" : "gs://nygc-comp-s-82ed-resources/GRCh38_1000genomes/GRCh38_full_analysis_set_plus_decoy_hla.fa",
                 "sa" : "gs://nygc-comp-s-82ed-resources/GRCh38_1000genomes/GRCh38_full_analysis_set_plus_decoy_hla.fa.sa",
