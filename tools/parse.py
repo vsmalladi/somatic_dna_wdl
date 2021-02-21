@@ -2,7 +2,43 @@ import os
 import sys
 import pprint
 import json
+from collections.abc import Iterable
 import subprocess
+from google.cloud import storage
+import logging as log
+import google
+
+class Json_leaves():
+    
+    def __init__(self, inputs):
+        self.files = []
+#         with open(file) as fp:
+#             self.json_obj = json.load(fp)
+        self.json_obj = inputs
+        self.hlpr_fnc(self.json_obj)
+        
+    def hlpr_fnc_list(self, list1):
+        for subnode in list1:
+            if isinstance(subnode, dict):
+                self.hlpr_fnc(subnode)
+            elif not isinstance(subnode, str) and isinstance(subnode, Iterable):
+                self.hlpr_fnc_list(subnode)
+            else:
+                if isinstance(subnode, str):
+                    self.files.append(subnode)
+                
+    def hlpr_fnc(self, dict1):
+        nodes = dict1.keys()
+        for node in nodes:
+            subnode = dict1[node]
+            if isinstance(subnode, dict):
+                self.hlpr_fnc(subnode)
+            elif not isinstance(subnode, str) and isinstance(subnode, Iterable):
+                self.hlpr_fnc_list(subnode)
+            else:
+                if isinstance(subnode, str):
+                    self.files.append(subnode)
+                
 
 class Wdl():
     '''draft input JSON from various sources
@@ -33,6 +69,37 @@ class Wdl():
         # populate
         self.populate_inputs()
         self.finish_inputs()
+        self.validate_inputs()
+        
+    def validate_inputs(self):
+        potential_files = Json_leaves(self.inputs)
+        for potential_file in potential_files.files:
+            self.validate_input(string=potential_file)
+        
+    def parse_url(self, url):
+        '''divide gcp bucket location into parts'''
+        bucket_id = url.split('gs://')[-1].split('/')[0]
+        project_id = '-'.join(bucket_id.split('-')[0:-1])
+        name = '/'.join(url.split('gs://')[-1].split('/')[1:])
+        return bucket_id, project_id, name
+        
+    def validate_input(self, string):
+        '''validate that file exists in bucket'''
+        if string.startswith('gs://'):
+            bucket_id, project_id, name = self.parse_url(string)
+            storage_client = storage.Client(project=project_id)
+            try:
+                bucket = storage_client.get_bucket(bucket_id)
+                # no preceeding slash!!!
+                exists = storage.Blob(bucket=bucket, name=name).exists(storage_client)
+                if not exists:
+                    log.error('file not found in bucket: ' + string)
+                    sys.exit(0)
+            except google.api_core.exceptions.Forbidden:
+                '''add listing of sweng files'''
+                pass
+        return True
+
         
     def finish_inputs(self):
         final_inputs = {}
