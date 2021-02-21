@@ -7,6 +7,8 @@
 url=$1
 workflow=$2
 options=$3
+dependencies=$4
+shift
 shift
 shift
 shift
