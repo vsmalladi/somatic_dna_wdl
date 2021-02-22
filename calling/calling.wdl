@@ -24,7 +24,7 @@ task Gatk4MergeSortVcf {
 
     output {
         IndexedVcf sortedVcf = object {
-                vcf : "~{sortedVcfPath}", 
+                vcf : "~{sortedVcfPath}",
                 vcfIndex : "~{sortedVcfPath}.idx"
             }
     }
@@ -126,19 +126,19 @@ task MantaWgs {
     output {
         IndexedVcf candidateSmallIndels = object {
                 vcf : "output/results/variants/candidateSmallIndels.vcf.gz", 
-                vcfIndex : "output/results/variants/candidateSmallIndels.vcf.gz.tbi"
+                index : "output/results/variants/candidateSmallIndels.vcf.gz.tbi"
             }
         IndexedVcf diploidSV = object {
                 vcf : "output/results/variants/diploidSV.vcf.gz", 
-                vcfIndex : "output/results/variants/diploidSV.vcf.gz.tbi"
+                index : "output/results/variants/diploidSV.vcf.gz.tbi"
             }
         IndexedVcf somaticSV = object {
                 vcf : "output/results/variants/somaticSV.vcf.gz", 
-                vcfIndex : "output/results/variants/somaticSV.vcf.gz.tbi"
+                index : "output/results/variants/somaticSV.vcf.gz.tbi"
             }
         IndexedVcf candidateSV = object {
                 vcf : "output/results/variants/candidateSV.vcf.gz", 
-                vcfIndex : "output/results/variants/candidateSV.vcf.gz.tbi"
+                index : "output/results/variants/candidateSV.vcf.gz.tbi"
             }
     }
 
@@ -217,11 +217,11 @@ task Strelka2 {
     output {
         IndexedVcf strelka2Snvs = object {
                 vcf : "output/results/variants/somatic.snvs.vcf.gz", 
-                vcfIndex : "output/results/variants/somatic.snvs.vcf.gz.tbi"
+                index : "output/results/variants/somatic.snvs.vcf.gz.tbi"
             }
         IndexedVcf strelka2Indels = object {
                 vcf : "output/results/variants/somatic.indels.vcf.gz", 
-                vcfIndex : "output/results/variants/somatic.indels.vcf.gz.tbi"
+                index : "output/results/variants/somatic.indels.vcf.gz.tbi"
             }
     }
 

@@ -49,7 +49,7 @@ task IndexVcf {
     output {
         IndexedVcf vcfCompressedIndexed = object {
                 vcf : "${vcfCompressed}", 
-                vcfIndex : "${vcfCompressed}.tbi"
+                index : "${vcfCompressed}.tbi"
             }
     }
 
@@ -301,7 +301,7 @@ task Gatk4MergeSortVcf {
     output {
         IndexedVcf sortedVcf = object {
                 vcf : "~{sortedVcfPath}", 
-                vcfIndex : "~{sortedVcfPath}.idx"
+                index : "~{sortedVcfPath}.idx"
             }
     }
 
