@@ -349,7 +349,7 @@ task SvabaWgs {
         Int threads
         Int memoryGb
         String pairName
-        IndexedReference referenceFa
+        BwaReference bwaReference
         Bam normalFinalBam
         IndexedVcf dbsnp
         Bam tumorFinalBam
@@ -364,7 +364,7 @@ task SvabaWgs {
         -p ~{threads} \
         -D ~{dbsnp.vcf} \
         -a ~{pairName} \
-        -G ~{referenceFa.fasta} \
+        -G ~{bwaReference.fasta} \
         -z on
     }
 

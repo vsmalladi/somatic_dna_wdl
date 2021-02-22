@@ -21,6 +21,7 @@ workflow Calling {
         IndexedTable callRegions
         #   Svaba
         IndexedVcf dbsnp
+        BwaReference bwaReference
         #   Lancet
         Map[String, File] chromBeds
     }
@@ -64,7 +65,7 @@ workflow Calling {
                 tumor = pairInfo.tumor,
                 normal = pairInfo.normal,
                 dbsnp = dbsnp,
-                referenceFa = referenceFa,
+                bwaReference = bwaReference,
                 pairName = pairInfo.pairId,
                 normalFinalBam = pairInfo.normalFinalBam,
                 tumorFinalBam = pairInfo.tumorFinalBam

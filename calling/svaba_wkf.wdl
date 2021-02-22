@@ -10,7 +10,7 @@ workflow Svaba {
         String tumor
         String normal
         String pairName
-        IndexedReference referenceFa
+        BwaReference bwaReference
         IndexedVcf dbsnp
         Bam normalFinalBam
         Bam tumorFinalBam
@@ -25,7 +25,7 @@ workflow Svaba {
     call calling.SvabaWgs {
         input:
             pairName=pairName,
-            referenceFa = referenceFa,
+            bwaReference = bwaReference,
             normalFinalBam = normalFinalBam,
             tumorFinalBam = tumorFinalBam,
             dbsnp = dbsnp,
