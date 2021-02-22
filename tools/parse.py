@@ -66,6 +66,7 @@ class Wdl():
         self.wf_name = self.load_wf_name()
         # load preexisting reference variables
         self.load_genome_input(genome_input)
+        self.load_interval_input(interval_input)
         # populate
         self.populate_inputs()
         self.finish_inputs()
@@ -137,6 +138,9 @@ class Wdl():
         self.add_from_project()
         
     def parse_input(self, line):
+        line = line.replace(' , ', ',')
+        line = line.replace(', ', ',')
+        line = line.replace(' ,', ',')
         components = line.split()
         if len(components) == 0:
             return True, False, False
@@ -152,6 +156,19 @@ class Wdl():
             inputs = json.load(input)
             return inputs
         
+    def load_interval_input(self, file):
+        assert self.genome in self.load_json(file), 'error genome not in interval file'
+        genome_data = self.load_json(file)[self.genome]
+        if self.project_info['library'] == 'WGS' or self.project_info['intervalList'] == 'default':
+            interval_list = genome_data['default']
+        else:
+            interval_list = self.project_info['intervalList']
+        data = genome_data[interval_list]
+        assert len(set(data.keys()).intersection(self.input_objects.keys())) == 0, 'inputs must be unique'
+        for variable in data:
+            if variable in self.inputs:
+                self.input_objects[variable] = data[variable]
+                  
     def load_genome_input(self, file):
         assert self.genome in self.load_json(file), 'error genome not in genome file'
         data = self.load_json(file)[self.genome]
