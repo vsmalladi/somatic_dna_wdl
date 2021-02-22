@@ -48,7 +48,7 @@ task ReorderVcfColumns {
 
     command {
         python2.7 \
-        reorder_vcf.py \
+        somatic_tools/reorder_vcf.py \
         ~{rawVcf} \
         ~{orderedVcfPath} \
         ~{normal} ~{tumor}
@@ -76,7 +76,7 @@ task AddVcfCommand {
 
     command {
         python2.7 \
-        add_command.py \
+        somatic_tools/add_command.py \
         ~{inVcf} \
         ~{outVcfPath} \
         ~{jsonLog}

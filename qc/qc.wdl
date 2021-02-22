@@ -242,7 +242,7 @@ task Autocorrelations {
         "./" \
         ~{HsMetricsPerTargetCoverageAutocorr} \
         ~{sampleId} \
-        < /ASP_modified_final.v.0.1.R \
+        < somatic_tools/ASP_modified_final.v.0.1.R \
     }
 
     output {
@@ -367,7 +367,7 @@ task PlotBinCov {
     }
 
     command {
-        /plot_bin_cov.R \
+        somatic_tools/plot_bin_cov.R \
         "--binestOutput=~{binestCov}" \
         "--chrom_lengths=~{chromLengths}" \
         "--sample=~{sampleId}"
