@@ -99,7 +99,6 @@ class Wdl():
                 '''add listing of sweng files'''
                 pass
         return True
-
         
     def finish_inputs(self):
         final_inputs = {}
@@ -183,7 +182,6 @@ class Wdl():
                 full_variable = input
                 default = 'default =' in inputs[input]
                 yield type, variable, full_variable, default
-        
                       
     def load_custom_type(self, file):
         ''' get name of custom struct from WDL file'''

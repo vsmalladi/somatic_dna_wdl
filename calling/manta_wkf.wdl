@@ -9,22 +9,21 @@ workflow Manta {
     input {
         String tumor
         String normal
-        String intHVmem
+        String intHVmem = "unlimited"
         IndexedReference referenceFa
         File callRegions
         Bam normalFinalBam
         Bam tumorFinalBam
-        File jsonLog
         # reorder columns
         String pairName 
         String mantaPath = "~{pairName}.manta.v1.4.0.vcf"
         String filteredMantafPath = "~{pairName}.manta.v1.4.0.filtered.vcf"
         # resources
-        Int memoryGb
-        Int threads
-        String mantaDockerImage
-        String pysamDockerImage
-        String gatkDockerImage
+        Int diskSize = ceil( size(tumorFinalBam.bam, "GB") + size(normalFinalBam.bam, "GB")) + 20
+        Int memoryGb = 64
+        Int threads = 8
+        # remove definition after replacing the command step for gcp
+        File jsonLog = "gs://nygc-comp-s-fd4e-input/mutect2_4.0.5.1_COLO-829-NovaSeq_80--COLO-829BL-NovaSeq_40.json"
 
     }
     
@@ -36,17 +35,16 @@ workflow Manta {
             normalFinalBam = normalFinalBam,
             tumorFinalBam = tumorFinalBam,
             memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = mantaDockerImage
+            diskSize = diskSize,
+            threads = threads
     }
     
     call calling.AddVcfCommand as mantaAddVcfCommand {
         input:
             inVcf = MantaWgs.somaticSV.vcf,
             jsonLog = jsonLog,
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = pysamDockerImage
+            memoryGb = 2,
+            diskSize = 1
     }
     
     call calling.ReorderVcfColumns as mantaReorderVcfColumns {
@@ -55,9 +53,8 @@ workflow Manta {
             normal = normal,
             rawVcf = mantaAddVcfCommand.outVcf,
             orderedVcfPath = mantaPath,
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = pysamDockerImage
+            memoryGb = 2,
+            diskSize = 1
     }
     
     call calling.FilterNonpass {
@@ -65,9 +62,9 @@ workflow Manta {
             referenceFa = referenceFa,
             pairName = pairName,
             vcf = mantaReorderVcfColumns.orderedVcf,
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = gatkDockerImage
+            memoryGb = 4,
+            threads = 4,
+            diskSize = 1
             
     }
     
@@ -77,9 +74,8 @@ workflow Manta {
             normal = normal,
             rawVcf = FilterNonpass.outVcf,
             orderedVcfPath = FilterNonpass.outVcf,
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = pysamDockerImage
+            memoryGb = 2,
+            diskSize = 1
     }
     
     output {

@@ -36,7 +36,7 @@ task Gatk4MergeSortVcf {
     }
 }
 
-task ReorderVcfColumns{
+task ReorderVcfColumns {
     input {
         Int diskSize
         Int memoryGb
@@ -65,7 +65,7 @@ task ReorderVcfColumns{
     }
 }
 
-task AddVcfCommand{
+task AddVcfCommand {
     input {
         Int diskSize
         Int memoryGb
@@ -95,12 +95,12 @@ task AddVcfCommand{
 
 # caller specific tasks
 
-task MantaWgs{
+task MantaWgs {
     input {
-        Int threads
+        Int threads = 8
         Int memoryGb
-        String dockerImage
-        String intHVmem
+        Int diskSize
+        String intHVmem = "unlimited"
         IndexedReference referenceFa
         Bam normalFinalBam
         File callRegions
@@ -144,16 +144,17 @@ task MantaWgs{
 
     runtime {
         cpu : threads
+        disks: "local-disk " + diskSize + " SSD"
         memory : memoryGb + "GB"
-        docker : dockerImage
+        docker : "gcr.io/nygc-public/manta:1.4.0"
     }
 }
 
 task FilterNonpass {
     input {
-        Int threads
-        Int memoryGb
-        String dockerImage
+        Int threads = 4
+        Int memoryGb = 8
+        Int diskSize
         String pairName
         String outVcfPath = "~{pairName}.manta.v1.4.0.filtered.vcf"
         IndexedReference referenceFa
@@ -175,9 +176,10 @@ task FilterNonpass {
     }
 
     runtime {
-        cpu : threads
+        cpu : 4
+        disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : dockerImage
+        docker : "us.gcr.io/broad-gatk/gatk:4.1.1.0"
     }
 }
 
@@ -185,8 +187,8 @@ task Strelka2 {
     input {
         Int threads
         Int memoryGb
-        String dockerImage
-        String intHVmem
+        Int diskSize
+        String intHVmem = "unlimited"
         IndexedReference referenceFa
         Bam normalFinalBam
         File callRegions
@@ -223,10 +225,11 @@ task Strelka2 {
             }
     }
 
-    runtime {
+    runtime {        
         cpu : threads
+        disks: "local-disk " + diskSize + " SSD"
         memory : memoryGb + "GB"
-        docker : dockerImage
+        docker : "gcr.io/nygc-public/strelka:v2.9.3"
     }
 }
 

@@ -9,22 +9,21 @@ workflow Strelka2 {
     input {
         String tumor
         String normal
-        String intHVmem
+        String intHVmem = "unlimited"
         IndexedReference referenceFa
         IndexedVcf candidateSmallIndels
         Bam normalFinalBam
         File callRegions
         Bam tumorFinalBam
-        File jsonLog
         String pairName
         String strelka2SnvPath = "~{pairName}.snv.strelka2.v2.9.3.vcf"
         String strelka2IndelPath = "~{pairName}.indel.strelka2.v2.9.3.vcf"
         # resources
-        Int memoryGb
-        Int threads
-        String strelka2DockerImage
-        String pysamDockerImage
-        String gatkDockerImage
+        Int diskSize = ceil( size(tumorFinalBam.bam, "GB") + size(normalFinalBam.bam, "GB")) + 20
+        Int memoryGb = 4
+        Int threads = 8
+        # remove definition after replacing the command step for gcp
+        File jsonLog = "gs://nygc-comp-s-fd4e-input/mutect2_4.0.5.1_COLO-829-NovaSeq_80--COLO-829BL-NovaSeq_40.json"
     }
     
     call calling.Strelka2 {
@@ -36,17 +35,16 @@ workflow Strelka2 {
             normalFinalBam = normalFinalBam,
             tumorFinalBam = tumorFinalBam,
             memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = strelka2DockerImage
+            diskSize = diskSize,
+            threads = threads
     }
     
     call calling.AddVcfCommand as strelka2SnvAddVcfCommand {
         input:
             inVcf = Strelka2.strelka2Snvs.vcf,
             jsonLog = jsonLog,
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = pysamDockerImage
+            memoryGb = 2,
+            diskSize = 1
     }
     
     call calling.ReorderVcfColumns as strelka2SnvReorderVcfColumns {
@@ -55,18 +53,16 @@ workflow Strelka2 {
             normal = normal,
             rawVcf = strelka2SnvAddVcfCommand.outVcf,
             orderedVcfPath = strelka2SnvPath,
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = pysamDockerImage
+            memoryGb = 2,
+            diskSize = 1
     }
     
     call calling.AddVcfCommand as strelka2IndelAddVcfCommand {
         input:
             inVcf = Strelka2.strelka2Indels.vcf,
             jsonLog = jsonLog,
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = pysamDockerImage
+            memoryGb = 2,
+            diskSize = 1
     }
     
     call calling.ReorderVcfColumns as strelka2IndelReorderVcfColumns {
@@ -75,9 +71,8 @@ workflow Strelka2 {
             normal = normal,
             rawVcf = strelka2IndelAddVcfCommand.outVcf,
             orderedVcfPath = strelka2IndelPath,
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = pysamDockerImage
+            memoryGb = 2,
+            diskSize = 1
     }
     
     output {

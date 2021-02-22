@@ -1,6 +1,8 @@
 version 1.0
 
 import "calling/mutect2_wkf.wdl" as mutect2
+import "calling/strelka2_wkf.wdl" as strelka2
+import "calling/manta_wkf.wdl" as manta
 import "wdl_structs.wdl"
 
 workflow Calling {
@@ -10,9 +12,13 @@ workflow Calling {
     #   annotate
     input {
         Array[pairInfo]+ pairInfos
-        #    command mutect2
+        #   mutect2
         Array[String]+ listOfChroms
         IndexedReference referenceFa
+        #   Manta
+        File callRegions
+        # Strelka2
+        IndexedVcf candidateSmallIndels
     }
     scatter(pairInfo in pairInfos) {
         call mutect2.Mutect2 {
@@ -25,10 +31,45 @@ workflow Calling {
                 normalFinalBam = pairInfo.normalFinalBam,
                 tumorFinalBam = pairInfo.tumorFinalBam
         }
+        
+        call manta.Manta {
+            input:
+                tumor = pairInfo.tumor,
+                normal = pairInfo.normal,
+                callRegions = callRegions,
+                referenceFa = referenceFa,
+                pairName = pairInfo.pairId,
+                normalFinalBam = pairInfo.normalFinalBam,
+                tumorFinalBam = pairInfo.tumorFinalBam
+        }
+        
+        call strelka2.Strelka2 {
+            input:
+                tumor = pairInfo.tumor,
+                normal = pairInfo.normal,
+                callRegions = callRegions,
+                candidateSmallIndels = Manta.candidateSmallIndels,
+                referenceFa = referenceFa,
+                pairName = pairInfo.pairId,
+                normalFinalBam = pairInfo.normalFinalBam,
+                tumorFinalBam = pairInfo.tumorFinalBam
+        }
     }
 
     output {
         Array[File] mutect2 = Mutect2.mutect2
         Array[File] mutect2Unfiltered = Mutect2.mutect2_unfiltered
+        
+        Array[IndexedVcf] candidateSmallIndels = Manta.candidateSmallIndels
+        Array[IndexedVcf] diploidSV = Manta.diploidSV
+        Array[IndexedVcf] somaticSV = Manta.somaticSV
+        Array[IndexedVcf] candidateSV = Manta.candidateSV
+        Array[File] unfilteredMantaSV = Manta.unfilteredMantaSV 
+        Array[File] filteredMantaSV = Manta.filteredMantaSV
+        
+        Array[IndexedVcf] strelka2Snvs = Strelka2.strelka2Snvs
+        Array[IndexedVcf] strelka2Indels = Strelka2.strelka2Indels
+        Array[File] strelka2Snv = Strelka2.strelka2Snv
+        Array[File] strelka2Indel = Strelka2.strelka2Indel
     }
 }
