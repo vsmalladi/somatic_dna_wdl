@@ -4,6 +4,7 @@ import "calling/mutect2_wkf.wdl" as mutect2
 import "calling/strelka2_wkf.wdl" as strelka2
 import "calling/manta_wkf.wdl" as manta
 import "calling/svaba_wkf.wdl" as svaba
+import "calling/lancet_wkf.wdl" as lancet
 import "wdl_structs.wdl"
 
 workflow Calling {
@@ -20,6 +21,8 @@ workflow Calling {
         IndexedTable callRegions
         #   Svaba
         IndexedVcf dbsnp
+        #   Lancet
+        Map[String, File] chromBeds
     }
     scatter(pairInfo in pairInfos) {
         call mutect2.Mutect2 {
@@ -66,6 +69,18 @@ workflow Calling {
                 normalFinalBam = pairInfo.normalFinalBam,
                 tumorFinalBam = pairInfo.tumorFinalBam
         }
+        
+        call lancet.Lancet {
+            input:
+                tumor = pairInfo.tumor,
+                normal = pairInfo.normal,
+                listOfChroms = listOfChroms,
+                chromBeds = chromBeds,
+                referenceFa = referenceFa,
+                pairName = pairInfo.pairId,
+                normalFinalBam = pairInfo.normalFinalBam,
+                tumorFinalBam = pairInfo.tumorFinalBam
+        }
     }
 
     output {
@@ -86,7 +101,9 @@ workflow Calling {
         Array[File] strelka2Indel = Strelka2.strelka2Indel
         # Svaba
         Array[Array[File]] svabaInternalInput = Svaba.svabaInternalInput
-        Array[File] SvabaSv = Svaba.SvabaSv
-        Array[File] SvabaIndel = Svaba.SvabaIndel
+        Array[File] svabaSv = Svaba.svabaSv
+        Array[File] svabaIndel = Svaba.svabaIndel
+        # Lancet
+        Array[File] lancet = Lancet.lancet
     }
 }

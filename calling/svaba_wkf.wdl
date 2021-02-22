@@ -75,7 +75,7 @@ workflow Svaba {
     
     output {
         Array[File] svabaInternalInput = SvabaWgs.svabaInternalInput
-        File SvabaSv = svReorderVcfColumns.orderedVcf
-        File SvabaIndel = indelReorderVcfColumns.orderedVcf
+        File svabaSv = svReorderVcfColumns.orderedVcf
+        File svabaIndel = indelReorderVcfColumns.orderedVcf
     }
 }

@@ -54,7 +54,7 @@ workflow Mutect2 {
             sortedVcfPath = "~{pairName}.mutect2.v4.0.5.1.sorted.vcf",
             tempChromVcfs = Mutect2Filter.mutect2ChromVcf,
             referenceFa = referenceFa,
-            memoryGb = 32,
+            memoryGb = 8,
             diskSize = 10
     }
     

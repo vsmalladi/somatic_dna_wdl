@@ -236,8 +236,8 @@ task Strelka2 {
 task LancetExome {
     input {
         Int threads
+        Int diskSize
         Int memoryGb
-        String dockerImage
         String pairName
         String chrom
         String lancetChromVcfPath = "~{pairName}_~{chrom}.lancet.v1.0.7.vcf"
@@ -268,9 +268,10 @@ task LancetExome {
     }
 
     runtime {
-        cpu : threads
+        cpu : threads        
+        disks: "local-disk " + diskSize + " SSD"
         memory : memoryGb + "GB"
-        docker : dockerImage
+        docker : "gcr.io/nygc-public/lancet:v1.0.7"
     }
 }
 

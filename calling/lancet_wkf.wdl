@@ -11,17 +11,16 @@ workflow Lancet {
         String normal
         Array[String]+ listOfChroms
         Map[String, File] chromBeds
-        Int threads
-        Int memoryGb
-        String lancetDockerImage
-        String dockerImage
-        String gatkDockerImage
-        String pysamDockerImage
         String pairName
         IndexedReference referenceFa
         Bam normalFinalBam
         Bam tumorFinalBam
-        File jsonLog
+        # resources
+        Int threads = 8
+        Int diskSize = ceil( size(tumorFinalBam.bam, "GB") + size(normalFinalBam.bam, "GB")) + 20
+        Int memoryGb = 16
+        # remove definition after replacing the command step for gcp
+        File jsonLog = "gs://nygc-comp-s-fd4e-input/mutect2_4.0.5.1_COLO-829-NovaSeq_80--COLO-829BL-NovaSeq_40.json"
     }
     
     scatter(chrom in listOfChroms) {
@@ -32,9 +31,10 @@ workflow Lancet {
                 referenceFa = referenceFa,
                 normalFinalBam = normalFinalBam,
                 tumorFinalBam = tumorFinalBam,
-                memoryGb = memoryGb,
+                pairName = pairName,
                 threads = threads,
-                dockerImage = lancetDockerImage
+                memoryGb = memoryGb,
+                diskSize = diskSize
         }
     }
     
@@ -42,18 +42,17 @@ workflow Lancet {
         input:
             sortedVcfPath = "~{pairName}.lancet.v1.0.7.sorted.vcf",
             tempChromVcfs = LancetExome.lancetChromVcf,
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = gatkDockerImage
+            referenceFa = referenceFa,
+            memoryGb = 8,
+            diskSize = 10
     }
     
     call calling.AddVcfCommand as lancetAddVcfCommand {
         input:
             inVcf = Gatk4MergeSortVcf.sortedVcf.vcf,
             jsonLog = jsonLog,
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = pysamDockerImage
+            memoryGb = 2,
+            diskSize = 1
     }
     
     call calling.ReorderVcfColumns as lancetReorderVcfColumns {
@@ -62,9 +61,8 @@ workflow Lancet {
             normal = normal,
             rawVcf = lancetAddVcfCommand.outVcf,
             orderedVcfPath = "~{pairName}.lancet.v1.0.7.vcf",
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = pysamDockerImage
+            memoryGb = 2,
+            diskSize = 1
     }
     
     output {
