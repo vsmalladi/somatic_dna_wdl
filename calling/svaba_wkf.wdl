@@ -15,7 +15,7 @@ workflow Svaba {
         Bam normalFinalBam
         Bam tumorFinalBam
         # resources
-        Int threads
+        Int threads = 8
         Int diskSize = ceil( size(tumorFinalBam.bam, "GB") + size(normalFinalBam.bam, "GB")) + 20
         Int memoryGb = 12
         # remove definition after replacing the command step for gcp
