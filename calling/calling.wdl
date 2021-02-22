@@ -347,13 +347,12 @@ task SvabaWgs {
     input {
         Int threads
         Int memoryGb
-        String dockerImage
-        String cores
         String pairName
         IndexedReference referenceFa
         Bam normalFinalBam
-        File dbsnp
+        IndexedVcf dbsnp
         Bam tumorFinalBam
+        Int diskSize
     }
 
     command {
@@ -361,8 +360,8 @@ task SvabaWgs {
         run \
         -t ~{tumorFinalBam.bam} \
         -n ~{normalFinalBam.bam} \
-        -p ~{cores} \
-        -D ~{dbsnp} \
+        -p ~{threads} \
+        -D ~{dbsnp.vcf} \
         -a ~{pairName} \
         -G ~{referenceFa.fasta} \
         -z on
@@ -386,9 +385,10 @@ task SvabaWgs {
     }
 
     runtime {
-        cpu : threads
+        cpu : threads        
+        disks: "local-disk " + diskSize + " SSD"
         memory : memoryGb + "GB"
-        docker : dockerImage
+        docker : "gcr.io/nygc-public/svaba:1.1.0"
     }
 }
 

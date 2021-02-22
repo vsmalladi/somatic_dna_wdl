@@ -9,17 +9,17 @@ workflow Svaba {
     input {
         String tumor
         String normal
-        Int threads
-        Int memoryGb
-        String svabaDockerImage
-        String gatkDockerImage
-        String pysamDockerImage
         String pairName
         IndexedReference referenceFa
-        File dbsnp
+        IndexedVcf dbsnp
         Bam normalFinalBam
         Bam tumorFinalBam
-        File jsonLog
+        # resources
+        Int threads
+        Int diskSize = ceil( size(tumorFinalBam.bam, "GB") + size(normalFinalBam.bam, "GB")) + 20
+        Int memoryGb = 12
+        # remove definition after replacing the command step for gcp
+        File jsonLog = "gs://nygc-comp-s-fd4e-input/mutect2_4.0.5.1_COLO-829-NovaSeq_80--COLO-829BL-NovaSeq_40.json"
     }
     
     call calling.SvabaWgs {
@@ -31,7 +31,7 @@ workflow Svaba {
             dbsnp = dbsnp,
             memoryGb = memoryGb,
             threads = threads,
-            dockerImage = svabaDockerImage
+            diskSize = diskSize
             
     }
     
@@ -40,9 +40,8 @@ workflow Svaba {
         input:
             inVcf = SvabaWgs.svabaGz,
             jsonLog = jsonLog,
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = pysamDockerImage
+            memoryGb = 2,
+            diskSize = 1
     }
     
     call calling.ReorderVcfColumns as svReorderVcfColumns {
@@ -51,9 +50,8 @@ workflow Svaba {
             normal = normal,
             rawVcf = svAddVcfCommand.outVcf,
             orderedVcfPath = "~{pairName}.sv.svaba.v0.2.1.vcf",
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = pysamDockerImage
+            memoryGb = 2,
+            diskSize = 1
     }
     
     # indel
@@ -61,7 +59,8 @@ workflow Svaba {
         input:
             inVcf = SvabaWgs.svabaIndelGz,
             jsonLog = jsonLog,
-            memoryGb = memoryGb
+            memoryGb = 2,
+            diskSize = 1
     }
     
     call calling.ReorderVcfColumns as indelReorderVcfColumns {
@@ -70,8 +69,13 @@ workflow Svaba {
             normal = normal,
             rawVcf = indelAddVcfCommand.outVcf,
             orderedVcfPath = "~{pairName}.indel.svaba.v0.2.1.vcf",
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = pysamDockerImage
+            memoryGb = 2,
+            diskSize = 1
+    }
+    
+    output {
+        Array[File] svabaInternalInput = SvabaWgs.svabaInternalInput
+        File SvabaSv = svReorderVcfColumns.orderedVcf
+        File SvabaIndel = indelReorderVcfColumns.orderedVcf
     }
 }
