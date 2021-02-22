@@ -11,7 +11,7 @@ workflow Manta {
         String normal
         String intHVmem = "unlimited"
         IndexedReference referenceFa
-        File callRegions
+        IndexedTable callRegions
         Bam normalFinalBam
         Bam tumorFinalBam
         # reorder columns

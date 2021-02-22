@@ -16,9 +16,7 @@ workflow Calling {
         Array[String]+ listOfChroms
         IndexedReference referenceFa
         #   Manta
-        File callRegions
-        # Strelka2
-        IndexedVcf candidateSmallIndels
+        IndexedTable callRegions
     }
     scatter(pairInfo in pairInfos) {
         call mutect2.Mutect2 {

@@ -103,7 +103,7 @@ task MantaWgs {
         String intHVmem = "unlimited"
         IndexedReference referenceFa
         Bam normalFinalBam
-        File callRegions
+        IndexedTable callRegions
         Bam tumorFinalBam
     }
 
@@ -114,7 +114,7 @@ task MantaWgs {
         --normalBam ~{normalFinalBam.bam} \
         --tumorBam ~{tumorFinalBam.bam} \
         --referenceFasta ~{referenceFa.fasta} \
-        --callRegions ~{callRegions} \
+        --callRegions ~{callRegions.table} \
         --runDir "output" \
         && \
         "output/runWorkflow.py" \
@@ -191,7 +191,7 @@ task Strelka2 {
         String intHVmem = "unlimited"
         IndexedReference referenceFa
         Bam normalFinalBam
-        File callRegions
+        IndexedTable callRegions
         IndexedVcf candidateSmallIndels
         Bam tumorFinalBam
     }
@@ -203,7 +203,7 @@ task Strelka2 {
         --normalBam ~{normalFinalBam.bam} \
         --tumorBam ~{tumorFinalBam.bam} \
         --referenceFasta ~{referenceFa.fasta} \
-        --callRegions ~{callRegions} \
+        --callRegions ~{callRegions.table} \
         --indelCandidates ~{candidateSmallIndels.vcf} \
         --config "configureStrelkaSomaticWorkflow.py.ini" \
         --runDir "output" \

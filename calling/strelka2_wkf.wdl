@@ -13,7 +13,7 @@ workflow Strelka2 {
         IndexedReference referenceFa
         IndexedVcf candidateSmallIndels
         Bam normalFinalBam
-        File callRegions
+        IndexedTable callRegions
         Bam tumorFinalBam
         String pairName
         String strelka2SnvPath = "~{pairName}.snv.strelka2.v2.9.3.vcf"
