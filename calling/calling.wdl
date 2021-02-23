@@ -25,7 +25,7 @@ task Gatk4MergeSortVcf {
     output {
         IndexedVcf sortedVcf = object {
                 vcf : "~{sortedVcfPath}",
-                vcfIndex : "~{sortedVcfPath}.idx"
+                index : "~{sortedVcfPath}.idx"
             }
     }
 
