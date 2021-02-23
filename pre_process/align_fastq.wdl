@@ -38,7 +38,7 @@ task AlignBwaMem {
     runtime {
         cpu : threads
         memory : mem + " GB"
-        disks: "local-disk " + diskSize + " SSD"
+        disks: "local-disk " + diskSize + " HDD"
         docker : "gcr.io/nygc-public/bwa-kit:0.7.15"
     }
 }
@@ -74,7 +74,7 @@ task ShortAlignMark {
     runtime {
         memory : mem + " GB"
         docker : "gcr.io/nygc-public/nygc-short-alignment-marking:v2.1"
-        disks: "local-disk " + diskSize + " SSD"
+        disks: "local-disk " + diskSize + " HDD"
     }
 }
 
@@ -108,6 +108,6 @@ task Fixmate {
     runtime {
         memory : mem + " GB"
         docker : "us.gcr.io/broad-gatk/gatk:4.1.1.0"
-        disks: "local-disk " + diskSize + " SSD"
+        disks: "local-disk " + diskSize + " HDD"
     }
 }

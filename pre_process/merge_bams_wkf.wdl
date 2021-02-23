@@ -36,7 +36,8 @@ workflow MergeBams {
             sampleId = sampleId,
             mem = mem,
             threads = threads,
-            diskSize = diskSize
+            # novosort uses a lot of memory and a lot of disk.
+            diskSize = ceil((SumFloats.total_size * 5)) + 100
     }
 
 

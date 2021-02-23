@@ -37,6 +37,7 @@ workflow Preprocess {
     call mergeBams.MergeBams {
         input:
             laneFixmateBams = AlignFastq.laneFixmateBam,
+            sample_bam_sizes = AlignFastq.laneFixmateBamSizes,
             sampleId = sampleId,
             MillsAnd1000G = MillsAnd1000G,
             Indels = Indels,
