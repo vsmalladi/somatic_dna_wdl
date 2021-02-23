@@ -77,7 +77,7 @@ task RenameMetadata {
 
     command {
         python \
-        rename_metadata.py \
+        /rename_metadata.py \
         ~{callerVcf} \
         ~{renameMetaVcfPath} \
         ~{tool}
@@ -107,7 +107,7 @@ task MergePrepSupport {
 
     command {
         python \
-        merge_prep.py \
+        /merge_prep.py \
         --vcf ~{renameMetaVcf} \
         --out ~{prepCallerVcfPath} \
         --tool ~{tool} \
@@ -125,7 +125,7 @@ task MergePrepSupport {
     }
 }
 
-task MergePrep{
+task MergePrep {
     input {
         Int threads
         Int memoryGb
@@ -138,7 +138,7 @@ task MergePrep{
 
     command {
         python \
-        merge_prep.py \
+        /merge_prep.py \
         --vcf ~{renameMetaVcf} \
         --out ~{prepCallerVcfPath} \
         --tool ~{tool}
@@ -170,7 +170,7 @@ task RenameVcf {
 
     command {
         python \
-        rename_vcf.py \
+        /rename_vcf.py \
         ~{prepCallerVcf} \
         ~{renameVcfPath} \
         ~{normal} \
@@ -234,7 +234,7 @@ task SplitMnv {
 
     command {
         python \
-        split_mnv.py \
+        /split_mnv.py \
         ~{splitVcf} \
         ~{mnvVcfPath} \
         ~{tool}
@@ -263,7 +263,7 @@ task RemoveContig {
 
     command {
         python2.7 \
-        remove_contig.py \
+        /remove_contig.py \
         ~{removeChromVcf} \
         ~{removeChromVcfPath}
     }
@@ -398,7 +398,7 @@ task GetCandidates {
 
     command {
         python \
-        get_candidates.py \
+        /get_candidates.py \
         ~{startChromVcf} \
         ~{candidateChromVcfPath}
     }
@@ -427,7 +427,7 @@ task VcfToBed {
 
     command {
         python \
-        vcf_to_bed.py \
+        /vcf_to_bed.py \
         ~{candidateChromVcf} \
         | bedtools \
         merge \
@@ -541,7 +541,7 @@ task MergeColumns {
 
     command {
         python \
-        merge_columns.py \
+        /merge_columns.py \
         ~{supportedChromVcf} \
         ~{columnChromVcfPath} \
         ~{tumor} \
@@ -574,7 +574,7 @@ task AddNygcAlleleCountsToVcf {
 
     command {
         python \
-        add_nygc_allele_counts_to_vcf.py \
+        /add_nygc_allele_counts_to_vcf.py \
         -t ~{tumorFinalBam.bam} \
         -n ~{normalFinalBam.bam} \
         -v ~{columnChromVcf} \
@@ -607,7 +607,7 @@ task AddFinalAlleleCountsToVcf {
 
     command {
         python \
-        add_final_allele_counts_to_vcf.py \
+        /add_final_allele_counts_to_vcf.py \
         -v ~{preCountsChromVcf} \
         -o ~{countsChromVcfPath} \
     }
@@ -637,7 +637,7 @@ task FilterPon {
 
     command {
         python \
-        filter_pon.py \
+        /filter_pon.py \
         --bed ~{ponFile} \
         --chrom ~{chrom} \
         --vcf ~{countsChromVcf} \
@@ -669,7 +669,7 @@ task FilterVcf {
 
     command {
         python \
-        filter_vcf.py \
+        /filter_vcf.py \
         ~{germFile.vcf} \
         ~{ponOutFile} \
         ~{filteredOutFilePath}
@@ -699,7 +699,7 @@ task SnvstomnvsCountsbasedfilterAnnotatehighconf {
 
     command {
         python2.7 \
-        SNVsToMNVs_CountsBasedFilter_AnnotateHighConf.py \
+        /SNVsToMNVs_CountsBasedFilter_AnnotateHighConf.py \
         -i ~{filteredOutFile} \
         -o ~{finalChromVcfPath} \
     }

@@ -84,7 +84,7 @@ task FilterBaf {
 
     command {
         python2.7 \
-        filter_baf.py \
+        /filter_baf.py \
         ~{hetVcf} \
         ~{knownHetVcfPath}
     }
@@ -115,7 +115,7 @@ task AlleleCounts {
 
     command {
         python2.7 \
-        parse_bam_generate_features_v3.py \
+        /parse_bam_generate_features_v3.py \
         --tumor_bam ~{tumorFinalBam.bam} \
         --normal_bam ~{normalFinalBam.bam} \
         --vcf ~{knownHetVcf} \
@@ -146,7 +146,7 @@ task CalcBaf {
 
     command {
         python2.7 \
-        calc_baf.py \
+        /calc_baf.py \
         ~{alleleCountsTxt} \
         ~{bafTxtPath}
     }
