@@ -9,10 +9,8 @@ workflow QcMetrics {
     input {
         Bam finalBam
         Bam mergedDedupBam
-        String MultipleMetricsBase
         IndexedReference referenceFa
         String sampleId
-        String MultipleMetricsBasePreBqsrBasename
         File hsMetricsIntervals
         File randomIntervals
         File chromLengths
@@ -23,7 +21,6 @@ workflow QcMetrics {
 
     call qc.MultipleMetrics {
         input:
-            MultipleMetricsBase = MultipleMetricsBase,
             referenceFa = referenceFa,
             finalBam = finalBam,
             sampleId = sampleId,
@@ -32,7 +29,6 @@ workflow QcMetrics {
 
     call qc.MultipleMetricsPreBqsr {
         input:
-            MultipleMetricsBasePreBqsrBasename = MultipleMetricsBasePreBqsrBasename,
             referenceFa = referenceFa,
             mergedDedupBam = mergedDedupBam,
             sampleId = sampleId,

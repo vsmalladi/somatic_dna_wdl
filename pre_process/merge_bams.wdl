@@ -36,6 +36,7 @@ task NovosortMarkDup {
         cpu : threads
         memory : mem + " GB"
         docker :  "gcr.io/nygc-compbio/novosort:v1.03.01"
+        # Per clinical team novosort runs significantly faster with SSD
         disks: "local-disk " + diskSize + " SSD"
     }
 }
@@ -63,7 +64,7 @@ task IndexBam {
 
     runtime {
         docker : "gcr.io/nygc-public/samtools:1.9.1"
-        disks: "local-disk " + diskSize + " SSD"
+        disks: "local-disk " + diskSize + " HDD"
     }
 }
 
@@ -105,7 +106,7 @@ task Bqsr38 {
         cpu : cpu
         memory : mem + " GB"
         docker : "us.gcr.io/broad-gatk/gatk:4.1.1.0"
-        disks: "local-disk " + diskSize + " SSD"
+        disks: "local-disk " + diskSize + " HDD"
     }
 }
 
@@ -144,6 +145,6 @@ task PrintReads {
         cpu : cpu
         memory : mem
         docker : "us.gcr.io/broad-gatk/gatk:4.1.1.0"
-        disks: "local-disk " + diskSize + " SSD"
+        disks: "local-disk " + diskSize + " HDD"
      }
 }

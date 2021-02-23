@@ -42,7 +42,7 @@ task MultipleMetrics {
     runtime {
         cpu : threads
         memory : memoryGb + "GB"
-        disks: "local-disk " + diskSize + " SSD"
+        disks: "local-disk " + diskSize + " HDD"
         docker : "us.gcr.io/broad-gatk/gatk:4.1.0.0"
     }
 }
@@ -52,7 +52,7 @@ task MultipleMetricsPreBqsr {
         Int threads = 2
         Int memoryGb = 40
         Int diskSize
-        String MultipleMetricsBasePreBqsrBasename
+        String MultipleMetricsBasePreBqsrBasename = "~{sampleId}.MultipleMetrics.dedup"
         IndexedReference referenceFa
         Bam mergedDedupBam
         String sampleId
@@ -82,7 +82,7 @@ task MultipleMetricsPreBqsr {
     runtime {
         cpu : threads
         memory : memoryGb + "GB"
-        disks: "local-disk " + diskSize + " SSD"
+        disks: "local-disk " + diskSize + " HDD"
         docker : "us.gcr.io/broad-gatk/gatk:4.1.0.0"
     }
 }
@@ -122,7 +122,7 @@ task CollectGcBiasMetrics {
     runtime {
         cpu : threads
         memory : memoryGb + "GB"
-        disks: "local-disk " + diskSize + " SSD"
+        disks: "local-disk " + diskSize + " HDD"
         docker : "us.gcr.io/broad-gatk/gatk:4.1.0.0"
     }
 }
@@ -154,7 +154,7 @@ task Flagstat {
     runtime {
         cpu : threads
         memory : memoryGb + "GB"
-        disks: "local-disk " + diskSize + " SSD"
+        disks: "local-disk " + diskSize + " HDD"
         docker : "us.gcr.io/broad-gatk/gatk:4.1.0.0"
     }
 }
@@ -197,7 +197,7 @@ task HsMetrics {
     runtime {
         cpu : threads
         memory : memoryGb + "GB"
-        disks: "local-disk " + diskSize + " SSD"
+        disks: "local-disk " + diskSize + " HDD"
         docker : "us.gcr.io/broad-gatk/gatk:4.1.0.0"
     }
 }
@@ -284,7 +284,7 @@ task CollectOxoGMetricsWgs {
     runtime {
         cpu : threads
         memory : memoryGb + "GB"
-        disks: "local-disk " + diskSize + " SSD"
+        disks: "local-disk " + diskSize + " HDD"
         docker : "us.gcr.io/broad-gatk/gatk:4.1.0.0"
     }
 }
@@ -323,7 +323,7 @@ task CollectWgsMetricsWgsDecoy {
     runtime {
         cpu : threads
         memory : memoryGb + "GB"
-        disks: "local-disk " + diskSize + " SSD"
+        disks: "local-disk " + diskSize + " HDD"
         docker : "us.gcr.io/broad-gatk/gatk:4.1.0.0"
     }
 }
@@ -352,7 +352,7 @@ task Binest {
     runtime {
         cpu : threads
         memory : memoryGb + "GB"
-        disks: "local-disk " + diskSize + " SSD"
+        disks: "local-disk " + diskSize + " HDD"
         docker : "gcr.io/nygc-compbio/binest:0.8.4"
     }
 }
@@ -367,8 +367,8 @@ task PlotBinCov {
     }
 
     command {
-        /plot_bin_cov.R \
-        "--binestOutput=~{binestCov}" \
+        Rscript /plot_bin_cov.R \
+        "--binest_output=~{binestCov}" \
         "--chrom_lengths=~{chromLengths}" \
         "--sample=~{sampleId}"
     }
@@ -410,7 +410,7 @@ task Pileup {
     runtime {
         cpu : threads
         memory : memoryGb + "GB"
-        disks: "local-disk " + diskSize + " SSD"
+        disks: "local-disk " + diskSize + " HDD"
         docker : "us.gcr.io/broad-gatk/gatk:4.0.0.0"
     }
 }
@@ -504,7 +504,7 @@ task ConpairPileup {
     runtime {
         cpu : threads
         memory : memoryGb + "GB"
-        disks: "local-disk " + diskSize + " SSD"
+        disks: "local-disk " + diskSize + " HDD"
         docker : "us.gcr.io/broad-gatk/gatk:3.4.0"
     }
 }
