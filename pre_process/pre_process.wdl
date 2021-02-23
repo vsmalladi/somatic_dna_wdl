@@ -10,15 +10,15 @@ workflow Preprocess {
     #   and
     #   merge lane level BAMs
     input {
-        Array[Fastqs]+ listOfFastqPairs
+        Array[Fastqs] listOfFastqPairs
         BwaReference bwaReference
         #    command merge flowcell
         String sampleId
         IndexedVcf MillsAnd1000G
         IndexedVcf Indels
-        IndexedVcf DbSnp
-        File chromFile
-        IndexedReference indexedReference
+        IndexedVcf dbsnp
+        IndexedTable callRegions
+        IndexedReference referenceFa
         # resources
         #    prep flowcell
         Int bwaMem = 24
@@ -41,11 +41,12 @@ workflow Preprocess {
             sampleId = sampleId,
             MillsAnd1000G = MillsAnd1000G,
             Indels = Indels,
-            DbSnp = DbSnp,
-            chromFile = chromFile,
-            indexedReference = indexedReference,
+            dbsnp = dbsnp,
+            callRegions = callRegions,
+            referenceFa = referenceFa,
             mem = novosortMem,
-            threads = threads
+            threads = threads,
+            sample_bam_sizes = size(AlignFastq.laneFixmateBam)
     }
 
     output {

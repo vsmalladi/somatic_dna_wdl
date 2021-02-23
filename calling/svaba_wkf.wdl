@@ -3,9 +3,9 @@ version 1.0
 import "calling.wdl" as calling
 import "../wdl_structs.wdl"
 
-workflow Mutect2 {
+workflow Svaba {
     # command 
-    #   run Mutect2 caller
+    #   run Svaba caller
     input {
         String tumor
         String normal
@@ -61,9 +61,7 @@ workflow Mutect2 {
         input:
             inVcf = SvabaWgs.svabaIndelGz,
             jsonLog = jsonLog,
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = pysamDockerImage
+            memoryGb = memoryGb
     }
     
     call calling.ReorderVcfColumns as indelReorderVcfColumns {
