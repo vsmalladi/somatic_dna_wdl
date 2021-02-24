@@ -29,9 +29,10 @@ Python
 
 Set up prem:
 ```
+# run in this order
+module load gcloud cromwell-tools jq
 . /gpfs/commons/groups/nygcfaculty/kancero/envs/miniconda3/etc/profile.d/conda.sh
 conda activate wdl
-module load gcloud cromwell-tools jq
 ```
 
 ### Write input
@@ -83,6 +84,11 @@ python wdl_port/tools/meta.py \
 --library WGS \
 --genome Human_GRCh38_full_analysis_set_plus_decoy_hla \
 --wdl-file wdl_port/calling_wkf.wdl
+
+# zip dependencies
+cd wdl_port
+zip dependencies.zip wdl_structs.wdl */*.wdl
+cd -
 ```
 Output:
 
@@ -95,12 +101,13 @@ Output:
 Running `run.sh` will return the UUID to STDOUT. 
 It will also print the submitted command and the status command to the screen.
 ```
-uuid=$( bash wdl_port/run.sh \
-${url} \
-wdl_port/calling_wkf.wdl \
-options.json \
-calling_wkfInput.json \
-wdl_port/dependencies.zip )
+uuid=$( bash ../wdl_port/run.sh \
+    -u https://cromwell-compbio01.nygenome.org \
+    -w ../wdl_port/calling_wkf.wdl \
+    -o options.json \
+    -d ../wdl_port/dependencies.zip \
+    -p lab-number_projectInfo.json \
+    -i calling_wkfInput.json )
 ```
 
 
@@ -149,6 +156,8 @@ for file in */*wdl *wdl; do
   echo $file; 
   womtool validate $file; 
 done
+
+# commit your changes and create new inputs file (with new branch and commit info)
 ```
 
 6. Update the dependencies zip file
@@ -157,9 +166,10 @@ done
 cd wdl_port
 rm dependencies.zip
 zip dependencies.zip wdl_structs.wdl */*.wdl
+cd -
 ```
 
-8. 
+7. [Run job as before](#run)
 
 7. [Run](#run) the new workflow as before
 
