@@ -51,7 +51,7 @@ def git_log(program):
                                       'branch' ])
     branch = str(branch).split()[1].split('\\n')[0]
     commit = commit.split('\n')[0].split()[-1]
-    return commit, tag, uniq_tag, branch
+    return commit, tag.split('\n')[0], uniq_tag.split('\n')[0], branch
 
 
 def read(file):

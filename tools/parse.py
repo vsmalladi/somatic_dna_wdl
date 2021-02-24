@@ -74,8 +74,9 @@ class Wdl():
         
     def validate_inputs(self):
         potential_files = Json_leaves(self.inputs)
-        for potential_file in potential_files.files:
-            self.validate_input_gsutil(string=potential_file)
+        files = [string for string in potential_files.files if string.startswith('gs://')]
+        self.validate_input_gsutil(strings=files)
+#         for potential_file in potential_files.files:
 #             self.validate_input(string=potential_file)
         
     def parse_url(self, url):
@@ -85,19 +86,38 @@ class Wdl():
         name = '/'.join(url.split('gs://')[-1].split('/')[1:])
         return bucket_id, project_id, name
     
-    def validate_input_gsutil(self, string):
-        if string.startswith('gs://'):
-            try:
-                result = subprocess.run(['gsutil', 'ls', string],
-                                        check=True,
-                                        stdout=subprocess.PIPE).stdout.decode('utf-8')
-            except subprocess.CalledProcessError:
-                log.error('Failed to locate file in bucket: ' + string)
-                return False
+    def validate_input_gsutil(self, strings):
+        try:
+            result = subprocess.run(['gsutil', 'ls'] + strings,
+                                    check=True,
+                                    stdout=subprocess.PIPE).stdout.decode('utf-8')
+        except subprocess.CalledProcessError as err:
+            log.error(err.output.decode('utf-8'))
+            log.error('Failed to locate file in bucket')
+            return False
         return True
         
-    def validate_input(self, string):
+    def validate_input(self, strings):
         '''validate that file exists in bucket'''
+        if string.startswith('gs://'):
+            bucket_id, project_id, name = self.parse_url(string)
+            storage_client = storage.Client(project=project_id)
+            try:
+                bucket = storage_client.get_bucket(bucket_id)
+                # no preceeding slash!!!
+                exists = storage.Blob(bucket=bucket, name=name).exists(storage_client)
+                if not exists:
+                    log.error('file not found in bucket: ' + string)
+                    sys.exit(0)
+            except google.api_core.exceptions.Forbidden:
+                '''add listing of sweng files'''
+                pass
+        return True
+
+        
+    
+            
+    def check_gsutil(self, files):
         if string.startswith('gs://'):
             bucket_id, project_id, name = self.parse_url(string)
             storage_client = storage.Client(project=project_id)
