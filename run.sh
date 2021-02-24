@@ -1,18 +1,29 @@
 #!/bin/bash
-# USAGE: uuid=$( run.sh URL WORKFLOW OPTIONS_JSON INPUTS... )
+# USAGE: uuid=$( run.sh -u CROMWELL_URL -w WORKFLOW -o OPTIONS_JSON -i INPUTS... )
 # DESCRIPTION: submit workflow to cromwell. Script requires jq to be in the path
 # script returns the workflow uuid
 # script shows submission command and command to check status 
 # in the STDERR stream
-url=$1
-workflow=$2
-options=$3
-dependencies=$4
-shift
-shift
-shift
-shift
-inputs=$@
+
+
+print_usage() {
+  printf "Usage: uuid=$( run.sh -u URL -w WORKFLOW -o OPTIONS_JSON -i INPUTS... )"
+}
+
+while getopts 'u:w:o:d:p:i:' flag; do
+  case "${flag}" in
+    u) url="${OPTARG}" ;;
+    w) workflow="${OPTARG}" ;;
+    o) options="${OPTARG}" ;;
+    d) dependencies="${OPTARG}" ;;
+    p) project_data="${OPTARG}" ;;
+    i) inputs="${OPTARG}" ;;
+    *) print_usage
+       exit 1 ;;
+  esac
+done
+
+script_dir=$(dirname "$0")
 
 
 module load gcloud cromwell-tools jq
@@ -35,3 +46,8 @@ echo "cromwell-tools status --url ${url} \
 --uuid ${uuid}" >&2
 
 echo ${uuid}
+
+python ${script_dir}/tools/log.py \
+--project-data ${project_data} \
+--uuid ${uuid} \
+--inputs ${inputs}
