@@ -169,7 +169,5 @@ zip dependencies.zip wdl_structs.wdl */*.wdl
 cd -
 ```
 
-7. [Run job as before](#run)
-
 7. [Run](#run) the new workflow as before
 
