@@ -27,7 +27,7 @@ Python
 ### On prem environment setup
 <a name="environment"/>
 
-Set up prem:
+Set up on prem:
 ```
 # run in this order
 module load gcloud cromwell-tools jq
