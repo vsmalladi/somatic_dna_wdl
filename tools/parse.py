@@ -75,7 +75,8 @@ class Wdl():
     def validate_inputs(self):
         potential_files = Json_leaves(self.inputs)
         for potential_file in potential_files.files:
-            self.validate_input(string=potential_file)
+            self.validate_input_gsutil(string=potential_file)
+#             self.validate_input(string=potential_file)
         
     def parse_url(self, url):
         '''divide gcp bucket location into parts'''
@@ -83,6 +84,17 @@ class Wdl():
         project_id = '-'.join(bucket_id.split('-')[0:-1])
         name = '/'.join(url.split('gs://')[-1].split('/')[1:])
         return bucket_id, project_id, name
+    
+    def validate_input_gsutil(self, string):
+        if string.startswith('gs://'):
+            try:
+                result = subprocess.run(['gsutil', 'ls', string],
+                                        check=True,
+                                        stdout=subprocess.PIPE).stdout.decode('utf-8')
+            except subprocess.CalledProcessError:
+                log.error('Failed to locate file in bucket: ' + string)
+                return False
+        return True
         
     def validate_input(self, string):
         '''validate that file exists in bucket'''
@@ -188,8 +200,9 @@ class Wdl():
             result = subprocess.run(['womtool', 'inputs', file],
                                     check=True,
                                     stdout=subprocess.PIPE).stdout.decode('utf-8')
-        except CalledProcessError:
+        except subprocess.CalledProcessError:
             log.error('Failed to read file: ' + file)
+            sys.exit(1)
         inputs = json.loads(result)
         for input in inputs:
             variable = input.split('.')[-1]
