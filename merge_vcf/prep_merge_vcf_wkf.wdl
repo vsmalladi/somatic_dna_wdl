@@ -79,7 +79,7 @@ workflow PrepMergeVcf {
     call merge_vcf.SplitMultiAllelic as prepSplitMultiAllelic {
         input:
             vcfCompressedIndexed = renameIndexVcf.vcfCompressedIndexed,
-            splitVcfPath = sub(renameIndexVcf.vcfCompressedIndexed.vcf, ".rename.vcf.gz$", ".split.vcf"),
+            splitVcfPath = sub(basename(renameIndexVcf.vcfCompressedIndexed.vcf), ".rename.vcf.gz$", ".split.vcf"),
             memoryGb = memoryGb,
             threads = threads,
             dockerImage = bcftoolsDockerImage
@@ -88,7 +88,7 @@ workflow PrepMergeVcf {
     call merge_vcf.SplitMnv {
         input:
             tool = tool,
-            mnvVcfPath = sub(renameIndexVcf.vcfCompressedIndexed.vcf, ".rename.vcf.gz$", ".split.vcf"),
+            mnvVcfPath = sub(basename(renameIndexVcf.vcfCompressedIndexed.vcf), ".rename.vcf.gz$", ".split.vcf"),
             splitVcf = prepSplitMultiAllelic.splitVcf,
             memoryGb = memoryGb,
             threads = threads,
@@ -102,7 +102,7 @@ workflow PrepMergeVcf {
                 memoryGb = memoryGb,
                 threads = threads,
                 dockerImage = pysamDockerImage, 
-                mnvVcfPath = sub(renameIndexVcf.vcfCompressedIndexed.vcf, ".rename.vcf.gz$", ".split.vcf"),
+                mnvVcfPath = sub(basename(renameIndexVcf.vcfCompressedIndexed.vcf), ".rename.vcf.gz$", ".split.vcf"),
                 removeChromVcf = SplitMnv.mnvVcf
         }
     }
@@ -110,7 +110,7 @@ workflow PrepMergeVcf {
     call merge_vcf.Gatk4MergeSortVcf {
         input:
             tempVcfs = [select_first([RemoveContig.removeContigVcf, SplitMnv.mnvVcf])],
-            sortedVcfPath = sub(select_first([RemoveContig.removeContigVcf, SplitMnv.mnvVcf]), "$", ".gz"),
+            sortedVcfPath = sub(basename(select_first([RemoveContig.removeContigVcf, SplitMnv.mnvVcf])), "$", ".gz"),
             referenceFa = referenceFa,
             memoryGb = memoryGb,
             threads = threads,

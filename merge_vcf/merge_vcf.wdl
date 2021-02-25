@@ -10,7 +10,7 @@ task CompressVcf {
         Int memoryGb
         String dockerImage
         File vcf
-        String vcfCompressedPath = sub(vcf, "$", ".gz")
+        String vcfCompressedPath = sub(basename(vcf), "$", ".gz")
     }
 
     command {
@@ -70,7 +70,7 @@ task RenameMetadata {
         String dockerImage
         String pairName
         File callerVcf
-        String renameMetaVcfPath = sub(callerVcf, "$", ".rename_metadata.vcf")
+        String renameMetaVcfPath = sub(basename(callerVcf), "$", ".rename_metadata.vcf")
         String tool
         File callerVcf
     }
@@ -101,7 +101,7 @@ task MergePrepSupport {
         String dockerImage
         String pairName
         File renameMetaVcf
-        String prepCallerVcfPath =  sub(renameMetaVcf, ".rename_metadata.vcf$", ".merge_prep.vcf") 
+        String prepCallerVcfPath =  sub(basename(renameMetaVcf), ".rename_metadata.vcf$", ".merge_prep.vcf") 
         String tool
     }
 
@@ -132,7 +132,7 @@ task MergePrep {
         String dockerImage
         String pairName
         File renameMetaVcf
-        String prepCallerVcfPath = sub(renameMetaVcf, ".rename_metadata.vcf$", ".merge_prep.vcf")
+        String prepCallerVcfPath = sub(basename(renameMetaVcf), ".rename_metadata.vcf$", ".merge_prep.vcf")
         String tool
     }
 
@@ -162,7 +162,7 @@ task RenameVcf {
         String dockerImage
         File prepCallerVcf
         String pairName
-        String renameVcfPath = sub(prepCallerVcf, ".merge_prep.vcf$", ".rename.vcf")
+        String renameVcfPath = sub(basename(prepCallerVcf), ".merge_prep.vcf$", ".rename.vcf")
         String normal
         String tumor
         String tool
@@ -228,7 +228,7 @@ task SplitMnv {
         Int memoryGb
         String dockerImage
         File splitVcf
-        String mnvVcfPath = sub(splitVcf, ".split.vcf", ".split_mnvs.vcf")
+        String mnvVcfPath = sub(basename(splitVcf), ".split.vcf", ".split_mnvs.vcf")
         String tool
     }
 

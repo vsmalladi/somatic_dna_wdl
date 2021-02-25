@@ -70,7 +70,7 @@ task AddVcfCommand {
         Int diskSize
         Int memoryGb
         File inVcf
-        String outVcfPath = sub(inVcf, ".vcf$", "_w_command.vcf")
+        String outVcfPath = sub(basename(inVcf), ".vcf$", "_w_command.vcf")
         File jsonLog
     }
 

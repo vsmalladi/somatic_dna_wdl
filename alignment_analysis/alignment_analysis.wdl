@@ -321,7 +321,7 @@ task AlignToPanel {
     output {
         Bam kouramiBam = object {
             bam : kouramiBamPath,
-            bamIndex : sub(kouramiBamPath, ".bam$", ".bai")
+            bamIndex : sub(basename(kouramiBamPath), ".bam$", ".bai")
         }
     }
 

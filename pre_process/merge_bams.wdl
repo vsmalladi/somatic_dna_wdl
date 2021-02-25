@@ -57,7 +57,7 @@ task IndexBam {
     output {
         Bam indexedBam = object {
                 bam : bam,
-                bamIndex : sub(bam, ".bam$", ".bai")
+                bamIndex : sub(basename(bam), ".bam$", ".bai")
             }
     }
 
@@ -136,7 +136,7 @@ task PrintReads {
     output {
         Bam finalBam = object {
                 bam : finalBamPath,
-                bamIndex : sub(finalBamPath, ".bam$", ".bai")
+                bamIndex : sub(basename(finalBamPath), ".bam$", ".bai")
             }
     }
 
