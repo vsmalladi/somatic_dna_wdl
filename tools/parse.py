@@ -223,8 +223,6 @@ class Wdl():
                     self.input_objects[variable.split('.')[-1]]['object'] = data[variable]
     
     def load_wf_name(self):
-        for variable in self.inputs:
-            print(self.inputs[variable]['full_variable'].split('.')[0])
         return [self.inputs[variable]['full_variable'].split('.')[0] for variable in self.inputs][0]
                 
     def load(self, file):

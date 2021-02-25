@@ -17,7 +17,7 @@ print_help() {
 }
 
 print_usage() {
-  echo "USAGE: uuid=\$( run.sh -u URL -w WORKFLOW -o OPTIONS_JSON -i INPUTS )"
+  echo "USAGE: uuid=\$( run.sh -u URL -w WORKFLOW -o OPTIONS_JSON -i INPUTS )" >&2
   exit 1
 }
 
@@ -37,7 +37,7 @@ while getopts 'u:w:o:d:p:i:h' flag; do
 done
 
 if [ -z "$project_data" ]; then
-    echo "Missing required value for -p project_data json file"
+    echo "Missing required value for -p project_data json file" >&2
     print_usage
     exit 1
 fi
