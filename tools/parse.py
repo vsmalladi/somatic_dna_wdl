@@ -48,6 +48,7 @@ class Wdl():
                  genome_input,
                  interval_input,
                  genome,
+                 validate=True,
                  project_info_file=False):
         self.genome = genome
         self.inputs = {}
@@ -70,7 +71,8 @@ class Wdl():
         # populate
         self.populate_inputs()
         self.finish_inputs()
-        self.validate_inputs()
+        if self.validate:
+            self.validate_inputs()
         
     def validate_inputs(self):
         potential_files = Json_leaves(self.inputs)

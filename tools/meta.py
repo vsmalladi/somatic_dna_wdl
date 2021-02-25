@@ -184,6 +184,7 @@ def write_wdl_json(args, project_info, project_info_file):
                       genome_input=genome_input, 
                       interval_input=interval_input, 
                       genome=args['genome'],
+                      validate=not args['skip_validate'],
                       project_info_file=project_info_file)
     file_out = os.path.basename(args['wdl_file']).replace('.wdl', '') + 'Input.json'
     with open(file_out, 'w') as input_info_file:
@@ -265,6 +266,15 @@ def get_args():
     parser.add_argument('--project-data',
                         help='Optional JSON file with project pairing, sample, '
                         'genome build, library and interval list information',
+                        required=False
+                        )
+    parser.add_argument('--skip-validate',
+                        help='Skip the step where input files are validated. '
+                        'Otherwise all gs//: URIs will be checked to '
+                        'see that a file exists. '
+                        'Disable with caution.Cromwell will launch instances and run without checking. ',
+                        'Test a small pairs file to ensure all references exist and at least some sample input files '
+                        'can be read by the current user. ',
                         required=False
                         )
     args_namespace = parser.parse_args()
