@@ -48,9 +48,12 @@ class Wdl():
                  genome_input,
                  interval_input,
                  genome,
+                 custom_inputs,
                  validate=True,
                  project_info_file=False):
         self.genome = genome
+        self.custom_inputs = custom_inputs
+        self.validate = validate
         self.inputs = {}
         self.input_objects = {}
         if project_info_file:
@@ -68,6 +71,7 @@ class Wdl():
         # load preexisting reference variables
         self.load_genome_input(genome_input)
         self.load_interval_input(interval_input)
+        self.load_custom(self.custom_inputs)
         # populate
         self.populate_inputs()
         self.finish_inputs()
@@ -149,23 +153,19 @@ class Wdl():
     def add_from_ref(self):
         '''Load from pre-existing reference data'''
         for variable in self.inputs:
-            # skip resource vars because these will be hardcoded
-            if not variable.endswith('DockerImage') and not variable.endswith('threads') and not variable.endswith('Mem') and not variable.endswith('mem'):
-                if variable in self.input_objects:
-                    self.inputs[variable]['object'] = self.input_objects[variable]['object']
-                    self.inputs[variable]['default'] = False
+            if variable in self.input_objects:
+                self.inputs[variable]['object'] = self.input_objects[variable]['object']
+                self.inputs[variable]['default'] = False
                     
     def add_from_project(self):
         '''Load from user define project-specific information 
         (e.g. pairing location of input files etc)
         '''
         for variable in self.inputs:
-            # skip resource vars because these will be hardcoded
-            if not variable.endswith('DockerImage') and not variable.endswith('threads') and not variable.endswith('Mem') and not variable.endswith('mem'):
-                if not self.inputs[variable]['object']:
-                    if variable in self.project_info:
-                        self.inputs[variable]['object'] = self.project_info[variable]
-                        self.inputs[variable]['default'] = False
+            if not self.inputs[variable]['object']:
+                if variable in self.project_info:
+                    self.inputs[variable]['object'] = self.project_info[variable]
+                    self.inputs[variable]['default'] = False
                     
     def populate_inputs(self):
         self.add_from_ref()
@@ -198,7 +198,7 @@ class Wdl():
         else:
             interval_list = self.project_info['intervalList']
         data = genome_data[interval_list]
-        assert len(set(data.keys()).intersection(self.input_objects.keys())) == 0, 'inputs must be unique'
+        assert len(set(data.keys()).intersection(self.input_objects.keys())) == 0, 'interval list inputs must be not be redundant to other input variables'
         for variable in data:
             if variable in self.inputs:
                 self.input_objects[variable] = data[variable]
@@ -206,10 +206,16 @@ class Wdl():
     def load_genome_input(self, file):
         assert self.genome in self.load_json(file), 'error genome not in genome file'
         data = self.load_json(file)[self.genome]
-        assert len(set(data.keys()).intersection(self.input_objects.keys())) == 0, 'inputs must be unique'
+        assert len(set(data.keys()).intersection(self.input_objects.keys())) == 0, 'reference genome inputs must be not be redundant to other input variables'
         for variable in data:
             if variable in self.inputs:
                 self.input_objects[variable] = data[variable]
+                
+    def load_custom(self):
+        for custom_input in self.custom_inputs:
+            assert len(set(custom_input.keys()).intersection(self.input_objects.keys())) == 0, 'custom inputs must be not be redundant to other input variables'
+            for variable in custom_input:
+                self.input_objects[variable] = custom_input[variable]
     
     def load_wf_name(self):
         return [self.inputs[variable]['full_variable'].split('.')[0] for variable in self.inputs][0]

@@ -184,6 +184,7 @@ def write_wdl_json(args, project_info, project_info_file):
                       genome_input=genome_input, 
                       interval_input=interval_input, 
                       genome=args['genome'],
+                      custom_inputs=args['custom_inputs'],
                       validate=not args['skip_validate'],
                       project_info_file=project_info_file)
     file_out = os.path.basename(args['wdl_file']).replace('.wdl', '') + 'Input.json'
@@ -266,6 +267,15 @@ def get_args():
     parser.add_argument('--project-data',
                         help='Optional JSON file with project pairing, sample, '
                         'genome build, library and interval list information',
+                        required=False
+                        )
+    parser.add_argument('--custom-inputs',
+                        help='Optional JSON file with custom input variables. '
+                        'The name of the variable in the input file must match the '
+                        'name of the variable in the WDL workflow. '
+                        'It is not required that the input specify the workflow. '
+                        'By default the input will be added to the top-level workflow.',
+                        nargs='*',
                         required=False
                         )
     parser.add_argument('--skip-validate',

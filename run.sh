@@ -1,5 +1,5 @@
 #!/bin/bash
-# USAGE: uuid=$( run.sh -u CROMWELL_URL -w WORKFLOW -o OPTIONS_JSON -i INPUTS... )
+# USAGE: uuid=$( run.sh -u CROMWELL_URL -w WORKFLOW -o OPTIONS_JSON -i INPUTS )
 # DESCRIPTION: submit workflow to cromwell.
 # Script requires jq, cromwell-tools, gcloud to be in the path
 # Script returns the workflow uuid.
