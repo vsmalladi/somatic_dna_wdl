@@ -71,7 +71,7 @@ class Wdl():
         # load preexisting reference variables
         self.load_genome_input(genome_input)
         self.load_interval_input(interval_input)
-        self.load_custom(self.custom_inputs)
+        self.load_custom()
         # populate
         self.populate_inputs()
         self.finish_inputs()
@@ -212,12 +212,19 @@ class Wdl():
                 self.input_objects[variable] = data[variable]
                 
     def load_custom(self):
-        for custom_input in self.custom_inputs:
-            assert len(set(custom_input.keys()).intersection(self.input_objects.keys())) == 0, 'custom inputs must be not be redundant to other input variables'
-            for variable in custom_input:
-                self.input_objects[variable] = custom_input[variable]
+        if self.custom_inputs:
+            for custom_input in self.custom_inputs:
+                data = self.load_json(custom_input)
+                new_vars = [variable.split('.')[-1] for variable in set(data.keys())]
+                assert len(set(new_vars)) == len(new_vars), 'input variables must have unique variable names (after removing workflow names).'
+                assert len(set(new_vars).intersection(self.input_objects.keys())) == 0, 'custom inputs must be not be redundant to other input variables'
+                for variable in data:
+                    self.input_objects[variable.split('.')[-1]] = {}
+                    self.input_objects[variable.split('.')[-1]]['object'] = data[variable]
     
     def load_wf_name(self):
+        for variable in self.inputs:
+            print(self.inputs[variable]['full_variable'].split('.')[0])
         return [self.inputs[variable]['full_variable'].split('.')[0] for variable in self.inputs][0]
                 
     def load(self, file):
@@ -238,7 +245,7 @@ class Wdl():
             if variable in custom_types:
                 type = custom_types[variable]
                 full_variable = input
-                default = 'default =' in inputs[input]
+                default = ('default =' in inputs[input]) or ('(optional)' in inputs[input])
                 yield type, variable, full_variable, default
                       
     def load_custom_type(self, file):

@@ -282,7 +282,7 @@ def get_args():
                         help='Skip the step where input files are validated. '
                         'Otherwise all gs//: URIs will be checked to '
                         'see that a file exists. '
-                        'Disable with caution.Cromwell will launch instances and run without checking. ',
+                        'Disable with caution.Cromwell will launch instances and run without checking. '
                         'Test a small pairs file to ensure all references exist and at least some sample input files '
                         'can be read by the current user. ',
                         required=False
