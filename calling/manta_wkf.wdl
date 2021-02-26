@@ -73,7 +73,7 @@ workflow Manta {
             tumor = tumor,
             normal = normal,
             rawVcf = FilterNonpass.outVcf,
-            orderedVcfPath = FilterNonpass.outVcf,
+            orderedVcfPath = filteredMantafPath,
             memoryGb = 2,
             diskSize = 1
     }

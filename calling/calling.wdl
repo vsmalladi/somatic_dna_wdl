@@ -70,7 +70,7 @@ task AddVcfCommand {
         Int diskSize
         Int memoryGb
         File inVcf
-        String outVcfPath = sub(basename(inVcf), ".vcf$", "_w_command.vcf")
+        String outVcfPath = sub(sub(basename(inVcf), ".gz$", ""), ".vcf$", "_w_command.vcf")
         File jsonLog
     }
 
@@ -156,7 +156,7 @@ task FilterNonpass {
         Int memoryGb = 8
         Int diskSize
         String pairName
-        String outVcfPath = "~{pairName}.manta.v1.4.0.filtered.vcf"
+        String outVcfPath = "~{pairName}.manta.v1.4.0.filtered.unorder.vcf"
         IndexedReference referenceFa
         File vcf
     }
