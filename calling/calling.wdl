@@ -6,8 +6,8 @@ import "../wdl_structs.wdl"
 
 task Gatk4MergeSortVcf {
     input {
-        Int diskSize
-        Int memoryGb
+        Int diskSize = 10
+        Int memoryGb = 8
         String sortedVcfPath
         Array[File] tempChromVcfs
         IndexedReference referenceFa
@@ -16,7 +16,7 @@ task Gatk4MergeSortVcf {
     command {
         gatk \
         SortVcf \
-        --java-options "-Xmx8196m -XX:ParallelGCThreads=4" \
+        --java-options "-XX:ParallelGCThreads=4" \
         -SD ~{referenceFa.dict} \
         -I ~{sep=" -I " tempChromVcfs} \
         -O ~{sortedVcfPath}
@@ -164,7 +164,7 @@ task FilterNonpass {
     command {
         gatk \
         SelectVariants \
-        --java-options "-Xmx8g -XX:ParallelGCThreads=4" \
+        --java-options "-XX:ParallelGCThreads=4" \
         -R ~{referenceFa.fasta} \
         -V ~{vcf} \
         -O ~{outVcfPath} \
@@ -292,7 +292,7 @@ task Mutect2Wgs {
     command {
         gatk \
         Mutect2 \
-        --java-options "-Xmx8196m -XX:ParallelGCThreads=4" \
+        --java-options "-XX:ParallelGCThreads=4" \
         --reference ~{referenceFa.fasta} \
         -L ~{chrom} \
         -I ~{tumorFinalBam.bam} \
@@ -327,7 +327,7 @@ task Mutect2Filter {
     command {
         gatk \
         FilterMutectCalls \
-        --java-options "-Xmx8196m -XX:ParallelGCThreads=4" \
+        --java-options "-XX:ParallelGCThreads=4" \
         --reference ~{referenceFa.fasta} \
         -V ~{mutect2ChromRawVcf} \
         -O ~{mutect2ChromVcfPath}

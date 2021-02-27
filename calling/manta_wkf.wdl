@@ -62,7 +62,7 @@ workflow Manta {
             referenceFa = referenceFa,
             pairName = pairName,
             vcf = mantaReorderVcfColumns.orderedVcf,
-            memoryGb = 4,
+            memoryGb = 8,
             threads = 4,
             diskSize = 5
             

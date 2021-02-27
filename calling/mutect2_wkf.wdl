@@ -43,7 +43,7 @@ workflow Mutect2 {
                 referenceFa = referenceFa,
                 # mutect2ChromRawVcf = select_first([Mutect2Wgs.mutect2ChromRawVcf, Mutect2Exome.mutect2ChromRawVcf])
                 mutect2ChromRawVcf = Mutect2Wgs.mutect2ChromRawVcf,
-                memoryGb = 20,
+                memoryGb = 8,
                 diskSize = 10
         }
     }
