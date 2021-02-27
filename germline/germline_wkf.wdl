@@ -1,41 +1,35 @@
 version 1.0
 
 import "../wdl_structs.wdl"
-import "../germline/germline.wdl"
-import "../calling/calling.wdl"
+import "germline.wdl" as germline
 import "../merge_vcf/merge_vcf.wdl"
+import "../calling/calling.wdl"
 
 workflow Germline {
     # command 
     input {
-        Bam FinalBam
+        Bam finalBam
         IndexedReference referenceFa
         Array[String]+ listOfChroms
         String normal
         
+        IndexedVcf MillsAnd1000G
         IndexedVcf omni
         IndexedVcf hapmap
         IndexedReference referenceFa
         IndexedVcf onekG
         IndexedVcf dbsnp
-
-        Int threads
-        Int memoryGb
-        String gatkDockerImage
-        String gatk3_5DockerImage
-        String bgzipDockerImage
-        String bcftoolsDockerImage
+        
+        Int hcDiskSize = ceil( size(finalBam.bam, "GB") ) + 20
     }
     scatter(chrom in listOfChroms) {
         call germline.Haplotypecaller {
             input:
                 referenceFa = referenceFa,
-                finalBam = FinalBam,
+                finalBam = finalBam,
                 chrom = chrom,
                 sampleId = normal,
-                memoryGb = memoryGb,
-                threads = threads,
-                dockerImage = gatk3_5DockerImage
+                diskSize = hcDiskSize
         }
     }
     
@@ -43,35 +37,27 @@ workflow Germline {
         input:
             sortedVcfPath = "~{normal}.haplotypeCalls.er.raw.vcf",
             tempChromVcfs = Haplotypecaller.haplotypecallerChromVcf,
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = gatkDockerImage
+            referenceFa = referenceFa,
+            memoryGb = 8,
+            diskSize = 10
     }
     
     call merge_vcf.CompressVcf as haplotypecallerCompressVcf {
         input:
             vcf = Gatk4MergeSortVcf.sortedVcf.vcf,
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = bgzipDockerImage
+            memoryGb = 4
     }
     
     call merge_vcf.IndexVcf as haplotypecallerIndexVcf {
         input:
-            vcfCompressed = haplotypecallerCompressVcf.vcfCompressed,
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = gatkDockerImage
+            vcfCompressed = haplotypecallerCompressVcf.vcfCompressed
     }
     
     call germline.GentotypeGvcfs {
         input:
             referenceFa = referenceFa,
             sampleId = normal,
-            sortedVcf = haplotypecallerIndexVcf.vcfCompressedIndexed,
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = gatk3_5DockerImage    
+            sortedVcf = haplotypecallerIndexVcf.vcfCompressedIndexed
     }
     
     call germline.RecalVcfsSnp {
@@ -82,20 +68,16 @@ workflow Germline {
             hapmap = hapmap,
             onekG = onekG,
             dbsnp = dbsnp,
-            haplotypecallerGenoVcf = GentotypeGvcfs.haplotypecallerGenoVcf,
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = gatk3_5DockerImage    
+            haplotypecallerGenoVcf = GentotypeGvcfs.haplotypecallerGenoVcf
     }
     
     call germline.RecalVcfsIndel {
         input:
             referenceFa = referenceFa,
             sampleId = normal,
-            haplotypecallerGenoVcf = GentotypeGvcfs.haplotypecallerGenoVcf,
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = gatk3_5DockerImage    
+            dbsnp = dbsnp,
+            MillsAnd1000G = MillsAnd1000G,
+            haplotypecallerGenoVcf = GentotypeGvcfs.haplotypecallerGenoVcf  
     }
     
     call germline.ApplyRecal as snpApplyRecal {
@@ -106,10 +88,7 @@ workflow Germline {
             haplotypecallerGenoVcfApply = GentotypeGvcfs.haplotypecallerGenoVcf,
             mode = "SNP",
             tranches = RecalVcfsSnp.tranchesSnp,
-            recal = RecalVcfsSnp.recalSnp,
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = gatk3_5DockerImage    
+            recal = RecalVcfsSnp.recalSnp    
     }
     
     call germline.ApplyRecal as indelApplyRecal {
@@ -120,53 +99,36 @@ workflow Germline {
             haplotypecallerGenoVcfApply = snpApplyRecal.haplotypecallerGenoVcfApplySnpIndel,
             mode = "INDEL",
             tranches = RecalVcfsIndel.tranchesIndel,
-            recal = RecalVcfsIndel.recalIndel,
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = gatk3_5DockerImage    
+            recal = RecalVcfsIndel.recalIndel   
     }
     
     call germline.VarFilter {
         input:
             referenceFa = referenceFa,
             sampleId = normal,
-            haplotypecallerGenoVcfApplySnpIndel = indelApplyRecal.haplotypecallerGenoVcfApplySnpIndel,
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = gatk3_5DockerImage    
+            haplotypecallerGenoVcfApplySnpIndel = indelApplyRecal.haplotypecallerGenoVcfApplySnpIndel
     }
     
     call merge_vcf.CompressVcf as recalCompressVcf {
         input:
             vcf = VarFilter.haplotypecallerRecalVcf,
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = bgzipDockerImage
+            memoryGb = 4
     }
     
     call merge_vcf.IndexVcf as recalIndexVcf {
         input:
-            vcfCompressed = recalCompressVcf.vcfCompressed,
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = gatkDockerImage
+            vcfCompressed = recalCompressVcf.vcfCompressed
     }
     
     call germline.VcfNorm {
         input:
             sampleId = normal,
-            haplotypecallerRecalVcf = recalIndexVcf.vcfCompressedIndexed,
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = bcftoolsDockerImage    
+            haplotypecallerRecalVcf = recalIndexVcf.vcfCompressedIndexed    
     }
     
     call merge_vcf.IndexVcf as normIndexVcf {
         input:
-            vcfCompressed = VcfNorm.haplotypecallerNormVcf,
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = gatkDockerImage
+            vcfCompressed = VcfNorm.haplotypecallerNormVcf
     }
     
     call germline.VarEval {
@@ -174,24 +136,18 @@ workflow Germline {
             referenceFa = referenceFa,
             sampleId = normal,
             haplotypecallerGenoVcfApplySnpIndel = indelApplyRecal.haplotypecallerGenoVcfApplySnpIndel,
-            dbsnp = dbsnp,
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = gatk3_5DockerImage    
+            dbsnp = dbsnp   
     }
     
-    call germline.VarSum {
-        input:
-            sampleId = normal,
-            varReport = VarEval.varReport,
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = gatk3_5DockerImage    
-    }
+#    call germline.VarSum {
+#        input:
+#            sampleId = normal,
+#            varReport = VarEval.varReport  
+#    }
     
     output {
-        File varSummary = VarSum.varSummary
-        File varReport = VarEval.varReport
+#        File varSummary = VarSum.varSummary
+#        File varReport = VarEval.varReport
         IndexedVcf haplotypecallerNormVcf = normIndexVcf.vcfCompressedIndexed
     }
     

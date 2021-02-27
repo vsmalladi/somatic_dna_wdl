@@ -6,11 +6,10 @@ import "../wdl_structs.wdl"
 
 task CompressVcf {
     input {
-        Int threads
-        Int memoryGb
-        String dockerImage
         File vcf
         String vcfCompressedPath = sub(basename(vcf), "$", ".gz")
+        Int memoryGb = 4
+        Int diskSize = (ceil( size(vcf, "GB") )  * 2 ) + 4
     }
 
     command {
@@ -25,24 +24,24 @@ task CompressVcf {
     }
 
     runtime {
-        cpu : threads
+        disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : dockerImage
+        docker : "gcr.io/nygc-public/samtools:1.9.1"
     }
 }
 
 task IndexVcf {
     input {
-        Int threads
-        Int memoryGb
-        String dockerImage
         File vcfCompressed
+        Int threads = 4
+        Int memoryGb = 24
+        Int diskSize = (ceil( size(vcfCompressed, "GB") )  * 2 ) + 20
     }
 
     command {
         gatk \
         IndexFeatureFile \
-        --java-options "-Xmx24576m -XX:ParallelGCThreads=4" \
+        --java-options "-XX:ParallelGCThreads=4" \
         --feature-file ~{vcfCompressed}
     }
 
@@ -55,8 +54,9 @@ task IndexVcf {
 
     runtime {
         cpu : threads
+        disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : dockerImage
+        docker : "us.gcr.io/broad-gatk/gatk:4.1.1.0"
     }
 }
 

@@ -9,15 +9,14 @@ task Haplotypecaller {
         String chrom
         String sampleId
         String haplotypecallerChromVcfPath = "~{sampleId}.~{chrom}.haplotypeCalls.er.raw.vcf"
-        Int threads
-        Int memoryGb
-        String dockerImage
+        Int threads = 18
+        Int memoryGb = 24
+        Int diskSize
     }
 
     command {
         java \
         -XX:ParallelGCThreads=2 \
-        -Xmx24576m \
         -jar GenomeAnalysisTK.jar \
         -T HaplotypeCaller \
         --genotyping_mode DISCOVERY \
@@ -42,7 +41,7 @@ task Haplotypecaller {
         --variant_index_parameter 128000 \
         --variant_index_type LINEAR \
         -R ~{referenceFa.fasta} \
-        -nct 1 \
+        -nct 16 \
         -I ~{finalBam.bam} \
         -L ~{chrom} \
         -o ~{haplotypecallerChromVcfPath}
@@ -55,7 +54,8 @@ task Haplotypecaller {
     runtime {
         cpu : threads
         memory : memoryGb + "GB"
-        docker : dockerImage
+        disks: "local-disk " + diskSize + " HDD"
+        docker : "gcr.io/nygc-public/broadinstitute/gatk3:3.5-0"
     }
 }
 
@@ -65,19 +65,18 @@ task GentotypeGvcfs {
         IndexedVcf sortedVcf
         String sampleId
         String haplotypecallerGenoVcfPath = "~{sampleId}.genotypeGVCFs.vcf"
-        Int threads
-        Int memoryGb
-        String dockerImage
+        Int threads = 12
+        Int memoryGb = 24
+        Int diskSize = (ceil( size(sortedVcf.vcf, "GB") )  * 2 ) + 4
     }
 
     command {
         java \
         -XX:ParallelGCThreads=4 \
-        -Xmx24576m \
         -jar GenomeAnalysisTK.jar \
         -T GenotypeGVCFs \
         -R ~{referenceFa.fasta} \
-        -nt 5 \
+        -nt 8 \
         --disable_auto_index_creation_and_locking_when_reading_rods \
         --variant ~{sortedVcf.vcf} \
         -o ~{haplotypecallerGenoVcfPath}
@@ -90,15 +89,13 @@ task GentotypeGvcfs {
     runtime {
         cpu : threads
         memory : memoryGb + "GB"
-        docker : dockerImage
+        disks: "local-disk " + diskSize + " HDD"
+        docker : "gcr.io/nygc-public/broadinstitute/gatk3:3.5-0"
     }
 }
 
 task RecalVcfsSnp {
     input {
-        Int threads
-        Int memoryGb
-        String dockerImage
         String sampleId
         String recalSnpPath = "~{sampleId}.recalibrate_SNP.recal"
         String tranchesSnpPath = "~{sampleId}.recalibrate_SNP.tranches"
@@ -109,12 +106,14 @@ task RecalVcfsSnp {
         IndexedVcf onekG
         IndexedVcf dbsnp
         File haplotypecallerGenoVcf
+        Int memoryGb = 32
+        Int threads = 8
+        Int diskSize = (ceil( size(haplotypecallerGenoVcf, "GB") )  * 2 ) + 20
     }
 
     command {
         java \
         -XX:ParallelGCThreads=4 \
-        -Xmx32768M \
         -jar GenomeAnalysisTK.jar \
         -T VariantRecalibrator \
         --maxGaussians 4 \
@@ -135,7 +134,7 @@ task RecalVcfsSnp {
         -an DP \
         -mode SNP \
         -R ~{referenceFa.fasta} \
-        -nt 1 \
+        -nt 4 \
         --input ~{haplotypecallerGenoVcf} \
         -recalFile ~{recalSnpPath} \
         -tranchesFile ~{tranchesSnpPath} \
@@ -155,15 +154,13 @@ task RecalVcfsSnp {
     runtime {
         cpu : threads
         memory : memoryGb + "GB"
-        docker : dockerImage
+        disks: "local-disk " + diskSize + " HDD"
+        docker : "gcr.io/nygc-public/broadinstitute/gatk3:3.5-0"
     }
 }
 
 task RecalVcfsIndel {
     input {
-        Int threads
-        Int memoryGb
-        String dockerImage
         String sampleId
         String recalIndelPath = "~{sampleId}.recalibrate_INDEL.recal"
         String tranchesIndelPath = "~{sampleId}.recalibrate_INDEL.tranches"
@@ -171,13 +168,15 @@ task RecalVcfsIndel {
         IndexedReference referenceFa
         IndexedVcf dbsnp
         File haplotypecallerGenoVcf
-        IndexedVcf mills
+        IndexedVcf MillsAnd1000G
+        Int memoryGb = 32
+        Int threads = 8
+        Int diskSize = (ceil( size(haplotypecallerGenoVcf, "GB") )  * 2 ) + 20
     }
 
     command {
         java \
         -XX:ParallelGCThreads=4 \
-        -Xmx32768M \
         -jar GenomeAnalysisTK.jar \
         -T VariantRecalibrator \
         --maxGaussians 4 \
@@ -194,33 +193,32 @@ task RecalVcfsIndel {
         -an DP \
         -mode INDEL \
         -R ~{referenceFa.fasta} \
-        -nt 1 \
+        -nt 4 \
         --input ~{haplotypecallerGenoVcf} \
         -recalFile ~{recalIndelPath} \
         -tranchesFile ~{tranchesIndelPath} \
         -rscriptFile ~{recalibratePlotsIndelPath} \
         -resource:dbsnp,known=true,training=false,truth=false,prior=2.0  ~{dbsnp.vcf} \
-        -resource:mills,known=true,training=true,truth=true,prior=12.0 ~{mills.vcf}
+        -resource:mills,known=true,training=true,truth=true,prior=12.0 ~{MillsAnd1000G.vcf}
     }
-
+    
     output {
         File recalibratePlotsIndel = "~{recalibratePlotsIndelPath}"
         File tranchesIndel = "~{tranchesIndelPath}"
         File recalIndel = "~{recalIndelPath}"
     }
+    
 
     runtime {
         cpu : threads
         memory : memoryGb + "GB"
-        docker : dockerImage
+        disks: "local-disk " + diskSize + " HDD"
+        docker : "gcr.io/nygc-public/broadinstitute/gatk3:3.5-0"
     }
 }
 
 task ApplyRecal {
     input {
-        Int threads
-        Int memoryGb
-        String dockerImage
         String mode
         String sampleId
         String haplotypecallerGenoVcfApplySnpIndelPath
@@ -228,17 +226,19 @@ task ApplyRecal {
         File tranches
         File recal
         File haplotypecallerGenoVcfApply
+        Int threads = 20
+        Int memoryGb = 8
+        Int diskSize = ceil( size(haplotypecallerGenoVcfApply, "GB") + size(recal, "GB") + size(tranches, "GB") ) + 20
     }
 
     command {
         java \
         -XX:ParallelGCThreads=4 \
-        -Xmx81920M \
         -jar GenomeAnalysisTK.jar \
         -T ApplyRecalibration \
         --ts_filter_level 99.6 \
         -R ~{referenceFa.fasta} \
-        -nt 5 \
+        -nt 16 \
         --input ~{haplotypecallerGenoVcfApply} \
         -mode ~{mode} \
         -recalFile ~{recal} \
@@ -253,26 +253,26 @@ task ApplyRecal {
     runtime {
         cpu : threads
         memory : memoryGb + "GB"
-        docker : dockerImage
+        disks: "local-disk " + diskSize + " HDD"
+        docker : "gcr.io/nygc-public/broadinstitute/gatk3:3.5-0"
     }
 }
 
 task VarFilter {
     input {
-        Int threads
-        Int memoryGb
-        String dockerImage
         String sampleId
         String haplotypecallerRecalVcfPath = "~{sampleId}.recalibrated.haplotypeCalls.vcf"
         IndexedReference referenceFa
         File haplotypecallerGenoVcfApplySnpIndel
+        Int threads = 2
+        Int memoryGb = 24
+        Int diskSize = (ceil( size(haplotypecallerGenoVcfApplySnpIndel, "GB") ) * 2 ) + 10
     }
 
     command {
         set -o pipefail && \
         java \
         -XX:ParallelGCThreads=2 \
-        -Xmx24576M \
         -jar GenomeAnalysisTK.jar \
         -T VariantFiltration \
         -R ~{referenceFa.fasta} \
@@ -292,23 +292,25 @@ task VarFilter {
     runtime {
         cpu : threads
         memory : memoryGb + "GB"
-        docker : dockerImage
+        disks: "local-disk " + diskSize + " HDD"
+        docker : "gcr.io/nygc-public/broadinstitute/gatk3:3.5-0"
     }
 }
 
 task VcfNorm {
     input {
-        Int threads
-        Int memoryGb
-        String dockerImage
         String sampleId
         String haplotypecallerNormVcfPath = "~{sampleId}.recalibrated.haplotypeCalls.norm.vcf.gz"
         IndexedVcf haplotypecallerRecalVcf
+        Int threads = 4
+        Int memoryGb = 20
+        Int diskSize = (ceil( size(haplotypecallerRecalVcf.vcf, "GB") ) * 2 ) + 5
     }
 
     command {
         bcftools \
         norm \
+        --threads ~{threads} \
         -O z \
         -m-both ~{haplotypecallerRecalVcf.vcf} \
         -o ~{haplotypecallerNormVcfPath} \
@@ -321,26 +323,26 @@ task VcfNorm {
     runtime {
         cpu : threads
         memory : memoryGb + "GB"
-        docker : dockerImage
+        disks: "local-disk " + diskSize + " HDD"
+        docker : "gcr.io/nygc-public/bcftools:1.5"
     }
 }
 
 task VarEval {
     input {
-        Int threads
-        Int memoryGb
-        String dockerImage
         String sampleId
         String varReportPath = "~{sampleId}.VariantEval.report.jg.txt"
         IndexedReference referenceFa
         IndexedVcf dbsnp
         File haplotypecallerGenoVcfApplySnpIndel
+        Int threads = 4
+        Int memoryGb = 24
+        Int diskSize = (ceil( size(haplotypecallerGenoVcfApplySnpIndel, "GB") ) * 2 ) + 20    
     }
 
     command {
         java \
         -XX:ParallelGCThreads=4 \
-        -Xmx24576m \
         -jar GenomeAnalysisTK.jar \
         -T VariantEval \
         -ST Sample \
@@ -364,23 +366,23 @@ task VarEval {
     runtime {
         cpu : threads
         memory : memoryGb + "GB"
-        docker : dockerImage
+        disks: "local-disk " + diskSize + " HDD"
+        docker : "gcr.io/nygc-public/broadinstitute/gatk3:3.5-0"
     }
 }
 
 task VarSum {
     input {
-        Int threads
-        Int memoryGb
-        String dockerImage
         String sampleId
         String varSummaryPath = "~{sampleId}.VariantEval.summary.jg.txt"
         File varReport
+        Int memoryGb = 4
+        Int diskSize = ceil( size(varReport, "GB") ) + 4
     }
 
     command {
         python2.7 \
-        make_vareval_summary.py \
+        /make_vareval_summary.py \
         ~{varReport} \
         ~{varSummaryPath} \
     }
@@ -390,9 +392,8 @@ task VarSum {
     }
 
     runtime {
-        cpu : threads
         memory : memoryGb + "GB"
-        docker : dockerImage
+        disks: "local-disk " + diskSize + " HDD"
     }
 }
 
