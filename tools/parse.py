@@ -7,6 +7,7 @@ import subprocess
 from google.cloud import storage
 import logging as log
 import google
+import re 
 
 class Json_leaves():
     
@@ -67,7 +68,6 @@ class Wdl():
                                      'full_variable' : full_variable,
                                      'object' : None,
                                      'type' : type}
-        self.wf_name = self.load_wf_name()
         # load preexisting reference variables
         self.load_genome_input(genome_input)
         self.load_interval_input(interval_input)
@@ -119,9 +119,6 @@ class Wdl():
                 '''add listing of sweng files'''
                 pass
         return True
-
-        
-    
             
     def check_gsutil(self, files):
         if string.startswith('gs://'):
@@ -256,7 +253,7 @@ class Wdl():
                     read, type, variable = self.parse_input(line)
                     if read and type and variable:
                         yield type, variable 
-                if line.replace(' ', '') == 'input{':
+                if re.sub(r"\s+", '', line)  == 'input{':
                     read = True
 
 
