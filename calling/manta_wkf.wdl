@@ -64,7 +64,7 @@ workflow Manta {
             vcf = mantaReorderVcfColumns.orderedVcf,
             memoryGb = 4,
             threads = 4,
-            diskSize = 1
+            diskSize = 5
             
     }
     
