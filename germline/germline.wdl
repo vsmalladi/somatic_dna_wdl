@@ -10,7 +10,7 @@ task Haplotypecaller {
         String sampleId
         String haplotypecallerChromVcfPath = "~{sampleId}.~{chrom}.haplotypeCalls.er.raw.vcf"
         Int threads = 18
-        Int memoryGb = 24
+        Int memoryGb = 26
         Int diskSize
     }
 
@@ -67,7 +67,7 @@ task GentotypeGvcfs {
         String sampleId
         String haplotypecallerGenoVcfPath = "~{sampleId}.genotypeGVCFs.vcf"
         Int threads = 12
-        Int memoryGb = 24
+        Int memoryGb = 26
         Int diskSize = (ceil( size(sortedVcf.vcf, "GB") )  * 2 ) + 4
     }
 
@@ -108,7 +108,7 @@ task RecalVcfsSnp {
         IndexedVcf onekG
         IndexedVcf dbsnp
         File haplotypecallerGenoVcf
-        Int memoryGb = 32
+        Int memoryGb = 34
         Int threads = 8
         Int diskSize = (ceil( size(haplotypecallerGenoVcf, "GB") )  * 2 ) + 20
     }
@@ -172,7 +172,7 @@ task RecalVcfsIndel {
         IndexedVcf dbsnp
         File haplotypecallerGenoVcf
         IndexedVcf MillsAnd1000G
-        Int memoryGb = 32
+        Int memoryGb = 34
         Int threads = 8
         Int diskSize = (ceil( size(haplotypecallerGenoVcf, "GB") )  * 2 ) + 20
     }
@@ -231,7 +231,7 @@ task ApplyRecal {
         File recal
         File haplotypecallerGenoVcfApply
         Int threads = 20
-        Int memoryGb = 8
+        Int memoryGb = 10
         Int diskSize = ceil( size(haplotypecallerGenoVcfApply, "GB") + size(recal, "GB") + size(tranches, "GB") ) + 20
     }
 
@@ -270,7 +270,7 @@ task VarFilter {
         IndexedReference referenceFa
         File haplotypecallerGenoVcfApplySnpIndel
         Int threads = 2
-        Int memoryGb = 24
+        Int memoryGb = 26
         Int diskSize = (ceil( size(haplotypecallerGenoVcfApplySnpIndel, "GB") ) * 2 ) + 10
     }
 
@@ -342,7 +342,7 @@ task VarEval {
         IndexedVcf dbsnp
         File haplotypecallerGenoVcfApplySnpIndel
         Int threads = 4
-        Int memoryGb = 24
+        Int memoryGb = 26
         Int diskSize = (ceil( size(haplotypecallerGenoVcfApplySnpIndel, "GB") ) * 2 ) + 20    
     }
 
