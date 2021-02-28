@@ -5,14 +5,14 @@ import "wdl_structs.wdl"
 
 workflow VariantAnalysis {
     input {
-        Array[pairVcfInfo]+ pairVcfInfos
+        Array[PairVcfInfo]+ PairVcfInfos
     }
     
-    scatter(pairVcfInfo in pairVcfInfos) {
+    scatter(PairVcfInfo in PairVcfInfos) {
         call deconstructSigs.DeconstructSig {
             input:
-                mainVcf = pairVcfInfo.mainVcf,
-                pairId = pairVcfInfo.pairId
+                mainVcf = PairVcfInfo.mainVcf,
+                pairId = PairVcfInfo.pairId
         }
         
     }
