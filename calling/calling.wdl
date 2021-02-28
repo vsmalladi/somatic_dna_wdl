@@ -194,6 +194,7 @@ task Strelka2 {
         IndexedTable callRegions
         IndexedVcf candidateSmallIndels
         Bam tumorFinalBam
+        File configureStrelkaSomaticWorkflow = "gs://nygc-comp-s-fd4e-resources/configureStrelkaSomaticWorkflow.py.ini"
     }
 
     command {
@@ -205,7 +206,7 @@ task Strelka2 {
         --referenceFasta ~{referenceFa.fasta} \
         --callRegions ~{callRegions.table} \
         --indelCandidates ~{candidateSmallIndels.vcf} \
-        --config "configureStrelkaSomaticWorkflow.py.ini" \
+        --config ~{configureStrelkaSomaticWorkflow} \
         --runDir "output" \
         && \
         "output/runWorkflow.py" \
