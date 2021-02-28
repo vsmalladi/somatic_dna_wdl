@@ -17,7 +17,7 @@ task Haplotypecaller {
     command {
         java \
         -XX:ParallelGCThreads=2 \
-        -jar GenomeAnalysisTK.jar \
+        -jar /GenomeAnalysisTK.jar \
         -T HaplotypeCaller \
         --genotyping_mode DISCOVERY \
         -A AlleleBalanceBySample \
@@ -73,7 +73,7 @@ task GentotypeGvcfs {
     command {
         java \
         -XX:ParallelGCThreads=4 \
-        -jar GenomeAnalysisTK.jar \
+        -jar /GenomeAnalysisTK.jar \
         -T GenotypeGVCFs \
         -R ~{referenceFa.fasta} \
         -nt 8 \
@@ -114,7 +114,7 @@ task RecalVcfsSnp {
     command {
         java \
         -XX:ParallelGCThreads=4 \
-        -jar GenomeAnalysisTK.jar \
+        -jar /GenomeAnalysisTK.jar \
         -T VariantRecalibrator \
         --maxGaussians 4 \
         -tranche 100.0 \
@@ -177,7 +177,7 @@ task RecalVcfsIndel {
     command {
         java \
         -XX:ParallelGCThreads=4 \
-        -jar GenomeAnalysisTK.jar \
+        -jar /GenomeAnalysisTK.jar \
         -T VariantRecalibrator \
         --maxGaussians 4 \
         -tranche 100.0 \
@@ -234,7 +234,7 @@ task ApplyRecal {
     command {
         java \
         -XX:ParallelGCThreads=4 \
-        -jar GenomeAnalysisTK.jar \
+        -jar /GenomeAnalysisTK.jar \
         -T ApplyRecalibration \
         --ts_filter_level 99.6 \
         -R ~{referenceFa.fasta} \
@@ -273,7 +273,7 @@ task VarFilter {
         set -o pipefail && \
         java \
         -XX:ParallelGCThreads=2 \
-        -jar GenomeAnalysisTK.jar \
+        -jar /GenomeAnalysisTK.jar \
         -T VariantFiltration \
         -R ~{referenceFa.fasta} \
         -V ~{haplotypecallerGenoVcfApplySnpIndel} \
@@ -343,7 +343,7 @@ task VarEval {
     command {
         java \
         -XX:ParallelGCThreads=4 \
-        -jar GenomeAnalysisTK.jar \
+        -jar /GenomeAnalysisTK.jar \
         -T VariantEval \
         -ST Sample \
         -ST Novelty \
