@@ -7,27 +7,17 @@ workflow DeconstructSig {
     # command 
     #   run DeconstructSig on merged VCF
     input {
-        String pairName
+        String pairId
         File mainVcf
-        File header
         
         File deconstructsigsFasta
         File deconstructsigsBs
-        
-        Int threads
-        Int memoryGb
-        String deconstructSigDockerImage
-        String bcftoolsDockerImage
     }
     
     call variant_analysis.DeconstructsigPrep38 {
         input:
             mainVcf = mainVcf,
-            header = header,
-            pairName = pairName,
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = bcftoolsDockerImage
+            pairId = pairId
         
     }
     
@@ -36,10 +26,7 @@ workflow DeconstructSig {
             highconfidence = DeconstructsigPrep38.highconfidence,
             deconstructsigsBs = deconstructsigsBs,
             deconstructsigsFasta = deconstructsigsFasta,
-            pairName = pairName,
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = deconstructSigDockerImage
+            pairId = pairId
     }
     
     output {
