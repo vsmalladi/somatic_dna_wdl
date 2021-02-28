@@ -14,7 +14,9 @@ workflow VariantAnalysis {
         call deconstructSigs.DeconstructSig {
             input:
                 mainVcf = pairVcfInfo.mainVcf,
-                pairId = pairVcfInfo.pairId
+                pairId = pairVcfInfo.pairId,
+                deconstructsigsBs = deconstructsigsBs,
+                deconstructsigsFasta = deconstructsigsFasta
         }
         
     }
