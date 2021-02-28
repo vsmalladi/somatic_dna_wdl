@@ -40,7 +40,7 @@ struct sampleInfo {
     Array[Fastqs] listOfFastqPairs
 }
 
-struct pairVcfInfo {
+struct PairVcfInfo {
     String pairId
     File mainVcf
     File supplementalVcf
