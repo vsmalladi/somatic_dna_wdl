@@ -361,6 +361,11 @@
                 "object" : "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/wgs_capture_intervals/GRCh38.autosomes.random.interval_list"
             }
         },
+        "deconstructsigsFasta" : {
+            "type" : "File",
+            "description" : "",
+            "object" : "gs://nygc-comp-s-fd4e-resources/human_g1k_v37_decoy.deconstructSigs.fasta"
+        },
         "deconstructsigsBs" : {
             "type" : "String",
             "description" : "https://bioconductor.org/packages/release/data/annotation/html/BSgenome.Hsapiens.UCSC.hg38.html",
