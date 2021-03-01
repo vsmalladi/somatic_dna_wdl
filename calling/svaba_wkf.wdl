@@ -11,7 +11,7 @@ workflow Svaba {
         String normal
         String pairName
         BwaReference bwaReference
-        IndexedVcf dbsnp
+        File dbsnpIndels
         Bam normalFinalBam
         Bam tumorFinalBam
         # resources
@@ -28,7 +28,7 @@ workflow Svaba {
             bwaReference = bwaReference,
             normalFinalBam = normalFinalBam,
             tumorFinalBam = tumorFinalBam,
-            dbsnp = dbsnp,
+            dbsnpIndels = dbsnpIndels,
             memoryGb = memoryGb,
             threads = threads,
             diskSize = diskSize

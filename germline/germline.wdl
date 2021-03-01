@@ -16,7 +16,7 @@ task Haplotypecaller {
 
     command {
         java \
-        -Xmx 24g \
+        -Xmx24g \
         -XX:ParallelGCThreads=2 \
         -jar /usr/GenomeAnalysisTK.jar \
         -T HaplotypeCaller \
@@ -73,7 +73,7 @@ task GentotypeGvcfs {
 
     command {
         java \
-        -Xmx 24g \
+        -Xmx24g \
         -XX:ParallelGCThreads=4 \
         -jar /usr/GenomeAnalysisTK.jar \
         -T GenotypeGVCFs \
@@ -115,7 +115,7 @@ task RecalVcfsSnp {
 
     command {
         java \
-        -Xmx 32g \
+        -Xmx32g \
         -XX:ParallelGCThreads=4 \
         -jar /usr/GenomeAnalysisTK.jar \
         -T VariantRecalibrator \
@@ -179,7 +179,7 @@ task RecalVcfsIndel {
 
     command {
         java \
-        -Xmx 32g \
+        -Xmx32g \
         -XX:ParallelGCThreads=4 \
         -jar /usr/GenomeAnalysisTK.jar \
         -T VariantRecalibrator \
@@ -237,7 +237,7 @@ task ApplyRecal {
 
     command {
         java \
-        -Xmx 8g \
+        -Xmx8g \
         -XX:ParallelGCThreads=4 \
         -jar /usr/GenomeAnalysisTK.jar \
         -T ApplyRecalibration \
@@ -277,7 +277,7 @@ task VarFilter {
     command {
         set -o pipefail && \
         java \
-        -Xmx 24g \
+        -Xmx24g \
         -XX:ParallelGCThreads=2 \
         -jar /usr/GenomeAnalysisTK.jar \
         -T VariantFiltration \
@@ -349,7 +349,7 @@ task VarEval {
     command {
         java \
         -XX:ParallelGCThreads=4 \
-        -Xmx 24g \
+        -Xmx24g \
         -jar /usr/GenomeAnalysisTK.jar \
         -T VariantEval \
         -ST Sample \

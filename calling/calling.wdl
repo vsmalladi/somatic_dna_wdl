@@ -234,6 +234,48 @@ task Strelka2 {
     }
 }
 
+task LancetWGSRegional {
+    input {
+        Int threads
+        Int diskSize
+        Int memoryGb
+        String pairName
+        String chrom
+        String lancetChromVcfPath = "~{pairName}_~{chrom}.lancet.v1.0.7.vcf"
+        IndexedReference referenceFa
+        File chromBed
+        Bam normalFinalBam
+        Bam tumorFinalBam
+    }
+
+    command {
+        lancet \
+        --normal ~{normalFinalBam.bam} \
+        --tumor ~{tumorFinalBam.bam} \
+        --bed ~{chromBed} \
+        --ref ~{referenceFa.fasta} \
+        --min-k 11 \
+        --low-cov 1 \
+        --min-phred-fisher 5 \
+        --min-strand-bias 1 \
+        --min-alt-count-tumor 3 \
+        --min-vaf-tumor 0.04 \
+        --num-threads ~{threads} \
+        > ~{lancetChromVcfPath}
+    }
+
+    output {
+        File lancetChromVcf = "~{lancetChromVcfPath}"
+    }
+
+    runtime {
+        cpu : threads        
+        disks: "local-disk " + diskSize + " SSD"
+        memory : memoryGb + "GB"
+        docker : "gcr.io/nygc-public/lancet:v1.0.7"
+    }
+}
+
 task LancetExome {
     input {
         Int threads
@@ -352,7 +394,7 @@ task SvabaWgs {
         String pairName
         BwaReference bwaReference
         Bam normalFinalBam
-        IndexedVcf dbsnp
+        File dbsnpIndels
         Bam tumorFinalBam
         Int diskSize
     }
@@ -363,7 +405,7 @@ task SvabaWgs {
         -t ~{tumorFinalBam.bam} \
         -n ~{normalFinalBam.bam} \
         -p ~{threads} \
-        -D ~{dbsnp.vcf} \
+        -D ~{dbsnpIndels} \
         -a ~{pairName} \
         -G ~{bwaReference.fasta} \
         -z on

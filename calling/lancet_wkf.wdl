@@ -10,7 +10,7 @@ workflow Lancet {
         String tumor
         String normal
         Array[String]+ listOfChroms
-        Map[String, File] chromBeds
+        Map[String, File] chromBedsWgs
         String pairName
         IndexedReference referenceFa
         Bam normalFinalBam
@@ -24,10 +24,10 @@ workflow Lancet {
     }
     
     scatter(chrom in listOfChroms) {
-        call calling.LancetExome {
+        call calling.LancetWGSRegional {
             input:
                 chrom = chrom,
-                chromBed = chromBeds[chrom],
+                chromBed = chromBedsWgs[chrom],
                 referenceFa = referenceFa,
                 normalFinalBam = normalFinalBam,
                 tumorFinalBam = tumorFinalBam,
@@ -41,7 +41,7 @@ workflow Lancet {
     call calling.Gatk4MergeSortVcf {
         input:
             sortedVcfPath = "~{pairName}.lancet.v1.0.7.sorted.vcf",
-            tempChromVcfs = LancetExome.lancetChromVcf,
+            tempChromVcfs = LancetWGSRegional.lancetChromVcf,
             referenceFa = referenceFa,
             memoryGb = 8,
             diskSize = 10

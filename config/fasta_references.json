@@ -365,6 +365,41 @@
             "type" : "String",
             "description" : "https://bioconductor.org/packages/release/data/annotation/html/BSgenome.Hsapiens.UCSC.hg38.html",
             "object" : "BSgenome.Hsapiens.UCSC.hg38"
+        },
+        "dbsnpIndels" : {
+            "type" : "File",
+            "description" : "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/README_dbsnp_146.indels.md",
+            "object" : "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal//dbsnp_146.indels.hg38.vcf"
+        },
+        "chromBedsWgs" : {
+            "type" : "Map[String, File]",
+            "description" : "",
+            "object" : {
+                "chr1": "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr1.bed",
+                "chr10": "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr10.bed",
+                "chr11": "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr11.bed",
+                "chr12": "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr12.bed",
+                "chr13": "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr13.bed",
+                "chr14": "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr14.bed",
+                "chr15": "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr15.bed",
+                "chr16": "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr16.bed",
+                "chr17": "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr17.bed",
+                "chr18": "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr18.bed",
+                "chr19": "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr19.bed",
+                "chr2": "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr2.bed",
+                "chr20": "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr20.bed",
+                "chr21": "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr21.bed",
+                "chr22": "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr22.bed",
+                "chr3": "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr3.bed",
+                "chr4": "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr4.bed",
+                "chr5": "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr5.bed",
+                "chr6": "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr6.bed",
+                "chr7": "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr7.bed",
+                "chr8": "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr8.bed",
+                "chr9": "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr9.bed",
+                "chrX": "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chrX.bed",
+                "chrY": "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chrY.bed"
+            }
         }
     }
 }

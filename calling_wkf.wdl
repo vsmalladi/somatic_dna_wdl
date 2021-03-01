@@ -20,10 +20,10 @@ workflow Calling {
         #   Manta
         IndexedTable callRegions
         #   Svaba
-        IndexedVcf dbsnp
+        File dbsnpIndels
         BwaReference bwaReference
         #   Lancet
-        Map[String, File] chromBeds
+        Map[String, File] chromBedsWgs
     }
     scatter(pairInfo in pairInfos) {
         call mutect2.Mutect2 {
@@ -64,7 +64,7 @@ workflow Calling {
             input:
                 tumor = pairInfo.tumor,
                 normal = pairInfo.normal,
-                dbsnp = dbsnp,
+                dbsnpIndels = dbsnpIndels,
                 bwaReference = bwaReference,
                 pairName = pairInfo.pairId,
                 normalFinalBam = pairInfo.normalFinalBam,
@@ -76,7 +76,7 @@ workflow Calling {
                 tumor = pairInfo.tumor,
                 normal = pairInfo.normal,
                 listOfChroms = listOfChroms,
-                chromBeds = chromBeds,
+                chromBedsWgs = chromBedsWgs,
                 referenceFa = referenceFa,
                 pairName = pairInfo.pairId,
                 normalFinalBam = pairInfo.normalFinalBam,
