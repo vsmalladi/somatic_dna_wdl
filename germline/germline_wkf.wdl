@@ -38,8 +38,8 @@ workflow Germline {
             sortedVcfPath = "~{normal}.haplotypeCalls.er.raw.vcf",
             tempChromVcfs = Haplotypecaller.haplotypecallerChromVcf,
             referenceFa = referenceFa,
-            memoryGb = 8,
-            diskSize = 10
+            memoryGb = 16,
+            diskSize = 200
     }
     
     call merge_vcf.CompressVcf as haplotypecallerCompressVcf {
