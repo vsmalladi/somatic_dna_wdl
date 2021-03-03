@@ -33,6 +33,8 @@ task CompressVcf {
 task IndexVcf {
     input {
         File vcfCompressed
+        String vcfCompressedPath = basename(vcfCompressed)
+        String vcfIndexedPath = sub(basename(vcfCompressed), "$", ".tbi")
         Int threads = 4
         Int memoryGb = 24
         Int diskSize = (ceil( size(vcfCompressed, "GB") )  * 2 ) + 20
@@ -42,13 +44,14 @@ task IndexVcf {
         gatk \
         IndexFeatureFile \
         --java-options "-XX:ParallelGCThreads=4" \
-        --feature-file ~{vcfCompressed}
+        --feature-file ~{vcfCompressed} \
+        -O ${vcfIndexedPath}
     }
 
     output {
         IndexedVcf vcfCompressedIndexed = object {
-                vcf : "${vcfCompressed}", 
-                index : "${vcfCompressed}.tbi"
+                vcf : "${vcfCompressedPath}", 
+                index : "${vcfIndexedPath}"
             }
     }
 
