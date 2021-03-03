@@ -82,6 +82,8 @@ class Wdl():
         potential_files = Json_leaves(self.inputs)
         files = [string for string in potential_files.files if string.startswith('gs://')]
         self.validate_input_gsutil(strings=files)
+#         for file in files:
+#             self.validate_input_gsutil(strings=[file])
 #         for potential_file in potential_files.files:
 #             self.validate_input(string=potential_file)
         
@@ -98,6 +100,7 @@ class Wdl():
                                     check=True,
                                     stdout=subprocess.PIPE).stdout.decode('utf-8')
         except subprocess.CalledProcessError as err:
+            print(strings)
             log.error(err.output.decode('utf-8'))
             log.error('Failed to locate file in bucket')
             return False
