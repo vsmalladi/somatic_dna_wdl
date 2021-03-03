@@ -41,17 +41,23 @@ task IndexVcf {
     }
 
     command {
+        set -e -o pipefail
+        
+        cp \
+        ~{vcfCompressed} \
+        ~{vcfCompressedPath}
+        
         gatk \
         IndexFeatureFile \
         --java-options "-XX:ParallelGCThreads=4" \
-        --feature-file ~{vcfCompressed} \
-        -O ${vcfIndexedPath}
+        --feature-file ~{vcfCompressedPath} \
+        -O ~{vcfIndexedPath}
     }
 
     output {
         IndexedVcf vcfCompressedIndexed = object {
-                vcf : "${vcfCompressedPath}", 
-                index : "${vcfIndexedPath}"
+                vcf : "~{vcfCompressedPath}", 
+                index : "~{vcfIndexedPath}"
             }
     }
 
