@@ -100,6 +100,7 @@ task MantaWgs {
         Int threads = 8
         Int memoryGb
         Int diskSize
+        String pairName
         String intHVmem = "unlimited"
         IndexedReference referenceFa
         Bam normalFinalBam
@@ -108,16 +109,18 @@ task MantaWgs {
     }
 
     command {
-        mkdir "output" \
-        && \
+        set -e -o pipefail
+        
+        mkdir ~{pairName}.MantaRaw
+        
         configManta.py \
         --normalBam ~{normalFinalBam.bam} \
         --tumorBam ~{tumorFinalBam.bam} \
         --referenceFasta ~{referenceFa.fasta} \
         --callRegions ~{callRegions.table} \
-        --runDir "output" \
-        && \
-        "output/runWorkflow.py" \
+        --runDir ~{pairName}.MantaRaw
+
+        "~{pairName}.MantaRaw/runWorkflow.py" \
         --mode local \
         --job ~{threads} \
         --memGb ~{intHVmem}
@@ -125,20 +128,20 @@ task MantaWgs {
 
     output {
         IndexedVcf candidateSmallIndels = object {
-                vcf : "output/results/variants/candidateSmallIndels.vcf.gz", 
-                index : "output/results/variants/candidateSmallIndels.vcf.gz.tbi"
+                vcf : "~{pairName}.MantaRaw/results/variants/candidateSmallIndels.vcf.gz", 
+                index : "~{pairName}.MantaRaw/results/variants/candidateSmallIndels.vcf.gz.tbi"
             }
         IndexedVcf diploidSV = object {
-                vcf : "output/results/variants/diploidSV.vcf.gz", 
-                index : "output/results/variants/diploidSV.vcf.gz.tbi"
+                vcf : "~{pairName}.MantaRaw/results/variants/diploidSV.vcf.gz", 
+                index : "~{pairName}.MantaRaw/results/variants/diploidSV.vcf.gz.tbi"
             }
         IndexedVcf somaticSV = object {
-                vcf : "output/results/variants/somaticSV.vcf.gz", 
-                index : "output/results/variants/somaticSV.vcf.gz.tbi"
+                vcf : "~{pairName}.MantaRaw/results/variants/somaticSV.vcf.gz", 
+                index : "~{pairName}.MantaRaw/results/variants/somaticSV.vcf.gz.tbi"
             }
         IndexedVcf candidateSV = object {
-                vcf : "output/results/variants/candidateSV.vcf.gz", 
-                index : "output/results/variants/candidateSV.vcf.gz.tbi"
+                vcf : "~{pairName}.MantaRaw/results/variants/candidateSV.vcf.gz", 
+                index : "~{pairName}.MantaRaw/results/variants/candidateSV.vcf.gz.tbi"
             }
     }
 
@@ -188,6 +191,7 @@ task Strelka2 {
         Int threads
         Int memoryGb
         Int diskSize
+        String pairName
         String intHVmem = "unlimited"
         IndexedReference referenceFa
         Bam normalFinalBam
@@ -198,8 +202,10 @@ task Strelka2 {
     }
 
     command {
-        mkdir "output" \
-        && \
+        set -e -o pipefail
+        
+        mkdir ~{pairName}.Strelka2Raw
+
         configureStrelkaSomaticWorkflow.py \
         --normalBam ~{normalFinalBam.bam} \
         --tumorBam ~{tumorFinalBam.bam} \
@@ -207,9 +213,9 @@ task Strelka2 {
         --callRegions ~{callRegions.table} \
         --indelCandidates ~{candidateSmallIndels.vcf} \
         --config ~{configureStrelkaSomaticWorkflow} \
-        --runDir "output" \
-        && \
-        "output/runWorkflow.py" \
+        --runDir ~{pairName}.Strelka2Raw \
+
+        "~{pairName}.Strelka2Raw/runWorkflow.py" \
         --mode local \
         --job ~{threads} \
         --memGb ~{intHVmem}
@@ -217,12 +223,12 @@ task Strelka2 {
 
     output {
         IndexedVcf strelka2Snvs = object {
-                vcf : "output/results/variants/somatic.snvs.vcf.gz", 
-                index : "output/results/variants/somatic.snvs.vcf.gz.tbi"
+                vcf : "~{pairName}.Strelka2Raw/results/variants/somatic.snvs.vcf.gz", 
+                index : "~{pairName}.Strelka2Raw/results/variants/somatic.snvs.vcf.gz.tbi"
             }
         IndexedVcf strelka2Indels = object {
-                vcf : "output/results/variants/somatic.indels.vcf.gz", 
-                index : "output/results/variants/somatic.indels.vcf.gz.tbi"
+                vcf : "~{pairName}.Strelka2Raw/results/variants/somatic.indels.vcf.gz", 
+                index : "~{pairName}.Strelka2Raw/results/variants/somatic.indels.vcf.gz.tbi"
             }
     }
 
@@ -412,18 +418,8 @@ task SvabaWgs {
     }
 
     output {
-        Array[File] svabaInternalInput = ["~{pairName}.svaba.unfiltered.somatic.indel.vcf.gz",
-                        "~{pairName}.svaba.unfiltered.germline.indel.vcf.gz",
-                        "~{pairName}.bps.txt.gz",
-                        "~{pairName}.log",
-                        "~{pairName}.svaba.germline.indel.vcf.gz",
-                        "~{pairName}.contigs.bam",
-                        "~{pairName}.discordant.txt.gz",
-                        "~{pairName}.svaba.unfiltered.germline.sv.vcf.gz",
-                        "~{pairName}.alignments.txt.gz",
-                        "~{pairName}.svaba.germline.sv.vcf.gz",
-                        "~{pairName}.svaba.unfiltered.somatic.sv.vcf.gz"
-                        ]
+        File svabaRawGermlineIndel = "~{pairName}.svaba.germline.indel.vcf.gz"
+        File svabaRawGermlineSv = "~{pairName}.svaba.germline.sv.vcf.gz"
         File svabaIndelGz = "~{pairName}.svaba.somatic.indel.vcf.gz"
         File svabaGz = "~{pairName}.svaba.somatic.sv.vcf.gz"
     }
@@ -432,7 +428,7 @@ task SvabaWgs {
         cpu : threads        
         disks: "local-disk " + diskSize + " SSD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/svaba:1.1.0"
+        docker : "gcr.io/nygc-public/svaba:1.0.1-c4a0606e"
     }
 }
 

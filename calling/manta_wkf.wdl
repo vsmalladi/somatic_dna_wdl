@@ -31,6 +31,7 @@ workflow Manta {
         input:
             intHVmem = intHVmem,
             referenceFa = referenceFa,
+            pairName = pairName,
             callRegions = callRegions,
             normalFinalBam = normalFinalBam,
             tumorFinalBam = tumorFinalBam,

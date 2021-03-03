@@ -101,7 +101,8 @@ workflow Calling {
         Array[File] strelka2Snv = Strelka2.strelka2Snv
         Array[File] strelka2Indel = Strelka2.strelka2Indel
         # Svaba
-        Array[Array[File]] svabaInternalInput = Svaba.svabaInternalInput
+        Array[File] svabaRawGermlineIndel = Svaba.svabaRawGermlineIndel
+        Array[File] svabaRawGermlineSv = Svaba.svabaRawGermlineSv
         Array[File] svabaSv = Svaba.svabaSv
         Array[File] svabaIndel = Svaba.svabaIndel
         # Lancet

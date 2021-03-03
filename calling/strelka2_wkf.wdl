@@ -31,6 +31,7 @@ workflow Strelka2 {
             intHVmem = intHVmem,
             referenceFa = referenceFa,
             callRegions = callRegions,
+            pairName = pairName,
             candidateSmallIndels = candidateSmallIndels,
             normalFinalBam = normalFinalBam,
             tumorFinalBam = tumorFinalBam,
