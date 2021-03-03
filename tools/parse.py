@@ -100,7 +100,6 @@ class Wdl():
                                     check=True,
                                     stdout=subprocess.PIPE).stdout.decode('utf-8')
         except subprocess.CalledProcessError as err:
-            print(strings)
             log.error(err.output.decode('utf-8'))
             log.error('Failed to locate file in bucket')
             return False

@@ -214,7 +214,7 @@ class CloudOutput():
 class RunData():
     def __init__(self, run_info_file, options_file):
         self.run_info = self.read(run_info_file)
-        self.options = self.read(options_file)
+        self.options = self.run_info['options']
         self.project_info = self.run_info['project_data']
         self.passed = meta.test_schema(self.project_info)
         self.workflow_uuid = self.run_info['workflow_uuid']
@@ -227,8 +227,7 @@ class RunData():
 
 def main():
     args = get_args()
-    run_data = RunData(run_info_file=args['run_data'], 
-                       options_file=args['options'])
+    run_data = RunData(run_info_file=args['run_data'])
     outputs = CloudOutput(run_data=run_data)
     file_out = outputs.run_data.run_info["project_data"]['project'].replace(' ', '_') + outputs.run_data.run_info['workflow_uuid'] + '_outputInfo.json'
     with open(file_out, 'w') as project_info_file:
@@ -242,10 +241,6 @@ def get_args():
         Need to add optional task-specific input json
     '''
     parser = argparse.ArgumentParser()
-    parser.add_argument('--options',
-                        help='Options json file.',
-                            required=True
-                            )
     parser.add_argument('--run-data',
                         help='JSON file with RunIfon. Includes workflow uuid, '
                         'project pairing, sample, '

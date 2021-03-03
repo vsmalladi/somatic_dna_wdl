@@ -133,6 +133,7 @@ def repopulate(args):
         project_info = read(args['project_data'])
     else:
         project_info = {}
+    project_info['options'] = read(args['options'])
     # update wdl pipeline version
     commit, tag, uniq_tag, branch = git_log(__file__)
     project_info['commit'] = commit
@@ -287,6 +288,10 @@ def get_args():
                         'can be read by the current user. ',
                         required=False
                         )
+    parser.add_argument('--options',
+                        help='Options json file.',
+                            required=True
+                            )
     args_namespace = parser.parse_args()
     return args_namespace.__dict__
 
