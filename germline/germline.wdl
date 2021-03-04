@@ -248,7 +248,7 @@ task ApplyRecal {
         -mode ~{mode} \
         -recalFile ~{recal} \
         -tranchesFile ~{tranches} \
-        -o ~{haplotypecallerGenoVcfApplySnpIndelPath} \
+        -o ~{haplotypecallerGenoVcfApplySnpIndelPath}
     }
 
     output {
@@ -269,6 +269,7 @@ task VarFilter {
         String haplotypecallerRecalVcfPath = "~{sampleId}.recalibrated.haplotypeCalls.vcf"
         IndexedReference referenceFa
         File haplotypecallerGenoVcfApplySnpIndel
+        File varfiltReheader = "gs://nygc-comp-s-fd4e-input/varfilt_reheader"
         Int threads = 2
         Int memoryGb = 26
         Int diskSize = (ceil( size(haplotypecallerGenoVcfApplySnpIndel, "GB") ) * 2 ) + 10
@@ -287,8 +288,8 @@ task VarFilter {
         --genotypeFilterExpression "GQ < 20.0" \
         --genotypeFilterName "DPbelow10" \
         --genotypeFilterExpression "DP < 10.0" \
-        | varfilt_reheader \
-        > ~{haplotypecallerRecalVcfPath} \
+        | ~{varfiltReheader} \
+        > ~{haplotypecallerRecalVcfPath}
     }
 
     output {
