@@ -276,7 +276,10 @@ task VarFilter {
     }
 
     command {
-        set -o pipefail && \
+        set -e -o pipefail
+
+        chmod 777 ~{varfiltReheader}
+        
         java \
         -Xmx24g \
         -XX:ParallelGCThreads=2 \
