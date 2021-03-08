@@ -14,7 +14,7 @@ task DeconstructsigPrep38 {
     command {
         set -e -o pipefail
          
-        echo -e "Sample\tchr\tpos\tref\talt\n" > header.txt
+        echo -e "Sample\tchr\tpos\tref\talt" > header.txt
         
         bcftools query \
         -i "TYPE=\"snp\" && HighConfidence=1" \
@@ -44,15 +44,16 @@ task Deconstructsig {
         Int diskSize = 1
         String pairId
         String suffix = "~{pairId}.deconstructSigs.v1.8.0.signatures.highconfidence"
-        File deconstructsigsBs
+        String deconstructsigsBs
         File deconstructsigsFasta
         File highconfidence
         File plotting_r = "gs://nygc-comp-s-fd4e-resources/plotting.R"
+        File runDeconstructSigs = "gs://nygc-comp-s-fd4e-input/run_deconstructSigs.vX.R"
     }
 
     command {
         Rscript \
-        /run_deconstructSigs.v2.R \
+        ~{runDeconstructSigs} \
         ~{highconfidence} \
         ~{suffix} \
         ~{deconstructsigsBs} \
@@ -72,6 +73,6 @@ task Deconstructsig {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:0.9.2"
+        docker : "quay.io/biocontainers/r-deconstructsigs:1.8.0.1--r40_3"
     }
 }

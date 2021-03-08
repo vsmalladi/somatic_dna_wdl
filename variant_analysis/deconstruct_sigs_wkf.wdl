@@ -11,7 +11,7 @@ workflow DeconstructSig {
         File mainVcf
         
         File deconstructsigsFasta
-        File deconstructsigsBs
+        String deconstructsigsBs
     }
     
     call variant_analysis.DeconstructsigPrep38 {
