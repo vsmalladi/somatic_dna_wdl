@@ -39,7 +39,7 @@ task MantisExome {
         IndexedReference referenceFa
         Int threads = 16
         Int memoryGb = 4
-        Int diskSize = ceil( size(tumorFinalBam.bam, "GB") + size(normalFinalBam.bam, "GB")) + 10
+        Int diskSize = ceil( size(tumorFinalBam.bam, "GB") + size(normalFinalBam.bam, "GB")) + 30
         
     }
 
@@ -67,6 +67,7 @@ task MantisExome {
 
     runtime {
         cpu : threads
+        disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/mantis:1.0.4"
     }
@@ -111,6 +112,15 @@ task GetChr6Contigs {
     }
     
     command {
+        set -e -o pipefail
+        
+        export CONDA_ALWAYS_YES="true"
+        
+        conda config --add channels r
+        conda config --add channels bioconda    
+        
+        conda install pysam
+        
         chr6Contigs=$( /lookup_contigs.py ~{finalBam.bam} )
     }
     
@@ -121,7 +131,7 @@ task GetChr6Contigs {
     runtime {
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker : "gcr.io/nygc-internal-tools/hla_prep:1.0.1"
+        docker : "gcr.io/nygc-internal-tools/hla_prep:1.1.0"
     }
 }
 

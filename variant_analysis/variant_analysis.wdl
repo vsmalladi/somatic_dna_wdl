@@ -73,6 +73,6 @@ task Deconstructsig {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "quay.io/biocontainers/r-deconstructsigs:1.8.0.1--r40_3"
+        docker : "gcr.io/nygc-public/deconstructsigs:1.8.0.1--r40_3"
     }
 }
