@@ -7,38 +7,27 @@ workflow Msi {
     input {
         String normal
         String pairName
-        String mantisBedByIntervalListPath
+        String mantisBedByIntervalListPath = "mantisBedByIntervalListPath.bed"
         File mantisBed
         File intervalListBed
         IndexedReference referenceFa
-        
         Bam normalFinalBam
         Bam tumorFinalBam
-        
-        String bedtoolsDockerImage
-        String mantisDockerImage
-        Int threads
-        Int memoryGb
     }
     
     call alignment_analysis.BedtoolsIntersect {
         input:
             mantisBedByIntervalListPath = mantisBedByIntervalListPath,
             mantisBed = mantisBed,
-            intervalListBed = intervalListBed,
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = bedtoolsDockerImage
+            intervalListBed = intervalListBed
     }
     
     call alignment_analysis.MantisExome {
         input:
             tumorFinalBam = tumorFinalBam,
             normalFinalBam = normalFinalBam,
+            pairName = pairName,
             mantisBedByIntervalList = BedtoolsIntersect.mantisBedByIntervalList,
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = mantisDockerImage,
             referenceFa = referenceFa
     }
     
@@ -46,8 +35,13 @@ workflow Msi {
         input:
             normal = normal,
             pairName = pairName,
-            mantisWxsStatus = MantisExome.mantisWxsStatus,
-            threads = threads,
-            dockerImage = mantisDockerImage
+            mantisWxsStatus = MantisExome.mantisWxsStatus
+    }
+    
+    output {
+        File mantisWxsKmerCountsFinal = MantisExome.mantisWxsKmerCountsFinal
+        File mantisWxsKmerCountsFiltered = MantisExome.mantisWxsKmerCountsFiltered
+        File mantisExomeTxt = MantisExome.mantisExomeTxt
+        File mantisStatusFinal = MantisRethreshold.mantisStatusFinal
     }
 }

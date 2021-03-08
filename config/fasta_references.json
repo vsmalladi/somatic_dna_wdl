@@ -23,6 +23,24 @@
             "description" : "",
             "object" : "gs://nygc-comp-s-82ed-resources/Annotation/GRCh38/chrom_lengths.txt"
         },
+        "kouramiFastaGem3Index": {
+            "type": "File",
+            "description": "For use with BAMs aligned to any reference gs://nygc-comp-s-fd4e-input/All_FINAL_with_Decoy.fa.info",
+            "object": "gs://nygc-comp-s-fd4e-input/All_FINAL_with_Decoy.fa.gem"
+            
+        },
+        "kouramiReference" : {
+            "type" : "BwaReference",
+            "description" : "For use with BAMs aligned to any reference. https://github.com/Kingsford-Group/kourami/blob/master/scripts/download_panel.sh",
+            "object" : {
+                "fasta" : "gs://nygc-comp-s-fd4e-input/All_FINAL_with_Decoy.fa.gz",
+                "sa" : "gs://nygc-comp-s-fd4e-input/All_FINAL_with_Decoy.fa.gz.sa",
+                "pac" : "gs://nygc-comp-s-fd4e-input/All_FINAL_with_Decoy.fa.gz.pac",
+                "bwt" : "gs://nygc-comp-s-fd4e-input/All_FINAL_with_Decoy.fa.gz.bwt",
+                "ann" : "gs://nygc-comp-s-fd4e-input/All_FINAL_with_Decoy.fa.gz.ann",
+                "amb" : "gs://nygc-comp-s-fd4e-input/All_FINAL_with_Decoy.fa.gz.amb"
+            }
+        },
         "mantisBed" : {
             "type" : "File",
             "description" : "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/README_mantis_repeatfinder.md",

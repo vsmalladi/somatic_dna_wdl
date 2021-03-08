@@ -1,104 +1,79 @@
 version 1.0
 
-import "alignment_analysis.wdl" as alignment_analysis
+import "alignment_analysis.wdl" as alignmentAnalysis
 import "../wdl_structs.wdl"
 
 workflow Kourami {
     input {
         String sampleId
-        String chr6Contigs
-        File mergedHlaPanel
-        File hlaGem
+        # mergedHlaPanel
+        BwaReference kouramiReference
+        File kouramiFastaGem3Index
         Bam finalBam
-        
-        String memoryPerThread = "1G"
-        
-        String gemDockerImage
-        String samtoolsDockerImage
-        String pythonDockerImage
-        String seqkitDockerImage
-        String bwaDockerImage
-        String kouramiDockerImage
-        Int threads
-        Int memoryGb
+        Int diskSize = ceil( size(finalBam.bam, "GB")) + 20
     }
     
-    call alignment_analysis.GemSelect {
+    call alignmentAnalysis.GetChr6Contigs {
+        input:
+            finalBam = finalBam,
+            diskSize = diskSize
+    }
+    
+    call alignmentAnalysis.GemSelect {
         input:
             sampleId = sampleId,
-            chr6Contigs = chr6Contigs,
             finalBam = finalBam,
-            hlaGem = hlaGem,
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = gemDockerImage
-            
+            chr6Contigs = GetChr6Contigs.chr6Contigs,
+            kouramiFastaGem3Index = kouramiFastaGem3Index,
+            diskSize = diskSize
     }
     
-    call alignment_analysis.LookUpMates {
+    call alignmentAnalysis.LookUpMates {
         input:
             sampleId = sampleId,
             r2File = GemSelect.r2File,
             r2MappedFastq = GemSelect.r2MappedFastq,
             r1File = GemSelect.r1File,
-            r1MappedFastq = GemSelect.r1MappedFastq,
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = pythonDockerImage
+            r1MappedFastq = GemSelect.r1MappedFastq
     }
     
-    call alignment_analysis.GetMates {
+    call alignmentAnalysis.GetMates {
         input:
             sampleId = sampleId,
             finalBam = finalBam,
             r1UnmappedFile = LookUpMates.r1UnmappedFile,
             r2UnmappedFile = LookUpMates.r2UnmappedFile,
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = samtoolsDockerImage
+            diskSize = diskSize
     }
     
-    call alignment_analysis.SortFastqs as r1SortFastqs {
+    call alignmentAnalysis.SortFastqs as r1SortFastqs {
         input:
             fastqPairId = "R1",
             sampleId = sampleId,
             chr6MappedFastq = GemSelect.r1MappedFastq,
-            chr6MappedMatesFastq = GetMates.r1UnmappedFastq,
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = seqkitDockerImage
+            chr6MappedMatesFastq = GetMates.r1UnmappedFastq
     }
     
-    call alignment_analysis.SortFastqs as r2SortFastqs {
+    call alignmentAnalysis.SortFastqs as r2SortFastqs {
         input:
             fastqPairId = "R2",
             sampleId = sampleId,
             chr6MappedFastq = GemSelect.r2MappedFastq,
-            chr6MappedMatesFastq = GetMates.r2UnmappedFastq,
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = seqkitDockerImage
+            chr6MappedMatesFastq = GetMates.r2UnmappedFastq
     }
     
-    call alignment_analysis.AlignToPanel {
+    call alignmentAnalysis.AlignToPanel {
         input:
             sampleId = sampleId,
-            mergedHlaPanel = mergedHlaPanel,
-            memoryPerThread = memoryPerThread,
+            kouramiReference = kouramiReference,
             r1SortedFastq = r1SortFastqs.sortedFastq,
-            r2SortedFastq = r2SortFastqs.sortedFastq,
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = bwaDockerImage
+            r2SortedFastq = r2SortFastqs.sortedFastq
     }
     
-    call alignment_analysis.Kourami {
+    call alignmentAnalysis.Kourami {
         input:
             sampleId = sampleId,
-            kouramiBam = AlignToPanel.kouramiBam,
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = kouramiDockerImage
+            kouramiBam = AlignToPanel.kouramiBam
     }
     
     output {

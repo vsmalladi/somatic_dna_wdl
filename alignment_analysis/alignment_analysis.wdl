@@ -4,9 +4,6 @@ import "../wdl_structs.wdl"
 
 task BedtoolsIntersect {
     input {
-        Int threads
-        Int memoryGb
-        String dockerImage
         String mantisBedByIntervalListPath
         File mantisBed
         File intervalListBed
@@ -26,50 +23,43 @@ task BedtoolsIntersect {
     }
 
     runtime {
-        cpu : threads
-        memory : memoryGb + "GB"
-        docker : dockerImage
+        docker : "gcr.io/nygc-public/bedtools:v2.26.0"
     }
 }
 
 
 task MantisExome {
-    input {
-        Int threads
-        Int memoryGb
-        String dockerImage
-        String cores
+    input {        
         String pairName
         String mantisExomeTxtPath = "~{pairName}.mantis.v1.0.4.WGS-targeted.txt"
         String mantisWxsKmerCountsPath = "~{pairName}.mantis.v1.0.4.WGS-targeted.kmer_counts.txt"
-        String mantisWxsKmerCountsFinalPath = "~{pairName}.mantis.v1.0.4.WGS-targeted.kmer_counts.txt"
         Bam tumorFinalBam
         Bam normalFinalBam
         File mantisBedByIntervalList
         IndexedReference referenceFa
+        Int threads = 16
+        Int memoryGb = 4
+        Int diskSize = ceil( size(tumorFinalBam.bam, "GB") + size(normalFinalBam.bam, "GB")) + 10
+        
     }
 
-    command {
+    command {    
         python \
-        mantis.py \
+        MANTIS-1.0.4/mantis.py \
         --bedfile ~{mantisBedByIntervalList} \
         --genome ~{referenceFa.fasta} \
         -mrq 20.0 \
         -mlq 25.0 \
         -mlc 20 \
         -mrr 1 \
-        --threads ~{cores} \
+        --threads ~{threads} \
         -n ~{normalFinalBam.bam} \
         -t ~{tumorFinalBam.bam} \
-        -o ~{mantisExomeTxtPath} \
-        && \
-        mv \
-        ~{mantisWxsKmerCountsPath} \
-        ~{mantisWxsKmerCountsFinalPath}
+        -o ~{mantisExomeTxtPath}
     }
 
     output {
-        File mantisWxsKmerCountsFinal = "~{mantisWxsKmerCountsFinalPath}"
+        File mantisWxsKmerCountsFinal = "~{mantisWxsKmerCountsPath}"
         File mantisWxsKmerCountsFiltered = "~{pairName}.mantis.v1.0.4.WGS-targeted.kmer_counts_filtered.txt"
         File mantisWxsStatus = "~{pairName}.mantis.v1.0.4.WGS-targeted.txt.status"
         File mantisExomeTxt = "~{mantisExomeTxtPath}"
@@ -78,24 +68,27 @@ task MantisExome {
     runtime {
         cpu : threads
         memory : memoryGb + "GB"
-        docker : dockerImage
+        docker : "gcr.io/nygc-public/mantis:1.0.4"
     }
 }
 
 task MantisRethreshold {
     input {
-        Int threads
-        Int memoryGb
-        String dockerImage
         String pairName
         String mantisStatusFinalPath = "~{pairName}.mantis.v1.0.4.WGS-targeted.status.final.tsv"
         String normal
         File mantisWxsStatus
+        File resetMantis = "gs://nygc-comp-s-fd4e-input/reset_mantis.py"
     }
 
     command {
+    
+        set -e -o pipefail
+    
+        chmod 755 ~{resetMantis}
+        
         python \
-        reset_mantis.py \
+        ~{resetMantis} \
         ~{mantisWxsStatus} \
         ~{mantisStatusFinalPath} \
         ~{normal}
@@ -106,90 +99,122 @@ task MantisRethreshold {
     }
 
     runtime {
-        cpu : threads
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:0.9.2"
+    }
+}
+
+task GetChr6Contigs {
+    input  {
+        Bam finalBam
+        Int diskSize
+        Int memoryGb = 2
+    }
+    
+    command {
+        chr6Contigs=$( /lookup_contigs.py ~{finalBam.bam} )
+    }
+    
+    output {
+        String chr6Contigs = read_string(stdout())
+    }
+    
+    runtime {
         memory : memoryGb + "GB"
-        docker : dockerImage
+        disks: "local-disk " + diskSize + " HDD"
+        docker : "gcr.io/nygc-internal-tools/hla_prep:1.0.1"
     }
 }
 
 task GemSelect {
     input {
-        Int threads
-        Int memoryGb
-        String dockerImage
-        String chr6Contigs
+        Int threads = 48
+        Int samtoolsThreads = 16
+        Int gemThreads = 16
+        Int memoryGb = 12
+        Int diskSize
         String sampleId
+        String chr6Contigs
         Bam finalBam
-        File hlaGem
+        File kouramiFastaGem3Index
         String r1FilePath = "~{sampleId}.first_pair"
         String r2FilePath = "~{sampleId}.second_pair"
         Float maxMismatches = 0.04
         String alignmentHistoPath = "~{sampleId}.alignment.pdf"
         String r1MappedFastqPath = "~{sampleId}.R1_mapped.fastq"
         String r2MappedFastqPath = "~{sampleId}.R2_mapped.fastq"
+        
+        File describeAlignments = "gs://nygc-comp-s-fd4e-input/describe_alignments.py"
+        File gemToFastq = "gs://nygc-comp-s-fd4e-input/gem_to_fastq.py"
     }
 
     command {
         set -e -o pipefail
+        
+        chmod 755 ~{describeAlignments}
+        
+        chmod 755 ~{gemToFastq}
+        
         samtools view \
-        --threads ~{threads} \
+        --threads ~{samtoolsThreads} \
         -h \
         -f 1 \
         ~{finalBam.bam} \
         ~{chr6Contigs} \
-        | note_pair.py \
+        | /note_pair.py \
         ~{r1FilePath} \
         ~{r2FilePath} \
         | samtools fastq \
-        --threads ~{threads} \
+        --threads ~{samtoolsThreads} \
         - \
         | gem-mapper \
-        -T ~{threads} \
+        -T ~{gemThreads} \
         --verbose \
-        -I ~{hlaGem} \
+        -I ~{kouramiFastaGem3Index} \
         -m ~{maxMismatches} \
         -e ~{maxMismatches} \
         --mismatch-alphabet ATCGN \
         --fast-mapping \
         -q ignore \
-        | describe_alignments.py \
+        | ~{describeAlignments} \
         ~{alignmentHistoPath} \
-        | gem_to_fastq.py \
+        | ~{gemToFastq} \
         ~{r1MappedFastqPath} \
         ~{r2MappedFastqPath}
     }
 
     output {
         File r2File = "~{r1FilePath}"
-        Fastqs r2MappedFastq = "~{r2MappedFastqPath}"
+        File r2MappedFastq = "~{r2MappedFastqPath}"
         File r1File = "~{r2FilePath}"
-        Fastqs r1MappedFastq = "~{r1MappedFastqPath}"
+        File r1MappedFastq = "~{r1MappedFastqPath}"
         File alignmentHisto = "~{sampleId}.alignment.pdf"
     }
 
     runtime {
         cpu : threads
         memory : memoryGb + "GB"
-        docker : dockerImage
+        disks: "local-disk " + diskSize + " HDD"
+        docker : "gcr.io/nygc-internal-tools/hla_prep:1.0.1"
     }
 }
 
 task LookUpMates {
     input {
-        Int threads
-        Int memoryGb
-        String dockerImage
+        Int memoryGb = 12
+        Int diskSize = 10
         String sampleId
         String r1UnmappedFilePath = "~{sampleId}.first_pair_unmapped"
         String r2UnmappedFilePath = "~{sampleId}.second_pair_unmapped"
         File r2File
-        Fastqs r2MappedFastq
+        File r2MappedFastq
         File r1File
-        Fastqs r1MappedFastq
+        File r1MappedFastq
     }
 
     command {
-        look_up_mates.py \
+        set -e -o pipefail
+    
+        /look_up_mates.py \
         ~{r1File} \
         ~{r2File} \
         ~{r1MappedFastq} \
@@ -204,18 +229,19 @@ task LookUpMates {
     }
 
     runtime {
-        cpu : threads
         memory : memoryGb + "GB"
-        docker : dockerImage
+        disks: "local-disk " + diskSize + " HDD"
+        docker : "gcr.io/nygc-internal-tools/hla_prep:1.0.1"
     }
 }
 
 
 task GetMates {
     input {
-        Int threads
-        Int memoryGb
-        String dockerImage
+        Int threads = 32
+        Int samtoolsThreads = 16
+        Int memoryGb = 12
+        Int diskSize
         String sampleId
         String r1UnmappedFastqPath = "~{sampleId}.R1_unmapped.fastq"
         String r2UnmappedFastqPath = "~{sampleId}.R2_unmapped.fastq"
@@ -226,46 +252,49 @@ task GetMates {
 
     command {
         set -e -o pipefail
+        
         samtools view \
-        --threads ~{threads} \
+        --threads ~{samtoolsThreads} \
         -h \
         -f 1 \
         ~{finalBam.bam} \
-        | get_mates.py \
+        | /get_mates.py \
         ~{r1UnmappedFile} \
         ~{r2UnmappedFile} \
         | samtools fastq \
-        --threads ~{threads} \
+        --threads ~{samtoolsThreads} \
         -1 ~{r1UnmappedFastqPath} \
         -2 ~{r2UnmappedFastqPath} \
         -
     }
 
     output {
-        Fastqs r1UnmappedFastq = "~{r1UnmappedFastqPath}"
-        Fastqs r2UnmappedFastq = "~{r2UnmappedFastqPath}"
+        File r1UnmappedFastq = "~{r1UnmappedFastqPath}"
+        File r2UnmappedFastq = "~{r2UnmappedFastqPath}"
     }
 
     runtime {
         cpu : threads
+        disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : dockerImage
+        docker : "gcr.io/nygc-internal-tools/hla_prep:1.0.1"
     }
 }
 
 task SortFastqs {
     input {
-        Int threads
-        Int memoryGb
-        String dockerImage
+        Int memoryGb = 12
+        Int diskSize = 10
         String sampleId
         String fastqPairId
         String sortedFastqPath = "~{sampleId}.~{fastqPairId}_sorted.fastq"
-        Fastqs chr6MappedFastq
-        Fastqs chr6MappedMatesFastq
+        File chr6MappedFastq
+        File chr6MappedMatesFastq
     }
 
     command {
+        set -e -o pipefail
+        
         cat \
         ~{chr6MappedFastq} \
         ~{chr6MappedMatesFastq} \
@@ -281,64 +310,64 @@ task SortFastqs {
     }
 
     output {
-        Fastqs sortedFastq = "~{sortedFastqPath}"
+        File sortedFastq = "~{sortedFastqPath}"
     }
 
     runtime {
-        cpu : threads
         memory : memoryGb + "GB"
-        docker : dockerImage
+        disks: "local-disk " + diskSize + " HDD"
+        docker : "gcr.io/nygc-internal-tools/hla_prep:1.0.1"
     }
 }
 
 task AlignToPanel {
     input {
-        Int threads
-        Int memoryGb
-        String dockerImage
-        String memoryPerThread
+        Int threads = 96
+        Int bwaThreads = 80
+        Int samtoolsThreads = 16
+        Int memoryGb = 24
+        Int diskSize = 10
         String sampleId
         String kouramiBamPath = "~{sampleId}.kourami.bam"
-        Fastqs r2SortedFastq
-        File mergedHlaPanel
-        Fastqs r1SortedFastq
+        File r2SortedFastq
+        # mergedHlaPanel
+        BwaReference kouramiReference
+        File r1SortedFastq
     }
 
     command {
+        set -e -o pipefail
+        
         bwa mem \
-        -t ~{threads} \
-        ~{mergedHlaPanel} \
+        -t ~{bwaThreads} \
+        ~{kouramiReference.fasta} \
         ~{r1SortedFastq} \
         ~{r2SortedFastq} \
         | samtools sort \
-        --threads ~{threads} \
-        -m ~{memoryPerThread} \
+        --threads ~{samtoolsThreads} \
         -O BAM \
         - \
         > ~{kouramiBamPath}
     }
 
     output {
-        Bam kouramiBam = object {
-            bam : kouramiBamPath,
-            bamIndex : sub(basename(kouramiBamPath), ".bam$", ".bai")
-        }
+        File kouramiBam = "~{kouramiBamPath}"
     }
 
     runtime {
         cpu : threads
+        disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : dockerImage
+        docker : "gcr.io/nygc-public/bwa-kit:0.7.15"
     }
 }
 
 task Kourami {
     input {
-        Int threads
-        Int memoryGb
-        String dockerImage
+        Int threads = 16
+        Int memoryGb = 8
         String sampleId
-        Bam kouramiBam
+        File kouramiBam
     }
 
     command {
@@ -346,7 +375,7 @@ task Kourami {
         -jar kourami.jar \
         -d "./" \
         -o ~{sampleId} \
-        ~{kouramiBam.bam}
+        ~{kouramiBam}
     }
 
     output {
@@ -356,7 +385,7 @@ task Kourami {
     runtime {
         cpu : threads
         memory : memoryGb + "GB"
-        docker : dockerImage
+        docker : "gcr.io/nygc-public/kourami:v0.9.6"
     }
 }
 
