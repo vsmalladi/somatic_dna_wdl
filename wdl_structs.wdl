@@ -13,7 +13,7 @@ struct BwaReference {
     File pac
     File bwt
     File ann
-    File alt
+    File? alt
     File amb
 }
 
