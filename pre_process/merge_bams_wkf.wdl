@@ -41,9 +41,15 @@ workflow MergeBams {
     }
 
 
-    call mergeBams.Bqsr38 {
+    call mergeBams.Downsample {
         input:
             mergedDedupBam = novosort.mergedDedupBam,
+            sampleId = sampleId,
+            diskSize = diskSize
+    }
+    call mergeBams.Bqsr38 {
+        input:
+            mergedDedupBam = Downsample.downsampleMergedDedupBam,
             MillsAnd1000G = MillsAnd1000G,
             referenceFa = referenceFa,
             Indels = Indels,

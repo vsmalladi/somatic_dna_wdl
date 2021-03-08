@@ -92,4 +92,3 @@ struct IndexedTable {
     File table
     File index
 }
-

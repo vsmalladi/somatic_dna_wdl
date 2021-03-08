@@ -125,9 +125,7 @@ task PrintReads {
     }
 
     command {
-        gatk \
-        ApplyBQSR \
-        --java-options "-Xmx24576m -XX:ParallelGCThreads=1" \
+        gatk ApplyBQSR \
         -R ~{referenceFa.fasta} \
         -I ~{mergedDedupBam.bam} \
         -O ~{finalBamPath} \
@@ -143,8 +141,42 @@ task PrintReads {
 
     runtime {
         cpu : cpu
-        memory : mem
+        memory : mem + "GB"
         docker : "us.gcr.io/broad-gatk/gatk:4.1.1.0"
         disks: "local-disk " + diskSize + " HDD"
      }
+}
+
+
+task Downsample{
+    input {
+        String sampleId
+        String downsampleMergedDedupBamPath = "~{sampleId}.merged_dedup_10_percent.bam"
+        Bam mergedDedupBam
+        Int mem = 64  #GB
+        Int diskSize
+    }
+    command {
+        gatk DownsampleSam \
+        --STRATEGY Chained \
+        --RANDOM_SEED 1 \
+        --CREATE_INDEX \
+        --MAX_RECORDS_IN_RAM 2000000 \
+        --VALIDATION_STRINGENCY SILENT \
+        -P 0.1 \
+        -I ~{mergedDedupBam.bam} \
+        -O ~{downsampleMergedDedupBamPath} \
+    }
+    output {
+        Bam downsampleMergedDedupBam = object {
+            bam : downsampleMergedDedupBamPath,
+            bamIndex : sub(downsampleMergedDedupBamPath, ".bam$", ".bai")
+        }
+    }
+    runtime {
+        cpu: 2
+        memory: mem + "GB"
+        docker: "us.gcr.io/broad-gatk/gatk:4.1.1.0"
+        disks: "local-disk " + diskSize + " HDD"
+    }
 }
