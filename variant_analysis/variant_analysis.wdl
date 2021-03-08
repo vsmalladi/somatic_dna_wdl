@@ -40,8 +40,9 @@ task DeconstructsigPrep38 {
 
 task Deconstructsig {
     input {
-        Int memoryGb = 8
-        Int diskSize = 1
+        # run as 8 on cluster
+        Int memoryGb = 64
+        Int diskSize = 10
         String pairId
         String suffix = "~{pairId}.deconstructSigs.v1.8.0.signatures.highconfidence"
         String deconstructsigsBs

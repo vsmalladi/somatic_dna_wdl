@@ -35,6 +35,9 @@ task MantisExome {
         String mantisWxsKmerCountsPath = "~{pairName}.mantis.v1.0.4.WGS-targeted.kmer_counts.txt"
         Bam tumorFinalBam
         Bam normalFinalBam
+        
+        String altTumorIndexPath = sub(basename(tumorFinalBam.bamIndex), ".bai$", ".bam.bai")
+        String altNormalIndexPath = sub(basename(normalFinalBam.bamIndex), ".bai$", ".bam.bai")
         File mantisBedByIntervalList
         IndexedReference referenceFa
         Int threads = 16
@@ -43,9 +46,19 @@ task MantisExome {
         
     }
 
-    command {    
+    command {
+        set -e -o pipefail
+        
+        ln -s \
+        ~{normalFinalBam.bamIndex} \
+        ~{altNormalIndexPath}
+        
+        ln -s \
+        ~{tumorFinalBam.bamIndex} \
+        ~{altTumorIndexPath}
+        
         python \
-        MANTIS-1.0.4/mantis.py \
+        /MANTIS-1.0.4/mantis.py \
         --bedfile ~{mantisBedByIntervalList} \
         --genome ~{referenceFa.fasta} \
         -mrq 20.0 \
@@ -119,9 +132,9 @@ task GetChr6Contigs {
         conda config --add channels r
         conda config --add channels bioconda    
         
-        conda install pysam
+        conda install pysam &> "pysam_install.log"
         
-        chr6Contigs=$( /lookup_contigs.py ~{finalBam.bam} )
+        /lookup_contigs.py ~{finalBam.bam}
     }
     
     output {
@@ -204,7 +217,7 @@ task GemSelect {
         cpu : threads
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker : "gcr.io/nygc-internal-tools/hla_prep:1.0.1"
+        docker : "gcr.io/nygc-internal-tools/hla_prep:1.1.0"
     }
 }
 
@@ -241,7 +254,7 @@ task LookUpMates {
     runtime {
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker : "gcr.io/nygc-internal-tools/hla_prep:1.0.1"
+        docker : "gcr.io/nygc-internal-tools/hla_prep:1.1.0"
     }
 }
 
@@ -287,7 +300,7 @@ task GetMates {
         cpu : threads
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/hla_prep:1.0.1"
+        docker : "gcr.io/nygc-internal-tools/hla_prep:1.1.0"
     }
 }
 
@@ -326,7 +339,7 @@ task SortFastqs {
     runtime {
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker : "gcr.io/nygc-internal-tools/hla_prep:1.0.1"
+        docker : "gcr.io/nygc-internal-tools/hla_prep:1.1.0"
     }
 }
 

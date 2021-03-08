@@ -40,6 +40,23 @@ struct sampleInfo {
     Array[Fastqs] listOfFastqPairs
 }
 
+struct PairRawVcfInfo {
+    String pairId
+    File? mainVcf
+    File? supplementalVcf
+    File filteredMantaSV
+    File strelka2Snv
+    File strelka2Indel
+    File mutect2
+    File lancet
+    File svabaSv
+    File svabaIndel
+    String tumor
+    String normal
+    Bam tumorFinalBam
+    Bam normalFinalBam
+}
+
 struct PairVcfInfo {
     String pairId
     File mainVcf
