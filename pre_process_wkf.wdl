@@ -1,57 +1,82 @@
 version 1.0
 
-import "pre_process/pre_process.wdl" as preProcess
+import "pre_process/align_fastq_wkf.wdl" as alignFastq
+import "pre_process/merge_bams_wkf.wdl" as mergeBams
 import "wdl_structs.wdl"
+import "qc/qc_wkf.wdl" as qc
 
 workflow Preprocess {
-    # command 
+    # command
     #   align FASTQ files
-    #   and 
+    #   and
     #   merge lane level BAMs
     input {
-        Array[sampleInfo]+ sampleInfos
+        Array[Fastqs] listOfFastqPairs
         BwaReference bwaReference
         #    command merge flowcell
+        String sampleId
         IndexedVcf MillsAnd1000G
         IndexedVcf Indels
         IndexedVcf dbsnp
         IndexedTable callRegions
         IndexedReference referenceFa
+        File hsMetricsIntervals
+        File randomIntervals
+        File chromLengths
+        File gnomadBiallelic
+
         # resources
         #    prep flowcell
-        Int mem
-        Int threads
-        String bwaDockerImage
-        String shortAlignDockerImage
-        String gatkDockerImage
-        #    merge flowcell
-        String novosortDockerImage
-        String samtoolsDockerImage
+        Int bwaMem = 24
+        Int novosortMem = 80
+        Int threads = 8
+    }
 
+    call alignFastq.AlignFastq {
+        input:
+            listOfFastqPairs = listOfFastqPairs,
+            bwaReference = bwaReference,
+            bwaMem = bwaMem,
+            threads = threads
     }
-    scatter(sampleInfo in sampleInfos) {
-        call preProcess.Preprocess {
-            input:
-                sampleId = sampleInfo.sampleId,
-                listOfFastqPairs = sampleInfo.listOfFastqPairs,
-                bwaReference = bwaReference,
-                mem = mem,
-                threads = threads,
-                bwaDockerImage = bwaDockerImage,
-                shortAlignDockerImage = shortAlignDockerImage,
-                gatkDockerImage = gatkDockerImage,
-                novosortDockerImage = novosortDockerImage,
-                samtoolsDockerImage = samtoolsDockerImage,
-                MillsAnd1000G = MillsAnd1000G,
-                Indels = Indels,
-                dbsnp = dbsnp,
-                callRegions = callRegions,
-                referenceFa = referenceFa
-        }
+
+    call mergeBams.MergeBams {
+        input:
+            laneFixmateBams = AlignFastq.laneFixmateBam,
+            sample_bam_sizes = AlignFastq.laneFixmateBamSizes,
+            sampleId = sampleId,
+            MillsAnd1000G = MillsAnd1000G,
+            Indels = Indels,
+            dbsnp = dbsnp,
+            callRegions = callRegions,
+            referenceFa = referenceFa,
+            randomIntervals = randomIntervals,
+            qcDir = "Sample_~{sampleId}/qc",
+            mem = novosortMem,
+            threads = threads
     }
-    
+
+    call qc.QcMetrics {
+        input:
+            finalBam = MergeBams.finalBam,
+            referenceFa = referenceFa,
+            sampleId = sampleId,
+            hsMetricsIntervals = hsMetricsIntervals,
+            randomIntervals = randomIntervals,
+            chromLengths = chromLengths,
+            gnomadBiallelic = gnomadBiallelic,
+            outputDir = "Sample_~{sampleId}/qc"
+    }
+
     output {
-        Array[Bam] mergedDedupBam = Preprocess.mergedDedupBam
-        Array[Bam] finalBam = Preprocess.finalBam
+        Bam finalBam = MergeBams.finalBam
+        Array[File] QcFiles = QcMetrics.QcFiles
+        # Dedup metrics.
+        File collectWgsMetricsPreBqsr = MergeBams.collectWgsMetricsPreBqsr
+        File qualityDistributionPdPreBqsr = MergeBams.qualityDistributionPdPreBqsr
+        File qualityByCycleMetricsPreBqsr = MergeBams.qualityByCycleMetricsPreBqsr
+        File qualityByCyclePdfPreBqsr = MergeBams.qualityByCyclePdfPreBqsr
+        File qualityDistributionMetricsPreBqsr = MergeBams.qualityDistributionMetricsPreBqsr
     }
+
 }
