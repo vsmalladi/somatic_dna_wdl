@@ -110,17 +110,20 @@ python wdl_port/tools/meta.py \
 --options options.json
 ```
 
+#### Output:
+
+  1. `calling_wkfInput.json` - inputs for cromwell
+  2. `lab-number_projectInfo.json` - contains project info like the current list of samples/pairs and the library type as well as the pipeline version (tag and commit). Subsequent runs can use `--project-data  lab-number_projectInfo.json` and skip defining pair, library, interval list, genome, etc. 
+
 # zip dependencies
+
+This must be done because cromwell says so :). You must use zip.
 
 ```
 cd wdl_port
 zip dependencies.zip wdl_structs.wdl */*.wdl
 cd -
 ```
-#### Output:
-
-  1. `calling_wkfInput.json` - inputs for cromwell
-  2. `lab-number_projectInfo.json` - contains project info like the current list of samples/pairs and the library type as well as the pipeline version (tag and commit). Subsequent runs can use `--project-data  lab-number_projectInfo.json` and skip defining pair, library, interval list, genome, etc. 
 
 ### Run
 <a name="run"/>
