@@ -378,7 +378,7 @@ task Binest {
     runtime {
         cpu : threads
         memory : memoryGb + "GB"
-        disks: "local-disk " + diskSize + " SSD"
+        disks: "local-disk " + diskSize + " HDD"
         docker : "gcr.io/nygc-compbio/binest:0.8.4"
     }
 }
