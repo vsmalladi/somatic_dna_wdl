@@ -30,9 +30,7 @@ struct Fastqs {
     String? md5sumR2
     String sampleId
     String readgroupId
-    String flowcell
-    String lane
-    String barcode
+    String rgpu
 }
 
 struct sampleInfo {

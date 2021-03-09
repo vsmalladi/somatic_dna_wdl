@@ -1,6 +1,7 @@
 version 1.0
 
 import "./merge_bams.wdl" as mergeBams
+import "../qc/qc.wdl" as qc
 import "../wdl_structs.wdl"
 
 workflow MergeBams {
@@ -16,6 +17,8 @@ workflow MergeBams {
         IndexedVcf dbsnp
         IndexedTable callRegions
         IndexedReference referenceFa
+        File randomIntervals
+        String qcDir = '.'       # To pass to the two QC tasks.
         # resources
         Int mem
         Int threads
@@ -40,6 +43,28 @@ workflow MergeBams {
             diskSize = ceil((SumFloats.total_size * 5)) + 100
     }
 
+    # This task runs in parallel with Bqsr38. We are missing coverage check
+    # tasks. The idea is that we check coverage and if it's lower than expected
+    # coverage, the check task fails thereby stopping the workflow.
+    call qc.CollectWgsMetrics {
+        input:
+            inputBam = novosort.mergedDedupBam,
+            sampleId = sampleId,
+            outputDir = qcDir,
+            CollectWgsMetricsPath = "~{qcDir}/~{sampleId}.CollectWgsMetrics.dedup.txt",
+            referenceFa = referenceFa,
+            randomIntervals = randomIntervals,
+            diskSize = diskSize
+    }
+
+    call qc.MultipleMetricsPreBqsr {
+        input:
+            referenceFa = referenceFa,
+            mergedDedupBam = novosort.mergedDedupBam,
+            outputDir = qcDir,
+            sampleId = sampleId,
+            diskSize = diskSize
+    }
 
     call mergeBams.Downsample {
         input:
@@ -69,9 +94,14 @@ workflow MergeBams {
     }
 
     output {
-        Bam mergedDedupBam = novosort.mergedDedupBam
+        #Bam mergedDedupBam = novosort.mergedDedupBam
         Bam finalBam = PrintReads.finalBam
-    }
+        File collectWgsMetricsPreBqsr = CollectWgsMetrics.CollectWgsMetrics
+        File qualityDistributionPdPreBqsr = MultipleMetricsPreBqsr.qualityDistributionPdfPreBqsr
+        File qualityByCycleMetricsPreBqsr = MultipleMetricsPreBqsr.qualityByCycleMetricsPreBqsr
+        File qualityByCyclePdfPreBqsr = MultipleMetricsPreBqsr.qualityByCyclePdfPreBqsr
+        File qualityDistributionMetricsPreBqsr = MultipleMetricsPreBqsr.qualityDistributionMetricsPreBqsr
+  }
 }
 
 # This task should live in some shared utils.

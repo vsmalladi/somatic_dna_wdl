@@ -3,6 +3,7 @@ version 1.0
 import "align_fastq_wkf.wdl" as alignFastq
 import "merge_bams_wkf.wdl" as mergeBams
 import "../wdl_structs.wdl"
+import "../qc/qc_wkf.wdl" as qc
 
 workflow Preprocess {
     # command
@@ -19,6 +20,11 @@ workflow Preprocess {
         IndexedVcf dbsnp
         IndexedTable callRegions
         IndexedReference referenceFa
+        File hsMetricsIntervals
+        File randomIntervals
+        File chromLengths
+        File gnomadBiallelic
+
         # resources
         #    prep flowcell
         Int bwaMem = 24
@@ -44,13 +50,33 @@ workflow Preprocess {
             dbsnp = dbsnp,
             callRegions = callRegions,
             referenceFa = referenceFa,
+            randomIntervals = randomIntervals,
+            qcDir = "Sample_~{sampleId}/qc",
             mem = novosortMem,
-            threads = threads,
-            sample_bam_sizes = size(AlignFastq.laneFixmateBam)
+            threads = threads
+    }
+
+    call qc.QcMetrics {
+        input:
+            finalBam = MergeBams.finalBam,
+            referenceFa = referenceFa,
+            sampleId = sampleId,
+            hsMetricsIntervals = hsMetricsIntervals,
+            randomIntervals = randomIntervals,
+            chromLengths = chromLengths,
+            gnomadBiallelic = gnomadBiallelic,
+            outputDir = "Sample_~{sampleId}/qc"
     }
 
     output {
-        Bam mergedDedupBam = MergeBams.mergedDedupBam
         Bam finalBam = MergeBams.finalBam
+        Array[File] QcFiles = QcMetrics.QcFiles
+        # Dedup metrics.
+        File collectWgsMetricsPreBqsr = MergeBams.collectWgsMetricsPreBqsr
+        File qualityDistributionPdPreBqsr = MergeBams.qualityDistributionPdPreBqsr
+        File qualityByCycleMetricsPreBqsr = MergeBams.qualityByCycleMetricsPreBqsr
+        File qualityByCyclePdfPreBqsr = MergeBams.qualityByCyclePdfPreBqsr
+        File qualityDistributionMetricsPreBqsr = MergeBams.qualityDistributionMetricsPreBqsr
     }
+
 }

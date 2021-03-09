@@ -88,7 +88,7 @@ task Bqsr38 {
     command {
         gatk \
         BaseRecalibrator \
-        --java-options "-XX:ParallelGCThreads=1" \
+        --java-options "-Xmx24G -XX:ParallelGCThreads=4" \
         -L ~{callRegions.table} \
         -R ~{referenceFa.fasta} \
         -I ~{mergedDedupBam.bam} \
@@ -106,6 +106,40 @@ task Bqsr38 {
         cpu : cpu
         memory : mem + " GB"
         docker : "us.gcr.io/broad-gatk/gatk:4.1.1.0"
+        disks: "local-disk " + diskSize + " HDD"
+    }
+}
+
+task Downsample{
+    input {
+        String sampleId
+        String downsampleMergedDedupBamPath = "~{sampleId}.merged_dedup_10_percent.bam"
+        Bam mergedDedupBam
+        Int mem = 64  #GB
+        Int diskSize
+    }
+    command {
+        gatk DownsampleSam \
+        --java-options "-Xmx48G -XX:ParallelGCThreads=4" \
+        --STRATEGY Chained \
+        --RANDOM_SEED 1 \
+        --CREATE_INDEX \
+        --MAX_RECORDS_IN_RAM 2000000 \
+        --VALIDATION_STRINGENCY SILENT \
+        -P 0.1 \
+        -I ~{mergedDedupBam.bam} \
+        -O ~{downsampleMergedDedupBamPath} \
+    }
+    output {
+        Bam downsampleMergedDedupBam = object {
+            bam : downsampleMergedDedupBamPath,
+            bamIndex : sub(downsampleMergedDedupBamPath, ".bam$", ".bai")
+        }
+    }
+    runtime {
+        cpu: 2
+        memory: mem + "GB"
+        docker: "us.gcr.io/broad-gatk/gatk:4.1.1.0"
         disks: "local-disk " + diskSize + " HDD"
     }
 }
@@ -145,38 +179,4 @@ task PrintReads {
         docker : "us.gcr.io/broad-gatk/gatk:4.1.1.0"
         disks: "local-disk " + diskSize + " HDD"
      }
-}
-
-
-task Downsample{
-    input {
-        String sampleId
-        String downsampleMergedDedupBamPath = "~{sampleId}.merged_dedup_10_percent.bam"
-        Bam mergedDedupBam
-        Int mem = 64  #GB
-        Int diskSize
-    }
-    command {
-        gatk DownsampleSam \
-        --STRATEGY Chained \
-        --RANDOM_SEED 1 \
-        --CREATE_INDEX \
-        --MAX_RECORDS_IN_RAM 2000000 \
-        --VALIDATION_STRINGENCY SILENT \
-        -P 0.1 \
-        -I ~{mergedDedupBam.bam} \
-        -O ~{downsampleMergedDedupBamPath} \
-    }
-    output {
-        Bam downsampleMergedDedupBam = object {
-            bam : downsampleMergedDedupBamPath,
-            bamIndex : sub(downsampleMergedDedupBamPath, ".bam$", ".bai")
-        }
-    }
-    runtime {
-        cpu: 2
-        memory: mem + "GB"
-        docker: "us.gcr.io/broad-gatk/gatk:4.1.1.0"
-        disks: "local-disk " + diskSize + " HDD"
-    }
 }

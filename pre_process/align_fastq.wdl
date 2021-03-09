@@ -12,6 +12,13 @@ task AlignBwaMem {
         Int mem
         Int threads
         Int diskSize
+
+        # Values used in RG tags. These are overridden for external fastqs or if we start using
+        # other sequencing platforms.
+        String platform = "illumina"
+        String machineType = "NovaSeq"
+        String center = "NYGenome"
+
     }
 
     command {
@@ -20,7 +27,7 @@ task AlignBwaMem {
         -Y \
         -K 100000000 \
         -t ~{threads} \
-        -R '@RG\tID:~{fastqs.readgroupId}\tPL:illumina\tPM:NovaSeq\tLB:~{fastqs.sampleId}\tDS:hg38\tSM:~{fastqs.sampleId}\tCN:NYGenome\tPU:${fastqs.flowcell}.${fastqs.lane}.${fastqs.barcode}' \
+        -R '@RG\tID:~{fastqs.readgroupId}\tPL:~{platform}\tPM:~{machineType}\tLB:~{fastqs.sampleId}\tDS:hg38\tSM:~{fastqs.sampleId}\tCN:~{center}\tPU:${fastqs.rgpu}' \
         ~{bwaReference.fasta} \
         ~{fastqs.fastqR1} \
         ~{fastqs.fastqR2} \
@@ -92,7 +99,7 @@ task Fixmate {
     command {
         gatk \
         FixMateInformation \
-        --java-options -XX:ParallelGCThreads=1 \
+        --java-options "-Xmx4G -XX:ParallelGCThreads=1" \
         --MAX_RECORDS_IN_RAM 2000000 \
         --VALIDATION_STRINGENCY SILENT \
         --ADD_MATE_CIGAR true \

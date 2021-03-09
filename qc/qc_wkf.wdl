@@ -14,6 +14,8 @@ workflow QcMetrics {
         File hsMetricsIntervals
         File randomIntervals
         File chromLengths
+        File gnomadBiallelic
+        String outputDir = "."
     }
 
     Int additionalDiskSize = 50
@@ -24,6 +26,7 @@ workflow QcMetrics {
             referenceFa = referenceFa,
             finalBam = finalBam,
             sampleId = sampleId,
+            outputDir = outputDir,
             diskSize = diskSize
     }
 
@@ -32,6 +35,7 @@ workflow QcMetrics {
             referenceFa = referenceFa,
             mergedDedupBam = mergedDedupBam,
             sampleId = sampleId,
+            outputDir = outputDir,
             diskSize = diskSize
     }
 
@@ -40,6 +44,7 @@ workflow QcMetrics {
             referenceFa = referenceFa,
             finalBam = finalBam,
             sampleId = sampleId,
+            outputDir = outputDir,
             diskSize = diskSize,
     }
 
@@ -48,6 +53,7 @@ workflow QcMetrics {
             referenceFa = referenceFa,
             finalBam = finalBam,
             sampleId = sampleId,
+            outputDir = outputDir,
             diskSize = diskSize
 
     }
@@ -58,19 +64,22 @@ workflow QcMetrics {
             hsMetricsIntervals = hsMetricsIntervals,
             finalBam = finalBam,
             sampleId = sampleId,
+            outputDir = outputDir,
             diskSize = diskSize
     }
 
     call qc.FormatHsMetrics {
         input:
             HsMetricsPerTargetCoverage = HsMetrics.HsMetricsPerTargetCoverage,
-            sampleId = sampleId
+            sampleId = sampleId,
+            outputDir = outputDir
     }
 
     call qc.Autocorrelations {
         input:
             HsMetricsPerTargetCoverageAutocorr = FormatHsMetrics.HsMetricsPerTargetCoverageAutocorr,
             sampleId = sampleId,
+            outputDir = outputDir
     }
 
     call qc.CollectOxoGMetricsWgs {
@@ -78,15 +87,17 @@ workflow QcMetrics {
             referenceFa = referenceFa,
             finalBam = finalBam,
             sampleId = sampleId,
+            outputDir = outputDir,
             diskSize = diskSize
     }
 
-    call qc.CollectWgsMetricsWgsDecoy {
+    call qc.CollectWgsMetrics {
         input:
             referenceFa = referenceFa,
             randomIntervals = randomIntervals,
-            finalBam = finalBam,
+            inputBam = finalBam,
             sampleId = sampleId,
+            outputDir = outputDir,
             diskSize = diskSize
     }
 
@@ -94,6 +105,7 @@ workflow QcMetrics {
         input:
             finalBam = finalBam,
             sampleId = sampleId,
+            outputDir = outputDir,
             diskSize = diskSize
     }
 
@@ -102,6 +114,23 @@ workflow QcMetrics {
             chromLengths = chromLengths,
             sampleId = sampleId,
             binestCov = BinestCov.binestCov
+    }
+
+    call qc.Pileup {
+        input:
+            finalBam = finalBam,
+            sampleId = sampleId,
+            outputDir = outputDir,
+            gnomadBiallelic = gnomadBiallelic,
+            diskSize = diskSize
+    }
+
+    call qc.CalculateContamination {
+        input:
+            sampleId = sampleId,
+            pileupsTable = Pileup.pileupsTable,
+            outputDir = outputDir,
+            diskSize = diskSize
     }
 
     output {
@@ -128,27 +157,12 @@ workflow QcMetrics {
             FormatHsMetrics.HsMetricsPerTargetCoverageAutocorr,
             Autocorrelations.autocorroutput1100,
             CollectOxoGMetricsWgs.CollectOxoGMetrics,
-            CollectWgsMetricsWgsDecoy.CollectWgsMetrics,
+            CollectWgsMetrics.CollectWgsMetrics,
             BinestCov.binestCov,
-            PlotBinCov.normCoverageByChrPng
+            PlotBinCov.normCoverageByChrPng,
+            Pileup.pileupsTable,
+            CalculateContamination.contaminationTable
             ]
     }
-
-        # File alignmentSummaryMetrics = MultipleMetrics.alignmentSummaryMetrics
-        # File qualityByCyclePdf = MultipleMetrics.qualityByCyclePdf
-        # File baseDistributionByCycleMetrics = MultipleMetrics.baseDistributionByCycleMetrics
-        # File qualityByCycleMetrics = MultipleMetrics.qualityByCycleMetrics
-        # File baseDistributionByCyclePdf = MultipleMetrics.baseDistributionByCyclePdf
-        # File qualityDistributionPdf = MultipleMetrics.qualityDistributionPdf
-        # File qualityDistributionMetrics = MultipleMetrics.qualityDistributionMetrics
-        # File insertSizeHistogramPdf = MultipleMetrics.insertSizeHistogramPdf
-        # File insertSizeMetrics = MultipleMetrics.insertSizeMetrics
-
-        # File qualityDistributionPdfPreBqsr = MultipleMetricsPreBqsr.qualityDistributionPdfPreBqsr
-        # File qualityByCycleMetricsPreBqsr = MultipleMetricsPreBqsr.qualityByCycleMetricsPreBqsr
-        # File qualityByCyclePdfPreBqsr = MultipleMetricsPreBqsr.qualityByCyclePdfPreBqsr
-        # File qualityDistributionMetricsPreBqsr = MultipleMetricsPreBqsr.qualityDistributionMetricsPreBqsr
-
-
 
 }

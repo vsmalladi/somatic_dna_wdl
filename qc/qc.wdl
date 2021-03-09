@@ -10,12 +10,15 @@ task MultipleMetrics {
         IndexedReference referenceFa
         Bam finalBam
         String sampleId
-        String MultipleMetricsBase = "~{sampleId}.MultipleMetrics"
+        String outputDir = "."
+        String MultipleMetricsBase = "~{outputDir}/~{sampleId}.MultipleMetrics"
     }
 
     command {
-        gatk \
-        CollectMultipleMetrics \
+        mkdir -p $(dirname ~{MultipleMetricsBase})
+
+        gatk CollectMultipleMetrics \
+        --java-options "-Xmx32G -XX:ParallelGCThreads=1" \
         --PROGRAM CollectAlignmentSummaryMetrics \
         --PROGRAM CollectInsertSizeMetrics \
         --PROGRAM QualityScoreDistribution \
@@ -52,16 +55,18 @@ task MultipleMetricsPreBqsr {
         Int threads = 2
         Int memoryGb = 40
         Int diskSize
-        String MultipleMetricsBasePreBqsrBasename = "~{sampleId}.MultipleMetrics.dedup"
+        String outputDir = "."
+        String MultipleMetricsBasePreBqsrBasename = "~{outputDir}/~{sampleId}.MultipleMetrics.dedup"
         IndexedReference referenceFa
         Bam mergedDedupBam
         String sampleId
     }
 
     command {
-        gatk \
-        CollectMultipleMetrics \
-        --java-options "-XX:ParallelGCThreads=1" \
+        mkdir -p $(dirname ~{MultipleMetricsBasePreBqsrBasename})
+
+        gatk CollectMultipleMetrics \
+        --java-options "-Xmx32G -XX:ParallelGCThreads=1" \
         --PROGRAM QualityScoreDistribution \
         --PROGRAM MeanQualityByCycle \
         --PROGRAM CollectGcBiasMetrics \
@@ -93,17 +98,19 @@ task CollectGcBiasMetrics {
         Int memoryGb = 32
         Int diskSize
         String sampleId
-        String gcBiasPdfPath = "~{sampleId}.GcBiasMetrics.gc_bias.pdf"
-        String gcBiasMetricsPath = "~{sampleId}.GcBiasMetrics.gc_bias_metrics"
-        String gcBiasSummaryPath = "~{sampleId}.GcBiasMetrics.gc_bias_summary"
+        String outputDir = "."
+        String gcBiasPdfPath = "~{outputDir}/~{sampleId}.GcBiasMetrics.gc_bias.pdf"
+        String gcBiasMetricsPath = "~{outputDir}/~{sampleId}.GcBiasMetrics.gc_bias_metrics"
+        String gcBiasSummaryPath = "~{outputDir}/~{sampleId}.GcBiasMetrics.gc_bias_summary"
         IndexedReference referenceFa
         Bam finalBam
     }
 
     command {
-        gatk \
-        CollectGcBiasMetrics \
-        --java-options "-XX:ParallelGCThreads=1" \
+        mkdir -p $(dirname ~{gcBiasPdfPath})
+
+        gatk CollectGcBiasMetrics \
+        --java-options "-Xmx24G -XX:ParallelGCThreads=1" \
         --CHART_OUTPUT ~{gcBiasPdfPath} \
         -O ~{gcBiasMetricsPath} \
         -I ~{finalBam.bam} \
@@ -133,14 +140,17 @@ task Flagstat {
         Int memoryGb = 32
         Int diskSize
         String sampleId
-        String FlagStatPath = "~{sampleId}.FlagStat.txt"
+        String outputDir = "."
+        String FlagStatPath = "~{outputDir}/~{sampleId}.FlagStat.txt"
         IndexedReference referenceFa
         Bam finalBam
     }
 
     command {
-        gatk \
-        FlagStat \
+        mkdir -p $(dirname ~{FlagStatPath})
+
+        gatk FlagStat \
+        --java-options "-Xmx24G -XX:ParallelGCThreads=1" \
         --verbosity INFO \
         --reference ~{referenceFa.fasta} \
         -I ~{finalBam.bam} \
@@ -165,16 +175,19 @@ task HsMetrics {
         Int memoryGb = 40
         Int diskSize
         String sampleId
-        String HsMetricsPath = "~{sampleId}.HsMetrics.txt"
-        String HsMetricsPerTargetCoveragePath = "~{sampleId}.HsMetrics.perTargetCoverage.txt"
+        String outputDir = "."
+        String HsMetricsPath = "~{outputDir}/~{sampleId}.HsMetrics.txt"
+        String HsMetricsPerTargetCoveragePath = "~{outputDir}/~{sampleId}.HsMetrics.perTargetCoverage.txt"
         IndexedReference referenceFa
         Bam finalBam
         File hsMetricsIntervals
     }
 
     command {
-        gatk \
-        CollectHsMetrics \
+        mkdir -p $(dirname ~{HsMetricsPath})
+
+        gatk CollectHsMetrics \
+        --java-options "-Xmx32G -XX:ParallelGCThreads=1" \
         --BAIT_INTERVALS ~{hsMetricsIntervals} \
         --TARGET_INTERVALS ~{hsMetricsIntervals} \
         --BAIT_SET_NAME ~{sampleId} \
@@ -207,11 +220,14 @@ task FormatHsMetrics {
         Int threads = 1
         Int memoryGb = 4
         String sampleId
-        String HsMetricsPerTargetCoverageAutocorrPath = "~{sampleId}.HsMetrics.perTargetCoverage.txt.autocorr"
+        String outputDir = '.'
+        String HsMetricsPerTargetCoverageAutocorrPath = "~{outputDir}/~{sampleId}.HsMetrics.perTargetCoverage.txt.autocorr"
         File HsMetricsPerTargetCoverage
     }
 
     command {
+        mkdir -p $(dirname ~{HsMetricsPerTargetCoverageAutocorrPath})
+
         perl /create_autocorrelation_input.v.0.1.pl \
         -input ~{HsMetricsPerTargetCoverage} \
         > ~{HsMetricsPerTargetCoverageAutocorrPath} \
@@ -233,20 +249,23 @@ task Autocorrelations {
         Int threads = 1
         Int memoryGb = 4
         String sampleId
+        String outputDir = '.'
         File HsMetricsPerTargetCoverageAutocorr
     }
 
     command {
+        mkdir -p ~{outputDir}
+
         R --no-save \
         --args \
-        "./" \
+        ~{outputDir}/ \
         ~{HsMetricsPerTargetCoverageAutocorr} \
         ~{sampleId} \
-        < somatic_tools/ASP_modified_final.v.0.1.R \
+        < /ASP_modified_final.v.0.1.R \
     }
 
     output {
-        File autocorroutput1100 = "~{sampleId}.autocorroutput.1.100.txt"
+        File autocorroutput1100 = "~{outputDir}/~{sampleId}.autocorroutput.1.100.txt"
     }
 
     runtime {
@@ -263,14 +282,17 @@ task CollectOxoGMetricsWgs {
         Int memoryGb = 8
         Int diskSize
         String sampleId
-        String CollectOxoGMetricsPath = "~{sampleId}.CollectOxoGMetrics.txt"
+        String outputDir = "."
+        String CollectOxoGMetricsPath = "~{outputDir}/~{sampleId}.CollectOxoGMetrics.txt"
         IndexedReference referenceFa
         Bam finalBam
     }
 
     command {
-        gatk \
-        CollectOxoGMetrics \
+        mkdir -p $(dirname ~{CollectOxoGMetricsPath})
+
+        gatk CollectOxoGMetrics \
+        --java-options "-Xmx4G -XX:ParallelGCThreads=1" \
         --VALIDATION_STRINGENCY SILENT \
         -I ~{finalBam.bam} \
         -O ~{CollectOxoGMetricsPath} \
@@ -289,23 +311,26 @@ task CollectOxoGMetricsWgs {
     }
 }
 
-task CollectWgsMetricsWgsDecoy {
+task CollectWgsMetrics {
     input {
         Int threads = 2
         Int memoryGb = 32
         Int diskSize
         String sampleId
-        String CollectWgsMetricsPath = "~{sampleId}.CollectWgsMetrics.txt"
+        String outputDir = "."
+        String CollectWgsMetricsPath = "~{outputDir}/~{sampleId}.CollectWgsMetrics.txt"
         IndexedReference referenceFa
-        Bam finalBam
+        Bam inputBam
         File randomIntervals
     }
 
     command {
-        gatk \
-        CollectWgsMetrics \
+        mkdir -p $(dirname ~{CollectWgsMetricsPath})
+
+        gatk CollectWgsMetrics \
+        --java-options "-Xmx24G -XX:ParallelGCThreads=1" \
         --VALIDATION_STRINGENCY SILENT \
-        -I ~{finalBam.bam} \
+        -I ~{inputBam.bam} \
         -O ~{CollectWgsMetricsPath} \
         --INTERVALS ~{randomIntervals} \
         -R ~{referenceFa.fasta} \
@@ -328,21 +353,22 @@ task CollectWgsMetricsWgsDecoy {
     }
 }
 
+
 task Binest {
     input {
         Int threads = 1
         Int memoryGb = 4
         Int diskSize
         String sampleId
-        String binestCovPath = "~{sampleId}.binest.coverage.txt"
+        String outputDir = "."
+        String binestCovPath = "~{outputDir}/~{sampleId}.binest.coverage.txt"
         Bam finalBam
     }
 
     command {
-        binest \
-        size \
-        ~{finalBam.bamIndex} \
-        > ~{binestCovPath}
+        mkdir -p $(dirname ~{binestCovPath})
+
+        binest size ~{finalBam.bamIndex} > ~{binestCovPath}
     }
 
     output {
@@ -352,7 +378,7 @@ task Binest {
     runtime {
         cpu : threads
         memory : memoryGb + "GB"
-        disks: "local-disk " + diskSize + " HDD"
+        disks: "local-disk " + diskSize + " SSD"
         docker : "gcr.io/nygc-compbio/binest:0.8.4"
     }
 }
@@ -386,18 +412,20 @@ task PlotBinCov {
 
 task Pileup {
     input {
-        Int threads
-        Int memoryGb
+        Int memoryGb = 16
         Int diskSize
         String sampleId
-        String pileupsTablePath = "~{sampleId}_pileups_table.table"
+        String outputDir = "."
+        String pileupsTablePath = "~{outputDir}/~{sampleId}_pileups_table.table"
         Bam finalBam
         File gnomadBiallelic
     }
 
     command {
-        gatk \
-        GetPileupSummaries \
+        mkdir -p $(dirname ~{pileupsTablePath})
+
+        gatk GetPileupSummaries \
+        --java-options "-Xmx12G -XX:ParallelGCThreads=1" \
         -I ~{finalBam.bam} \
         -V ~{gnomadBiallelic} \
         -O ~{pileupsTablePath}
@@ -408,7 +436,7 @@ task Pileup {
     }
 
     runtime {
-        cpu : threads
+        cpu: 1
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
         docker : "us.gcr.io/broad-gatk/gatk:4.0.0.0"
@@ -417,16 +445,19 @@ task Pileup {
 
 task CalculateContamination {
     input {
-        Int threads
-        Int memoryGb
+        Int memoryGb = 16
         String sampleId
-        String contaminationTablePath = "~{sampleId}.contamination.table"
+        String outputDir = "."
+        String contaminationTablePath = "~{outputDir}/~{sampleId}.contamination.table"
         File pileupsTable
+        Int diskSize
     }
 
     command {
-        gatk \
-        CalculateContamination \
+        mkdir -p $(dirname ~{contaminationTablePath})
+
+        gatk CalculateContamination \
+        --java-options "-Xmx12G -XX:ParallelGCThreads=1" \
         -I ~{pileupsTable} \
         -O ~{contaminationTablePath}
     }
@@ -436,25 +467,29 @@ task CalculateContamination {
     }
 
     runtime {
-        cpu : threads
+        cpu : 1
         memory : memoryGb + "GB"
         docker : "us.gcr.io/broad-gatk/gatk:4.0.0.0"
+        disks: "local-disk " + diskSize + " HDD"
     }
 }
 
 task CalculateContaminationPaired {
     input {
         Int threads
-        Int memoryGb
+        Int memoryGb = 8
         String pairName
-        String contaminationTablePath = "~{pairName}.contamination.table"
+        String outputDir = "."
+        String contaminationTablePath = "~{outputDir}/~{pairName}.contamination.table"
         File pileupsNormalTable
         File pileupsTumorTable
     }
 
     command {
-        gatk \
-        CalculateContamination \
+        mkdir -p $(dirname ~{contaminationTablePath})
+
+        gatk CalculateContamination \
+        --java-options "-Xmx4G -XX:ParallelGCThreads=1" \
         -I ~{pileupsTumorTable} \
         -matched ~{pileupsNormalTable} \
         -O ~{contaminationTablePath}
@@ -484,8 +519,11 @@ task ConpairPileup {
     }
 
     command {
+        mkdir -p $(dirname ~{pileupsConpairPath})
+
         java \
         -jar GenomeAnalysisTK.jar \
+        --java-options "-Xmx4G -XX:ParallelGCThreads=1" \
         -T Pileup \
         -R ~{referenceFa.fasta} \
         -I ~{finalBam.bam} \
