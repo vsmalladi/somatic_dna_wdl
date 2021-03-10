@@ -134,35 +134,31 @@ workflow QcMetrics {
     }
 
     output {
-        Array[File] QcFiles = [
-            MultipleMetrics.alignmentSummaryMetrics,
-            MultipleMetrics.qualityByCyclePdf,
-            MultipleMetrics.baseDistributionByCycleMetrics,
-            MultipleMetrics.qualityByCycleMetrics,
-            MultipleMetrics.baseDistributionByCyclePdf,
-            MultipleMetrics.qualityDistributionPdf,
-            MultipleMetrics.qualityDistributionMetrics,
-            MultipleMetrics.insertSizeHistogramPdf,
-            MultipleMetrics.insertSizeMetrics,
-            MultipleMetricsPreBqsr.qualityDistributionPdfPreBqsr,
-            MultipleMetricsPreBqsr.qualityByCycleMetricsPreBqsr,
-            MultipleMetricsPreBqsr.qualityByCyclePdfPreBqsr,
-            MultipleMetricsPreBqsr.qualityDistributionMetricsPreBqsr,
-            CollectGcBiasMetrics.gcBiasMetrics,
-            CollectGcBiasMetrics.gcBiasSummary,
-            CollectGcBiasMetrics.gcBiasPdf,
-            Flagstat.FlagStat,
-            HsMetrics.HsMetrics,
-            HsMetrics.HsMetricsPerTargetCoverage,
-            FormatHsMetrics.HsMetricsPerTargetCoverageAutocorr,
-            Autocorrelations.autocorroutput1100,
-            CollectOxoGMetricsWgs.CollectOxoGMetrics,
-            CollectWgsMetrics.CollectWgsMetrics,
-            BinestCov.binestCov,
-            PlotBinCov.normCoverageByChrPng,
-            Pileup.pileupsTable,
-            CalculateContamination.contaminationTable
-            ]
+        File alignmentSummaryMetrics = MultipleMetrics.alignmentSummaryMetrics
+        File qualityByCyclePdf = MultipleMetrics.qualityByCyclePdf
+        File baseDistributionByCycleMetrics = MultipleMetrics.baseDistributionByCycleMetrics
+        File qualityByCycleMetrics = MultipleMetrics.qualityByCycleMetrics
+        File baseDistributionByCyclePdf = MultipleMetrics.baseDistributionByCyclePdf
+        File qualityDistributionPdf = MultipleMetrics.qualityDistributionPdf
+        File qualityDistributionMetrics = MultipleMetrics.qualityDistributionMetrics
+        File insertSizeHistogramPdf = MultipleMetrics.insertSizeHistogramPdf
+        File insertSizeMetrics = MultipleMetrics.insertSizeMetrics
+        File qualityDistributionPdfPreBqsr = MultipleMetricsPreBqsr.qualityDistributionPdfPreBqsr
+        File qualityByCycleMetricsPreBqsr = MultipleMetricsPreBqsr.qualityByCycleMetricsPreBqsr
+        File qualityByCyclePdfPreBqsr = MultipleMetricsPreBqsr.qualityByCyclePdfPreBqsr
+        File qualityDistributionMetricsPreBqsr = MultipleMetricsPreBqsr.qualityDistributionMetricsPreBqsr
+        File gcBiasMetrics = CollectGcBiasMetrics.gcBiasMetrics
+        File gcBiasSummary = CollectGcBiasMetrics.gcBiasSummary
+        File gcBiasPdf = CollectGcBiasMetrics.gcBiasPdf
+        File FlagStat = Flagstat.FlagStat
+        File HsMetrics = HsMetrics.HsMetrics
+        File HsMetricsPerTargetCoverage = HsMetrics.HsMetricsPerTargetCoverage
+        File HsMetricsPerTargetCoverageAutocorr = FormatHsMetrics.HsMetricsPerTargetCoverageAutocorr
+        File autocorroutput1100 = Autocorrelations.autocorroutput1100
+        File CollectOxoGMetrics = CollectOxoGMetricsWgs.CollectOxoGMetrics
+        File CollectWgsMetrics = CollectWgsMetricsWgsDecoy.CollectWgsMetrics
+        File binestCov = BinestCov.binestCov
+        File normCoverageByChrPng = PlotBinCov.normCoverageByChrPng
     }
 
 }

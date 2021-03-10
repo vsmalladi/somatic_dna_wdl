@@ -1,9 +1,9 @@
 version 1.0
 
-import "pre_process/align_fastq_wkf.wdl" as alignFastq
-import "pre_process/merge_bams_wkf.wdl" as mergeBams
-import "wdl_structs.wdl"
-import "pre_process/qc_wkf.wdl" as qc
+import "align_fastq_wkf.wdl" as alignFastq
+import "merge_bams_wkf.wdl" as mergeBams
+import "../wdl_structs.wdl"
+import "qc_wkf.wdl" as qc
 
 workflow Preprocess {
     # command
@@ -70,7 +70,31 @@ workflow Preprocess {
 
     output {
         Bam finalBam = MergeBams.finalBam
-        Array[File] QcFiles = QcMetrics.QcFiles
+        File alignmentSummaryMetrics = QcMetrics.alignmentSummaryMetrics
+        File qualityByCyclePdf = QcMetrics.qualityByCyclePdf
+        File baseDistributionByCycleMetrics = QcMetrics.baseDistributionByCycleMetrics
+        File qualityByCycleMetrics = QcMetrics.qualityByCycleMetrics
+        File baseDistributionByCyclePdf = QcMetrics.baseDistributionByCyclePdf
+        File qualityDistributionPdf = QcMetrics.qualityDistributionPdf
+        File qualityDistributionMetrics = QcMetrics.qualityDistributionMetrics
+        File insertSizeHistogramPdf = QcMetrics.insertSizeHistogramPdf
+        File insertSizeMetrics = QcMetrics.insertSizeMetrics
+        File qualityDistributionPdfPreBqsr = QcMetrics.qualityDistributionPdfPreBqsr
+        File qualityByCycleMetricsPreBqsr = QcMetrics.qualityByCycleMetricsPreBqsr
+        File qualityByCyclePdfPreBqsr = QcMetrics.qualityByCyclePdfPreBqsr
+        File qualityDistributionMetricsPreBqsr = QcMetrics.qualityDistributionMetricsPreBqsr
+        File gcBiasMetrics = QcMetrics.gcBiasMetrics
+        File gcBiasSummary = QcMetrics.gcBiasSummary
+        File gcBiasPdf = QcMetrics.gcBiasPdf
+        File FlagStat = QcMetrics.FlagStat
+        File HsMetrics = QcMetrics.HsMetrics
+        File HsMetricsPerTargetCoverage = QcMetrics.HsMetricsPerTargetCoverage
+        File HsMetricsPerTargetCoverageAutocorr = QcMetrics.HsMetricsPerTargetCoverageAutocorr
+        File autocorroutput1100 = QcMetrics.autocorroutput1100
+        File CollectOxoGMetrics = QcMetrics.CollectOxoGMetrics
+        File CollectWgsMetrics = QcMetrics.CollectWgsMetrics
+        File binestCov = QcMetrics.binestCov
+        File normCoverageByChrPng = QcMetrics.normCoverageByChrPng
         # Dedup metrics.
         File collectWgsMetricsPreBqsr = MergeBams.collectWgsMetricsPreBqsr
         File qualityDistributionPdPreBqsr = MergeBams.qualityDistributionPdPreBqsr
