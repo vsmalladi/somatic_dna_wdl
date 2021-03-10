@@ -141,11 +141,11 @@ uuid=$( bash ../wdl_port/run.sh \
     -i calling_wkfInput.json )
 ```
 
-In addtion to submitting the command, this will create an output file that you should save with information about the project, pipeline version, cromwell options, inputs. It will also contain the workflow UUID.
+In addition to submitting the command, this will create an output file that you should save with information about the project, pipeline version, cromwell options, inputs. It will also contain the workflow UUID.
 
 #### Output:
 
-  1. `lab-number_project.<DATE>.RunInfo.json` - contains projectInfo, wofkflow Input, workflow UUID.
+  1. `lab-number_project.<DATE>.RunInfo.json` - contains projectInfo, workflow Input, workflow UUID.
 
 ### Post run
 <a name="post_run"/>
@@ -173,7 +173,8 @@ Note: Pair association only works if the pair_id is used in the filename followe
 ```
 python \
 ../wdl_port/tools/collect.py \
---run-data lab-number_project.<DATE>.RunInfo.json
+--run-data lab-number_project.<DATE>.RunInfo.json \
+--url ${url}
 ```
 
 #### Output:
