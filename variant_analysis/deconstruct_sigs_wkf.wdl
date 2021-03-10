@@ -33,7 +33,7 @@ workflow DeconstructSig {
         File diff = Deconstructsig.diff
         File trinuc = Deconstructsig.trinuc
         File input_file = Deconstructsig.input_file
-        File highconfidencePng = Deconstructsig.highconfidencePng
+        # File highconfidencePng = Deconstructsig.highconfidencePng
         File highconfidenceTxt = Deconstructsig.highconfidenceTxt
         File reconstructed = Deconstructsig.reconstructed
     }

@@ -25,7 +25,7 @@ workflow VariantAnalysis {
         Array[File] diff = DeconstructSig.diff
         Array[File] trinuc = DeconstructSig.trinuc
         Array[File] input_file = DeconstructSig.input_file
-        Array[File] highconfidencePng = DeconstructSig.highconfidencePng
+        # Array[File] highconfidencePng = DeconstructSig.highconfidencePng
         Array[File] highconfidenceTxt = DeconstructSig.highconfidenceTxt
         Array[File] reconstructed = DeconstructSig.reconstructed
     }

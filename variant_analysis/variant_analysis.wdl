@@ -44,7 +44,7 @@ task Deconstructsig {
         Int memoryGb = 64
         Int diskSize = 10
         String pairId
-        String suffix = "~{pairId}.deconstructSigs.v1.8.0.signatures.highconfidence"
+        String suffix = "deconstructSigs.v1.8.0.signatures.highconfidence"
         String deconstructsigsBs
         File deconstructsigsFasta
         File highconfidence
@@ -66,7 +66,7 @@ task Deconstructsig {
         File diff = "~{pairId}.deconstructSigs.v1.8.0.signatures.highconfidence.diff.txt"
         File trinuc = "~{pairId}.deconstructSigs.v1.8.0.signatures.highconfidence.trinucleotidecounts.txt"
         File input_file = "~{pairId}.deconstructSigs.v1.8.0.signatures.highconfidence.input.txt"
-        File highconfidencePng = "~{pairId}.deconstructSigs.v1.8.0.signatures.highconfidence.png"
+        # File highconfidencePng = "~{pairId}.deconstructSigs.v1.8.0.signatures.highconfidence.png"
         File highconfidenceTxt = "~{pairId}.deconstructSigs.v1.8.0.signatures.highconfidence.txt"
         File reconstructed = "~{pairId}.deconstructSigs.v1.8.0.signatures.highconfidence.reconstructed.txt"
     }
