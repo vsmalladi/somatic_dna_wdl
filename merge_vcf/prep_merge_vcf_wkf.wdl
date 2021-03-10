@@ -10,40 +10,29 @@ workflow PrepMergeVcf {
         String tool
         File callerVcf
         String pairName
-        String pysamDockerImage
-        String gatkDockerImage
-        String bgzipDockerImage
-        String bcftoolsDockerImage
-        Int threads
-        Int memoryGb
         IndexedReference referenceFa
     }
     
     call merge_vcf.RenameMetadata {
         input:
             callerVcf = callerVcf,
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = pysamDockerImage
+            tool=tool,
+            pairName=pairName
     }
     if (tool == 'manta') {
         call merge_vcf.MergePrepSupport {
             input:
+                pairName = pairName,
                 tool = tool,
-                renameMetaVcf = RenameMetadata.renameMetaVcf,
-                memoryGb = memoryGb,
-                threads = threads,
-                dockerImage = pysamDockerImage
+                renameMetaVcf = RenameMetadata.renameMetaVcf
         }
     }
     if (tool != 'manta') {
         call merge_vcf.MergePrep {
             input:
+                pairName = pairName,
                 tool = tool,
-                renameMetaVcf = RenameMetadata.renameMetaVcf,
-                memoryGb = memoryGb,
-                threads = threads,
-                dockerImage = pysamDockerImage
+                renameMetaVcf = RenameMetadata.renameMetaVcf
         }
 
     }
@@ -54,54 +43,39 @@ workflow PrepMergeVcf {
             tumor = tumor,
             normal = normal,
             tool = tool,
-            prepCallerVcf = select_first([MergePrepSupport.prepCallerVcf, MergePrep.prepCallerVcf]),
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = pysamDockerImage
+            prepCallerVcf = select_first([MergePrepSupport.prepCallerVcf, MergePrep.prepCallerVcf])
     }
     
     call merge_vcf.CompressVcf as renameCompressVcf {
         input:
             vcf = RenameVcf.renameVcf,
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = bgzipDockerImage
+            memoryGb = 4
     }
     
     call merge_vcf.IndexVcf as renameIndexVcf {
         input:
-            vcfCompressed = renameCompressVcf.vcfCompressed,
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = gatkDockerImage
+            vcfCompressed = renameCompressVcf.vcfCompressed
     }
     
     call merge_vcf.SplitMultiAllelic as prepSplitMultiAllelic {
         input:
+            pairName = pairName,
+            referenceFa = referenceFa,
             vcfCompressedIndexed = renameIndexVcf.vcfCompressedIndexed,
-            splitVcfPath = sub(basename(renameIndexVcf.vcfCompressedIndexed.vcf), ".rename.vcf.gz$", ".split.vcf"),
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = bcftoolsDockerImage
+            splitVcfPath = sub(basename(renameIndexVcf.vcfCompressedIndexed.vcf), ".rename.vcf.gz$", ".split.vcf")
     }
     
     call merge_vcf.SplitMnv {
         input:
             tool = tool,
             mnvVcfPath = sub(basename(renameIndexVcf.vcfCompressedIndexed.vcf), ".rename.vcf.gz$", ".split.vcf"),
-            splitVcf = prepSplitMultiAllelic.splitVcf,
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = pysamDockerImage
+            splitVcf = prepSplitMultiAllelic.splitVcf
             
     }
     
-    if (tool != 'svaba') {
+    if (tool == 'svaba') {
         call merge_vcf.RemoveContig {
             input:
-                memoryGb = memoryGb,
-                threads = threads,
-                dockerImage = pysamDockerImage, 
                 mnvVcfPath = sub(basename(renameIndexVcf.vcfCompressedIndexed.vcf), ".rename.vcf.gz$", ".split.vcf"),
                 removeChromVcf = SplitMnv.mnvVcf
         }
@@ -112,9 +86,9 @@ workflow PrepMergeVcf {
             tempVcfs = [select_first([RemoveContig.removeContigVcf, SplitMnv.mnvVcf])],
             sortedVcfPath = sub(basename(select_first([RemoveContig.removeContigVcf, SplitMnv.mnvVcf])), "$", ".gz"),
             referenceFa = referenceFa,
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = gatkDockerImage
+            threads = 4,
+            memoryGb = 8,
+            diskSize = 20
             
     }
     

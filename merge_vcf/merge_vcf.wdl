@@ -74,14 +74,12 @@ task IndexVcf {
 
 task RenameMetadata {
     input {
-        Int threads
-        Int memoryGb
-        String dockerImage
         String pairName
         File callerVcf
         String renameMetaVcfPath = sub(basename(callerVcf), "$", ".rename_metadata.vcf")
         String tool
-        File callerVcf
+        Int memoryGb = 16
+        Int diskSize = (ceil( size(callerVcf, "GB") )  * 2 ) + 4
     }
 
     command {
@@ -97,21 +95,20 @@ task RenameMetadata {
     }
 
     runtime {
-        cpu : threads
+        disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : dockerImage
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:0.9.2"
     }
 }
 
 task MergePrepSupport {
     input {
-        Int threads
-        Int memoryGb
-        String dockerImage
         String pairName
         File renameMetaVcf
         String prepCallerVcfPath =  sub(basename(renameMetaVcf), ".rename_metadata.vcf$", ".merge_prep.vcf") 
         String tool
+        Int memoryGb = 16
+        Int diskSize = (ceil( size(renameMetaVcf, "GB") )  * 2 ) + 4
     }
 
     command {
@@ -128,21 +125,20 @@ task MergePrepSupport {
     }
 
     runtime {
-        cpu : threads
+        disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : dockerImage
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:0.9.2"
     }
 }
 
 task MergePrep {
     input {
-        Int threads
-        Int memoryGb
-        String dockerImage
         String pairName
         File renameMetaVcf
         String prepCallerVcfPath = sub(basename(renameMetaVcf), ".rename_metadata.vcf$", ".merge_prep.vcf")
         String tool
+        Int memoryGb = 16
+        Int diskSize = (ceil( size(renameMetaVcf, "GB") )  * 2 ) + 4
     }
 
     command {
@@ -158,23 +154,22 @@ task MergePrep {
     }
 
     runtime {
-        cpu : threads
+        disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : dockerImage
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:0.9.2"
     }
 }
 
 task RenameVcf {
     input {
-        Int threads
-        Int memoryGb
-        String dockerImage
         File prepCallerVcf
         String pairName
         String renameVcfPath = sub(basename(prepCallerVcf), ".merge_prep.vcf$", ".rename.vcf")
         String normal
         String tumor
         String tool
+        Int memoryGb = 16
+        Int diskSize = (ceil( size(prepCallerVcf, "GB") )  * 2 ) + 4
     }
 
     command {
@@ -192,21 +187,21 @@ task RenameVcf {
     }
 
     runtime {
-        cpu : threads
+        disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : dockerImage
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:0.9.2"
     }
 }
 
 task SplitMultiAllelic {
     input {
-        Int threads
-        Int memoryGb
-        String dockerImage
         String pairName
         String splitVcfPath
         IndexedReference referenceFa
         IndexedVcf vcfCompressedIndexed
+        Int threads = 16
+        Int memoryGb = 16
+        Int diskSize = (ceil( size(vcfCompressedIndexed.vcf, "GB") )  * 2 ) + 10
     }
 
     command {
@@ -214,10 +209,11 @@ task SplitMultiAllelic {
         norm \
         -m \
         -any \
+        --threads ~{threads} \
         --no-version \
         -f ~{referenceFa.fasta} \
         -o ~{splitVcfPath} \
-        ~{vcfCompressedIndexed}
+        ~{vcfCompressedIndexed.vcf}
     }
 
     output {
@@ -226,19 +222,19 @@ task SplitMultiAllelic {
 
     runtime {
         cpu : threads
+        disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : dockerImage
+        docker : "gcr.io/nygc-public/bcftools:1.5"
     }
 }
 
 task SplitMnv {
     input {
-        Int threads
-        Int memoryGb
-        String dockerImage
         File splitVcf
         String mnvVcfPath = sub(basename(splitVcf), ".split.vcf", ".split_mnvs.vcf")
         String tool
+        Int memoryGb = 16
+        Int diskSize = (ceil( size(splitVcf, "GB") )  * 2 ) + 4
     }
 
     command {
@@ -254,20 +250,19 @@ task SplitMnv {
     }
 
     runtime {
-        cpu : threads
+        disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : dockerImage
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:0.9.2"
     }
 }
 
 task RemoveContig {
     input {
-        Int threads
-        Int memoryGb
-        String dockerImage
         String mnvVcfPath
         String removeChromVcfPath = "~{mnvVcfPath}"
         File removeChromVcf
+        Int memoryGb = 16
+        Int diskSize = (ceil( size(removeChromVcf, "GB") )  * 2 ) + 4
     }
 
     command {
@@ -282,26 +277,26 @@ task RemoveContig {
     }
 
     runtime {
-        cpu : threads
+        disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : dockerImage
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:0.9.2"
     }
 }
 
 task Gatk4MergeSortVcf {
     input {
-        Int threads
-        Int memoryGb
-        String dockerImage
         String sortedVcfPath
         Array[File] tempVcfs
         IndexedReference referenceFa
+        Int threads = 4
+        Int memoryGb = 8
+        Int diskSize = 10
     }
 
     command {
         gatk \
         SortVcf \
-        --java-options "-Xmx8196m -XX:ParallelGCThreads=4" \
+        --java-options "-Xmx8g -XX:ParallelGCThreads=4" \
         -SD ~{referenceFa.dict} \
         -I ~{sep=" -I " tempVcfs} \
         -O ~{sortedVcfPath}
@@ -316,8 +311,9 @@ task Gatk4MergeSortVcf {
 
     runtime {
         cpu : threads
+        disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : dockerImage
+        docker : "us.gcr.io/broad-gatk/gatk:4.1.1.0"
     }
 }
 
@@ -325,14 +321,14 @@ task Gatk4MergeSortVcf {
 
 task MergeCallers {
     input {
-        Int threads
-        Int memoryGb
-        String dockerImage
         String chrom
         String pairName
         String mergedChromVcfPath = "~{pairName}.merged_supported.v6.~{chrom}.vcf"
         Array[IndexedVcf] allVcfCompressed
         Array[File] allVcfCompressedList
+        Int threads = 16
+        Int memoryGb = 16
+        Int diskSize = 20
     }
 
     command {
@@ -341,6 +337,7 @@ task MergeCallers {
         -r ~{chrom} \
         --force-samples \
         --no-version \
+        --threads ~{threads} \
         -f PASS,SUPPORT \
         -F x \
         -m none \
@@ -355,22 +352,22 @@ task MergeCallers {
 
     runtime {
         cpu : threads
+        disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : dockerImage
+        docker : "gcr.io/nygc-public/bcftools:1.5"
     }
 }
 
 
 task StartCandidates {
     input {
-        Int threads
-        Int memoryGb
-        String dockerImage
         String pairName
         String chrom
         String startChromVcfPath = "~{pairName}.start.merged.v6.~{chrom}.vcf"
         File knownGeneBed
         File mergedChromVcf
+        Int memoryGb = 16
+        Int diskSize = 20
     }
 
     command {
@@ -388,21 +385,20 @@ task StartCandidates {
     }
 
     runtime {
-        cpu : threads
+        disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : dockerImage
+        docker : "gcr.io/nygc-public/bedtools:v2.26.0"
     }
 }
 
 task GetCandidates {
     input {
-        Int threads
-        Int memoryGb
-        String dockerImage
         String pairName
         String chrom
         String candidateChromVcfPath = "~{pairName}.candidate.merged.v6.~{chrom}.vcf"
         File startChromVcf
+        Int memoryGb = 16
+        Int diskSize = (ceil( size(startChromVcf, "GB") )  * 2 ) + 4
     }
 
     command {
@@ -417,24 +413,29 @@ task GetCandidates {
     }
 
     runtime {
-        cpu : threads
+        disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : dockerImage
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:0.9.2"
     }
 }
 
 task VcfToBed {
     input {
-        Int threads
-        Int memoryGb
-        String dockerImage
         String pairName
         String chrom
         String candidateChromBedPath = "~{pairName}.candidate.merged.v6.~{chrom}.bed"
         File candidateChromVcf
+        Int memoryGb = 16
+        Int diskSize = (ceil( size(candidateChromVcf, "GB") )  * 2 ) + 4
     }
 
     command {
+        set -e -o pipefail
+    
+        export CONDA_ALWAYS_YES="true"
+        
+        conda install -c bioconda bedtools
+        
         python \
         /vcf_to_bed.py \
         ~{candidateChromVcf} \
@@ -448,17 +449,14 @@ task VcfToBed {
     }
 
     runtime {
-        cpu : threads
+        disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : dockerImage
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:0.9.2"
     }
 }
 
 task LancetConfirm {
     input {
-        Int threads
-        Int memoryGb
-        String dockerImage
         String pairName
         String chrom
         String lancetChromVcfPath = "~{pairName}.lancet.merged.v6.~{chrom}.vcf"
@@ -466,13 +464,18 @@ task LancetConfirm {
         Bam normalFinalBam
         File candidateChromBed
         Bam tumorFinalBam
+        Int threads = 16
+        Int memoryGb = 16
+        Int diskSize = (ceil( size(normalFinalBam.bam, "GB") + size(normalFinalBam.bam, "GB")) ) + 10
     }
 
     command {
-        mkdir ~{chrom} \
-        && \
-        cd ~{chrom} \
-        && \
+        set -e -o pipefail
+        
+        mkdir ~{chrom}
+        
+        cd ~{chrom}
+
         lancet \
         --normal ~{normalFinalBam.bam} \
         --tumor ~{tumorFinalBam.bam} \
@@ -491,21 +494,21 @@ task LancetConfirm {
     }
 
     output {
-        File lancetChromVcf = "~{lancetChromVcfPath}"
+        File lancetChromVcf = "~{chrom}/~{lancetChromVcfPath}"
     }
 
     runtime {
-        cpu : threads
+        disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : dockerImage
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:0.9.2"
     }
 }
 
 task IntersectVcfs {
     input {
-        Int threads
-        Int memoryGb
-        String dockerImage
+        Int threads = 16
+        Int memoryGb = 16
+        Int diskSize = 4
         String pairName
         String chrom
         String vcfConfirmedCandidatePath = "~{pairName}.confirmed_lancet.merged.v6.~{chrom}.vcf"
@@ -519,6 +522,7 @@ task IntersectVcfs {
         -w 1 \
         -c none \
         -n =2 \
+        --threads ~{threads} \
         ~{vcfCompressedLancet.vcf} \
         ~{vcfCompressedCandidate.vcf} \
         > ~{vcfConfirmedCandidatePath}
@@ -530,22 +534,22 @@ task IntersectVcfs {
 
     runtime {
         cpu : threads
+        disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : dockerImage
+        docker : "gcr.io/nygc-public/bcftools:1.5"
     }
 }
 
 task MergeColumns {
     input {
-        Int threads
-        Int memoryGb
-        String dockerImage
         String pairName
         String chrom
         String columnChromVcfPath = "~{pairName}.single_column.v6.~{chrom}.vcf"
         String tumor
         String normal
         File supportedChromVcf
+        Int memoryGb = 16
+        Int diskSize = 4
     }
 
     command {
@@ -562,23 +566,22 @@ task MergeColumns {
     }
 
     runtime {
-        cpu : threads
+        disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : dockerImage
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:0.9.2"
     }
 }
 
 task AddNygcAlleleCountsToVcf {
     input {
-        Int threads
-        Int memoryGb
-        String dockerImage
         String pairName
         String chrom
         String preCountsChromVcfPath = "~{pairName}.pre_count.v6.~{chrom}.vcf"
         Bam normalFinalBam
         Bam tumorFinalBam
         File columnChromVcf
+        Int memoryGb = 16
+        Int diskSize = ceil( size(tumorFinalBam.bam, "GB") + size(normalFinalBam.bam, "GB")) + 20
     }
 
     command {
@@ -597,21 +600,20 @@ task AddNygcAlleleCountsToVcf {
     }
 
     runtime {
-        cpu : threads
+        disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : dockerImage
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:0.9.2"
     }
 }
 
 task AddFinalAlleleCountsToVcf {
     input {
-        Int threads
-        Int memoryGb
-        String dockerImage
         String pairName
         String chrom
         String countsChromVcfPath = "~{pairName}.final.v6.~{chrom}.vcf"
         File preCountsChromVcf
+        Int memoryGb = 16
+        Int diskSize = 4
     }
 
     command {
@@ -626,22 +628,21 @@ task AddFinalAlleleCountsToVcf {
     }
 
     runtime {
-        cpu : threads
+        disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : dockerImage
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:0.9.2"
     }
 }
 
 task FilterPon {
     input {
-        Int threads
-        Int memoryGb
-        String dockerImage
         String chrom
         String pairName
         String ponOutFilePath = "~{pairName}.pon.final.v6.~{chrom}.vcf"
         File countsChromVcf
         File ponFile
+        Int memoryGb = 16
+        Int diskSize = 4
     }
 
     command {
@@ -658,22 +659,21 @@ task FilterPon {
     }
 
     runtime {
-        cpu : threads
+        disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : dockerImage
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:0.9.2"
     }
 }
 
 task FilterVcf {
     input {
-        Int threads
-        Int memoryGb
-        String dockerImage
         String pairName
         String chrom
         String filteredOutFilePath = "~{pairName}.final.v6.filtered.~{chrom}.vcf"
         IndexedVcf germFile
         File ponOutFile
+        Int memoryGb = 16
+        Int diskSize = 10
     }
 
     command {
@@ -689,21 +689,20 @@ task FilterVcf {
     }
 
     runtime {
-        cpu : threads
+        disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : dockerImage
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:0.9.2"
     }
 }
 
 task SnvstomnvsCountsbasedfilterAnnotatehighconf {
     input {
-        Int threads
-        Int memoryGb
-        String dockerImage
         String pairName
         String chrom
         String finalChromVcfPath = "~{pairName}.mnv.final.v6.filtered.~{chrom}.vcf"
         File filteredOutFile
+        Int memoryGb = 16
+        Int diskSize = 4
     }
 
     command {
@@ -718,9 +717,9 @@ task SnvstomnvsCountsbasedfilterAnnotatehighconf {
     }
 
     runtime {
-        cpu : threads
+        disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : dockerImage
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:0.9.2"
     }
 }
 

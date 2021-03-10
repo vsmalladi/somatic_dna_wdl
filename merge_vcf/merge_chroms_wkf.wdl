@@ -9,14 +9,10 @@ workflow MergeChroms {
         String tumor
         String normal
         String pairName
-        String sortedVcfPath = "~{pairName}.merged.v6.vcf"
+        String sortedVcfPath = "~{pairName}.sorted.merged.v6.vcf"
         String orderedVcfPath = "~{pairName}.merged.v6.vcf"
         Array[File]+ finalChromVcf
         IndexedReference referenceFa
-        Int threads
-        Int memoryGb
-        String gatkDockerImage
-        String pysamDockerImage
     }
     
     call merge_vcf.Gatk4MergeSortVcf {
@@ -24,9 +20,8 @@ workflow MergeChroms {
                 tempVcfs = finalChromVcf,
                 sortedVcfPath = sortedVcfPath,
                 referenceFa = referenceFa,
-                memoryGb = memoryGb,
-                threads = threads,
-                dockerImage = gatkDockerImage 
+                memoryGb = 8,
+                diskSize = 10
         }
     
     call calling.ReorderVcfColumns {
@@ -35,9 +30,8 @@ workflow MergeChroms {
             normal = normal,
             rawVcf = Gatk4MergeSortVcf.sortedVcf.vcf,
             orderedVcfPath = orderedVcfPath,
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = pysamDockerImage
+            memoryGb = 2,
+            diskSize = 1
     }
     
     output {

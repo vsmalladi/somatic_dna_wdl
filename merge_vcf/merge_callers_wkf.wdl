@@ -1,6 +1,7 @@
 version 1.0
 
-import "merge_vcf.wdl" as merge_vcf
+import "merge_vcf.wdl" as mergeVcf
+import "../calling/calling.wdl" as calling
 import "../wdl_structs.wdl"
 
 # note that we will still need to match dictionaries or provide matching reference files
@@ -22,15 +23,6 @@ workflow MergeCallers {
         File ponFile
         
         IndexedVcf germFile
-        
-        String bedtoolsDockerImage
-        String bcftoolsDockerImage
-        String pysamDockerImage
-        String lancetDockerImage
-        String gatkDockerImage
-        String bgzipDockerImage
-        Int threads
-        Int memoryGb
     }
     
     scatter(vcfCompressed in allVcfCompressed) {
@@ -39,107 +31,83 @@ workflow MergeCallers {
     Array[File]+ allVcfCompressedList = allVcfCompressedFile
     
     scatter(chrom in listOfChroms) {
-        call merge_vcf.MergeCallers as allMergeCallers {
+        call mergeVcf.MergeCallers as allMergeCallers {
             input:
                 chrom = chrom,
                 pairName = pairName,
                 allVcfCompressed = allVcfCompressed,
-                allVcfCompressedList = allVcfCompressedList,
-                memoryGb = memoryGb,
-                threads = threads,
-                dockerImage = bcftoolsDockerImage
+                allVcfCompressedList = allVcfCompressedList
         }
         
-        call merge_vcf.StartCandidates { 
+        call mergeVcf.StartCandidates { 
         input:
             chrom = chrom,
             pairName = pairName,
             knownGeneBed = knownGeneBed,
-            mergedChromVcf = allMergeCallers.mergedChromVcf,
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = bedtoolsDockerImage
+            mergedChromVcf = allMergeCallers.mergedChromVcf
             
         }
         
-        call merge_vcf.GetCandidates {
+        call mergeVcf.GetCandidates {
         input:
             chrom = chrom,
             pairName = pairName,
-            startChromVcf = StartCandidates.startChromVcf,
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = pysamDockerImage
+            startChromVcf = StartCandidates.startChromVcf
             
         }
         
-        call merge_vcf.VcfToBed {
+        call mergeVcf.VcfToBed {
         input:
             chrom = chrom,
             pairName = pairName,
-            candidateChromVcf = GetCandidates.candidateChromVcf,
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = bedtoolsDockerImage
+            candidateChromVcf = GetCandidates.candidateChromVcf
             
         }
         
-        call merge_vcf.LancetConfirm {
+        call calling.LancetWGSRegional as lancetConfirm {
             input:
                 chrom = chrom,
-                pairName = pairName,
+                chromBed = VcfToBed.candidateChromBed,
                 referenceFa = referenceFa,
                 normalFinalBam = normalFinalBam,
                 tumorFinalBam = tumorFinalBam,
-                candidateChromBed = VcfToBed.candidateChromBed,
-                memoryGb = memoryGb,
-                threads = threads,
-                dockerImage = lancetDockerImage  
+                pairName = pairName,
+                lancetChromVcfPath = "~{pairName}.lancet.merged.v6.~{chrom}.vcf",
+                threads = 16,
+                memoryGb = 16,
+                diskSize = (ceil( size(normalFinalBam.bam, "GB") + size(normalFinalBam.bam, "GB")) ) + 20
         }
         
-        # LancetConfirm.lancetChromVcf
-        call merge_vcf.CompressVcf as lancetCompressVcf {
+        # lancetConfirm.lancetChromVcf
+        call mergeVcf.CompressVcf as lancetCompressVcf {
             input:
-                vcf = LancetConfirm.lancetChromVcf,
-                memoryGb = memoryGb,
-                threads = threads,
-                dockerImage = bgzipDockerImage
+                vcf = lancetConfirm.lancetChromVcf,
+                memoryGb = 4
         }
         
-        call merge_vcf.IndexVcf as lancetIndexVcf {
+        call mergeVcf.IndexVcf as lancetIndexVcf {
             input:
-                vcfCompressed = lancetCompressVcf.vcfCompressed,
-                memoryGb = memoryGb,
-                threads = threads,
-                dockerImage = gatkDockerImage
+                vcfCompressed = lancetCompressVcf.vcfCompressed
         }
         
         # GetCandidates.candidateChromVcf
-        call merge_vcf.CompressVcf as candidateCompressVcf {
+        call mergeVcf.CompressVcf as candidateCompressVcf {
             input:
                 vcf = GetCandidates.candidateChromVcf,
-                memoryGb = memoryGb,
-                threads = threads,
-                dockerImage = bgzipDockerImage
+                memoryGb = 4
         }
         
-        call merge_vcf.IndexVcf as candidateIndexVcf {
+        call mergeVcf.IndexVcf as candidateIndexVcf {
             input:
-                vcfCompressed = candidateCompressVcf.vcfCompressed,
-                memoryGb = memoryGb,
-                threads = threads,
-                dockerImage = gatkDockerImage
+                vcfCompressed = candidateCompressVcf.vcfCompressed
         }
         
-        call merge_vcf.IntersectVcfs { 
+        call mergeVcf.IntersectVcfs { 
             input:
                 chrom = chrom,
                 pairName = pairName,
                 vcfCompressedLancet = lancetIndexVcf.vcfCompressedIndexed,
-                vcfCompressedCandidate = candidateIndexVcf.vcfCompressedIndexed,
-                memoryGb = memoryGb,
-                threads = threads,
-                dockerImage = bcftoolsDockerImage
+                vcfCompressedCandidate = candidateIndexVcf.vcfCompressedIndexed
                 
         }
         
@@ -147,184 +115,139 @@ workflow MergeCallers {
         #                   Prep supporting Lancet calls
         #  =================================================================
         
-        call merge_vcf.RenameMetadata {
+        call mergeVcf.RenameMetadata {
             input:
+                pairName = pairName,
                 callerVcf = IntersectVcfs.vcfConfirmedCandidate,
-                memoryGb = memoryGb,
-                threads = threads,
-                dockerImage = pysamDockerImage
+                tool = "lancet"
         }
         
-        call merge_vcf.MergePrepSupport {
+        call mergeVcf.MergePrepSupport {
             input:
+                pairName = pairName,
                 tool = "lancet",
-                renameMetaVcf = RenameMetadata.renameMetaVcf,
-                memoryGb = memoryGb,
-                threads = threads,
-                dockerImage = pysamDockerImage
+                renameMetaVcf = RenameMetadata.renameMetaVcf
         }
         
-        call merge_vcf.RenameVcf {
+        call mergeVcf.RenameVcf {
             input:
                 pairName = pairName,
                 tumor = tumor,
                 normal = normal,
                 tool = "lancet",
-                prepCallerVcf = MergePrepSupport.prepCallerVcf,
-                memoryGb = memoryGb,
-                threads = threads,
-                dockerImage = pysamDockerImage
+                prepCallerVcf = MergePrepSupport.prepCallerVcf
         }
         
-        call merge_vcf.CompressVcf as confirmedCompressVcf {
+        call mergeVcf.CompressVcf as confirmedCompressVcf {
             input:
                 vcf = RenameVcf.renameVcf,
-                memoryGb = memoryGb,
-                threads = threads,
-                dockerImage = bgzipDockerImage
+                memoryGb = 4  
         }
         
-        call merge_vcf.IndexVcf as confirmedIndexVcf {
+        call mergeVcf.IndexVcf as confirmedIndexVcf {
             input:
-                vcfCompressed = confirmedCompressVcf.vcfCompressed,
-                memoryGb = memoryGb,
-                threads = threads,
-                dockerImage = gatkDockerImage
+                vcfCompressed = confirmedCompressVcf.vcfCompressed
         }
         
-        call merge_vcf.SplitMultiAllelic as confirmSplitMultiAllelic {
+        call mergeVcf.SplitMultiAllelic as confirmSplitMultiAllelic {
             input:
+                pairName = pairName,
                 vcfCompressedIndexed = confirmedIndexVcf.vcfCompressedIndexed,
                 splitVcfPath = sub(basename(confirmedIndexVcf.vcfCompressedIndexed.vcf), ".rename.vcf.gz$", ".split.vcf"),
-                memoryGb = memoryGb,
-                threads = threads,
-                dockerImage = bcftoolsDockerImage
+                referenceFa = referenceFa
         }
         
-        call merge_vcf.SplitMnv {
+        call mergeVcf.SplitMnv {
             input:
                 tool = "lancet",
                 mnvVcfPath = sub(basename(confirmedIndexVcf.vcfCompressedIndexed.vcf), ".rename.vcf.gz$", ".split.vcf"),
-                splitVcf = confirmSplitMultiAllelic.splitVcf,
-                memoryGb = memoryGb,
-                threads = threads,
-                dockerImage = pysamDockerImage     
+                splitVcf = confirmSplitMultiAllelic.splitVcf  
         }
         
-        call merge_vcf.RemoveContig {
+        call mergeVcf.RemoveContig {
             input:
-                memoryGb = memoryGb,
-                threads = threads,
-                dockerImage = pysamDockerImage, 
                 mnvVcfPath = sub(basename(confirmedIndexVcf.vcfCompressedIndexed.vcf), ".rename.vcf.gz$", ".split.vcf"),
                 removeChromVcf = SplitMnv.mnvVcf
         }
         
-        call merge_vcf.Gatk4MergeSortVcf {
+        call mergeVcf.Gatk4MergeSortVcf {
             input:
                 tempVcfs = [RemoveContig.removeContigVcf],
                 sortedVcfPath = sub(basename(select_first([RemoveContig.removeContigVcf, SplitMnv.mnvVcf])), "$", ".gz"),
                 referenceFa = referenceFa,
-                memoryGb = memoryGb,
-                threads = threads,
-                dockerImage = gatkDockerImage 
+                memoryGb = 16,
+                diskSize = 60
         }
         
-        call merge_vcf.CompressVcf as callerCompressVcf {
+        call mergeVcf.CompressVcf as callerCompressVcf {
             input:
                 vcf = allMergeCallers.mergedChromVcf,
-                memoryGb = memoryGb,
-                threads = threads,
-                dockerImage = bgzipDockerImage
+                memoryGb = 4
         }
     
-        call merge_vcf.IndexVcf as callerIndexVcf {
+        call mergeVcf.IndexVcf as callerIndexVcf {
             input:
-                vcfCompressed = callerCompressVcf.vcfCompressed,
-                memoryGb = memoryGb,
-                threads = threads,
-                dockerImage = gatkDockerImage
+                vcfCompressed = callerCompressVcf.vcfCompressed
         }
         
-        call merge_vcf.MergeCallers as lancetMergeCallers {
+        call mergeVcf.MergeCallers as lancetMergeCallers {
             input:
                 chrom = chrom,
                 pairName = pairName,
                 allVcfCompressed = [callerIndexVcf.vcfCompressedIndexed, Gatk4MergeSortVcf.sortedVcf],
-                allVcfCompressedList = [callerIndexVcf.vcfCompressedIndexed.vcf, Gatk4MergeSortVcf.sortedVcf.vcf],
-                memoryGb = memoryGb,
-                threads = threads,
-                dockerImage = bcftoolsDockerImage
+                allVcfCompressedList = [callerIndexVcf.vcfCompressedIndexed.vcf, Gatk4MergeSortVcf.sortedVcf.vcf]
         }
         
         #  =================================================================
         #                     Merge columns
         #  =================================================================
         
-        call merge_vcf.MergeColumns {
+        call mergeVcf.MergeColumns {
             input:
                 chrom = chrom,
                 tumor = tumor,
                 normal = normal,
                 pairName = pairName,
-                supportedChromVcf = lancetMergeCallers.mergedChromVcf,
-                memoryGb = memoryGb,
-                threads = threads,
-                dockerImage = pysamDockerImage
+                supportedChromVcf = lancetMergeCallers.mergedChromVcf
         }
         
-        call merge_vcf.AddNygcAlleleCountsToVcf {
+        call mergeVcf.AddNygcAlleleCountsToVcf {
             input:
                 chrom = chrom,
                 pairName = pairName,
                 columnChromVcf = MergeColumns.columnChromVcf,
                 normalFinalBam = normalFinalBam,
-                tumorFinalBam = tumorFinalBam,
-                memoryGb = memoryGb,
-                threads = threads,
-                dockerImage = pysamDockerImage
+                tumorFinalBam = tumorFinalBam
         }
         
-        call merge_vcf.AddFinalAlleleCountsToVcf {
+        call mergeVcf.AddFinalAlleleCountsToVcf {
             input:
                 chrom = chrom,
                 pairName = pairName,
-                preCountsChromVcf = AddNygcAlleleCountsToVcf.preCountsChromVcf,
-                memoryGb = memoryGb,
-                threads = threads,
-                dockerImage = pysamDockerImage
+                preCountsChromVcf = AddNygcAlleleCountsToVcf.preCountsChromVcf
         }
         
-        call merge_vcf.FilterPon {
+        call mergeVcf.FilterPon {
             input:
                 chrom = chrom,
                 pairName = pairName,
                 countsChromVcf = AddFinalAlleleCountsToVcf.countsChromVcf,
-                ponFile = ponFile,
-                memoryGb = memoryGb,
-                threads = threads,
-                dockerImage = pysamDockerImage
+                ponFile = ponFile
         }
         
-        call merge_vcf.FilterVcf {
+        call mergeVcf.FilterVcf {
             input:
                 chrom = chrom,
                 pairName = pairName,
                 ponOutFile = FilterPon.ponOutFile,
-                germFile = germFile,
-                memoryGb = memoryGb,
-                threads = threads,
-                dockerImage = pysamDockerImage
+                germFile = germFile
         }
         
-        call merge_vcf.SnvstomnvsCountsbasedfilterAnnotatehighconf {
+        call mergeVcf.SnvstomnvsCountsbasedfilterAnnotatehighconf {
             input:
                 chrom = chrom,
                 pairName = pairName,
-                filteredOutFile = FilterVcf.filteredOutFile,
-                memoryGb = memoryGb,
-                threads = threads,
-                dockerImage = pysamDockerImage
+                filteredOutFile = FilterVcf.filteredOutFile
         }
         
     }
