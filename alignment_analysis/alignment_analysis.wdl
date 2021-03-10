@@ -162,6 +162,8 @@ task GemSelect {
         String r1FilePath = "~{sampleId}.first_pair"
         String r2FilePath = "~{sampleId}.second_pair"
         Float maxMismatches = 0.04
+        Float alignmentGlobalMinIdentity = 0.80
+        String outputFormat = "MAP"
         String alignmentHistoPath = "~{sampleId}.alignment.pdf"
         String r1MappedFastqPath = "~{sampleId}.R1_mapped.fastq"
         String r2MappedFastqPath = "~{sampleId}.R2_mapped.fastq"
@@ -190,14 +192,13 @@ task GemSelect {
         --threads ~{samtoolsThreads} \
         - \
         | gem-mapper \
-        -T ~{gemThreads} \
+        --threads ~{gemThreads} \
         --verbose \
-        -I ~{kouramiFastaGem3Index} \
-        -m ~{maxMismatches} \
-        -e ~{maxMismatches} \
-        --mismatch-alphabet ATCGN \
-        --fast-mapping \
-        -q ignore \
+        --index ~{kouramiFastaGem3Index} \
+        --alignment-global-min-identity ~{alignmentGlobalMinIdentity} \
+        --alignment-max-error ~{maxMismatches} \
+        --output-format ~{outputFormat}
+        --mapping-mode "fast"
         | ~{describeAlignments} \
         ~{alignmentHistoPath} \
         | ~{gemToFastq} \
