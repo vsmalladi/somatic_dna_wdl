@@ -1,5 +1,5 @@
 #!/bin/bash
-# USAGE: uuid=$( run.sh -u CROMWELL_URL -w WORKFLOW -o OPTIONS_JSON -i INPUTS )
+# USAGE: uuid=$( run.sh -u CROMWELL_URL -w WORKFLOW -o OPTIONS_JSON -i INPUTS -d DEPENDENCIES -p PROJECT_DATA )
 # DESCRIPTION: submit workflow to cromwell.
 # Script requires jq, cromwell-tools, gcloud to be in the path
 # Script returns the workflow uuid.
@@ -7,7 +7,7 @@
 # in the STDERR stream
 
 print_help() {
-  echo "USAGE: uuid=\$( run.sh -u URL -w WORKFLOW -o OPTIONS_JSON -i INPUTS )"
+  echo "USAGE: uuid=\$( run.sh -u URL -w WORKFLOW -o OPTIONS_JSON -i INPUTS -d DEPENDENCIES -p PROJECT_DATA )"
   echo "DESCRIPTION: submit workflow to cromwell."
   echo "Script requires jq, cromwell-tools, gcloud to be in the path."
   echo "Script returns the workflow uuid."
@@ -17,7 +17,7 @@ print_help() {
 }
 
 print_usage() {
-  echo "USAGE: uuid=\$( run.sh -u URL -w WORKFLOW -o OPTIONS_JSON -i INPUTS )" >&2
+  echo "USAGE: uuid=\$( run.sh -u URL -w WORKFLOW -o OPTIONS_JSON -i INPUTS -d DEPENDENCIES -p PROJECT_DATA )" >&2
   exit 1
 }
 

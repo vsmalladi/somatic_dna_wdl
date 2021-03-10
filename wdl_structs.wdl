@@ -40,6 +40,7 @@ struct sampleInfo {
 
 struct PairRawVcfInfo {
     String pairId
+    File? mergedVcf
     File? mainVcf
     File? supplementalVcf
     File filteredMantaSV
