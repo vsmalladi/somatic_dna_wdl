@@ -219,6 +219,16 @@ def get_args():
         Need to add optional task-specific input json
     '''
     parser = argparse.ArgumentParser()
+    parser.add_argument('--options',
+                        help='Options json file (required)',
+                            required=True
+                            )
+    parser.add_argument('--wdl-file',
+                        help='WDL workflow. '
+                        'To output an input JSON '
+                        'that matches a WDL workflow parse the workflow file in as a flag.',
+                        required=True
+                        )
     parser.add_argument('--library',
                         help='Sequence library type. If not supplied '
                             'define library using --project-data',
@@ -226,14 +236,6 @@ def get_args():
                                      'Exome'],
                             required=False
                             )
-    parser.add_argument('--interval-list',
-                        help='File basename for interval list.'
-                        'If not supplied the default (the SureSelect '
-                        'interval list for your genome) will be used',
-                        dest='intervalList',
-                        choices=['SureSelect_V6plusCOSMIC.target.GRCh38_full_analysis_set_plus_decoy_hla'],
-                        required=False
-                        )
     parser.add_argument('--genome',
                         help='Genome key to use for pipeline. If not supplied '
                         'define genome using --project-data',
@@ -259,10 +261,12 @@ def get_args():
                         'define samples using --project-data',
                         required=False
                         )
-    parser.add_argument('--wdl-file',
-                        help='WDL workflow. '
-                        'To output an input JSON '
-                        'that matches a WDL workflow parse the workflow file in as a flag.',
+    parser.add_argument('--interval-list',
+                        help='File basename for interval list.'
+                        'If not supplied the default (the SureSelect '
+                        'interval list for your genome) will be used',
+                        dest='intervalList',
+                        choices=['SureSelect_V6plusCOSMIC.target.GRCh38_full_analysis_set_plus_decoy_hla'],
                         required=False
                         )
     parser.add_argument('--project-data',
@@ -286,12 +290,9 @@ def get_args():
                         'Disable with caution.Cromwell will launch instances and run without checking. '
                         'Test a small pairs file to ensure all references exist and at least some sample input files '
                         'can be read by the current user. ',
-                        required=False
+                        required=False,
+                        action='store_true'
                         )
-    parser.add_argument('--options',
-                        help='Options json file.',
-                            required=True
-                            )
     args_namespace = parser.parse_args()
     return args_namespace.__dict__
 

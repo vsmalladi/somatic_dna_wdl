@@ -161,12 +161,14 @@ class JsonModify():
                     
                     
 class CloudOutput():
-    def __init__(self, run_data):
+    def __init__(self, run_data, url):
+        self.parent_dir = os.path.abspath(os.path.dirname(__file__))
+        self.url = url
         self.run_data = run_data
         self.options = run_data.options
-        self.uri = run_data.options["final_workflow_log_dir"] + '/workflow.' + self.run_data.workflow_uuid + '.log'
-        self.workflow_log = self.read_gsutil()
-        self.gather_outputs()
+        self.workflow_uuid = self.run_data.workflow_uuid
+        self.raw_outputs = self.read_api()
+        self.parse_block()
         self.unnamed_files = self.gather_unnamed()
         self.divide_by_id()
         self.run_data.run_info['pair_association'] = self.pair_association
@@ -197,6 +199,8 @@ class CloudOutput():
         return new_association
         
     def divide_by_id(self):
+        ''' Find only files with the pair or the sample in the 
+        filename with . or _ after the name'''
         pair_association = {}
         sample_association = {}
         pair_ids = list(set([pair_info["pairId"] for pair_info in self.run_data.project_info["pairInfos"]]))
@@ -243,28 +247,7 @@ class CloudOutput():
         all_files = self.ls_gsutil()
         unnamed_files = list(set(all_files).difference(set(self.named_files)))
         return unnamed_files
-    
-    def gather_outputs(self):
-        '''The last block has final workflow outputs'''
-        for block in self.load_outputs():
-            outputs = json.loads(block)
-        self.raw_outputs = outputs
-        self.parse_block()
-            
-        
-    def load_outputs(self):
-        read = False
-        for line in self.workflow_log.split('\n'):
-            if line.startswith('{'):
-                block = line
-                read = True
-            elif line.startswith('}'):
-                block += line
-                read = False
-                yield block
-            elif read:
-                block += line
-                
+       
     def ls_gsutil(self):
         try:
             result = subprocess.run(['gsutil', 'ls', self.out_dir + '/*'],
@@ -278,16 +261,19 @@ class CloudOutput():
                 and not file.endswith(':')
                 and not file.endswith('/')]
                     
-    def read_gsutil(self):
+    def read_api(self):
+        get_outputs = self.parent_dir + '/get_outputs.sh'
         try:
-            result = subprocess.run(['gsutil', 'cat', self.uri],
+            result = subprocess.run(['bash', get_outputs,
+                                     '-u', self.url,
+                                     '-w', self.workflow_uuid],
                                     check=True,
                                     stdout=subprocess.PIPE).stdout.decode('utf-8')
         except subprocess.CalledProcessError as err:
             log.error(err.output.decode('utf-8'))
-            log.error('Failed to read URI: ' + uri)
+            log.error('Failed to get outputs from api for workflow: ' + self.workflow_uuid)
             return False
-        return result
+        return json.loads(result)
         
         
         
@@ -309,7 +295,7 @@ class RunData():
 def main():
     args = get_args()
     run_data = RunData(run_info_file=args['run_data'])
-    outputs = CloudOutput(run_data=run_data)
+    outputs = CloudOutput(run_data=run_data, url=args['url'])
     file_out = outputs.run_data.run_info["project_data"]['project'].replace(' ', '_') + outputs.run_data.run_info['workflow_uuid'] + '_outputInfo.json'
     with open(file_out, 'w') as project_info_file:
         json.dump(outputs.run_data.run_info, project_info_file, indent=4)
@@ -322,10 +308,14 @@ def get_args():
     '''
     parser = argparse.ArgumentParser()
     parser.add_argument('--run-data',
-                        help='JSON file with RunIfon. Includes workflow uuid, '
+                        help='JSON file with RunInfo. Includes workflow uuid, '
                         'options JSON dictionary submitted to cromwell, '
                         'project pairing, sample, '
                         'genome build, library and interval list information',
+                        required=True
+                        )
+    parser.add_argument('--url',
+                        help='URL for cromwell server.',
                         required=True
                         )
     args_namespace = parser.parse_args()
