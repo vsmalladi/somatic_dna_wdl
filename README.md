@@ -41,25 +41,24 @@ conda activate wdl
 <a name="write_input"/>
 
 ```
-usage: meta.py [-h] [--library {WGS,Exome}]
-               [--interval-list {SureSelect_V6plusCOSMIC.target.GRCh38_full_analysis_set_plus_decoy_hla}]
+usage: meta.py [-h] --options OPTIONS --wdl-file WDL_FILE
+               [--library {WGS,Exome}]
                [--genome {Human_GRCh38_full_analysis_set_plus_decoy_hla}]
                [--project PROJECT] [--pairs-file PAIRS_FILE]
-               [--samples-file SAMPLES_FILE] [--wdl-file WDL_FILE]
+               [--samples-file SAMPLES_FILE]
+               [--interval-list {SureSelect_V6plusCOSMIC.target.GRCh38_full_analysis_set_plus_decoy_hla}]
                [--project-data PROJECT_DATA]
                [--custom-inputs [CUSTOM_INPUTS [CUSTOM_INPUTS ...]]]
-               [--skip-validate SKIP_VALIDATE] --options OPTIONS
+               [--skip-validate]
 
 optional arguments:
   -h, --help            show this help message and exit
-  --options OPTIONS     Options json file (required).
+  --options OPTIONS     Options json file (required)
+  --wdl-file WDL_FILE   WDL workflow. To output an input JSON that matches a
+                        WDL workflow parse the workflow file in as a flag.
   --library {WGS,Exome}
                         Sequence library type. If not supplied define library
                         using --project-data
-  --interval-list {SureSelect_V6plusCOSMIC.target.GRCh38_full_analysis_set_plus_decoy_hla}
-                        File basename for interval list.If not supplied the
-                        default (the SureSelect interval list for your genome)
-                        will be used
   --genome {Human_GRCh38_full_analysis_set_plus_decoy_hla}
                         Genome key to use for pipeline. If not supplied define
                         genome using --project-data
@@ -75,8 +74,10 @@ optional arguments:
                         info can be populated with a CSV file. The CSV file
                         requires a columns named ["sampleId"]. If not supplied
                         define samples using --project-data
-  --wdl-file WDL_FILE   WDL workflow. To output an input JSON that matches a
-                        WDL workflow parse the workflow file in as a flag.
+  --interval-list {SureSelect_V6plusCOSMIC.target.GRCh38_full_analysis_set_plus_decoy_hla}
+                        File basename for interval list.If not supplied the
+                        default (the SureSelect interval list for your genome)
+                        will be used
   --project-data PROJECT_DATA
                         Optional JSON file with project pairing, sample,
                         genome build, library and interval list information
@@ -87,8 +88,7 @@ optional arguments:
                         required that the input specify the workflow. By
                         default the input will be added to the top-level
                         workflow.
-  --skip-validate SKIP_VALIDATE
-                        Skip the step where input files are validated.
+  --skip-validate       Skip the step where input files are validated.
                         Otherwise all gs//: URIs will be checked to see that a
                         file exists. Disable with caution.Cromwell will launch
                         instances and run without checking. Test a small pairs
@@ -110,17 +110,20 @@ python wdl_port/tools/meta.py \
 --options options.json
 ```
 
+#### Output:
+
+  1. `calling_wkfInput.json` - inputs for cromwell
+  2. `lab-number_projectInfo.json` - contains project info like the current list of samples/pairs and the library type as well as the pipeline version (tag and commit). Subsequent runs can use `--project-data  lab-number_projectInfo.json` and skip defining pair, library, interval list, genome, etc. 
+
 # zip dependencies
+
+This must be done because cromwell says so :). You must use zip.
 
 ```
 cd wdl_port
 zip dependencies.zip wdl_structs.wdl */*.wdl
 cd -
 ```
-#### Output:
-
-  1. `calling_wkfInput.json` - inputs for cromwell
-  2. `lab-number_projectInfo.json` - contains project info like the current list of samples/pairs and the library type as well as the pipeline version (tag and commit). Subsequent runs can use `--project-data  lab-number_projectInfo.json` and skip defining pair, library, interval list, genome, etc. 
 
 ### Run
 <a name="run"/>
