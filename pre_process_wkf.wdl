@@ -3,7 +3,7 @@ version 1.0
 import "pre_process/align_fastq_wkf.wdl" as alignFastq
 import "pre_process/merge_bams_wkf.wdl" as mergeBams
 import "wdl_structs.wdl"
-import "qc/qc_wkf.wdl" as qc
+import "pre_process/qc_wkf.wdl" as qc
 
 workflow Preprocess {
     # command

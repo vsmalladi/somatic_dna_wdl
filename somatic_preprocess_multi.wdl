@@ -1,7 +1,7 @@
 version 1.0
 import "./wdl_structs.wdl"
 import "pre_process/pre_process.wdl" as preprocess
-import "qc/qc_wkf.wdl" as qc
+import "pre_process/qc_wkf.wdl" as qc
 
 workflow SomaticWorkflow {
     input {
