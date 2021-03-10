@@ -14,7 +14,7 @@ workflow MergeCallers {
         Array[String]+ listOfChroms
         Array[IndexedVcf]+ allVcfCompressed
         
-        File knownGeneBed
+        File intervalListBed
         
         IndexedReference referenceFa
         Bam normalFinalBam
@@ -43,7 +43,7 @@ workflow MergeCallers {
         input:
             chrom = chrom,
             pairName = pairName,
-            knownGeneBed = knownGeneBed,
+            intervalListBed = intervalListBed,
             mergedChromVcf = allMergeCallers.mergedChromVcf
             
         }

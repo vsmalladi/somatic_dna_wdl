@@ -16,7 +16,7 @@ workflow MergeVcf {
         Array[String]+ listOfChroms
         
         # merge callers
-        File knownGeneBed
+        File intervalListBed
         File ponFile
         IndexedVcf germFile
     }
@@ -93,7 +93,7 @@ workflow MergeVcf {
             normal=pairRawVcfInfo.normal,
             pairName=pairRawVcfInfo.pairId,
             listOfChroms=listOfChroms,
-            knownGeneBed=knownGeneBed,
+            intervalListBed=intervalListBed,
             referenceFa=referenceFa,
             normalFinalBam=pairRawVcfInfo.normalFinalBam,
             tumorFinalBam=pairRawVcfInfo.tumorFinalBam,

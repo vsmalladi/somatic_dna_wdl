@@ -14,25 +14,46 @@ workflow MergeVcf {
         Array[String]+ listOfChroms
         
         # merge callers
-        File knownGeneBed
-        File ponFile
+        File intervalListBed
+        
+        String library
+        File ponWGSFile
+        File ponExomeFile
+
         IndexedVcf germFile
     }
     
     scatter(pairRawVcfInfo in pairRawVcfInfos) {
-        call mergeVcf.MergeVcf {
-            input:
-                pairRawVcfInfo = pairRawVcfInfo,
-                referenceFa = referenceFa,
-                listOfChroms = listOfChroms,
-                knownGeneBed = knownGeneBed,
-                ponFile = ponFile,
-                germFile = germFile
-                
+        if (library == 'WGS') {
+            call mergeVcf.MergeVcf as wgsMergeVcf {
+                input:
+                    pairRawVcfInfo = pairRawVcfInfo,
+                    referenceFa = referenceFa,
+                    listOfChroms = listOfChroms,
+                    intervalListBed = intervalListBed,
+                    ponFile = ponWGSFile,
+                    germFile = germFile
+                    
+            }
         }
+        
+        if (library == 'Exome') {
+            call mergeVcf.MergeVcf as exomeMergeVcf {
+                input:
+                    pairRawVcfInfo = pairRawVcfInfo,
+                    referenceFa = referenceFa,
+                    listOfChroms = listOfChroms,
+                    intervalListBed = intervalListBed,
+                    ponFile = ponExomeFile,
+                    germFile = germFile
+                    
+            }
+        }
+        
+        File mergedVcf = select_first([wgsMergeVcf.mergedVcf, exomeMergeVcf.mergedVcf])
     }
     
     output {
-        Array[File] mergedVcfs = MergeVcf.mergedVcf
+        Array[File] mergedVcfs = mergedVcf
     }
 }

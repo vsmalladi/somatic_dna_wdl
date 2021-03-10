@@ -364,7 +364,7 @@ task StartCandidates {
         String pairName
         String chrom
         String startChromVcfPath = "~{pairName}.start.merged.v6.~{chrom}.vcf"
-        File knownGeneBed
+        File intervalListBed
         File mergedChromVcf
         Int memoryGb = 16
         Int diskSize = 20
@@ -375,7 +375,7 @@ task StartCandidates {
         intersect \
         -header \
         -a ~{mergedChromVcf} \
-        -b ~{knownGeneBed} \
+        -b ~{intervalListBed} \
         -v \
         > ~{startChromVcfPath}
     }
