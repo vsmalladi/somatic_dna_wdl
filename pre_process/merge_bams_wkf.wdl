@@ -1,7 +1,7 @@
 version 1.0
 
 import "./merge_bams.wdl" as mergeBams
-import "../qc/qc.wdl" as qc
+import "./qc.wdl" as qc
 import "../wdl_structs.wdl"
 
 workflow MergeBams {
@@ -51,7 +51,7 @@ workflow MergeBams {
             inputBam = novosort.mergedDedupBam,
             sampleId = sampleId,
             outputDir = qcDir,
-            CollectWgsMetricsPath = "~{qcDir}/~{sampleId}.CollectWgsMetrics.dedup.txt",
+            collectWgsMetricsPath = "~{qcDir}/~{sampleId}.CollectWgsMetrics.dedup.txt",
             referenceFa = referenceFa,
             randomIntervals = randomIntervals,
             diskSize = diskSize
@@ -94,10 +94,9 @@ workflow MergeBams {
     }
 
     output {
-        #Bam mergedDedupBam = novosort.mergedDedupBam
         Bam finalBam = PrintReads.finalBam
-        File collectWgsMetricsPreBqsr = CollectWgsMetrics.CollectWgsMetrics
-        File qualityDistributionPdPreBqsr = MultipleMetricsPreBqsr.qualityDistributionPdfPreBqsr
+        File collectWgsMetricsPreBqsr = CollectWgsMetrics.collectWgsMetrics
+        File qualityDistributionPdfPreBqsr = MultipleMetricsPreBqsr.qualityDistributionPdfPreBqsr
         File qualityByCycleMetricsPreBqsr = MultipleMetricsPreBqsr.qualityByCycleMetricsPreBqsr
         File qualityByCyclePdfPreBqsr = MultipleMetricsPreBqsr.qualityByCyclePdfPreBqsr
         File qualityDistributionMetricsPreBqsr = MultipleMetricsPreBqsr.qualityDistributionMetricsPreBqsr

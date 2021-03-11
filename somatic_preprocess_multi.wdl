@@ -1,16 +1,15 @@
 version 1.0
 import "./wdl_structs.wdl"
-import "pre_process/pre_process.wdl" as preprocess
+import "pre_process/pre_process_wkf.wdl" as preprocess
 import "pre_process/qc_wkf.wdl" as qc
 
 workflow SomaticWorkflow {
     input {
         BwaReference bwaReference
-        IndexedReference indexedReference
+        IndexedReference referenceFa
         IndexedVcf MillsAnd1000G
         IndexedVcf Indels
-        IndexedVcf DbSnp
-        File chromFile
+        IndexedVcf dbsnp
         File chromLengths  # Is this different from above?
         File hsMetricsIntervals
         File randomIntervals
@@ -28,11 +27,11 @@ workflow SomaticWorkflow {
                 listOfFastqPairs = tumorFastqs[i],
                 sampleId = tumorIds[i],
                 bwaReference = bwaReference,
-                indexedReference = indexedReference,
+                referenceFa = referenceFa,
                 MillsAnd1000G = MillsAnd1000G,
                 Indels = Indels,
-                DbSnp = DbSnp,
-                chromFile = chromFile
+                dbsnp = dbsnp,
+                chromLengths = chromLengths
         }
     }
 
@@ -42,11 +41,11 @@ workflow SomaticWorkflow {
                 listOfFastqPairs = normalFastqs[i],
                 sampleId = normalIds[i],
                 bwaReference = bwaReference,
-                indexedReference = indexedReference,
+                referenceFa = referenceFa,
                 MillsAnd1000G = MillsAnd1000G,
                 Indels = Indels,
-                DbSnp = DbSnp,
-                chromFile = chromFile
+                dbsnp = dbsnp,
+                chromLengths = chromLengths
         }
 
     }
@@ -69,13 +68,13 @@ workflow SomaticWorkflow {
         Array[File] tumorGcBiasMetrics = tumorPrep.gcBiasMetrics
         Array[File] tumorGcBiasSummary = tumorPrep.gcBiasSummary
         Array[File] tumorGcBiasPdf = tumorPrep.gcBiasPdf
-        Array[File] tumorFlagStat = tumorPrep.FlagStat
-        Array[File] tumorHsMetrics = tumorPrep.HsMetrics
-        Array[File] tumorHsMetricsPerTargetCoverage = tumorPrep.HsMetricsPerTargetCoverage
-        Array[File] tumorHsMetricsPerTargetCoverageAutocorr = tumorPrep.HsMetricsPerTargetCoverageAutocorr
+        Array[File] tumorFlagStat = tumorPrep.flagStat
+        Array[File] tumorHsMetrics = tumorPrep.hsMetrics
+        Array[File] tumorHsMetricsPerTargetCoverage = tumorPrep.hsMetricsPerTargetCoverage
+        Array[File] tumorHsMetricsPerTargetCoverageAutocorr = tumorPrep.hsMetricsPerTargetCoverageAutocorr
         Array[File] tumorAutocorroutput1100 = tumorPrep.autocorroutput1100
-        Array[File] tumorCollectOxoGMetrics = tumorPrep.CollectOxoGMetrics
-        Array[File] tumorCollectWgsMetrics = tumorPrep.CollectWgsMetrics
+        Array[File] tumorCollectOxoGMetrics = tumorPrep.collectOxoGMetrics
+        Array[File] tumorCollectWgsMetrics = tumorPrep.collectWgsMetrics
         Array[File] tumorBinestCov = tumorPrep.binestCov
         Array[File] tumorNormCoverageByChrPng = tumorPrep.normCoverageByChrPng
         
@@ -97,13 +96,13 @@ workflow SomaticWorkflow {
         Array[File] normalGcBiasMetrics = normalPrep.gcBiasMetrics
         Array[File] normalGcBiasSummary = normalPrep.gcBiasSummary
         Array[File] normalGcBiasPdf = normalPrep.gcBiasPdf
-        Array[File] normalFlagStat = normalPrep.FlagStat
-        Array[File] normalHsMetrics = normalPrep.HsMetrics
-        Array[File] normalHsMetricsPerTargetCoverage = normalPrep.HsMetricsPerTargetCoverage
-        Array[File] normalHsMetricsPerTargetCoverageAutocorr = normalPrep.HsMetricsPerTargetCoverageAutocorr
+        Array[File] normalFlagStat = normalPrep.flagStat
+        Array[File] normalHsMetrics = normalPrep.hsMetrics
+        Array[File] normalHsMetricsPerTargetCoverage = normalPrep.hsMetricsPerTargetCoverage
+        Array[File] normalHsMetricsPerTargetCoverageAutocorr = normalPrep.hsMetricsPerTargetCoverageAutocorr
         Array[File] normalAutocorroutput1100 = normalPrep.autocorroutput1100
-        Array[File] normalCollectOxoGMetrics = normalPrep.CollectOxoGMetrics
-        Array[File] normalCollectWgsMetrics = normalPrep.CollectWgsMetrics
+        Array[File] normalCollectOxoGMetrics = normalPrep.collectOxoGMetrics
+        Array[File] normalCollectWgsMetrics = normalPrep.collectWgsMetrics
         Array[File] normalBinestCov = normalPrep.binestCov
         Array[File] normaNormCoverageByChrPng = normalPrep.normCoverageByChrPng
     }

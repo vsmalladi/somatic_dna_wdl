@@ -8,7 +8,6 @@ workflow QcMetrics {
     # command
     input {
         Bam finalBam
-        Bam mergedDedupBam
         IndexedReference referenceFa
         String sampleId
         File hsMetricsIntervals
@@ -25,15 +24,6 @@ workflow QcMetrics {
         input:
             referenceFa = referenceFa,
             finalBam = finalBam,
-            sampleId = sampleId,
-            outputDir = outputDir,
-            diskSize = diskSize
-    }
-
-    call qc.MultipleMetricsPreBqsr {
-        input:
-            referenceFa = referenceFa,
-            mergedDedupBam = mergedDedupBam,
             sampleId = sampleId,
             outputDir = outputDir,
             diskSize = diskSize
@@ -70,14 +60,14 @@ workflow QcMetrics {
 
     call qc.FormatHsMetrics {
         input:
-            HsMetricsPerTargetCoverage = HsMetrics.HsMetricsPerTargetCoverage,
+            hsMetricsPerTargetCoverage = HsMetrics.hsMetricsPerTargetCoverage,
             sampleId = sampleId,
             outputDir = outputDir
     }
 
     call qc.Autocorrelations {
         input:
-            HsMetricsPerTargetCoverageAutocorr = FormatHsMetrics.HsMetricsPerTargetCoverageAutocorr,
+            hsMetricsPerTargetCoverageAutocorr = FormatHsMetrics.hsMetricsPerTargetCoverageAutocorr,
             sampleId = sampleId,
             outputDir = outputDir
     }
@@ -143,20 +133,16 @@ workflow QcMetrics {
         File qualityDistributionMetrics = MultipleMetrics.qualityDistributionMetrics
         File insertSizeHistogramPdf = MultipleMetrics.insertSizeHistogramPdf
         File insertSizeMetrics = MultipleMetrics.insertSizeMetrics
-        File qualityDistributionPdfPreBqsr = MultipleMetricsPreBqsr.qualityDistributionPdfPreBqsr
-        File qualityByCycleMetricsPreBqsr = MultipleMetricsPreBqsr.qualityByCycleMetricsPreBqsr
-        File qualityByCyclePdfPreBqsr = MultipleMetricsPreBqsr.qualityByCyclePdfPreBqsr
-        File qualityDistributionMetricsPreBqsr = MultipleMetricsPreBqsr.qualityDistributionMetricsPreBqsr
         File gcBiasMetrics = CollectGcBiasMetrics.gcBiasMetrics
         File gcBiasSummary = CollectGcBiasMetrics.gcBiasSummary
         File gcBiasPdf = CollectGcBiasMetrics.gcBiasPdf
-        File FlagStat = Flagstat.FlagStat
-        File HsMetrics = HsMetrics.HsMetrics
-        File HsMetricsPerTargetCoverage = HsMetrics.HsMetricsPerTargetCoverage
-        File HsMetricsPerTargetCoverageAutocorr = FormatHsMetrics.HsMetricsPerTargetCoverageAutocorr
+        File flagStat = Flagstat.flagStat
+        File hsMetrics = HsMetrics.hsMetrics
+        File hsMetricsPerTargetCoverage = HsMetrics.hsMetricsPerTargetCoverage
+        File hsMetricsPerTargetCoverageAutocorr = FormatHsMetrics.hsMetricsPerTargetCoverageAutocorr
         File autocorroutput1100 = Autocorrelations.autocorroutput1100
-        File CollectOxoGMetrics = CollectOxoGMetricsWgs.CollectOxoGMetrics
-        File CollectWgsMetrics = CollectWgsMetricsWgsDecoy.CollectWgsMetrics
+        File collectOxoGMetrics = CollectOxoGMetricsWgs.collectOxoGMetrics
+        File collectWgsMetrics = CollectWgsMetrics.collectWgsMetrics
         File binestCov = BinestCov.binestCov
         File normCoverageByChrPng = PlotBinCov.normCoverageByChrPng
     }

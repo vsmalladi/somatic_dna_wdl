@@ -141,24 +141,24 @@ task Flagstat {
         Int diskSize
         String sampleId
         String outputDir = "."
-        String FlagStatPath = "~{outputDir}/~{sampleId}.FlagStat.txt"
+        String flagStatPath = "~{outputDir}/~{sampleId}.FlagStat.txt"
         IndexedReference referenceFa
         Bam finalBam
     }
 
     command {
-        mkdir -p $(dirname ~{FlagStatPath})
+        mkdir -p $(dirname ~{flagStatPath})
 
         gatk FlagStat \
         --java-options "-Xmx24G -XX:ParallelGCThreads=1" \
         --verbosity INFO \
         --reference ~{referenceFa.fasta} \
         -I ~{finalBam.bam} \
-        > ~{FlagStatPath}
+        > ~{flagStatPath}
     }
 
     output {
-        File FlagStat = "~{FlagStatPath}"
+        File flagStat = "~{flagStatPath}"
     }
 
     runtime {
@@ -176,15 +176,15 @@ task HsMetrics {
         Int diskSize
         String sampleId
         String outputDir = "."
-        String HsMetricsPath = "~{outputDir}/~{sampleId}.HsMetrics.txt"
-        String HsMetricsPerTargetCoveragePath = "~{outputDir}/~{sampleId}.HsMetrics.perTargetCoverage.txt"
+        String hsMetricsPath = "~{outputDir}/~{sampleId}.HsMetrics.txt"
+        String hsMetricsPerTargetCoveragePath = "~{outputDir}/~{sampleId}.HsMetrics.perTargetCoverage.txt"
         IndexedReference referenceFa
         Bam finalBam
         File hsMetricsIntervals
     }
 
     command {
-        mkdir -p $(dirname ~{HsMetricsPath})
+        mkdir -p $(dirname ~{hsMetricsPath})
 
         gatk CollectHsMetrics \
         --java-options "-Xmx32G -XX:ParallelGCThreads=1" \
@@ -196,15 +196,15 @@ task HsMetrics {
         --MINIMUM_BASE_QUALITY 0 \
         --CLIP_OVERLAPPING_READS false \
         --REFERENCE_SEQUENCE ~{referenceFa.fasta} \
-        -O ~{HsMetricsPath} \
+        -O ~{hsMetricsPath} \
         -I ~{finalBam.bam} \
-        --PER_TARGET_COVERAGE ~{HsMetricsPerTargetCoveragePath} \
+        --PER_TARGET_COVERAGE ~{hsMetricsPerTargetCoveragePath} \
         --VALIDATION_STRINGENCY SILENT
     }
 
     output {
-        File HsMetrics = "~{HsMetricsPath}"
-        File HsMetricsPerTargetCoverage = "~{HsMetricsPerTargetCoveragePath}"
+        File hsMetrics = "~{hsMetricsPath}"
+        File hsMetricsPerTargetCoverage = "~{hsMetricsPerTargetCoveragePath}"
     }
 
     runtime {
@@ -221,20 +221,20 @@ task FormatHsMetrics {
         Int memoryGb = 4
         String sampleId
         String outputDir = '.'
-        String HsMetricsPerTargetCoverageAutocorrPath = "~{outputDir}/~{sampleId}.HsMetrics.perTargetCoverage.txt.autocorr"
-        File HsMetricsPerTargetCoverage
+        String hsMetricsPerTargetCoverageAutocorrPath = "~{outputDir}/~{sampleId}.HsMetrics.perTargetCoverage.txt.autocorr"
+        File hsMetricsPerTargetCoverage
     }
 
     command {
-        mkdir -p $(dirname ~{HsMetricsPerTargetCoverageAutocorrPath})
+        mkdir -p $(dirname ~{hsMetricsPerTargetCoverageAutocorrPath})
 
         perl /create_autocorrelation_input.v.0.1.pl \
-        -input ~{HsMetricsPerTargetCoverage} \
-        > ~{HsMetricsPerTargetCoverageAutocorrPath} \
+        -input ~{hsMetricsPerTargetCoverage} \
+        > ~{hsMetricsPerTargetCoverageAutocorrPath} \
     }
 
     output {
-        File HsMetricsPerTargetCoverageAutocorr = "~{HsMetricsPerTargetCoverageAutocorrPath}"
+        File hsMetricsPerTargetCoverageAutocorr = "~{hsMetricsPerTargetCoverageAutocorrPath}"
     }
 
     runtime {
@@ -250,7 +250,7 @@ task Autocorrelations {
         Int memoryGb = 4
         String sampleId
         String outputDir = '.'
-        File HsMetricsPerTargetCoverageAutocorr
+        File hsMetricsPerTargetCoverageAutocorr
     }
 
     command {
@@ -259,7 +259,7 @@ task Autocorrelations {
         R --no-save \
         --args \
         ~{outputDir}/ \
-        ~{HsMetricsPerTargetCoverageAutocorr} \
+        ~{hsMetricsPerTargetCoverageAutocorr} \
         ~{sampleId} \
         < /ASP_modified_final.v.0.1.R \
     }
@@ -283,24 +283,24 @@ task CollectOxoGMetricsWgs {
         Int diskSize
         String sampleId
         String outputDir = "."
-        String CollectOxoGMetricsPath = "~{outputDir}/~{sampleId}.CollectOxoGMetrics.txt"
+        String collectOxoGMetricsPath = "~{outputDir}/~{sampleId}.CollectOxoGMetrics.txt"
         IndexedReference referenceFa
         Bam finalBam
     }
 
     command {
-        mkdir -p $(dirname ~{CollectOxoGMetricsPath})
+        mkdir -p $(dirname ~{collectOxoGMetricsPath})
 
         gatk CollectOxoGMetrics \
         --java-options "-Xmx4G -XX:ParallelGCThreads=1" \
         --VALIDATION_STRINGENCY SILENT \
         -I ~{finalBam.bam} \
-        -O ~{CollectOxoGMetricsPath} \
+        -O ~{collectOxoGMetricsPath} \
         --REFERENCE_SEQUENCE ~{referenceFa.fasta}
     }
 
     output {
-        File CollectOxoGMetrics = "~{CollectOxoGMetricsPath}"
+        File collectOxoGMetrics = "~{collectOxoGMetricsPath}"
     }
 
     runtime {
@@ -318,20 +318,20 @@ task CollectWgsMetrics {
         Int diskSize
         String sampleId
         String outputDir = "."
-        String CollectWgsMetricsPath = "~{outputDir}/~{sampleId}.CollectWgsMetrics.txt"
+        String collectWgsMetricsPath = "~{outputDir}/~{sampleId}.CollectWgsMetrics.txt"
         IndexedReference referenceFa
         Bam inputBam
         File randomIntervals
     }
 
     command {
-        mkdir -p $(dirname ~{CollectWgsMetricsPath})
+        mkdir -p $(dirname ~{collectWgsMetricsPath})
 
         gatk CollectWgsMetrics \
         --java-options "-Xmx24G -XX:ParallelGCThreads=1" \
         --VALIDATION_STRINGENCY SILENT \
         -I ~{inputBam.bam} \
-        -O ~{CollectWgsMetricsPath} \
+        -O ~{collectWgsMetricsPath} \
         --INTERVALS ~{randomIntervals} \
         -R ~{referenceFa.fasta} \
         --MINIMUM_MAPPING_QUALITY 0 \
@@ -342,7 +342,7 @@ task CollectWgsMetrics {
     }
 
     output {
-        File CollectWgsMetrics = "~{CollectWgsMetricsPath}"
+        File collectWgsMetrics = "~{collectWgsMetricsPath}"
     }
 
     runtime {
