@@ -73,6 +73,11 @@ struct PairVcfInfo {
     Bam normalFinalBam
 }
 
+struct PairRelationship {
+    String pairId
+    String tumor
+    String normal
+}
 
 struct pairInfo {
     String pairId
