@@ -77,22 +77,52 @@ def load_bam(row, pair_info, kind):
  
 def load_sample_info(sample_id):
     '''temp version to add FASTQ file replace once GCP file manifest format is known'''
-    sample_info = {"sampleId" : sample_id}
-    fastq_pair = {'fastqR1': "gs://nygc-comp-s-82ed-input/WGS/CA-103/fastq/CA-0103N-D-W_CCGAAGTA_HYVLCCCXX_L001_001.R1.fastq.gz",
-                   'fastqR2': "gs://nygc-comp-s-82ed-input/WGS/CA-103/fastq/CA-0103N-D-W_CCGAAGTA_HYVLCCCXX_L001_001.R2.fastq.gz",
-                   'readgroupId': 'CA-0110N-D-W_AAGGTACA_HY7KNCCXX_L001',
-                   'flowcell': 'HY7KNCCXX',
-                   'lane': 'L001',
-                   'barcode': 'AAGGTACA'}
-    fastq_pair2 = {'fastqR1': "gs://nygc-comp-s-82ed-input/WGS/CA-103/fastq/CA-0103N-D-W_CCGAAGTA_HYVLCCCXX_L002_001.R1.fastq.gz",
-                   'fastqR2': "gs://nygc-comp-s-82ed-input/WGS/CA-103/fastq/CA-0103N-D-W_CCGAAGTA_HYVLCCCXX_L002_001.R2.fastq.gz",
-                   'readgroupId': 'CA-0110N-D-W_AAGGTACA_HY7KNCCXX_L001',
-                   'flowcell': 'HY7KNCCXX',
-                   'lane': 'L002',
-                   'barcode': 'AAGGTACA'}
+    if sample_id == 'CA-0103N-D-W':
+        sample_info = {"sampleId" : sample_id}
+        fastq_pair = {'fastqR1': "gs://nygc-comp-s-82ed-input/WGS/CA-103/fastq/CA-0103N-D-W_CCGAAGTA_HYVLCCCXX_L001_001.R1.fastq.gz",
+                       'fastqR2': "gs://nygc-comp-s-82ed-input/WGS/CA-103/fastq/CA-0103N-D-W_CCGAAGTA_HYVLCCCXX_L001_001.R2.fastq.gz",
+                       'readgroupId': 'CA-0110N-D-W_AAGGTACA_HY7KNCCXX_L001',
+                       'flowcell': 'HY7KNCCXX',
+                       'lane': 'L001',
+                       'sampleId' : sample_id,
+                       'rgpu': 'HY7KNCCXX.L002.AAGGTACA',
+                       'barcode': 'AAGGTACA'}
+        fastq_pair2 = {'fastqR1': "gs://nygc-comp-s-82ed-input/WGS/CA-103/fastq/CA-0103N-D-W_CCGAAGTA_HYVLCCCXX_L002_001.R1.fastq.gz",
+                       'fastqR2': "gs://nygc-comp-s-82ed-input/WGS/CA-103/fastq/CA-0103N-D-W_CCGAAGTA_HYVLCCCXX_L002_001.R2.fastq.gz",
+                       'readgroupId': 'CA-0110N-D-W_AAGGTACA_HY7KNCCXX_L001',
+                       'flowcell': 'HY7KNCCXX',
+                       'lane': 'L002',
+                       'sampleId' : sample_id,
+                       'rgpu': 'HY7KNCCXX.L002.AAGGTACA',
+                       'barcode': 'AAGGTACA'}
+    else:
+        sample_info = {"sampleId" : sample_id}
+        fastq_pair = {'fastqR1': "gs://nygc-comp-s-82ed-input/WGS/CA-103/fastq/CA-0103T-D-W_AGATCGCA_HYVLCCCXX_L005_001.R1.fastq.gz",
+                       'fastqR2': "gs://nygc-comp-s-82ed-input/WGS/CA-103/fastq/CA-0103T-D-W_AGATCGCA_HYVLCCCXX_L005_001.R2.fastq.gz",
+                       'readgroupId': 'CA-0103T-D-W_AGATCGCA_HY7KNCCXX_L005',
+                       'flowcell': 'HY7KNCCXX',
+                       'lane': 'L005',
+                       'sampleId' : sample_id,
+                       'rgpu': 'HYVLCCCXX.L005.AGATCGCA',
+                       'barcode': 'AGATCGCA'}
+        fastq_pair2 = {'fastqR1': "gs://nygc-comp-s-82ed-input/WGS/CA-103/fastq/CA-0103T-D-W_AGATCGCA_HYVLCCCXX_L006_001.R1.fastq.gz",
+                       'fastqR2': "gs://nygc-comp-s-82ed-input/WGS/CA-103/fastq/CA-0103T-D-W_AGATCGCA_HYVLCCCXX_L006_001.R2.fastq.gz",
+                       'readgroupId': 'CA-0103T-D-W_AGATCGCA_HY7KNCCXX_L006',
+                       'flowcell': 'HY7KNCCXX',
+                       'lane': 'L006',
+                       'sampleId' : sample_id,
+                       'rgpu': 'HYVLCCCXX.L006.AGATCGCA',
+                       'barcode': 'AGATCGCA'}
     sample_info['listOfFastqPairs']  = [fastq_pair, fastq_pair2]
     return sample_info
-        
+
+def fill_pair_relationship(row):
+    '''Add pair and sample level info to object
+    PairRelationship '''
+    pair_relationship = {"pairId" : row.pairId}
+    pair_relationship['normal'] = row['normal']
+    pair_relationship['tumor'] = row['tumor']
+    return pair_relationship      
 
 def fill_pair(row):
     '''Add pair and sample level info to object'''
@@ -155,9 +185,14 @@ def repopulate(args):
     if args['pairs_file']:
         pairs = load_pairs(args['pairs_file'])
         pair_info = []
+        pair_info_relationships = []
         for index, row in pairs.iterrows():
             current_pair_info = fill_pair(row)
             pair_info.append(current_pair_info)
+            current_pair_info_relationship = fill_pair_relationship(row)
+            pair_info_relationships.append(current_pair_info_relationship)
+            
+    project_info = note_updates(key='listOfPairRelationships', args_key=pair_info_relationships, project_info=project_info)
     project_info = note_updates(key='pairInfos', args_key=pair_info, project_info=project_info)
     
     pair_ids = list(set([info['pairId'] for info in project_info['pairInfos']]))
