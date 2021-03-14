@@ -12,6 +12,7 @@ workflow AlignFastq {
         # resources
         Int bwaMem
         Int threads
+        Int bwaThreads
     }
 
     Int additionalDiskSize = 50
@@ -24,6 +25,7 @@ workflow AlignFastq {
                 bwaReference = bwaReference,
                 mem = bwaMem,
                 threads = threads,
+                bwaThreads = bwaThreads,
                 diskSize = diskSize
         }
 

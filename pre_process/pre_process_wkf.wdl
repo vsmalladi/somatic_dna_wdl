@@ -29,7 +29,8 @@ workflow Preprocess {
         #    prep flowcell
         Int bwaMem = 24
         Int novosortMem = 80
-        Int threads = 8
+        Int threads = 16
+        Int bwaThreads = 64
     }
 
     call alignFastq.AlignFastq {
@@ -37,7 +38,8 @@ workflow Preprocess {
             listOfFastqPairs = listOfFastqPairs,
             bwaReference = bwaReference,
             bwaMem = bwaMem,
-            threads = threads
+            threads = threads,
+            bwaThreads = bwaThreads
     }
 
     call mergeBams.MergeBams {

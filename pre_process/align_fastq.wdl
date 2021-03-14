@@ -11,6 +11,7 @@ task AlignBwaMem {
         # resources
         Int mem
         Int threads
+        Int bwaThreads
         Int diskSize
 
         # Values used in RG tags. These are overridden for external fastqs or if we start using
@@ -26,12 +27,13 @@ task AlignBwaMem {
         bwa mem \
         -Y \
         -K 100000000 \
-        -t ~{threads} \
+        -t ~{bwaThreads} \
         -R '@RG\tID:~{fastqs.readgroupId}\tPL:~{platform}\tPM:~{machineType}\tLB:~{fastqs.sampleId}\tDS:hg38\tSM:~{fastqs.sampleId}\tCN:~{center}\tPU:${fastqs.rgpu}' \
         ~{bwaReference.fasta} \
         ~{fastqs.fastqR1} \
         ~{fastqs.fastqR2} \
         | samtools view \
+        -@ ~{threads} \
         -Shb \
         -o ~{laneBamPath} \
         -
