@@ -13,7 +13,7 @@ workflow QcMetrics {
         File hsMetricsIntervals
         File randomIntervals
         File chromLengths
-        File gnomadBiallelic
+        IndexedVcf gnomadBiallelic
         String outputDir = "."
     }
 

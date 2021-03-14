@@ -13,7 +13,7 @@ workflow CalculateContamination {
         String normal
         String pairName
 
-        File gnomadBiallelic
+        IndexedVcf gnomadBiallelic
         Int threads = 1
         Int memoryGb = 16
     }

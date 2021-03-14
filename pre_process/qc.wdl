@@ -418,7 +418,7 @@ task Pileup {
         String outputDir = "."
         String pileupsTablePath = "~{outputDir}/~{sampleId}_pileups_table.table"
         Bam finalBam
-        File gnomadBiallelic
+        IndexedVcf gnomadBiallelic
     }
 
     command {
@@ -427,7 +427,7 @@ task Pileup {
         gatk GetPileupSummaries \
         --java-options "-Xmx12G -XX:ParallelGCThreads=1" \
         -I ~{finalBam.bam} \
-        -V ~{gnomadBiallelic} \
+        -V ~{gnomadBiallelic.vcf} \
         -O ~{pileupsTablePath}
     }
 

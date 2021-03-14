@@ -23,7 +23,7 @@ workflow Preprocess {
         File hsMetricsIntervals
         File randomIntervals
         File chromLengths
-        File gnomadBiallelic
+        IndexedVcf gnomadBiallelic
 
         # resources
         #    prep flowcell
