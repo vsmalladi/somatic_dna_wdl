@@ -408,13 +408,13 @@ task SvabaWgs {
     command {
         svaba \
         run \
-        -t ~{tumorFinalBam.bam} \
-        -n ~{normalFinalBam.bam} \
-        -p ~{threads} \
-        -D ~{dbsnpIndels} \
-        -a ~{pairName} \
-        -G ~{bwaReference.fasta} \
-        -z on
+        --case-bam ~{tumorFinalBam.bam} \
+        --control-bam ~{normalFinalBam.bam} \
+        --threads ~{threads} \
+        --dbsnp-vcf ~{dbsnpIndels} \
+        --id-string ~{pairName} \
+        --reference-genome ~{bwaReference.fasta} \
+        --g-zip on
     }
 
     output {
@@ -428,7 +428,7 @@ task SvabaWgs {
         cpu : threads        
         disks: "local-disk " + diskSize + " SSD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/svaba:1.0.1-c4a0606e"
+        docker : "gcr.io/nygc-public/svaba:1.1.3-c4d7b571"
     }
 }
 
