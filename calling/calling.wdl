@@ -47,7 +47,7 @@ task ReorderVcfColumns {
     }
 
     command {
-        python2.7 \
+        python \
         /reorder_vcf.py \
         ~{rawVcf} \
         ~{orderedVcfPath} \
@@ -61,7 +61,7 @@ task ReorderVcfColumns {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:0.9.2"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:0.9.3"
     }
 }
 
@@ -75,7 +75,7 @@ task AddVcfCommand {
     }
 
     command {
-        python2.7 \
+        python \
         /add_command.py \
         ~{inVcf} \
         ~{outVcfPath} \
@@ -89,7 +89,7 @@ task AddVcfCommand {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:0.9.2"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:0.9.3"
     }
 }
 

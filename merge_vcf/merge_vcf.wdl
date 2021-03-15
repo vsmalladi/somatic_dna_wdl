@@ -97,7 +97,7 @@ task RenameMetadata {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:0.9.2"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:0.9.3"
     }
 }
 
@@ -127,7 +127,7 @@ task MergePrepSupport {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:0.9.2"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:0.9.3"
     }
 }
 
@@ -156,7 +156,7 @@ task MergePrep {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:0.9.2"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:0.9.3"
     }
 }
 
@@ -189,7 +189,7 @@ task RenameVcf {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:0.9.2"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:0.9.3"
     }
 }
 
@@ -252,7 +252,7 @@ task SplitMnv {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:0.9.2"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:0.9.3"
     }
 }
 
@@ -266,7 +266,7 @@ task RemoveContig {
     }
 
     command {
-        python2.7 \
+        python \
         /remove_contig.py \
         ~{removeChromVcf} \
         ~{removeChromVcfPath}
@@ -279,7 +279,7 @@ task RemoveContig {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:0.9.2"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:0.9.3"
     }
 }
 
@@ -415,7 +415,7 @@ task GetCandidates {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:0.9.2"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:0.9.3"
     }
 }
 
@@ -431,10 +431,6 @@ task VcfToBed {
 
     command {
         set -e -o pipefail
-    
-        export CONDA_ALWAYS_YES="true"
-        
-        conda install -c bioconda bedtools
         
         python \
         /vcf_to_bed.py \
@@ -451,7 +447,7 @@ task VcfToBed {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:0.9.2"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:0.9.3"
     }
 }
 
@@ -500,7 +496,7 @@ task LancetConfirm {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:0.9.2"
+        docker : "gcr.io/nygc-public/lancet:v1.0.7"
     }
 }
 
@@ -568,7 +564,7 @@ task MergeColumns {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:0.9.2"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:0.9.3"
     }
 }
 
@@ -592,7 +588,9 @@ task AddNygcAlleleCountsToVcf {
         -v ~{columnChromVcf} \
         -b 10 \
         -m 10 \
-        -o ~{preCountsChromVcfPath}
+        -o ~{preCountsChromVcfPath} \
+        | 2>&1 \
+        | grep -v "The index file is older than the data file"
     }
 
     output {
@@ -602,7 +600,7 @@ task AddNygcAlleleCountsToVcf {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:0.9.2"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:0.9.3"
     }
 }
 
@@ -630,7 +628,7 @@ task AddFinalAlleleCountsToVcf {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:0.9.2"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:0.9.3"
     }
 }
 
@@ -661,7 +659,7 @@ task FilterPon {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:0.9.2"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:0.9.3"
     }
 }
 
@@ -691,7 +689,7 @@ task FilterVcf {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:0.9.2"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:0.9.3"
     }
 }
 
@@ -706,7 +704,7 @@ task SnvstomnvsCountsbasedfilterAnnotatehighconf {
     }
 
     command {
-        python2.7 \
+        python \
         /SNVsToMNVs_CountsBasedFilter_AnnotateHighConf.py \
         -i ~{filteredOutFile} \
         -o ~{finalChromVcfPath} \
@@ -719,7 +717,7 @@ task SnvstomnvsCountsbasedfilterAnnotatehighconf {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:0.9.2"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:0.9.3"
     }
 }
 
