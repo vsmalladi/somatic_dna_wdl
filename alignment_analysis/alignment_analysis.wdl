@@ -33,11 +33,14 @@ task MantisExome {
         String pairName
         String mantisExomeTxtPath = "~{pairName}.mantis.v1.0.4.WGS-targeted.txt"
         String mantisWxsKmerCountsPath = "~{pairName}.mantis.v1.0.4.WGS-targeted.kmer_counts.txt"
+        
         Bam tumorFinalBam
         Bam normalFinalBam
+        String tumorFinalBamPath = basename(tumorFinalBam.bam)
+        String tumorFinalBamIndexPath = basename(tumorFinalBam.bamIndex)
+        String normalFinalBamPath = basename(normalFinalBam.bam)
+        String normalFinalBamIndexPath = basename(normalFinalBam.bamIndex)
         
-        String altTumorIndexPath = sub(basename(tumorFinalBam.bamIndex), ".bai$", ".bam.bai")
-        String altNormalIndexPath = sub(basename(normalFinalBam.bamIndex), ".bai$", ".bam.bai")
         File mantisBedByIntervalList
         IndexedReference referenceFa
         Int threads = 16
@@ -49,13 +52,34 @@ task MantisExome {
     command {
         set -e -o pipefail
         
+        # make a .bam.bai index available
+        # normal
+        ln -s \
+        ~{normalFinalBam.bam} \
+        ~{normalFinalBamPath}
+        
         ln -s \
         ~{normalFinalBam.bamIndex} \
-        ~{altNormalIndexPath}
+        ~{normalFinalBamIndexPath}
+        
+        ln -s \
+        ~{normalFinalBamIndexPath} \
+        ~{normalFinalBamPath}.bai 
+        
+        # tumor
+        ln -s \
+        ~{tumorFinalBam.bam} \
+        ~{tumorFinalBamPath}
         
         ln -s \
         ~{tumorFinalBam.bamIndex} \
-        ~{altTumorIndexPath}
+        ~{tumorFinalBamIndexPath}
+        
+        ln -s \
+        ~{tumorFinalBamIndexPath} \
+        ~{tumorFinalBamPath}.bai 
+        
+        ls -thl 
         
         python \
         /MANTIS-1.0.4/mantis.py \
@@ -66,8 +90,8 @@ task MantisExome {
         -mlc 20 \
         -mrr 1 \
         --threads ~{threads} \
-        -n ~{normalFinalBam.bam} \
-        -t ~{tumorFinalBam.bam} \
+        -n ~{normalFinalBamPath} \
+        -t ~{tumorFinalBamPath} \
         -o ~{mantisExomeTxtPath}
     }
 
@@ -92,17 +116,11 @@ task MantisRethreshold {
         String mantisStatusFinalPath = "~{pairName}.mantis.v1.0.4.WGS-targeted.status.final.tsv"
         String normal
         File mantisWxsStatus
-        File resetMantis = "gs://nygc-comp-s-fd4e-input/reset_mantis.py"
     }
 
     command {
-    
-        set -e -o pipefail
-    
-        chmod 755 ~{resetMantis}
-        
         python \
-        ~{resetMantis} \
+        /reset_mantis.py \
         ~{mantisWxsStatus} \
         ~{mantisStatusFinalPath} \
         ~{normal}
@@ -113,7 +131,7 @@ task MantisRethreshold {
     }
 
     runtime {
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:0.9.2"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:0.9.3"
     }
 }
 
@@ -197,8 +215,8 @@ task GemSelect {
         --index ~{kouramiFastaGem3Index} \
         --alignment-global-min-identity ~{alignmentGlobalMinIdentity} \
         --alignment-max-error ~{maxMismatches} \
-        --output-format ~{outputFormat}
-        --mapping-mode "fast"
+        --output-format ~{outputFormat} \
+        --mapping-mode "fast" \
         | ~{describeAlignments} \
         ~{alignmentHistoPath} \
         | ~{gemToFastq} \
@@ -314,6 +332,7 @@ task SortFastqs {
         String sortedFastqPath = "~{sampleId}.~{fastqPairId}_sorted.fastq"
         File chr6MappedFastq
         File chr6MappedMatesFastq
+        File matchHeader = "gs://nygc-comp-s-fd4e-input/match_header.py"
     }
 
     command {
@@ -323,7 +342,7 @@ task SortFastqs {
         ~{chr6MappedFastq} \
         ~{chr6MappedMatesFastq} \
         | seqkit fx2tab \
-        | match_header.py \
+        | ~{matchHeader} \
         | sort \
         --dictionary-order \
         -k1,1 \
@@ -346,10 +365,10 @@ task SortFastqs {
 
 task AlignToPanel {
     input {
-        Int threads = 96
+        Int threads = 82
         Int bwaThreads = 80
-        Int samtoolsThreads = 16
-        Int memoryGb = 24
+        Int samtoolsSortThreads = 2
+        Int memoryGb = 48
         Int diskSize = 10
         String sampleId
         String kouramiBamPath = "~{sampleId}.kourami.bam"
@@ -367,11 +386,17 @@ task AlignToPanel {
         ~{kouramiReference.fasta} \
         ~{r1SortedFastq} \
         ~{r2SortedFastq} \
+        > test.output.sam
+        
+        bwa mem \
+        -t ~{bwaThreads} \
+        ~{kouramiReference.fasta} \
+        ~{r1SortedFastq} \
+        ~{r2SortedFastq} \
         | samtools sort \
-        --threads ~{samtoolsThreads} \
-        -O BAM \
-        - \
-        > ~{kouramiBamPath}
+        --threads ~{samtoolsSortThreads} \
+        -m 10G \
+        -o ~{kouramiBamPath}
     }
 
     output {
