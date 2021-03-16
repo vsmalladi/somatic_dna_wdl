@@ -408,13 +408,13 @@ task SvabaWgs {
     command {
         svaba \
         run \
-        --case-bam ~{tumorFinalBam.bam} \
-        --control-bam ~{normalFinalBam.bam} \
-        --threads ~{threads} \
-        --dbsnp-vcf ~{dbsnpIndels} \
-        --id-string ~{pairName} \
-        --reference-genome ~{bwaReference.fasta} \
-        --g-zip on
+        -t ~{tumorFinalBam.bam} \
+        -n ~{normalFinalBam.bam} \
+        -p ~{threads} \
+        -D ~{dbsnpIndels} \
+        -a ~{pairName} \
+        -G ~{bwaReference.fasta} \
+        -z on
     }
 
     output {
