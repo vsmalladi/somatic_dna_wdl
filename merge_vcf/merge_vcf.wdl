@@ -288,6 +288,8 @@ task Gatk4MergeSortVcf {
         String sortedVcfPath
         Array[File] tempVcfs
         IndexedReference referenceFa
+        Boolean gzipped = false 
+        String suffix = if gzipped then ".tbi" else ".idx"
         Int threads = 4
         Int memoryGb = 8
         Int diskSize = 10
@@ -304,9 +306,9 @@ task Gatk4MergeSortVcf {
 
     output {
         IndexedVcf sortedVcf = object {
-                vcf : "~{sortedVcfPath}", 
-                index : "~{sortedVcfPath}.idx"
-            }
+            vcf : "~{sortedVcfPath}", 
+            index : "~{sortedVcfPath}~{suffix}"
+        }
     }
 
     runtime {
