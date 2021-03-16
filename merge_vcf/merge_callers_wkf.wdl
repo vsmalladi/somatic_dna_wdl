@@ -175,6 +175,7 @@ workflow MergeCallers {
                 tempVcfs = [RemoveContig.removeContigVcf],
                 sortedVcfPath = sub(basename(select_first([RemoveContig.removeContigVcf, SplitMnv.mnvVcf])), "$", ".gz"),
                 referenceFa = referenceFa,
+                gzipped = true,
                 memoryGb = 16,
                 diskSize = 60
         }
