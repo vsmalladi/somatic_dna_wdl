@@ -12,6 +12,7 @@ task AlignBwaMem {
         Int mem
         Int threads
         Int bwaThreads
+        Int totalThreads = 80
         Int diskSize
 
         # Values used in RG tags. These are overridden for external fastqs or if we start using
@@ -45,7 +46,7 @@ task AlignBwaMem {
     }
 
     runtime {
-        cpu : threads
+        cpu : totalThreads
         memory : mem + " GB"
         disks: "local-disk " + diskSize + " HDD"
         docker : "gcr.io/nygc-public/bwa-kit:0.7.15"
