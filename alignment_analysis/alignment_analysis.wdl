@@ -338,6 +338,8 @@ task SortFastqs {
     command {
         set -e -o pipefail
         
+        chmod 755 ~{matchHeader}
+        
         cat \
         ~{chr6MappedFastq} \
         ~{chr6MappedMatesFastq} \
