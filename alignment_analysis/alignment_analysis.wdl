@@ -131,7 +131,7 @@ task MantisRethreshold {
     }
 
     runtime {
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:0.9.3"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:0.9.4"
     }
 }
 
