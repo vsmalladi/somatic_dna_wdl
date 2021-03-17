@@ -86,7 +86,7 @@ workflow PrepMergeVcf {
             tempVcfs = [select_first([RemoveContig.removeContigVcf, SplitMnv.mnvVcf])],
             sortedVcfPath = sub(basename(select_first([RemoveContig.removeContigVcf, SplitMnv.mnvVcf])), "$", ".gz"),
             referenceFa = referenceFa,
-            gzipped = false,
+            gzipped = true,
             threads = 4,
             memoryGb = 8,
             diskSize = 20
