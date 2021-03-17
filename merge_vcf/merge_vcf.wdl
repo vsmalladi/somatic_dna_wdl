@@ -295,7 +295,7 @@ task Gatk4MergeSortVcf {
         Int diskSize = 10
     }
 
-    command {
+    command {        
         gatk \
         SortVcf \
         --java-options "-Xmx8g -XX:ParallelGCThreads=4" \
