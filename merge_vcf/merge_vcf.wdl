@@ -464,7 +464,7 @@ task LancetConfirm {
         Bam tumorFinalBam
         Int threads = 16
         Int memoryGb = 16
-        Int diskSize = (ceil( size(normalFinalBam.bam, "GB") + size(normalFinalBam.bam, "GB")) ) + 10
+        Int diskSize = (ceil( size(tumorFinalBam.bam, "GB") + size(normalFinalBam.bam, "GB")) ) + 10
     }
 
     command {
