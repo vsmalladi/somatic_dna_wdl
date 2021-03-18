@@ -423,8 +423,8 @@ task Kourami {
 
     command {
         java \
-        -jar kourami.jar \
-        -d "./" \
+        -jar /Kourami.jar \
+        -d /kourami-0.9.6/db/ \
         -o ~{sampleId} \
         ~{kouramiBam}
     }
