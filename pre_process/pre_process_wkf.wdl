@@ -18,7 +18,8 @@ workflow Preprocess {
         IndexedVcf MillsAnd1000G
         IndexedVcf Indels
         IndexedVcf dbsnp
-        IndexedTable callRegions
+        #IndexedTable callRegions
+        File callRegions
         IndexedReference referenceFa
         File hsMetricsIntervals
         File randomIntervals

@@ -73,7 +73,8 @@ task Bqsr38 {
         # command
         Bam mergedDedupBam
         IndexedReference referenceFa
-        IndexedTable callRegions
+        File callRegions
+        #IndexedTable callRegions
         String sampleId
         String recalGrpPath = "~{sampleId}.recal_data.grp"
         IndexedVcf MillsAnd1000G
@@ -89,7 +90,7 @@ task Bqsr38 {
         gatk \
         BaseRecalibrator \
         --java-options "-Xmx24G -XX:ParallelGCThreads=4" \
-        -L ~{callRegions.table} \
+        -L ~{callRegions} \
         -R ~{referenceFa.fasta} \
         -I ~{mergedDedupBam.bam} \
         -O ~{recalGrpPath} \

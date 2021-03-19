@@ -18,21 +18,21 @@ task CoerceMap {
         BamMapLike bamMapLike
         File zipMap = "gs://nygc-comp-s-fd4e-input/zip_map.sh"
     }
-    
+
     command {
         set -e -o pipefail
-    
+
         bash ~{zipMap}
     }
-    
+
     output {
         Map[String, Bam] bamMaps = read_json(stdout())
     }
-    
+
     runtime {
         docker: "ubuntu:latest"
     }
-    
+
     meta {
         doc: "temp function works with temp struct until wdl v1.1 is supported"
     }
@@ -45,32 +45,33 @@ workflow SomaticWorkflow {
         IndexedVcf MillsAnd1000G
         IndexedVcf Indels
         IndexedVcf dbsnp
+        File bqsrCallRegions
         File chromLengths
         File hsMetricsIntervals
         File randomIntervals
         Array[sampleInfo]+ sampleInfos
         Array[PairRelationship]+ listOfPairRelationships
-        
+
         # calling
         Array[String]+ listOfChroms
         IndexedTable callRegions
         File dbsnpIndels
         Map[String, File] chromBedsWgs
-        
+
         # merge callers
         File intervalListBed
-        
+
         String library
         File ponWGSFile
         File ponExomeFile
         IndexedVcf gnomadBiallelic
 
         IndexedVcf germFile
-        
+
         # kourami
         BwaReference kouramiReference
         File kouramiFastaGem3Index
-        
+
         # mantis
         File mantisBed
         File intervalListBed
@@ -87,13 +88,13 @@ workflow SomaticWorkflow {
                 MillsAnd1000G = MillsAnd1000G,
                 gnomadBiallelic = gnomadBiallelic,
                 hsMetricsIntervals = hsMetricsIntervals,
-                callRegions = callRegions,
+                callRegions = bqsrCallRegions,
                 randomIntervals = randomIntervals,
                 Indels = Indels,
                 dbsnp = dbsnp,
                 chromLengths = chromLengths
         }
-        
+
         call kourami.Kourami {
             input:
                 sampleId=sampleInfoObj.sampleId,
@@ -101,15 +102,15 @@ workflow SomaticWorkflow {
                 finalBam=Preprocess.finalBam,
                 kouramiFastaGem3Index=kouramiFastaGem3Index
         }
-        
+
         # for wdl version 1.0
         String sampleIds = sampleInfoObj.sampleId
-        
+
         # for wdl version 1.1
         # Pair[String, Bam] bamPairs = (sampleInfo.sampleId, Preprocess.finalBam)
-               
+
     }
-    
+
     # for wdl version 1.0
     BamMapLike bamMapLike = object {
                                     sampleId: sampleIds,
@@ -117,22 +118,22 @@ workflow SomaticWorkflow {
                                     }
     # for wdl version 1.1
     # Map[String, Bam] bamMaps = as_map(bamPairs)
-    
+
     call CoerceMap {
-        input: 
+        input:
             bamMapLike = bamMapLike
     }
-    
+
     scatter (pairRelationship in listOfPairRelationships) {
-    
+
         pairInfo pairInfoObject = object {
             pairId : pairRelationship.pairId,
             tumorFinalBam : CoerceMap.bamMaps[pairRelationship.tumor],
             normalFinalBam : CoerceMap.bamMaps[pairRelationship.normal],
             tumor : pairRelationship.tumor,
             normal : pairRelationship.normal
-        } 
-        
+        }
+
         call calling.Calling {
             input:
                 pairInfo = pairInfoObject,
@@ -142,9 +143,9 @@ workflow SomaticWorkflow {
                 bwaReference = bwaReference,
                 dbsnpIndels = dbsnpIndels,
                 chromBedsWgs = chromBedsWgs
-                
+
         }
-        
+
         call msi.Msi {
             input:
                 normal=pairRelationship.normal,
@@ -155,7 +156,7 @@ workflow SomaticWorkflow {
                 tumorFinalBam=CoerceMap.bamMaps[pairRelationship.tumor],
                 normalFinalBam=CoerceMap.bamMaps[pairRelationship.normal]
         }
-        
+
         PairRawVcfInfo pairRawVcfInfo = object {
             pairId : pairRelationship.pairId,
             filteredMantaSV : Calling.filteredMantaSV,
@@ -169,9 +170,9 @@ workflow SomaticWorkflow {
             normal : pairRelationship.normal,
             tumorFinalBam : CoerceMap.bamMaps[pairRelationship.tumor],
             normalFinalBam : CoerceMap.bamMaps[pairRelationship.normal]
-        
+
         }
-        
+
         if (library == 'WGS') {
             call mergeVcf.MergeVcf as wgsMergeVcf {
                 input:
@@ -181,10 +182,10 @@ workflow SomaticWorkflow {
                     intervalListBed = intervalListBed,
                     ponFile = ponWGSFile,
                     germFile = germFile
-                    
+
             }
         }
-        
+
         if (library == 'Exome') {
             call mergeVcf.MergeVcf as exomeMergeVcf {
                 input:
@@ -194,13 +195,13 @@ workflow SomaticWorkflow {
                     intervalListBed = intervalListBed,
                     ponFile = ponExomeFile,
                     germFile = germFile
-                    
+
             }
         }
-        
+
         File mergedVcf = select_first([wgsMergeVcf.mergedVcf, exomeMergeVcf.mergedVcf])
     }
-    
+
     output {
         Array[File] mergedVcfs = mergedVcf
         Map[String, Bam] bamMaps = CoerceMap.bamMaps

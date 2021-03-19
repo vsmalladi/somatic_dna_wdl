@@ -15,7 +15,8 @@ workflow MergeBams {
         IndexedVcf MillsAnd1000G
         IndexedVcf Indels
         IndexedVcf dbsnp
-        IndexedTable callRegions
+        File callRegions
+        #IndexedTable callRegions
         IndexedReference referenceFa
         File randomIntervals
         String qcDir = '.'       # To pass to the two QC tasks.
