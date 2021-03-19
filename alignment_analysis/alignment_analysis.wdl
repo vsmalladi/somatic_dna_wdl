@@ -162,7 +162,7 @@ task GetChr6Contigs {
     runtime {
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker : "gcr.io/nygc-internal-tools/hla_prep:1.1.0"
+        docker : "gcr.io/nygc-internal-tools/hla_prep:2.0.0"
     }
 }
 
@@ -180,22 +180,15 @@ task GemSelect {
         String r1FilePath = "~{sampleId}.first_pair"
         String r2FilePath = "~{sampleId}.second_pair"
         Float maxMismatches = 0.04
-        Float alignmentGlobalMinIdentity = 0.80
+        Float alignmentGlobalMinIdentity = 0.96
         String outputFormat = "MAP"
         String alignmentHistoPath = "~{sampleId}.alignment.pdf"
         String r1MappedFastqPath = "~{sampleId}.R1_mapped.fastq"
         String r2MappedFastqPath = "~{sampleId}.R2_mapped.fastq"
-        
-        File describeAlignments = "gs://nygc-comp-s-fd4e-input/describe_alignments.py"
-        File gemToFastq = "gs://nygc-comp-s-fd4e-input/gem_to_fastq.py"
     }
 
     command {
         set -e -o pipefail
-        
-        chmod 755 ~{describeAlignments}
-        
-        chmod 755 ~{gemToFastq}
         
         samtools view \
         --threads ~{samtoolsThreads} \
@@ -217,9 +210,9 @@ task GemSelect {
         --alignment-max-error ~{maxMismatches} \
         --output-format ~{outputFormat} \
         --mapping-mode "fast" \
-        | ~{describeAlignments} \
+        | /describe_alignments.py \
         ~{alignmentHistoPath} \
-        | ~{gemToFastq} \
+        | /gem_to_fastq.py \
         ~{r1MappedFastqPath} \
         ~{r2MappedFastqPath}
     }
@@ -236,7 +229,7 @@ task GemSelect {
         cpu : threads
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker : "gcr.io/nygc-internal-tools/hla_prep:1.1.0"
+        docker : "gcr.io/nygc-internal-tools/hla_prep:2.0.0"
     }
 }
 
@@ -273,7 +266,7 @@ task LookUpMates {
     runtime {
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker : "gcr.io/nygc-internal-tools/hla_prep:1.1.0"
+        docker : "gcr.io/nygc-internal-tools/hla_prep:2.0.0"
     }
 }
 
@@ -319,7 +312,7 @@ task GetMates {
         cpu : threads
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/hla_prep:1.1.0"
+        docker : "gcr.io/nygc-internal-tools/hla_prep:2.0.0"
     }
 }
 
@@ -332,19 +325,16 @@ task SortFastqs {
         String sortedFastqPath = "~{sampleId}.~{fastqPairId}_sorted.fastq"
         File chr6MappedFastq
         File chr6MappedMatesFastq
-        File matchHeader = "gs://nygc-comp-s-fd4e-input/match_header.py"
     }
 
     command {
         set -e -o pipefail
         
-        chmod 755 ~{matchHeader}
-        
         cat \
         ~{chr6MappedFastq} \
         ~{chr6MappedMatesFastq} \
         | seqkit fx2tab \
-        | ~{matchHeader} \
+        | /match_header.py \
         | sort \
         --dictionary-order \
         -k1,1 \
@@ -361,7 +351,7 @@ task SortFastqs {
     runtime {
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker : "gcr.io/nygc-internal-tools/hla_prep:1.1.0"
+        docker : "gcr.io/nygc-internal-tools/hla_prep:2.0.0"
     }
 }
 
