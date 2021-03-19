@@ -583,6 +583,8 @@ task AddNygcAlleleCountsToVcf {
     }
 
     command {
+        set -e -o pipefail
+        
         python \
         /add_nygc_allele_counts_to_vcf.py \
         -t ~{tumorFinalBam.bam} \
@@ -591,7 +593,7 @@ task AddNygcAlleleCountsToVcf {
         -b 10 \
         -m 10 \
         -o ~{preCountsChromVcfPath} \
-        | 2>&1 \
+        2>&1 \
         | grep -v "The index file is older than the data file"
     }
 
