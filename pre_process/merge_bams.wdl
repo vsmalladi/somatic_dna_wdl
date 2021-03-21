@@ -161,6 +161,7 @@ task PrintReads {
 
     command {
         gatk ApplyBQSR \
+        --java-options "-Xmx24G -XX:ParallelGCThreads=4" \
         -R ~{referenceFa.fasta} \
         -I ~{mergedDedupBam.bam} \
         -O ~{finalBamPath} \
