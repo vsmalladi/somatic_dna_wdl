@@ -640,7 +640,7 @@ task FilterPon {
         File countsChromVcf
         File ponFile
         Int memoryGb = 16
-        Int diskSize = 4
+        Int diskSize = 16
     }
 
     command {
