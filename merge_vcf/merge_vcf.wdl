@@ -578,13 +578,11 @@ task AddNygcAlleleCountsToVcf {
         Bam normalFinalBam
         Bam tumorFinalBam
         File columnChromVcf
-        Int memoryGb = 16
+        Int memoryGb = 40
         Int diskSize = ceil( size(tumorFinalBam.bam, "GB") + size(normalFinalBam.bam, "GB")) + 20
     }
 
     command {
-        set -e -o pipefail
-        
         python \
         /add_nygc_allele_counts_to_vcf.py \
         -t ~{tumorFinalBam.bam} \
@@ -592,9 +590,7 @@ task AddNygcAlleleCountsToVcf {
         -v ~{columnChromVcf} \
         -b 10 \
         -m 10 \
-        -o ~{preCountsChromVcfPath} \
-        2>&1 \
-        | grep -v "The index file is older than the data file"
+        -o ~{preCountsChromVcfPath}
     }
 
     output {
