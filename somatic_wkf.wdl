@@ -8,35 +8,30 @@ import "merge_vcf/merge_vcf_wkf.wdl" as mergeVcf
 import "alignment_analysis/kourami_wfk.wdl" as kourami
 import "alignment_analysis/msi_wkf.wdl" as msi
 
-struct BamMapLike {
-    Array[String] sampleId
-    Array[Bam] bam
-}
+# for wdl version 1.0
 
-task CoerceMap {
+task GetIndex {
     input {
-        BamMapLike bamMapLike
-        File zipMap = "gs://nygc-comp-s-fd4e-input/zip_map.sh"
+        String sampleId
+        Array[String] sampleIds
+        File getIndex = "gs:/s-fd4e-input/get_index.py"
     }
-    
+
     command {
-        set -e -o pipefail
-    
-        bash ~{zipMap}
+        python ~{getIndex} \
+        --sample-id ~{sampleId} \
+        --sample-ids ~{sep=' ' sampleIds}
     }
     
     output {
-        Map[String, Bam] bamMaps = read_json(stdout())
+        Int index = read_int(stdout())
     }
-    
+
     runtime {
-        docker: "ubuntu:latest"
-    }
-    
-    meta {
-        doc: "temp function works with temp struct until wdl v1.1 is supported"
+        docker: "python:3"
     }
 }
+
 
 workflow SomaticWorkflow {
     input {
@@ -110,25 +105,28 @@ workflow SomaticWorkflow {
                
     }
     
-    # for wdl version 1.0
-    BamMapLike bamMapLike = object {
-                                    sampleId: sampleIds,
-                                    bam: Preprocess.finalBam
-                                    }
     # for wdl version 1.1
     # Map[String, Bam] bamMaps = as_map(bamPairs)
-    
-    call CoerceMap {
-        input: 
-            bamMapLike = bamMapLike
-    }
+
     
     scatter (pairRelationship in listOfPairRelationships) {
-    
+        # for wdl version 1.0
+        call GetIndex as tumorGetIndex {
+            input:
+                sampleIds = sampleIds,
+                sampleId = pairRelationship.tumor 
+        }
+        
+        call GetIndex as normalGetIndex {
+            input:
+                sampleIds = sampleIds,
+                sampleId = pairRelationship.normal 
+        }
+         
         pairInfo pairInfoObject = object {
             pairId : pairRelationship.pairId,
-            tumorFinalBam : CoerceMap.bamMaps[pairRelationship.tumor],
-            normalFinalBam : CoerceMap.bamMaps[pairRelationship.normal],
+            tumorFinalBam : Preprocess.finalBam[tumorGetIndex.index],
+            normalFinalBam : Preprocess.finalBam[normalGetIndex.index],
             tumor : pairRelationship.tumor,
             normal : pairRelationship.normal
         } 
@@ -152,8 +150,8 @@ workflow SomaticWorkflow {
                 mantisBed=mantisBed,
                 intervalListBed=intervalListBed,
                 referenceFa=referenceFa,
-                tumorFinalBam=CoerceMap.bamMaps[pairRelationship.tumor],
-                normalFinalBam=CoerceMap.bamMaps[pairRelationship.normal]
+                tumorFinalBam=Preprocess.finalBam[tumorGetIndex.index],
+                normalFinalBam=Preprocess.finalBam[normalGetIndex.index]
         }
         
         PairRawVcfInfo pairRawVcfInfo = object {
@@ -167,8 +165,8 @@ workflow SomaticWorkflow {
             svabaIndel : Calling.svabaIndel,
             tumor : pairRelationship.tumor,
             normal : pairRelationship.normal,
-            tumorFinalBam : CoerceMap.bamMaps[pairRelationship.tumor],
-            normalFinalBam : CoerceMap.bamMaps[pairRelationship.normal]
+            tumorFinalBam : Preprocess.finalBam[tumorGetIndex.index],
+            normalFinalBam : Preprocess.finalBam[normalGetIndex.index]
         
         }
         
@@ -203,7 +201,7 @@ workflow SomaticWorkflow {
     
     output {
         Array[File] mergedVcfs = mergedVcf
-        Map[String, Bam] bamMaps = CoerceMap.bamMaps
+        Array[Bam] finalBams = Preprocess.finalBam
         Array[PairRawVcfInfo] pairRawVcfInfos = pairRawVcfInfo
         Array[File] kouramiResult = Kourami.result
         Array[File] mantisWxsKmerCountsFinal = Msi.mantisWxsKmerCountsFinal
