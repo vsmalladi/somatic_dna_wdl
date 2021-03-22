@@ -85,5 +85,5 @@
   "SomaticWorkflow.mantisBed": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/mantis_repeatfinder-hg38.chr.bed",
   "SomaticWorkflow.kouramiFastaGem3Index": "gs://nygc-comp-s-82ed-input/All_FINAL_with_Decoy.fa.gem",
   "SomaticWorkflow.dbsnpIndels": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/dbsnp_146.indels.hg38.vcf",
-  "SomaticWorkflow.library": "WGS",
+  "SomaticWorkflow.library": "WGS"
 }
