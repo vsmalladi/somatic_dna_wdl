@@ -179,8 +179,8 @@ task GemSelect {
         File kouramiFastaGem3Index
         String r1FilePath = "~{sampleId}.first_pair"
         String r2FilePath = "~{sampleId}.second_pair"
-        Float maxMismatches = 0.04
-        Float alignmentGlobalMinIdentity = 0.96
+        Float maxMismatches = 0.08
+        Float alignmentGlobalMinIdentity = 0.80
         String outputFormat = "MAP"
         String alignmentHistoPath = "~{sampleId}.alignment.pdf"
         String r1MappedFastqPath = "~{sampleId}.R1_mapped.fastq"
@@ -208,6 +208,7 @@ task GemSelect {
         --index ~{kouramiFastaGem3Index} \
         --alignment-global-min-identity ~{alignmentGlobalMinIdentity} \
         --alignment-max-error ~{maxMismatches} \
+        --alignment-local never \
         --output-format ~{outputFormat} \
         --mapping-mode "fast" \
         | /describe_alignments.py \
@@ -244,12 +245,16 @@ task LookUpMates {
         File r2MappedFastq
         File r1File
         File r1MappedFastq
+        
+        File lookUpMates = "gs://nygc-comp-s-fd4e-input/look_up_mates.py"
     }
 
     command {
         set -e -o pipefail
+        
+        chmod 755 ~{lookUpMates}
     
-        /look_up_mates.py \
+        ~{lookUpMates} \
         ~{r1File} \
         ~{r2File} \
         ~{r1MappedFastq} \
