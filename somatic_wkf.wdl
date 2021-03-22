@@ -14,7 +14,7 @@ task GetIndex {
     input {
         String sampleId
         Array[String] sampleIds
-        File getIndex = "gs:/s-fd4e-input/get_index.py"
+        File getIndex = "gs://nygc-comp-s-fd4e-input/get_index.py"
     }
 
     command {
