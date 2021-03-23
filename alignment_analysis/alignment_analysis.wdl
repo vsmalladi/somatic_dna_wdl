@@ -142,16 +142,7 @@ task GetChr6Contigs {
         Int memoryGb = 2
     }
     
-    command {
-        set -e -o pipefail
-        
-        export CONDA_ALWAYS_YES="true"
-        
-        conda config --add channels r
-        conda config --add channels bioconda    
-        
-        conda install pysam &> "pysam_install.log"
-        
+    command {     
         /lookup_contigs.py ~{finalBam.bam}
     }
     
@@ -179,9 +170,7 @@ task GemSelect {
         File kouramiFastaGem3Index
         String r1FilePath = "~{sampleId}.first_pair"
         String r2FilePath = "~{sampleId}.second_pair"
-        Float maxMismatches = 0.08
-        Float alignmentGlobalMinIdentity = 0.80
-        String outputFormat = "MAP"
+        Float maxMismatches = 0.04
         String alignmentHistoPath = "~{sampleId}.alignment.pdf"
         String r1MappedFastqPath = "~{sampleId}.R1_mapped.fastq"
         String r2MappedFastqPath = "~{sampleId}.R2_mapped.fastq"
@@ -209,14 +198,14 @@ task GemSelect {
         --threads ~{samtoolsThreads} \
         - \
         | gem-mapper \
-        --threads ~{gemThreads} \
+        -T ~{gemThreads} \
         --verbose \
-        --index ~{kouramiFastaGem3Index} \
-        --alignment-global-min-identity ~{alignmentGlobalMinIdentity} \
-        --alignment-max-error ~{maxMismatches} \
-        --alignment-local never \
-        --output-format ~{outputFormat} \
-        --mapping-mode "fast" \
+        -I ~{kouramiFastaGem1Index} \
+        -m ~{maxMismatches} \
+        -e ~{maxMismatches} \
+        --mismatch-alphabet ATCGN \
+        --fast-mapping \
+        -q ignore \
         | ~{describeAlignments} \
         ~{alignmentHistoPath} \
         | ~{gemToFastq} \

@@ -32,7 +32,11 @@
             "type": "File",
             "description": "For use with BAMs aligned to any reference gs://nygc-comp-s-fd4e-input/All_FINAL_with_Decoy.fa.info",
             "object": "gs://nygc-comp-s-fd4e-input/All_FINAL_with_Decoy.fa.gem"
-            
+        },
+        "kouramiFastaGem1Index": {
+            "type": "File",
+            "description": "For use with BAMs aligned to any reference gs://nygc-comp-s-fd4e-input/All_FINAL_with_Decoy.fa.info",
+            "object": "gs://nygc-comp-s-fd4e-input/All_FINAL_with_Decoy.v1.gem"
         },
         "kouramiReference" : {
             "type" : "BwaReference",

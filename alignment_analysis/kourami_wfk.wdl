@@ -8,7 +8,7 @@ workflow Kourami {
         String sampleId
         # mergedHlaPanel
         BwaReference kouramiReference
-        File kouramiFastaGem3Index
+        File kouramiFastaGem1Index
         Bam finalBam
         Int diskSize = ceil( size(finalBam.bam, "GB")) + 20
     }
@@ -24,7 +24,7 @@ workflow Kourami {
             sampleId = sampleId,
             finalBam = finalBam,
             chr6Contigs = GetChr6Contigs.chr6Contigs,
-            kouramiFastaGem3Index = kouramiFastaGem3Index,
+            kouramiFastaGem3Index = kouramiFastaGem1Index,
             diskSize = diskSize
     }
     

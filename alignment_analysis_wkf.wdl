@@ -14,7 +14,7 @@ workflow AlignmentAnalysis {
         
         # kourami
         BwaReference kouramiReference
-        File kouramiFastaGem3Index
+        File kouramiFastaGem1Index
         
         # mantis
         File mantisBed
@@ -28,7 +28,7 @@ workflow AlignmentAnalysis {
                 sampleId=pairInfo.normal,
                 kouramiReference=kouramiReference,
                 finalBam=pairInfo.normalFinalBam,
-                kouramiFastaGem3Index=kouramiFastaGem3Index
+                kouramiFastaGem1Index=kouramiFastaGem1Index
         }
         
         call kourami.Kourami as kouramiTumor {
@@ -36,7 +36,7 @@ workflow AlignmentAnalysis {
                 sampleId=pairInfo.tumor,
                 kouramiReference=kouramiReference,
                 finalBam=pairInfo.tumorFinalBam,
-                kouramiFastaGem3Index=kouramiFastaGem3Index
+                kouramiFastaGem1Index=kouramiFastaGem1Index
         }
         
         call msi.Msi {
