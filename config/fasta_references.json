@@ -392,6 +392,21 @@
             "description" : "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/README_dbsnp_146.indels.md",
             "object" : "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/dbsnp_146.indels.hg38.vcf"
         },
+        "vepCache": {
+            "type" : "File",
+            "description" : "VEP cache files",
+            "object" : "gs://clinical-wgs-resources-central/ensembl_vep/97_GRCh38.tar.gz"
+        },
+        "plugins": {
+            "type" : "File",
+            "description" : "VEP plugin",
+            "object" : "gs://clinical-wgs-resources-central/ensembl_vep/Plugins.tar.gz"
+        },
+        "annotations": {
+            "type" : "File",
+            "description" : "VEP annotations",
+            "object" : "gs://clinical-wgs-resources-central/ensembl_vep/annotations.tar.gz"
+        },
         "chromBedsWgs" : {
             "type" : "Map[String, File]",
             "description" : "",
