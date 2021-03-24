@@ -142,7 +142,7 @@ task GetChr6Contigs {
         Int memoryGb = 2
     }
     
-    command {     
+    command {
         /lookup_contigs.py ~{finalBam.bam}
     }
     
@@ -153,7 +153,7 @@ task GetChr6Contigs {
     runtime {
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker : "gcr.io/nygc-internal-tools/hla_prep:2.1.0"
+        docker : "gcr.io/nygc-internal-tools/hla_prep:2.1.1"
     }
 }
 
@@ -225,7 +225,7 @@ task GemSelect {
         cpu : threads
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker : "gcr.io/nygc-internal-tools/hla_prep:2.1.0"
+        docker : "gcr.io/nygc-internal-tools/hla_prep:2.1.1"
     }
 }
 
@@ -266,7 +266,7 @@ task LookUpMates {
     runtime {
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker : "gcr.io/nygc-internal-tools/hla_prep:2.1.0"
+        docker : "gcr.io/nygc-internal-tools/hla_prep:2.1.1"
     }
 }
 
@@ -312,7 +312,7 @@ task GetMates {
         cpu : threads
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/hla_prep:2.1.0"
+        docker : "gcr.io/nygc-internal-tools/hla_prep:2.1.1"
     }
 }
 
@@ -351,7 +351,7 @@ task SortFastqs {
     runtime {
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker : "gcr.io/nygc-internal-tools/hla_prep:2.1.0"
+        docker : "gcr.io/nygc-internal-tools/hla_prep:2.1.1"
     }
 }
 

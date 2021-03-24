@@ -639,7 +639,7 @@ task FilterPon {
         String ponOutFilePath = "~{pairName}.pon.final.v6.~{chrom}.vcf"
         File countsChromVcf
         File ponFile
-        Int memoryGb = 40
+        Int memoryGb = 60
         Int diskSize = 16
     }
 
@@ -670,7 +670,7 @@ task FilterVcf {
         String filteredOutFilePath = "~{pairName}.final.v6.filtered.~{chrom}.vcf"
         IndexedVcf germFile
         File ponOutFile
-        Int memoryGb = 40
+        Int memoryGb = 60
         Int diskSize = 16
     }
 
