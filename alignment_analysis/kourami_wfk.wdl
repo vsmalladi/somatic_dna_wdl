@@ -24,7 +24,7 @@ workflow Kourami {
             sampleId = sampleId,
             finalBam = finalBam,
             chr6Contigs = GetChr6Contigs.chr6Contigs,
-            kouramiFastaGem3Index = kouramiFastaGem1Index,
+            kouramiFastaGem1Index = kouramiFastaGem1Index,
             diskSize = diskSize
     }
     

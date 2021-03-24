@@ -167,7 +167,7 @@ task GemSelect {
         String sampleId
         String chr6Contigs
         Bam finalBam
-        File kouramiFastaGem3Index
+        File kouramiFastaGem1Index
         String r1FilePath = "~{sampleId}.first_pair"
         String r2FilePath = "~{sampleId}.second_pair"
         Float maxMismatches = 0.04
