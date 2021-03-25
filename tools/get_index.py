@@ -24,7 +24,7 @@ def main():
     args = get_args()
     for i, sample_id in enumerate(args['sample_ids']):
         if sample_id == args['sample_id']:
-            sys.stdout.write(i)
+            sys.stdout.write(str(i))
 
 if __name__ == "__main__":
     main() 

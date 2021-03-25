@@ -153,7 +153,7 @@ task GetChr6Contigs {
     runtime {
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker : "gcr.io/nygc-internal-tools/hla_prep:2.1.1"
+        docker : "gcr.io/nygc-internal-tools/hla_prep:3.0.0"
     }
 }
 
@@ -174,16 +174,10 @@ task GemSelect {
         String alignmentHistoPath = "~{sampleId}.alignment.pdf"
         String r1MappedFastqPath = "~{sampleId}.R1_mapped.fastq"
         String r2MappedFastqPath = "~{sampleId}.R2_mapped.fastq"
-        
-        File describeAlignments = "gs://nygc-comp-s-fd4e-input/describe_alignments.py"
-        File gemToFastq = "gs://nygc-comp-s-fd4e-input/gem_to_fastq.py"
     }
 
     command {
         set -e -o pipefail
-        
-        chmod 755 ~{describeAlignments}
-        chmod 755 ~{gemToFastq}
         
         samtools view \
         --threads ~{samtoolsThreads} \
@@ -206,9 +200,9 @@ task GemSelect {
         --mismatch-alphabet ATCGN \
         --fast-mapping \
         -q ignore \
-        | ~{describeAlignments} \
+        | /describe_alignments.py \
         ~{alignmentHistoPath} \
-        | ~{gemToFastq} \
+        | /gem_to_fastq.py \
         ~{r1MappedFastqPath} \
         ~{r2MappedFastqPath}
     }
@@ -225,7 +219,7 @@ task GemSelect {
         cpu : threads
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker : "gcr.io/nygc-internal-tools/hla_prep:2.1.1"
+        docker : "gcr.io/nygc-internal-tools/hla_prep:3.0.0"
     }
 }
 
@@ -241,15 +235,10 @@ task LookUpMates {
         File r1File
         File r1MappedFastq
         
-        File lookUpMates = "gs://nygc-comp-s-fd4e-input/look_up_mates.py"
     }
 
     command {
-        set -e -o pipefail
-        
-        chmod 755 ~{lookUpMates}
-    
-        ~{lookUpMates} \
+        /look_up_mates.py \
         ~{r1File} \
         ~{r2File} \
         ~{r1MappedFastq} \
@@ -266,7 +255,7 @@ task LookUpMates {
     runtime {
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker : "gcr.io/nygc-internal-tools/hla_prep:2.1.1"
+        docker : "gcr.io/nygc-internal-tools/hla_prep:3.0.0"
     }
 }
 
@@ -312,7 +301,7 @@ task GetMates {
         cpu : threads
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/hla_prep:2.1.1"
+        docker : "gcr.io/nygc-internal-tools/hla_prep:3.0.0"
     }
 }
 
@@ -351,7 +340,7 @@ task SortFastqs {
     runtime {
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker : "gcr.io/nygc-internal-tools/hla_prep:2.1.1"
+        docker : "gcr.io/nygc-internal-tools/hla_prep:3.0.0"
     }
 }
 
