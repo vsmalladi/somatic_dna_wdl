@@ -153,7 +153,7 @@ task GetChr6Contigs {
     runtime {
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker : "gcr.io/nygc-internal-tools/hla_prep:3.0.0"
+        docker : "gcr.io/nygc-internal-tools/hla_prep:3.3.0"
     }
 }
 
@@ -219,7 +219,7 @@ task GemSelect {
         cpu : threads
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker : "gcr.io/nygc-internal-tools/hla_prep:3.0.0"
+        docker : "gcr.io/nygc-internal-tools/hla_prep:3.3.0"
     }
 }
 
@@ -255,7 +255,7 @@ task LookUpMates {
     runtime {
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker : "gcr.io/nygc-internal-tools/hla_prep:3.0.0"
+        docker : "gcr.io/nygc-internal-tools/hla_prep:3.3.0"
     }
 }
 
@@ -301,7 +301,7 @@ task GetMates {
         cpu : threads
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/hla_prep:3.0.0"
+        docker : "gcr.io/nygc-internal-tools/hla_prep:3.3.0"
     }
 }
 
@@ -340,7 +340,7 @@ task SortFastqs {
     runtime {
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker : "gcr.io/nygc-internal-tools/hla_prep:3.0.0"
+        docker : "gcr.io/nygc-internal-tools/hla_prep:3.3.0"
     }
 }
 
