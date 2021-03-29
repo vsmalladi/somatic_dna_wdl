@@ -7,6 +7,8 @@ import "calling/calling_wkf.wdl" as calling
 import "merge_vcf/merge_vcf_wkf.wdl" as mergeVcf
 import "alignment_analysis/kourami_wfk.wdl" as kourami
 import "alignment_analysis/msi_wkf.wdl" as msi
+#import "pre_process/contamination_wkf.wdl" as contamination
+import "pre_process/conpair_wkf.wdl" as conpair
 
 # for wdl version 1.0
 
@@ -46,6 +48,10 @@ workflow SomaticWorkflow {
         File randomIntervals
         Array[sampleInfo]+ sampleInfos
         Array[PairRelationship]+ listOfPairRelationships
+
+        # For Tumor-Normal QC
+        File markerBedFile
+        File markerTxtFile
 
         # calling
         Array[String]+ listOfChroms
@@ -89,38 +95,45 @@ workflow SomaticWorkflow {
                 chromLengths = chromLengths
         }
 
-        call kourami.Kourami {
+        call BamQcCheck {
             input:
-                sampleId = sampleInfoObj.sampleId,
-                kouramiReference = kouramiReference,
-                finalBam = Preprocess.finalBam,
-                kouramiFastaGem1Index = kouramiFastaGem1Index
+                wgsMetricsFile = Preprocess.collectWgsMetrics,
+                expectedCoverage = sampleInfoObj.expectedCoverage
+        }
+        if (BamQcCheck.coveragePass) {
+            call kourami.Kourami {
+                input:
+                    sampleId = sampleInfoObj.sampleId,
+                    kouramiReference = kouramiReference,
+                    finalBam = Preprocess.finalBam,
+                    kouramiFastaGem3Index = kouramiFastaGem3Index
+            }
         }
 
         # for wdl version 1.0
         String sampleIds = sampleInfoObj.sampleId
-
+        Boolean samplesCoveragePass = BamQcCheck.coveragePass
         # for wdl version 1.1
         # Pair[String, Bam] bamPairs = (sampleInfo.sampleId, Preprocess.finalBam)
 
     }
-    
+
     # for wdl version 1.1
     # Map[String, Bam] bamMaps = as_map(bamPairs)
 
-    
+
     scatter (pairRelationship in listOfPairRelationships) {
         # for wdl version 1.0
         call GetIndex as tumorGetIndex {
             input:
                 sampleIds = sampleIds,
-                sampleId = pairRelationship.tumor 
+                sampleId = pairRelationship.tumor
         }
-        
+
         call GetIndex as normalGetIndex {
             input:
                 sampleIds = sampleIds,
-                sampleId = pairRelationship.normal 
+                sampleId = pairRelationship.normal
         }
 
         pairInfo pairInfoObject = object {
@@ -131,83 +144,120 @@ workflow SomaticWorkflow {
             normal : pairRelationship.normal
         }
 
-        call calling.Calling {
+
+        # call contamination.CalculateContamination {
+        #     input:
+        #         finalTumorBam = Preprocess.finalBam[tumorGetIndex.index],
+        #         finalNormalBam = Preprocess.finalBam[normalGetIndex.index],
+        #         tumor = pairRelationship.tumor,
+        #         normal = pairRelationship.normal,
+        #         pairName = pairRelationship.pairId
+        # }
+
+
+        call conpair.Conpair {
             input:
-                pairInfo = pairInfoObject,
-                listOfChroms = listOfChroms,
+                finalTumorBam = Preprocess.finalBam[tumorGetIndex.index],
+                finalNormalBam = Preprocess.finalBam[normalGetIndex.index],
+                tumor = pairRelationship.tumor,
+                normal = pairRelationship.normal,
+                pairName = pairRelationship.pairId,
                 referenceFa = referenceFa,
-                callRegions = callRegions,
-                bwaReference = bwaReference,
-                dbsnpIndels = dbsnpIndels,
-                chromBedsWgs = chromBedsWgs
-
+                markerBedFile = markerBedFile,
+                markerTxtFile = markerTxtFile
         }
 
-        call msi.Msi {
+        call TumorNormalQcCheck {
             input:
-                normal=pairRelationship.normal,
-                pairName=pairRelationship.pairId,
-                mantisBed=mantisBed,
-                intervalListBed=intervalListBed,
-                referenceFa=referenceFa,
-                tumorFinalBam=Preprocess.finalBam[tumorGetIndex.index],
-                normalFinalBam=Preprocess.finalBam[normalGetIndex.index]
+                concordanceFile = Conpair.concordanceAll,
+                contaminationFile = Conpair.contamination
         }
 
-        PairRawVcfInfo pairRawVcfInfo = object {
-            pairId : pairRelationship.pairId,
-            filteredMantaSV : Calling.filteredMantaSV,
-            strelka2Snv : Calling.strelka2Snv,
-            strelka2Indel : Calling.strelka2Indel,
-            mutect2 : Calling.mutect2,
-            lancet : Calling.lancet,
-            svabaSv : Calling.svabaSv,
-            svabaIndel : Calling.svabaIndel,
-            tumor : pairRelationship.tumor,
-            normal : pairRelationship.normal,
-            tumorFinalBam : Preprocess.finalBam[tumorGetIndex.index],
-            normalFinalBam : Preprocess.finalBam[normalGetIndex.index]
+        # There is no 'and' in conditionals. We have to nest them
+        if (TumorNormalQcCheck.qcPass) {
+            if (samplesCoveragePass[tumorGetIndex.index]) {
+                if (samplesCoveragePass[normalGetIndex.index]) {
 
+                call calling.Calling {
+                    input:
+                        pairInfo = pairInfoObject,
+                        listOfChroms = listOfChroms,
+                        referenceFa = referenceFa,
+                        callRegions = callRegions,
+                        bwaReference = bwaReference,
+                        dbsnpIndels = dbsnpIndels,
+                        chromBedsWgs = chromBedsWgs
+
+                }
+
+                call msi.Msi {
+                    input:
+                        normal=pairRelationship.normal,
+                        pairName=pairRelationship.pairId,
+                        mantisBed=mantisBed,
+                        intervalListBed=intervalListBed,
+                        referenceFa=referenceFa,
+                        tumorFinalBam=Preprocess.finalBam[tumorGetIndex.index],
+                        normalFinalBam=Preprocess.finalBam[normalGetIndex.index]
+                }
+
+                PairRawVcfInfo pairRawVcfInfo = object {
+                    pairId : pairRelationship.pairId,
+                    filteredMantaSV : Calling.filteredMantaSV,
+                    strelka2Snv : Calling.strelka2Snv,
+                    strelka2Indel : Calling.strelka2Indel,
+                    mutect2 : Calling.mutect2,
+                    lancet : Calling.lancet,
+                    svabaSv : Calling.svabaSv,
+                    svabaIndel : Calling.svabaIndel,
+                    tumor : pairRelationship.tumor,
+                    normal : pairRelationship.normal,
+                    tumorFinalBam : Preprocess.finalBam[tumorGetIndex.index],
+                    normalFinalBam : Preprocess.finalBam[normalGetIndex.index]
+
+                }
+
+                if (library == 'WGS') {
+                    call mergeVcf.MergeVcf as wgsMergeVcf {
+                        input:
+                            pairRawVcfInfo = pairRawVcfInfo,
+                            referenceFa = referenceFa,
+                            listOfChroms = listOfChroms,
+                            intervalListBed = intervalListBed,
+                            ponFile = ponWGSFile,
+                            germFile = germFile
+
+                    }
+                }
+
+                if (library == 'Exome') {
+                    call mergeVcf.MergeVcf as exomeMergeVcf {
+                        input:
+                            pairRawVcfInfo = pairRawVcfInfo,
+                            referenceFa = referenceFa,
+                            listOfChroms = listOfChroms,
+                            intervalListBed = intervalListBed,
+                            ponFile = ponExomeFile,
+                            germFile = germFile
+
+                    }
+               }
+
+               File mergedVcf = select_first([wgsMergeVcf.mergedVcf, exomeMergeVcf.mergedVcf])
+           }
         }
-
-        if (library == 'WGS') {
-            call mergeVcf.MergeVcf as wgsMergeVcf {
-                input:
-                    pairRawVcfInfo = pairRawVcfInfo,
-                    referenceFa = referenceFa,
-                    listOfChroms = listOfChroms,
-                    intervalListBed = intervalListBed,
-                    ponFile = ponWGSFile,
-                    germFile = germFile
-
-            }
-        }
-
-        if (library == 'Exome') {
-            call mergeVcf.MergeVcf as exomeMergeVcf {
-                input:
-                    pairRawVcfInfo = pairRawVcfInfo,
-                    referenceFa = referenceFa,
-                    listOfChroms = listOfChroms,
-                    intervalListBed = intervalListBed,
-                    ponFile = ponExomeFile,
-                    germFile = germFile
-
-            }
-        }
-
-        File mergedVcf = select_first([wgsMergeVcf.mergedVcf, exomeMergeVcf.mergedVcf])
-    }
+     }
+   }
 
     output {
-        Array[File] mergedVcfs = mergedVcf
+        Array[File?] mergedVcfs = mergedVcf
         Array[Bam] finalBams = Preprocess.finalBam
-        Array[PairRawVcfInfo] pairRawVcfInfos = pairRawVcfInfo
-        Array[File] kouramiResult = Kourami.result
-        Array[File] mantisWxsKmerCountsFinal = Msi.mantisWxsKmerCountsFinal
-        Array[File] mantisWxsKmerCountsFiltered = Msi.mantisWxsKmerCountsFiltered
-        Array[File] mantisExomeTxt = Msi.mantisExomeTxt
-        Array[File] mantisStatusFinal = Msi.mantisStatusFinal
+        Array[PairRawVcfInfo?] pairRawVcfInfos = pairRawVcfInfo
+        Array[File?] kouramiResult = Kourami.result
+        Array[File?] mantisWxsKmerCountsFinal = Msi.mantisWxsKmerCountsFinal
+        Array[File?] mantisWxsKmerCountsFiltered = Msi.mantisWxsKmerCountsFiltered
+        Array[File?] mantisExomeTxt = Msi.mantisExomeTxt
+        Array[File?] mantisStatusFinal = Msi.mantisStatusFinal
         # QC
         Array[File] alignmentSummaryMetrics = Preprocess.alignmentSummaryMetrics
         Array[File] qualityByCyclePdf = Preprocess.qualityByCyclePdf
@@ -236,5 +286,47 @@ workflow SomaticWorkflow {
         Array[File] qualityByCycleMetricsPreBqsr = Preprocess.qualityByCycleMetricsPreBqsr
         Array[File] qualityByCyclePdfPreBqsr = Preprocess.qualityByCyclePdfPreBqsr
         Array[File] qualityDistributionMetricsPreBqsr = Preprocess.qualityDistributionMetricsPreBqsr
+    }
+}
+
+task BamQcCheck {
+    input {
+        File wgsMetricsFile
+        Float expectedCoverage
+        File checkQC = "gs://nygc-comp-s-82ed-input/scripts/check_wgs_coverage.py"
+    }
+
+    command {
+        python ~{checkQC} -m ~{wgsMetricsFile} -e ~{expectedCoverage}
+    }
+
+    output {
+        Boolean coveragePass = read_boolean(stdout())
+    }
+
+    runtime {
+        docker: "python:3"
+    }
+}
+
+task TumorNormalQcCheck {
+    input {
+        File concordanceFile
+        File contaminationFile
+        File checkQC = "gs://nygc-comp-s-82ed-input/scripts/check_tumor_normal_qc.py"
+    }
+
+    command {
+        python ~{checkQC} \
+           --concordance ~{concordanceFile} \
+           --contamination ~{contaminationFile}
+    }
+
+    output {
+        Boolean qcPass = read_boolean(stdout())
+    }
+
+    runtime {
+        docker: "python:3"
     }
 }

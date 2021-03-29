@@ -4,7 +4,7 @@ import "../wdl_structs.wdl"
 import "qc.wdl"
 
 workflow Conpair {
-    # command 
+    # command
     input {
         Bam finalNormalBam
         Bam finalTumorBam
@@ -12,16 +12,18 @@ workflow Conpair {
         String tumor
         String normal
         String pairName
-        
+
         File markerTxtFile
         File markerBedFile
-    
-        Int threads
-        Int memoryGb
-        String gatkDockerImage
-        String conpairDockerImage
+
+        Int threads=1
+        Int memoryGb=16
     }
-    
+
+    Int additionalDiskSize = 100
+    Int tumorSize = ceil(size(finalTumorBam.bam, "GB") + size(finalTumorBam.bamIndex, "GB"))
+    Int normalSize = ceil(size(finalNormalBam.bam, "GB") + size(finalNormalBam.bamIndex, "GB"))
+
     call qc.ConpairPileup as tumorConpairPileup {
         input:
             markerBedFile = markerBedFile,
@@ -30,8 +32,9 @@ workflow Conpair {
             sampleId = tumor,
             memoryGb = memoryGb,
             threads = threads,
+            diskSize = tumorSize + additionalDiskSize
     }
-    
+
     call qc.ConpairPileup as normalConpairPileup {
         input:
             markerBedFile = markerBedFile,
@@ -40,8 +43,9 @@ workflow Conpair {
             sampleId = normal,
             memoryGb = memoryGb,
             threads = threads,
+            diskSize = normalSize + additionalDiskSize
     }
-    
+
     call qc.VerifyConcordanceAll {
         input:
             pileupsTumorConpair = tumorConpairPileup.pileupsConpair,
@@ -51,7 +55,7 @@ workflow Conpair {
             memoryGb = memoryGb,
             threads = threads,
     }
-    
+
     call qc.VerifyConcordanceHomoz {
         input:
             pileupsTumorConpair = tumorConpairPileup.pileupsConpair,
@@ -61,7 +65,7 @@ workflow Conpair {
             memoryGb = memoryGb,
             threads = threads,
     }
-    
+
     call qc.Contamination {
         input:
             pileupsTumorConpair = tumorConpairPileup.pileupsConpair,
@@ -71,11 +75,10 @@ workflow Conpair {
             memoryGb = memoryGb,
             threads = threads,
     }
-    
+
     output {
         File concordanceAll = VerifyConcordanceAll.concordanceAll
         File concordanceHomoz = VerifyConcordanceHomoz.concordanceHomoz
         File contamination = Contamination.contamination
     }
 }
-

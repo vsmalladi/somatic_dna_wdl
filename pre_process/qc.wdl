@@ -522,8 +522,8 @@ task ConpairPileup {
         mkdir -p $(dirname ~{pileupsConpairPath})
 
         java \
-        -jar GenomeAnalysisTK.jar \
-        --java-options "-Xmx4G -XX:ParallelGCThreads=1" \
+        -Xmx4096m -XX:ParallelGCThreads=1 \
+        -jar /usr/GenomeAnalysisTK.jar \
         -T Pileup \
         -R ~{referenceFa.fasta} \
         -I ~{finalBam.bam} \
@@ -543,7 +543,8 @@ task ConpairPileup {
         cpu : threads
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker : "us.gcr.io/broad-gatk/gatk:3.4.0"
+        #docker : "us.gcr.io/broad-gatk/gatk:3.4.0"
+        docker: "broadinstitute/gatk3:3.5-0"
     }
 }
 
