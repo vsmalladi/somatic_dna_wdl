@@ -296,7 +296,7 @@ def main():
     args = get_args()
     run_data = RunData(run_info_file=args['run_data'])
     outputs = CloudOutput(run_data=run_data, url=args['url'])
-    file_out = outputs.run_data.run_info["project_data"]['project'].replace(' ', '_') + outputs.run_data.run_info['workflow_uuid'] + '_outputInfo.json'
+    file_out = outputs.run_data.run_info["project_data"]['project'].replace(' ', '_') + '.' +  outputs.run_data.run_info['workflow_uuid'] + '_outputInfo.json'
     with open(file_out, 'w') as project_info_file:
         json.dump(outputs.run_data.run_info, project_info_file, indent=4)
 

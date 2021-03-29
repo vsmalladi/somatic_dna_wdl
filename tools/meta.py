@@ -65,6 +65,12 @@ def load_pairs(file):
     pairs['pairId'] = pairs.apply(lambda row: row.tumor + '--' + row.normal, axis=1)
     return pairs[['tumor', 'normal', 'pairId']]
 
+def load_sample_ids(file):
+    '''Return a deduplicated list of sample ids'''
+    sample_ids = pd.read_csv(file)
+    assert 'sampleId' in sample_ids.columns , 'Error: can not find "sampleId" columns in samples file: ' + ' '.join(sample_ids.columns)
+    return sample_ids.sampleId.unique().tolist()
+
 def load_bam(row, pair_info, kind):
     '''temp version to add bam file replace once GCP file manifest format is known'''
     if kind == 'tumor':
@@ -182,34 +188,43 @@ def repopulate(args):
     else:
         verify_required(key='intervalList', args=args, project_info=project_info)
         project_info = note_updates(key='intervalList', args_key=args['intervalList'], project_info=project_info)
-    if args['pairs_file']:
+    if args['pairs_file'] and not args['project_data']:
         pairs = load_pairs(args['pairs_file'])
         pair_info = []
         pair_info_relationships = []
         for index, row in pairs.iterrows():
-            current_pair_info = fill_pair(row)
-            pair_info.append(current_pair_info)
+            # add test pairInfo
+            if args['test_data']:
+                current_pair_info = fill_pair(row)
+                pair_info.append(current_pair_info)
+            # add pairRelationship
             current_pair_info_relationship = fill_pair_relationship(row)
-            pair_info_relationships.append(current_pair_info_relationship)
-            
-    project_info = note_updates(key='listOfPairRelationships', args_key=pair_info_relationships, project_info=project_info)
-    project_info = note_updates(key='pairInfos', args_key=pair_info, project_info=project_info)
-    
-    pair_ids = list(set([info['pairId'] for info in project_info['pairInfos']]))
-    project_info = note_updates(key='pairId', args_key=pair_ids, project_info=project_info)
-    
-    normals = list(set([info['normal'] for info in project_info['pairInfos']]))
-    project_info = note_updates(key='normals', args_key=normals, project_info=project_info)
-    
-    tumors = list(set([info['tumor'] for info in project_info['pairInfos']]))
-    project_info = note_updates(key='tumors', args_key=tumors, project_info=project_info)
-    sample_ids = list(set(project_info['normals'] + project_info['tumors']))
+            pair_info_relationships.append(current_pair_info_relationship)   
+        # pair-only         
+        project_info = note_updates(key='listOfPairRelationships', args_key=pair_info_relationships, project_info=project_info)
+        if args['test_data']:
+            project_info = note_updates(key='pairInfos', args_key=pair_info, project_info=project_info)
+        pair_ids = list(set([info['pairId'] for info in project_info['pairInfos']]))
+        project_info = note_updates(key='pairId', args_key=pair_ids, project_info=project_info)
+        
+        normals = list(set([info['normal'] for info in project_info['pairInfos']]))
+        project_info = note_updates(key='normals', args_key=normals, project_info=project_info)
+        
+        tumors = list(set([info['tumor'] for info in project_info['pairInfos']]))
+        project_info = note_updates(key='tumors', args_key=tumors, project_info=project_info)
+    # fill in list of samples
+    if args['samples_file'] and not args['project_data']:
+        sample_ids = load_sample_ids(args['samples_file'])
+    else:
+        sample_ids = list(set(project_info['normals'] + project_info['tumors']))
     project_info = note_updates(key='sampleIds', args_key=sample_ids, project_info=project_info)
-    sample_info = []
-    for sample_id in sample_ids:
-        current_sample_id_info = fill_sample(sample_id)
-        sample_info.append(current_sample_id_info)
-    project_info = note_updates(key='sampleInfos', args_key=sample_info, project_info=project_info)
+    if args['test_data']:
+        sample_info = []
+        for sample_id in sample_ids:
+            # add mock fastq files for now (will be replaced later by custom input if made available)
+            current_sample_id_info = fill_sample(sample_id)
+            sample_info.append(current_sample_id_info)
+        project_info = note_updates(key='sampleInfos', args_key=sample_info, project_info=project_info)
     return project_info
 
 def write_wdl_json(args, project_info, project_info_file):
@@ -254,6 +269,10 @@ def get_args():
         Need to add optional task-specific input json
     '''
     parser = argparse.ArgumentParser()
+    parser.add_argument('--test-data',
+                        help='Add FASTQ and BAM objects to run as test data',
+                        action='store_true'
+                       )
     parser.add_argument('--options',
                         help='Options json file (required)',
                             required=True

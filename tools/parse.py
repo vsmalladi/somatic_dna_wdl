@@ -216,10 +216,13 @@ class Wdl():
                 data = self.load_json(custom_input)
                 new_vars = [variable.split('.')[-1] for variable in set(data.keys())]
                 assert len(set(new_vars)) == len(new_vars), 'input variables must have unique variable names (after removing workflow names).'
-                assert len(set(new_vars).intersection(self.input_objects.keys())) == 0, 'custom inputs must be not be redundant to other input variables'
+#                 assert len(set(new_vars).intersection(self.input_objects.keys())) == 0, 'custom inputs must be not be redundant to other input variables'
                 for variable in data:
-                    self.input_objects[variable.split('.')[-1]] = {}
-                    self.input_objects[variable.split('.')[-1]]['object'] = data[variable]
+                    new_var = variable.split('.')[-1]
+                    if new_var in self.input_objects.keys():
+                        log.warning(new_var + 'value is being taken from custom inputs json file.')
+                    self.input_objects[new_var] = {}
+                    self.input_objects[new_var]['object'] = data[variable]
     
     def load_wf_name(self):
         return [self.inputs[variable]['full_variable'].split('.')[0] for variable in self.inputs][0]
