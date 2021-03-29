@@ -143,15 +143,6 @@ task GetChr6Contigs {
     }
     
     command {
-        set -e -o pipefail
-        
-        export CONDA_ALWAYS_YES="true"
-        
-        conda config --add channels r
-        conda config --add channels bioconda    
-        
-        conda install pysam &> "pysam_install.log"
-        
         /lookup_contigs.py ~{finalBam.bam}
     }
     
@@ -162,7 +153,7 @@ task GetChr6Contigs {
     runtime {
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker : "gcr.io/nygc-internal-tools/hla_prep:2.0.0"
+        docker : "gcr.io/nygc-internal-tools/hla_prep:3.3.0"
     }
 }
 
@@ -176,12 +167,10 @@ task GemSelect {
         String sampleId
         String chr6Contigs
         Bam finalBam
-        File kouramiFastaGem3Index
+        File kouramiFastaGem1Index
         String r1FilePath = "~{sampleId}.first_pair"
         String r2FilePath = "~{sampleId}.second_pair"
-        Float maxMismatches = 0.08
-        Float alignmentGlobalMinIdentity = 0.80
-        String outputFormat = "MAP"
+        Float maxMismatches = 0.04
         String alignmentHistoPath = "~{sampleId}.alignment.pdf"
         String r1MappedFastqPath = "~{sampleId}.R1_mapped.fastq"
         String r2MappedFastqPath = "~{sampleId}.R2_mapped.fastq"
@@ -203,14 +192,14 @@ task GemSelect {
         --threads ~{samtoolsThreads} \
         - \
         | gem-mapper \
-        --threads ~{gemThreads} \
+        -T ~{gemThreads} \
         --verbose \
-        --index ~{kouramiFastaGem3Index} \
-        --alignment-global-min-identity ~{alignmentGlobalMinIdentity} \
-        --alignment-max-error ~{maxMismatches} \
-        --alignment-local never \
-        --output-format ~{outputFormat} \
-        --mapping-mode "fast" \
+        -I ~{kouramiFastaGem1Index} \
+        -m ~{maxMismatches} \
+        -e ~{maxMismatches} \
+        --mismatch-alphabet ATCGN \
+        --fast-mapping \
+        -q ignore \
         | /describe_alignments.py \
         ~{alignmentHistoPath} \
         | /gem_to_fastq.py \
@@ -230,7 +219,7 @@ task GemSelect {
         cpu : threads
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker : "gcr.io/nygc-internal-tools/hla_prep:2.0.0"
+        docker : "gcr.io/nygc-internal-tools/hla_prep:3.3.0"
     }
 }
 
@@ -246,15 +235,10 @@ task LookUpMates {
         File r1File
         File r1MappedFastq
         
-        File lookUpMates = "gs://nygc-comp-s-fd4e-input/look_up_mates.py"
     }
 
     command {
-        set -e -o pipefail
-        
-        chmod 755 ~{lookUpMates}
-    
-        ~{lookUpMates} \
+        /look_up_mates.py \
         ~{r1File} \
         ~{r2File} \
         ~{r1MappedFastq} \
@@ -271,7 +255,7 @@ task LookUpMates {
     runtime {
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker : "gcr.io/nygc-internal-tools/hla_prep:2.0.0"
+        docker : "gcr.io/nygc-internal-tools/hla_prep:3.3.0"
     }
 }
 
@@ -317,7 +301,7 @@ task GetMates {
         cpu : threads
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/hla_prep:2.0.0"
+        docker : "gcr.io/nygc-internal-tools/hla_prep:3.3.0"
     }
 }
 
@@ -356,7 +340,7 @@ task SortFastqs {
     runtime {
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker : "gcr.io/nygc-internal-tools/hla_prep:2.0.0"
+        docker : "gcr.io/nygc-internal-tools/hla_prep:3.3.0"
     }
 }
 

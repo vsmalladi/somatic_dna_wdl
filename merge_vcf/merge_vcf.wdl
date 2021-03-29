@@ -325,7 +325,7 @@ task MergeCallers {
     input {
         String chrom
         String pairName
-        String mergedChromVcfPath = "~{pairName}.merged_supported.v6.~{chrom}.vcf"
+        String mergedChromVcfPath = "~{pairName}.merged_supported.v7.~{chrom}.vcf"
         Array[IndexedVcf] allVcfCompressed
         Array[File] allVcfCompressedList
         Int threads = 16
@@ -365,7 +365,7 @@ task StartCandidates {
     input {
         String pairName
         String chrom
-        String startChromVcfPath = "~{pairName}.start.merged.v6.~{chrom}.vcf"
+        String startChromVcfPath = "~{pairName}.start.merged.v7.~{chrom}.vcf"
         File intervalListBed
         File mergedChromVcf
         Int memoryGb = 16
@@ -397,7 +397,7 @@ task GetCandidates {
     input {
         String pairName
         String chrom
-        String candidateChromVcfPath = "~{pairName}.candidate.merged.v6.~{chrom}.vcf"
+        String candidateChromVcfPath = "~{pairName}.candidate.merged.v7.~{chrom}.vcf"
         File startChromVcf
         Int memoryGb = 16
         Int diskSize = (ceil( size(startChromVcf, "GB") )  * 2 ) + 4
@@ -425,7 +425,7 @@ task VcfToBed {
     input {
         String pairName
         String chrom
-        String candidateChromBedPath = "~{pairName}.candidate.merged.v6.~{chrom}.bed"
+        String candidateChromBedPath = "~{pairName}.candidate.merged.v7.~{chrom}.bed"
         File candidateChromVcf
         Int memoryGb = 16
         Int diskSize = (ceil( size(candidateChromVcf, "GB") )  * 2 ) + 4
@@ -457,7 +457,7 @@ task LancetConfirm {
     input {
         String pairName
         String chrom
-        String lancetChromVcfPath = "~{pairName}.lancet.merged.v6.~{chrom}.vcf"
+        String lancetChromVcfPath = "~{pairName}.lancet.merged.v7.~{chrom}.vcf"
         IndexedReference referenceFa
         Bam normalFinalBam
         File candidateChromBed
@@ -509,7 +509,7 @@ task IntersectVcfs {
         Int diskSize = 4
         String pairName
         String chrom
-        String vcfConfirmedCandidatePath = "~{pairName}.confirmed_lancet.merged.v6.~{chrom}.vcf"
+        String vcfConfirmedCandidatePath = "~{pairName}.confirmed_lancet.merged.v7.~{chrom}.vcf"
         IndexedVcf vcfCompressedLancet
         IndexedVcf vcfCompressedCandidate
     }
@@ -542,7 +542,7 @@ task MergeColumns {
     input {
         String pairName
         String chrom
-        String columnChromVcfPath = "~{pairName}.single_column.v6.~{chrom}.vcf"
+        String columnChromVcfPath = "~{pairName}.single_column.v7.~{chrom}.vcf"
         String tumor
         String normal
         File supportedChromVcf
@@ -574,7 +574,7 @@ task AddNygcAlleleCountsToVcf {
     input {
         String pairName
         String chrom
-        String preCountsChromVcfPath = "~{pairName}.pre_count.v6.~{chrom}.vcf"
+        String preCountsChromVcfPath = "~{pairName}.pre_count.v7.~{chrom}.vcf"
         Bam normalFinalBam
         Bam tumorFinalBam
         File columnChromVcf
@@ -608,7 +608,7 @@ task AddFinalAlleleCountsToVcf {
     input {
         String pairName
         String chrom
-        String countsChromVcfPath = "~{pairName}.final.v6.~{chrom}.vcf"
+        String countsChromVcfPath = "~{pairName}.final.v7.~{chrom}.vcf"
         File preCountsChromVcf
         Int memoryGb = 16
         Int diskSize = 4
@@ -636,11 +636,11 @@ task FilterPon {
     input {
         String chrom
         String pairName
-        String ponOutFilePath = "~{pairName}.pon.final.v6.~{chrom}.vcf"
+        String ponOutFilePath = "~{pairName}.pon.final.v7.~{chrom}.vcf"
         File countsChromVcf
         File ponFile
-        Int memoryGb = 16
-        Int diskSize = 4
+        Int memoryGb = 60
+        Int diskSize = 16
     }
 
     command {
@@ -667,11 +667,11 @@ task FilterVcf {
     input {
         String pairName
         String chrom
-        String filteredOutFilePath = "~{pairName}.final.v6.filtered.~{chrom}.vcf"
+        String filteredOutFilePath = "~{pairName}.final.v7.filtered.~{chrom}.vcf"
         IndexedVcf germFile
         File ponOutFile
-        Int memoryGb = 16
-        Int diskSize = 10
+        Int memoryGb = 60
+        Int diskSize = 16
     }
 
     command {
@@ -697,7 +697,7 @@ task SnvstomnvsCountsbasedfilterAnnotatehighconf {
     input {
         String pairName
         String chrom
-        String finalChromVcfPath = "~{pairName}.mnv.final.v6.filtered.~{chrom}.vcf"
+        String finalChromVcfPath = "~{pairName}.mnv.final.v7.filtered.~{chrom}.vcf"
         File filteredOutFile
         Int memoryGb = 16
         Int diskSize = 4

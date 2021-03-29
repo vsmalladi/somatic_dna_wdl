@@ -65,8 +65,7 @@ workflow SomaticWorkflow {
 
         # kourami
         BwaReference kouramiReference
-        File kouramiFastaGem3Index
-
+        File kouramiFastaGem1Index
         # mantis
         File mantisBed
         File intervalListBed
@@ -95,7 +94,7 @@ workflow SomaticWorkflow {
                 sampleId=sampleInfoObj.sampleId,
                 kouramiReference=kouramiReference,
                 finalBam=Preprocess.finalBam,
-                kouramiFastaGem3Index=kouramiFastaGem3Index
+                kouramiFastaGem1Index=kouramiFastaGem1Index
         }
 
         # for wdl version 1.0
