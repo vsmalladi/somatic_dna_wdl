@@ -83,7 +83,7 @@
   "SomaticWorkflow.ponExomeFile": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/Exome_PON_GRCh38.v1.1.bed",
   "SomaticWorkflow.chromLengths": "gs://nygc-comp-s-82ed-resources/Annotation/GRCh38/chrom_lengths.txt",
   "SomaticWorkflow.mantisBed": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/mantis_repeatfinder-hg38.chr.bed",
-  "SomaticWorkflow.kouramiFastaGem3Index": "gs://nygc-comp-s-82ed-input/All_FINAL_with_Decoy.fa.gem",
+  "SomaticWorkflow.kouramiFastaGem1Index": "gs://nygc-comp-s-fd4e-input/All_FINAL_with_Decoy.v1.gem",
   "SomaticWorkflow.dbsnpIndels": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/dbsnp_146.indels.hg38.vcf",
   "SomaticWorkflow.library": "WGS"
 }

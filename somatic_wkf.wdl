@@ -91,10 +91,10 @@ workflow SomaticWorkflow {
 
         call kourami.Kourami {
             input:
-                sampleId=sampleInfoObj.sampleId,
-                kouramiReference=kouramiReference,
-                finalBam=Preprocess.finalBam,
-                kouramiFastaGem1Index=kouramiFastaGem1Index
+                sampleId = sampleInfoObj.sampleId,
+                kouramiReference = kouramiReference,
+                finalBam = Preprocess.finalBam,
+                kouramiFastaGem1Index = kouramiFastaGem1Index
         }
 
         # for wdl version 1.0
