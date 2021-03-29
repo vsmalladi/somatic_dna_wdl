@@ -38,6 +38,11 @@ struct sampleInfo {
     Array[Fastqs] listOfFastqPairs
 }
 
+struct SampleBamInfo {
+    String sampleId
+    Bam finalBam
+}
+
 struct PairRawVcfInfo {
     String pairId
     File? mergedVcf
