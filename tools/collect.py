@@ -49,6 +49,7 @@ class JsonModify():
         self.final_json_obj = copy.deepcopy(inputs)
         self.dir = dir
         self.files = []
+        self.task_uuids = []
         self.other_file_pair_ids = []
         if all_pair_ids:
             self.other_file_pair_ids = [pair_id + '.' for pair_id in all_pair_ids if 
@@ -96,6 +97,7 @@ class JsonModify():
             return True
         
     def match(self, string):
+        '''Find objects that match a given sample or pair id'''
         if not string.startswith('gs://'):
             return string
         else:
@@ -113,6 +115,7 @@ class JsonModify():
             return False
         
     def convert_path(self, string):
+        '''Convert from intermediate file URI to final URI of the final output'''
         if string.endswith('...'):
             # LongObject'
             return False
@@ -126,6 +129,30 @@ class JsonModify():
                                if not section.startswith('attempt-') ])
             self.files.append(new_uri)
             return new_uri
+
+    def get_task_uuid(self, string):
+        '''find task uuid for geting metrics from big query'''
+        if string.endswith('...'):
+            # LongObject'
+            return False
+        elif not string.startswith('gs://'):
+            return False
+        else:
+            uri = string
+            task_uuid = uri.split('/call-')[-2].split('/')[-1]
+            self.task_uuids.append(task_uuid)
+            return task_uuid
+
+    def run_tool(self, description, subnode):
+        '''run the correct tool for the instance'''
+        if self.tool == 'convert_path':
+            description[i] = self.convert_path(subnode)
+        elif self.tool == 'match':
+            description[i] = self.match(subnode)
+        elif self.tool == 'skip':
+            self.skip(subnode)
+        elif self.tool == 'task_uuid':
+            self.get_task_uuid(subnode)
         
     def hlpr_fnc_list(self, list1, description):
         for i, subnode in enumerate(list1):
@@ -135,13 +162,8 @@ class JsonModify():
                 self.hlpr_fnc_list(subnode, description[i])
             else:
                 if isinstance(subnode, str):
-                    if self.tool == 'convert_path':
-                        description[i] = self.convert_path(subnode)
-                    elif self.tool == 'match':
-                        description[i] = self.match(subnode)
-                    elif self.tool == 'skip':
-                        self.skip(subnode)
-                
+                    self.run_tool(description, subnode)
+
     def hlpr_fnc(self, dict1, description):
         nodes = dict1.keys()
         for node in nodes:
@@ -152,12 +174,7 @@ class JsonModify():
                 self.hlpr_fnc_list(subnode, description[node])
             else:
                 if isinstance(subnode, str):
-                    if self.tool == 'convert_path':
-                        description[node] = self.convert_path(subnode)
-                    elif self.tool == 'match':
-                        description[node] = self.match(subnode)
-                    elif self.tool == 'skip':
-                        self.skip(subnode)
+                    self.run_tool(description, subnode)
                     
                     
 class CloudOutput():
@@ -169,6 +186,7 @@ class CloudOutput():
         self.workflow_uuid = self.run_data.workflow_uuid
         self.raw_outputs = self.read_api()
         self.parse_block()
+        self.get_task_uuids()
         self.unnamed_files = self.gather_unnamed()
         self.divide_by_id()
         self.run_data.run_info['pair_association'] = self.pair_association
@@ -176,6 +194,7 @@ class CloudOutput():
         self.run_data.run_info['outputs'] = self.named_outputs
         self.run_data.run_info['named_files'] = self.named_files
         self.run_data.run_info['unnamed_files'] = self.unnamed_files
+        self.run_data.run_info['task_uuids'] = self.task_uuids
         
     def filter_by_id(self, association, pair=True, sample=False):
         '''skip object that have no files after filtering by id'''
@@ -232,6 +251,13 @@ class CloudOutput():
         else:
             log.error('Not tested for non-relative paths')
             sys.exit(1)
+
+    def get_task_uuids(self):
+        '''Get task uuids for big query searches'''
+        self.out_dir =  self.out_path()
+        outputs = JsonModify(inputs=self.raw_outputs,
+                             tool='task_uuid')
+        self.task_uuids = outputs.task_uuids
         
     def parse_block(self):
         self.out_dir =  self.out_path()
