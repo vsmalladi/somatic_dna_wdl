@@ -39,6 +39,11 @@ struct sampleInfo {
     Float expectedCoverage
 }
 
+struct SampleBamInfo {
+    String sampleId
+    Bam finalBam
+}
+
 struct PairRawVcfInfo {
     String pairId
     File? mergedVcf
