@@ -36,7 +36,7 @@ struct Fastqs {
 struct sampleInfo {
     String sampleId
     Array[Fastqs] listOfFastqPairs
-    Float? expectedCoverage
+    Float expectedCoverage
 }
 
 struct PairRawVcfInfo {

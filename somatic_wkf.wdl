@@ -7,7 +7,6 @@ import "calling/calling_wkf.wdl" as calling
 import "merge_vcf/merge_vcf_wkf.wdl" as mergeVcf
 import "alignment_analysis/kourami_wfk.wdl" as kourami
 import "alignment_analysis/msi_wkf.wdl" as msi
-#import "pre_process/contamination_wkf.wdl" as contamination
 import "pre_process/conpair_wkf.wdl" as conpair
 
 # for wdl version 1.0
@@ -72,6 +71,7 @@ workflow SomaticWorkflow {
         # kourami
         BwaReference kouramiReference
         File kouramiFastaGem1Index
+
         # mantis
         File mantisBed
         File intervalListBed
@@ -106,7 +106,7 @@ workflow SomaticWorkflow {
                     sampleId = sampleInfoObj.sampleId,
                     kouramiReference = kouramiReference,
                     finalBam = Preprocess.finalBam,
-                    kouramiFastaGem3Index = kouramiFastaGem3Index
+                    kouramiFastaGem1Index = kouramiFastaGem1Index
             }
         }
 

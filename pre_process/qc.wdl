@@ -544,7 +544,7 @@ task ConpairPileup {
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
         #docker : "us.gcr.io/broad-gatk/gatk:3.4.0"
-        docker: "broadinstitute/gatk3:3.5-0"
+        docker: "gcr.io/nygc-public/broadinstitute/gatk3:3.5-0"
     }
 }
 
@@ -560,11 +560,12 @@ task VerifyConcordanceAll {
     }
 
     command {
-        verify_concordance.py \
+        export CONPAIR_DIR=/Conpair-0.2
+        export PYTHONPATH=/Conpair-0.2/modules
+        python /Conpair-0.2/scripts/verify_concordance.py \
         -T ~{pileupsTumorConpair} \
         -N ~{pileupsNormalConpair} \
         -O ~{concordanceAllPath} \
-        -D "./" \
         -M ~{markerTxtFile}
     }
 
@@ -575,7 +576,7 @@ task VerifyConcordanceAll {
     runtime {
         cpu : threads
         memory : memoryGb + "GB"
-        docker : "us.gcr.io/broad-gatk/gatk:4.1.0.0"
+        docker : "gcr.io/nygc-public/conpair:v0.2-1"
     }
 }
 
@@ -591,11 +592,12 @@ task VerifyConcordanceHomoz {
     }
 
     command {
-        verify_concordance.py \
+        export CONPAIR_DIR=/Conpair-0.2
+        export PYTHONPATH=/Conpair-0.2/modules
+        python /Conpair-0.2/scripts/verify_concordance.py \
         -T ~{pileupsTumorConpair} \
         -N ~{pileupsNormalConpair} \
         -O ~{concordanceHomozPath} \
-        -D "./" \
         -M ~{markerTxtFile} \
         -H
     }
@@ -607,7 +609,7 @@ task VerifyConcordanceHomoz {
     runtime {
         cpu : threads
         memory : memoryGb + "GB"
-        docker : "us.gcr.io/broad-gatk/gatk:4.1.0.0"
+        docker : "gcr.io/nygc-public/conpair:v0.2-1"
     }
 }
 
@@ -623,13 +625,12 @@ task Contamination {
     }
 
     command {
-        verify_concordance.py \
+        export CONPAIR_DIR=/Conpair-0.2
+        export PYTHONPATH=/Conpair-0.2/modules
+        python /Conpair-0.2/scripts/estimate_tumor_normal_contamination.py \
         -T ~{pileupsTumorConpair} \
         -N ~{pileupsNormalConpair} \
         -O ~{contaminationPath} \
-        -P 0.001 \
-        -Q 10 \
-        -D "./" \
         -M ~{markerTxtFile}
     }
 
@@ -640,6 +641,6 @@ task Contamination {
     runtime {
         cpu : threads
         memory : memoryGb + "GB"
-        docker : "us.gcr.io/broad-gatk/gatk:4.1.0.0"
+        docker : "gcr.io/nygc-public/conpair:v0.2-1"
     }
 }
