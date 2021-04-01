@@ -15,11 +15,10 @@ task GetIndex {
     input {
         String sampleId
         Array[String] sampleIds
-        File getIndex = "gs://nygc-comp-s-fd4e-input/get_index.py"
     }
 
     command {
-        python ~{getIndex} \
+        python /get_index.py \
         --sample-id ~{sampleId} \
         --sample-ids ~{sep=' ' sampleIds}
     }
@@ -29,7 +28,7 @@ task GetIndex {
     }
 
     runtime {
-        docker: "python:3"
+        docker: "gcr.io/nygc-internal-tools/workflow_utils"
     }
 }
 
@@ -145,16 +144,6 @@ workflow SomaticWorkflow {
         }
 
 
-        # call contamination.CalculateContamination {
-        #     input:
-        #         finalTumorBam = Preprocess.finalBam[tumorGetIndex.index],
-        #         finalNormalBam = Preprocess.finalBam[normalGetIndex.index],
-        #         tumor = pairRelationship.tumor,
-        #         normal = pairRelationship.normal,
-        #         pairName = pairRelationship.pairId
-        # }
-
-
         call conpair.Conpair {
             input:
                 finalTumorBam = Preprocess.finalBam[tumorGetIndex.index],
@@ -167,86 +156,85 @@ workflow SomaticWorkflow {
                 markerTxtFile = markerTxtFile
         }
 
-        call TumorNormalQcCheck {
+        call SomaticQcCheck {
             input:
+                tumorWgsMetricsFile = Preprocess.collectWgsMetrics[tumorGetIndex.index],
+                tumorExpectedCoverage = sampleInfos[tumorGetIndex.index].expectedCoverage,
+                normalWgsMetricsFile = Preprocess.collectWgsMetrics[normalGetIndex.index],
+                normalExpectedCoverage = sampleInfos[normalGetIndex.index].expectedCoverage,
                 concordanceFile = Conpair.concordanceAll,
                 contaminationFile = Conpair.contamination
         }
 
-        # There is no 'and' in conditionals. We have to nest them
-        if (TumorNormalQcCheck.qcPass) {
-            if (samplesCoveragePass[tumorGetIndex.index]) {
-                if (samplesCoveragePass[normalGetIndex.index]) {
 
-                call calling.Calling {
+        if (SomaticQcCheck.qcPass) {
+            call calling.Calling {
+                input:
+                    pairInfo = pairInfoObject,
+                    listOfChroms = listOfChroms,
+                    referenceFa = referenceFa,
+                    callRegions = callRegions,
+                    bwaReference = bwaReference,
+                    dbsnpIndels = dbsnpIndels,
+                    chromBedsWgs = chromBedsWgs
+
+            }
+
+            call msi.Msi {
+                input:
+                    normal=pairRelationship.normal,
+                    pairName=pairRelationship.pairId,
+                    mantisBed=mantisBed,
+                    intervalListBed=intervalListBed,
+                    referenceFa=referenceFa,
+                    tumorFinalBam=Preprocess.finalBam[tumorGetIndex.index],
+                    normalFinalBam=Preprocess.finalBam[normalGetIndex.index]
+            }
+
+            PairRawVcfInfo pairRawVcfInfo = object {
+                pairId : pairRelationship.pairId,
+                filteredMantaSV : Calling.filteredMantaSV,
+                strelka2Snv : Calling.strelka2Snv,
+                strelka2Indel : Calling.strelka2Indel,
+                mutect2 : Calling.mutect2,
+                lancet : Calling.lancet,
+                svabaSv : Calling.svabaSv,
+                svabaIndel : Calling.svabaIndel,
+                tumor : pairRelationship.tumor,
+                normal : pairRelationship.normal,
+                tumorFinalBam : Preprocess.finalBam[tumorGetIndex.index],
+                normalFinalBam : Preprocess.finalBam[normalGetIndex.index]
+
+            }
+
+            if (library == 'WGS') {
+                call mergeVcf.MergeVcf as wgsMergeVcf {
                     input:
-                        pairInfo = pairInfoObject,
-                        listOfChroms = listOfChroms,
+                        pairRawVcfInfo = pairRawVcfInfo,
                         referenceFa = referenceFa,
-                        callRegions = callRegions,
-                        bwaReference = bwaReference,
-                        dbsnpIndels = dbsnpIndels,
-                        chromBedsWgs = chromBedsWgs
+                        listOfChroms = listOfChroms,
+                        intervalListBed = intervalListBed,
+                        ponFile = ponWGSFile,
+                        germFile = germFile
 
                 }
+            }
 
-                call msi.Msi {
+            if (library == 'Exome') {
+                call mergeVcf.MergeVcf as exomeMergeVcf {
                     input:
-                        normal=pairRelationship.normal,
-                        pairName=pairRelationship.pairId,
-                        mantisBed=mantisBed,
-                        intervalListBed=intervalListBed,
-                        referenceFa=referenceFa,
-                        tumorFinalBam=Preprocess.finalBam[tumorGetIndex.index],
-                        normalFinalBam=Preprocess.finalBam[normalGetIndex.index]
-                }
-
-                PairRawVcfInfo pairRawVcfInfo = object {
-                    pairId : pairRelationship.pairId,
-                    filteredMantaSV : Calling.filteredMantaSV,
-                    strelka2Snv : Calling.strelka2Snv,
-                    strelka2Indel : Calling.strelka2Indel,
-                    mutect2 : Calling.mutect2,
-                    lancet : Calling.lancet,
-                    svabaSv : Calling.svabaSv,
-                    svabaIndel : Calling.svabaIndel,
-                    tumor : pairRelationship.tumor,
-                    normal : pairRelationship.normal,
-                    tumorFinalBam : Preprocess.finalBam[tumorGetIndex.index],
-                    normalFinalBam : Preprocess.finalBam[normalGetIndex.index]
+                        pairRawVcfInfo = pairRawVcfInfo,
+                        referenceFa = referenceFa,
+                        listOfChroms = listOfChroms,
+                        intervalListBed = intervalListBed,
+                        ponFile = ponExomeFile,
+                        germFile = germFile
 
                 }
+            }
 
-                if (library == 'WGS') {
-                    call mergeVcf.MergeVcf as wgsMergeVcf {
-                        input:
-                            pairRawVcfInfo = pairRawVcfInfo,
-                            referenceFa = referenceFa,
-                            listOfChroms = listOfChroms,
-                            intervalListBed = intervalListBed,
-                            ponFile = ponWGSFile,
-                            germFile = germFile
-
-                    }
-                }
-
-                if (library == 'Exome') {
-                    call mergeVcf.MergeVcf as exomeMergeVcf {
-                        input:
-                            pairRawVcfInfo = pairRawVcfInfo,
-                            referenceFa = referenceFa,
-                            listOfChroms = listOfChroms,
-                            intervalListBed = intervalListBed,
-                            ponFile = ponExomeFile,
-                            germFile = germFile
-
-                    }
-               }
-
-               File mergedVcf = select_first([wgsMergeVcf.mergedVcf, exomeMergeVcf.mergedVcf])
-           }
-        }
-     }
+            File mergedVcf = select_first([wgsMergeVcf.mergedVcf, exomeMergeVcf.mergedVcf])
+      }
    }
 
     output {
@@ -293,11 +281,10 @@ task BamQcCheck {
     input {
         File wgsMetricsFile
         Float expectedCoverage
-        File checkQC = "gs://nygc-comp-s-82ed-input/scripts/check_wgs_coverage.py"
     }
 
     command {
-        python ~{checkQC} -m ~{wgsMetricsFile} -e ~{expectedCoverage}
+        python /check_wgs_coverage.py -m ~{wgsMetricsFile} -e ~{expectedCoverage}
     }
 
     output {
@@ -305,19 +292,27 @@ task BamQcCheck {
     }
 
     runtime {
-        docker: "python:3"
+        docker: "gcr.io/nygc-internal-tools/workflow_utils"
     }
 }
 
-task TumorNormalQcCheck {
+task SomaticQcCheck {
+    # Check coverage, contamination and concordance in one go.
     input {
+        File tumorWgsMetricsFile
+        File normalWgsMetricsFile
+        Float tumorExpectedCoverage
+        Float normalExpectedCoverage
         File concordanceFile
         File contaminationFile
-        File checkQC = "gs://nygc-comp-s-82ed-input/scripts/check_tumor_normal_qc.py"
     }
 
     command {
-        python ~{checkQC} \
+        python /check_tumor_normal_qc.py \
+           --tm tumorWgsMetricsFile \
+           --te tumorExpectedCoverage \
+           --nm normalWgsMetricsFile \
+           --ne normalExpectedCoverage \
            --concordance ~{concordanceFile} \
            --contamination ~{contaminationFile}
     }
@@ -327,6 +322,6 @@ task TumorNormalQcCheck {
     }
 
     runtime {
-        docker: "python:3"
+        docker: "gcr.io/nygc-internal-tools/workflow_utils"
     }
 }
