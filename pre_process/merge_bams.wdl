@@ -116,12 +116,12 @@ task Downsample{
         String sampleId
         String downsampleMergedDedupBamPath = "~{sampleId}.merged_dedup_10_percent.bam"
         Bam mergedDedupBam
-        Int mem = 64  #GB
+        Int mem = 68  #GB
         Int diskSize
     }
     command {
         gatk DownsampleSam \
-        --java-options "-Xmx48G -XX:ParallelGCThreads=4" \
+        --java-options "-Xmx54G -XX:ParallelGCThreads=4" \
         --STRATEGY Chained \
         --RANDOM_SEED 1 \
         --CREATE_INDEX \

@@ -543,7 +543,6 @@ task ConpairPileup {
         cpu : threads
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        #docker : "us.gcr.io/broad-gatk/gatk:3.4.0"
         docker: "gcr.io/nygc-public/broadinstitute/gatk3:3.5-0"
     }
 }

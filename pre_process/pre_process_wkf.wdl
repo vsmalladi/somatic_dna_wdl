@@ -28,10 +28,10 @@ workflow Preprocess {
 
         # resources
         #    prep flowcell
-        Int bwaMem = 24
+        Int bwaMem = 86
         Int novosortMem = 80
         Int threads = 16
-        Int bwaThreads = 64
+        Int bwaThreads = 96
     }
 
     call alignFastq.AlignFastq {
