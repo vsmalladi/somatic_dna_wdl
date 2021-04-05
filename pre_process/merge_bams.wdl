@@ -81,7 +81,7 @@ task Bqsr38 {
         IndexedVcf Indels
         IndexedVcf dbsnp
         # resources
-        Int mem = 36
+        Int mem = 68
         Int cpu = 2
         Int diskSize
    }
@@ -89,7 +89,7 @@ task Bqsr38 {
     command {
         gatk \
         BaseRecalibrator \
-        --java-options "-Xmx24G -XX:ParallelGCThreads=4" \
+        --java-options "-Xmx54G -XX:ParallelGCThreads=4" \
         -L ~{callRegions} \
         -R ~{referenceFa.fasta} \
         -I ~{mergedDedupBam.bam} \
@@ -154,14 +154,14 @@ task PrintReads {
         String sampleId
         String finalBamPath = "~{sampleId}.final.bam"
         # resources
-        Int mem = 36
+        Int mem = 68
         Int cpu = 2
         Int diskSize
     }
 
     command {
         gatk ApplyBQSR \
-        --java-options "-Xmx24G -XX:ParallelGCThreads=4" \
+        --java-options "-Xmx54G -XX:ParallelGCThreads=4" \
         -R ~{referenceFa.fasta} \
         -I ~{mergedDedupBam.bam} \
         -O ~{finalBamPath} \

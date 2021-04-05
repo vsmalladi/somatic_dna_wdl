@@ -32,7 +32,7 @@ workflow MergeBams {
             sizes = sample_bam_sizes
     }
 
-    Int diskSize = ceil(SumFloats.total_size) + 100
+    Int diskSize = ceil(SumFloats.total_size * 2) + 100
 
     call mergeBams.NovosortMarkDup as novosort {
         input:
