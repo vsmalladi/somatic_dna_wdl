@@ -18,7 +18,10 @@ workflow AlignFastq {
     Int additionalDiskSize = 100
     scatter(fastqs in listOfFastqPairs) {
         Int fastqsSize = ceil(size(fastqs.fastqR1, "GB") + size (fastqs.fastqR2, "GB"))
-        Int diskSize = fastqsSize + additionalDiskSize
+
+        # Assumption: The bam will be about the same size as the input fastqs. So double
+        # the size to account for input and output.
+        Int diskSize = fastqsSize * 2 + additionalDiskSize
         call alignFastq.AlignBwaMem {
             input:
                 fastqs = fastqs,
