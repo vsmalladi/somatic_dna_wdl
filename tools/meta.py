@@ -146,11 +146,21 @@ def fill_sample(sample_id):
     return sample_info
 
 def note_updates(key, args_key, project_info):
+    ''' Add/replace value in project_info with value from flag'''
     if args_key:
         if key in project_info:
             if not project_info[key] == args_key:
                 log.warning('Note that the value for ' + key + ' differs in the --project-info file:\n' + str(project_info[key]) + '\n from the value indicated with the flag:\n' + str(args_key) + '\nThe value from the flag supersedes the file value')
         project_info[key] = args_key
+    return project_info
+
+def note_custom_updates(key, alt_project_info, project_info):
+    ''' Add/replace value in project_info with value from custom inputs json'''
+    match = [key for key in alt_project_info if key.split('.')[-1] == key]
+    if len(match) == 1:
+        if key in project_info:
+            log.warning('Note that the value for ' + key + ' will be taken from --custom-inputs file\n')
+        project_info[key] = alt_project_info[match[0]]
     return project_info
 
 def verify_required(key, args, project_info):
@@ -204,6 +214,11 @@ def repopulate(args):
         project_info = note_updates(key='listOfPairRelationships', args_key=pair_info_relationships, project_info=project_info)
         if args['test_data']:
             project_info = note_updates(key='pairInfos', args_key=pair_info, project_info=project_info)
+        else:
+            for alt_project_info_file in args['custom_inputs']:
+                alt_project_info = read(alt_project_info_file)
+                project_info = note_custom_updates(key='pairInfos', alt_project_info=alt_project_info, project_info=project_info)
+            assert 'pairInfos' in project_info, 'pairInfos needed but no entry found for key in --custom-inputs file\n'
         pair_ids = list(set([info['pairId'] for info in project_info['pairInfos']]))
         project_info = note_updates(key='pairId', args_key=pair_ids, project_info=project_info)
         
