@@ -28,8 +28,8 @@
   "SomaticWorkflow.hsMetricsIntervals": "gs://nygc-comp-s-82ed-resources/Annotation/wgs_capture_intervals/window1kb_step10kb.GRCh38.v2.interval_list",
   "SomaticWorkflow.bqsrCallRegions": "gs://nygc-comp-s-82ed-resources/Regions/grch38_autosomes.intervals",
   "SomaticWorkflow.callRegions": {
-        "table": "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/GRCh38.callregions.bed.gz",
-        "index": "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/GRCh38.callregions.bed.gz.tbi"
+        "table": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/GRCh38.callregions.bed.gz",
+        "index": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/GRCh38.callregions.bed.gz.tbi"
   },
   "SomaticWorkflow.germFile": {
       "vcf" : "gs://nygc-comp-s-82ed-resources/gnomAD/gnomad_data/vcf/GRCh38/gnomad-and-ALL_GRCh38_sites.20170504.normalized.modified.PASS.vcf.gz",
@@ -85,7 +85,7 @@
   "SomaticWorkflow.mantisBed": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/mantis_repeatfinder-hg38.chr.bed",
   "SomaticWorkflow.kouramiFastaGem1Index": "gs://nygc-comp-s-82ed-resources/kourami/All_FINAL_with_Decoy.v1.gem",
   "SomaticWorkflow.dbsnpIndels": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/dbsnp_146.indels.hg38.vcf",
-  "SomaticWorkflow.markerTxtFile": "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/GRCh38.autosomes.phase3_shapeit2_mvncall_integrated.20130502.SNV.genotype.sselect_v4_MAF_0.4_LD_0.8.liftover.txt",
-  "SomaticWorkflow.markerBedFile": "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/GRCh38.autosomes.phase3_shapeit2_mvncall_integrated.20130502.SNV.genotype.sselect_v4_MAF_0.4_LD_0.8.liftover.bed",
+  "SomaticWorkflow.markerTxtFile": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/GRCh38.autosomes.phase3_shapeit2_mvncall_integrated.20130502.SNV.genotype.sselect_v4_MAF_0.4_LD_0.8.liftover.txt",
+  "SomaticWorkflow.markerBedFile": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/GRCh38.autosomes.phase3_shapeit2_mvncall_integrated.20130502.SNV.genotype.sselect_v4_MAF_0.4_LD_0.8.liftover.bed",
   "SomaticWorkflow.library": "WGS"
 }

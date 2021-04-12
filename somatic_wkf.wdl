@@ -28,7 +28,7 @@ task GetIndex {
     }
 
     runtime {
-        docker: "gcr.io/nygc-internal-tools/workflow_utils"
+        docker: "gcr.io/nygc-internal-tools/workflow_utils:2.0"
     }
 }
 
@@ -274,6 +274,14 @@ workflow SomaticWorkflow {
         Array[File] qualityByCycleMetricsPreBqsr = Preprocess.qualityByCycleMetricsPreBqsr
         Array[File] qualityByCyclePdfPreBqsr = Preprocess.qualityByCyclePdfPreBqsr
         Array[File] qualityDistributionMetricsPreBqsr = Preprocess.qualityDistributionMetricsPreBqsr
+
+        # Conpair
+        Array[File] concordanceAll = Conpair.concordanceAll
+        Array[File] concordanceHomoz = Conpair.concordanceHomoz
+        Array[File] contamination = Conpair.contamination
+
+        # Pass/Fail indicator.
+        Array[File] qcResults = SomaticQcCheck.qcResult
     }
 }
 
@@ -292,7 +300,7 @@ task BamQcCheck {
     }
 
     runtime {
-        docker: "gcr.io/nygc-internal-tools/workflow_utils"
+        docker: "gcr.io/nygc-internal-tools/workflow_utils:2.0"
     }
 }
 
@@ -305,23 +313,28 @@ task SomaticQcCheck {
         Float normalExpectedCoverage
         File concordanceFile
         File contaminationFile
+        Float minConcordance = 95.0
+        Float maxContamination = 0.99
     }
 
     command {
-        python /check_tumor_normal_qc.py \
-           --tm tumorWgsMetricsFile \
-           --te tumorExpectedCoverage \
-           --nm normalWgsMetricsFile \
-           --ne normalExpectedCoverage \
-           --concordance ~{concordanceFile} \
-           --contamination ~{contaminationFile}
+        python /check_somatic_qc.py \
+           --tumor_metrics_file ~{tumorWgsMetricsFile} \
+           --tumor_expected_coverage ~{tumorExpectedCoverage} \
+           --normal_metrics_file ~{normalWgsMetricsFile} \
+           --normal_expected_coverage ~{normalExpectedCoverage} \
+           --concordance_file ~{concordanceFile} \
+           --contamination_file ~{contaminationFile} \
+           --min_concordance ~{minConcordance} \
+           --max_contamination ~{maxContamination}
     }
 
     output {
         Boolean qcPass = read_boolean(stdout())
+        File qcResult = glob("QC_*")[0]
     }
 
     runtime {
-        docker: "gcr.io/nygc-internal-tools/workflow_utils"
+        docker: "gcr.io/nygc-internal-tools/workflow_utils:2.0"
     }
 }

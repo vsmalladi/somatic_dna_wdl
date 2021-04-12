@@ -180,5 +180,6 @@ task PrintReads {
         memory : mem + "GB"
         docker : "us.gcr.io/broad-gatk/gatk:4.1.1.0"
         disks: "local-disk " + diskSize + " HDD"
+        preemptible: 0
      }
 }

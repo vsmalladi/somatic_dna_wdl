@@ -85,6 +85,7 @@ task ShortAlignMark {
         memory : mem + " GB"
         docker : "gcr.io/nygc-public/nygc-short-alignment-marking:v2.1"
         disks: "local-disk " + diskSize + " HDD"
+        preemptible: 0
     }
 }
 
