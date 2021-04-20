@@ -104,6 +104,7 @@ workflow QcMetrics {
         input:
             chromLengths = chromLengths,
             sampleId = sampleId,
+            outputDir = outputDir,
             binestCov = BinestCov.binestCov
     }
 

@@ -390,9 +390,13 @@ task PlotBinCov {
         File chromLengths
         String sampleId
         File binestCov
+        String outputDir = "."
     }
 
     command {
+        mkdir -p ~{outputDir}
+
+        cd ~{outputDir}
         Rscript /plot_bin_cov.R \
         "--binest_output=~{binestCov}" \
         "--chrom_lengths=~{chromLengths}" \
@@ -400,7 +404,7 @@ task PlotBinCov {
     }
 
     output {
-        File normCoverageByChrPng = "~{sampleId}.binest.coverage.png"
+        File normCoverageByChrPng = "~{outputDir}/~{sampleId}.binest.coverage.png"
     }
 
     runtime {
