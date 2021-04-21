@@ -39,7 +39,11 @@ class PlotRuntime():
             self.plot_file = plot_file
         self.output_info = self.load_input(output_info_file)
         self.metadata = self.load_metadata(metrics_file)
+        # intro figs
         self.summary_table = self.get_table()
+        self.gather_summary()
+        self.plot_summary()
+        # main figs
         self.fig = self.plot_by_steps(data_steps=self.metadata,
                                       x="workflow_name",
                                       ys=["sample_task_core_h", 
@@ -101,6 +105,46 @@ class PlotRuntime():
         metadata = pd.read_csv(metrics_file)
         return metadata
     
+    def gather_summary(self):
+        '''Add details about percent of instances that are preemptible'''
+        print(self.metadata.shape, self.metadata.drop_duplicates('instance_name').shape)
+        # exit status of non-zero exits
+        exit_status = self.metadata[['task_call_name', 
+                                     'execution_status']].value_counts().to_frame().reset_index()
+        self.exit_status = exit_status[exit_status.execution_status != 'Done']
+        self.exit_status.columns = ['Task', 'Exit status', 'Count']
+        # preemptible percentage
+        self.preemptible_percent = self.metadata[self.metadata.preemptible].shape[0] / float(self.metadata.shape[0])
+        # disk type
+        self.metadata['disk_type']= self.metadata.apply(lambda row: row.disk_types.replace('[\'', '').replace('\']', ''), axis=1)
+        self.disk_type = self.metadata.groupby(['id', 'disk_type']).sample_task_run_time_h.sum().reset_index()
+        self.disk_type.columns = ['Id', 'Disk type', 'Wall clock (h)']
+        
+    def plot_summary(self):
+        fig = px.box(self.disk_type, x='Disk type', y='Wall clock (h)', points="all",
+                          color_discrete_sequence=self.colors_set2,
+                          color='Id')
+        for trace in fig.data:
+            trace['showlegend'] = True
+            trace['pointpos'] = 0
+        fig.update_layout(xaxis_type='category',
+                          title_text='Runtime by disk type')
+        fig.update_xaxes(title_text='')
+        fig.update_yaxes(title_text="Wall clock (h)")
+        self.disk_type_plot = ploter.Fig(fig)
+        self.exit_status_table = ploter.make_html_table(self.exit_status,
+                                                        name='exit_status',
+                                                        col_widths=['50%', '30%', '20%'],
+                                                        searching=True,
+                                                        scroll=True)
+        
+    def write_summary(self):
+        '''Write about details including percent of instances that are preemptible'''
+        lines = []
+        lines += [str(int(self.preemptible_percent)) + '% of instances were preemptible.',
+                  '']
+        
+    
     def get_table(self):
         '''Make workflow resource usage summary table'''
         table_data = self.metadata[['id', 'sample_workflow_run_time_h']].copy()
@@ -108,7 +152,7 @@ class PlotRuntime():
         table_data.columns = ['Id', 'Wallclock (h)']
         summary_table = ploter.make_html_table(table_data.drop_duplicates(),
                                                name='runtime_overview',
-                                               col_widths=['60%','40%'],
+                                               col_widths=['80%','20%'],
                                                searching=True,
                                                scroll=True)
         return summary_table
@@ -243,13 +287,18 @@ def make_files(results, appendix=False):
 #                                 section_header='Overview',
 #                                 center_content=all_section_content,
 #                                 figures=[])
+
         md_content = compose.Md(report=report,
                                 header_file=header_file,
                                 header='NYGC v7 runtime metrics',
                                 section_header='Overview',
                                 center_content=all_section_content,
-                                figures=[(results.summary_table.script,
-                                          results.summary_table.div)])
+                                figures=[(results.exit_status_table.script,
+                                          results.exit_status_table.div),
+                                          (results.disk_type_plot.script,
+                                           results.disk_type_plot.div),
+                                          (results.summary_table.script,
+                                           results.summary_table.div)])
         #  =======================
         #  Task
         #  =======================
