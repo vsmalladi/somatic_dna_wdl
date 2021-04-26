@@ -1,0 +1,91 @@
+{
+    "SomaticWorkflow.bwaReference": {
+      "fasta": "gs://nygc-comp-s-82ed-resources/GRCh38_1000genomes/GRCh38_full_analysis_set_plus_decoy_hla.fa",
+      "bwt": "gs://nygc-comp-s-82ed-resources/GRCh38_1000genomes/GRCh38_full_analysis_set_plus_decoy_hla.fa.bwt",
+      "alt": "gs://nygc-comp-s-82ed-resources/GRCh38_1000genomes/GRCh38_full_analysis_set_plus_decoy_hla.fa.alt",
+      "pac": "gs://nygc-comp-s-82ed-resources/GRCh38_1000genomes/GRCh38_full_analysis_set_plus_decoy_hla.fa.pac",
+      "ann": "gs://nygc-comp-s-82ed-resources/GRCh38_1000genomes/GRCh38_full_analysis_set_plus_decoy_hla.fa.ann",
+      "amb": "gs://nygc-comp-s-82ed-resources/GRCh38_1000genomes/GRCh38_full_analysis_set_plus_decoy_hla.fa.amb",
+      "sa": "gs://nygc-comp-s-82ed-resources/GRCh38_1000genomes/GRCh38_full_analysis_set_plus_decoy_hla.fa.sa"
+    },
+  "SomaticWorkflow.referenceFa": {
+    "fasta": "gs://nygc-comp-s-82ed-resources/GRCh38_1000genomes/GRCh38_full_analysis_set_plus_decoy_hla.fa",
+    "dict": "gs://nygc-comp-s-82ed-resources/GRCh38_1000genomes/GRCh38_full_analysis_set_plus_decoy_hla.dict",
+    "index": "gs://nygc-comp-s-82ed-resources/GRCh38_1000genomes/GRCh38_full_analysis_set_plus_decoy_hla.fa.fai"
+  },
+  "SomaticWorkflow.dbsnp": {
+    "vcf": "gs://nygc-comp-s-82ed-resources/GatkBundle/hg38bundle/Homo_sapiens_assembly38.dbsnp138.vcf",
+    "index": "gs://nygc-comp-s-82ed-resources/GatkBundle/hg38bundle/Homo_sapiens_assembly38.dbsnp138.vcf.idx"
+  },
+  "SomaticWorkflow.MillsAnd1000G": {
+    "vcf": "gs://nygc-comp-s-82ed-resources/GatkBundle/hg38bundle/Mills_and_1000G_gold_standard.indels.hg38.vcf.gz",
+    "index": "gs://nygc-comp-s-82ed-resources/GatkBundle/hg38bundle/Mills_and_1000G_gold_standard.indels.hg38.vcf.gz.tbi"
+  },
+  "SomaticWorkflow.Indels": {
+      "vcf": "gs://nygc-comp-s-82ed-resources/GatkBundle/hg38bundle/Homo_sapiens_assembly38.known_indels.vcf.gz",
+      "index": "gs://nygc-comp-s-82ed-resources/GatkBundle/hg38bundle/Homo_sapiens_assembly38.known_indels.vcf.gz.tbi"
+  },
+  "SomaticWorkflow.hsMetricsIntervals": "gs://nygc-comp-s-82ed-resources/Annotation/wgs_capture_intervals/window1kb_step10kb.GRCh38.v2.interval_list",
+  "SomaticWorkflow.bqsrCallRegions": "gs://nygc-comp-s-82ed-resources/Regions/grch38_autosomes.intervals",
+  "SomaticWorkflow.callRegions": {
+        "table": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/GRCh38.callregions.bed.gz",
+        "index": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/GRCh38.callregions.bed.gz.tbi"
+  },
+  "SomaticWorkflow.germFile": {
+      "vcf" : "gs://nygc-comp-s-82ed-resources/gnomAD/gnomad_data/vcf/GRCh38/gnomad-and-ALL_GRCh38_sites.20170504.normalized.modified.PASS.vcf.gz",
+      "index" : "gs://nygc-comp-s-82ed-resources/gnomAD/gnomad_data/vcf/GRCh38/gnomad-and-ALL_GRCh38_sites.20170504.normalized.modified.PASS.vcf.gz.tbi"
+  },
+  "SomaticWorkflow.chromBedsWgs": {
+      "chr1": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr1.bed",
+      "chr10": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr10.bed",
+      "chr11": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr11.bed",
+      "chr12": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr12.bed",
+      "chr13": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr13.bed",
+      "chr14": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr14.bed",
+      "chr15": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr15.bed",
+      "chr16": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr16.bed",
+      "chr17": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr17.bed",
+      "chr18": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr18.bed",
+      "chr19": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr19.bed",
+      "chr2": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr2.bed",
+      "chr20": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr20.bed",
+      "chr21": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr21.bed",
+      "chr22": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr22.bed",
+      "chr3": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr3.bed",
+      "chr4": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr4.bed",
+      "chr5": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr5.bed",
+      "chr6": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr6.bed",
+      "chr7": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr7.bed",
+      "chr8": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr8.bed",
+      "chr9": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr9.bed",
+      "chrX": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chrX.bed"
+  },
+  "SomaticWorkflow.listOfChroms": ["chr1", "chr2", "chr3", "chr4", "chr5",
+                "chr6", "chr7", "chr8", "chr9", "chr10",
+                "chr11", "chr12", "chr13", "chr14", "chr15",
+                "chr16", "chr17", "chr18", "chr19", "chr20",
+                "chr21", "chr22", "chrX"],
+  "SomaticWorkflow.ponWGSFile": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/WGS_PON_GRCh38.v1.2.bed",
+  "SomaticWorkflow.gnomadBiallelic": {
+                "vcf" : "gs://nygc-comp-s-82ed-resources/gnomAD/gnomad_data/vcf/GRCh38/gnomad.genomes.r2.0.2.sites.ALL.liftover.b38.chr_af_pass_biallelic.vcf",
+                "index" : "gs://nygc-comp-s-82ed-resources/gnomAD/gnomad_data/vcf/GRCh38/gnomad.genomes.r2.0.2.sites.ALL.liftover.b38.chr_af_pass_biallelic.vcf.idx"
+  },
+  "SomaticWorkflow.intervalListBed": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/SureSelect_V6plusCOSMIC.target.GRCh38_full_analysis_set_plus_decoy_hla.interval_list.bed",
+  "SomaticWorkflow.kouramiReference": {
+      "fasta" : "gs://nygc-comp-s-82ed-resources/kourami/All_FINAL_with_Decoy.fa.gz",
+      "sa" : "gs://nygc-comp-s-82ed-resources/kourami/All_FINAL_with_Decoy.fa.gz.sa",
+      "pac" : "gs://nygc-comp-s-82ed-resources/kourami/All_FINAL_with_Decoy.fa.gz.pac",
+      "bwt" : "gs://nygc-comp-s-82ed-resources/kourami/All_FINAL_with_Decoy.fa.gz.bwt",
+      "ann" : "gs://nygc-comp-s-82ed-resources/kourami/All_FINAL_with_Decoy.fa.gz.ann",
+      "amb" : "gs://nygc-comp-s-82ed-resources/kourami/All_FINAL_with_Decoy.fa.gz.amb"
+  },
+  "SomaticWorkflow.randomIntervals": "gs://nygc-comp-s-82ed-resources/Annotation/wgs_capture_intervals/GRCh38.autosomes.random.interval_list",
+  "SomaticWorkflow.ponExomeFile": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/Exome_PON_GRCh38.v1.1.bed",
+  "SomaticWorkflow.chromLengths": "gs://nygc-comp-s-82ed-resources/Annotation/GRCh38/chrom_lengths.txt",
+  "SomaticWorkflow.mantisBed": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/mantis_repeatfinder-hg38.chr.bed",
+  "SomaticWorkflow.kouramiFastaGem1Index": "gs://nygc-comp-s-82ed-resources/kourami/All_FINAL_with_Decoy.v1.gem",
+  "SomaticWorkflow.dbsnpIndels": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/dbsnp_146.indels.hg38.vcf",
+  "SomaticWorkflow.markerTxtFile": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/GRCh38.autosomes.phase3_shapeit2_mvncall_integrated.20130502.SNV.genotype.sselect_v4_MAF_0.4_LD_0.8.liftover.txt",
+  "SomaticWorkflow.markerBedFile": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/GRCh38.autosomes.phase3_shapeit2_mvncall_integrated.20130502.SNV.genotype.sselect_v4_MAF_0.4_LD_0.8.liftover.bed",
+  "SomaticWorkflow.library": "WGS"
+}

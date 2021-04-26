@@ -17,8 +17,9 @@ workflow QcMetrics {
         String outputDir = "."
     }
 
-    Int additionalDiskSize = 50
-    Int diskSize = ceil(size(finalBam.bam, "GB") + size(finalBam.bamIndex, "GB")) + additionalDiskSize
+    Int additionalDiskSize = 100
+    Int diskSize = ceil((size(finalBam.bam, "GB") + size(finalBam.bamIndex, "GB")) * 2) +
+                      additionalDiskSize
 
     call qc.MultipleMetrics {
         input:
@@ -103,6 +104,7 @@ workflow QcMetrics {
         input:
             chromLengths = chromLengths,
             sampleId = sampleId,
+            outputDir = outputDir,
             binestCov = BinestCov.binestCov
     }
 

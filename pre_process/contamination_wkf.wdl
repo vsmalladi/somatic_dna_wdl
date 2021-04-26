@@ -28,7 +28,6 @@ workflow CalculateContamination {
             finalBam = finalNormalBam,
             gnomadBiallelic = gnomadBiallelic,
             memoryGb = memoryGb,
-            threads = threads,
             diskSize = normalSize + additionalDiskSize
     }
 
@@ -38,7 +37,6 @@ workflow CalculateContamination {
             finalBam = finalTumorBam,
             gnomadBiallelic = gnomadBiallelic,
             memoryGb = memoryGb,
-            threads = threads,
             diskSize = tumorSize + additionalDiskSize
     }
 

@@ -73,14 +73,15 @@ task Bqsr38 {
         # command
         Bam mergedDedupBam
         IndexedReference referenceFa
-        IndexedTable callRegions
+        File callRegions
+        #IndexedTable callRegions
         String sampleId
         String recalGrpPath = "~{sampleId}.recal_data.grp"
         IndexedVcf MillsAnd1000G
         IndexedVcf Indels
         IndexedVcf dbsnp
         # resources
-        Int mem = 36
+        Int mem = 68
         Int cpu = 2
         Int diskSize
    }
@@ -88,8 +89,8 @@ task Bqsr38 {
     command {
         gatk \
         BaseRecalibrator \
-        --java-options "-Xmx24G -XX:ParallelGCThreads=4" \
-        -L ~{callRegions.table} \
+        --java-options "-Xmx54G -XX:ParallelGCThreads=4" \
+        -L ~{callRegions} \
         -R ~{referenceFa.fasta} \
         -I ~{mergedDedupBam.bam} \
         -O ~{recalGrpPath} \
@@ -115,12 +116,12 @@ task Downsample{
         String sampleId
         String downsampleMergedDedupBamPath = "~{sampleId}.merged_dedup_10_percent.bam"
         Bam mergedDedupBam
-        Int mem = 64  #GB
+        Int mem = 68  #GB
         Int diskSize
     }
     command {
         gatk DownsampleSam \
-        --java-options "-Xmx48G -XX:ParallelGCThreads=4" \
+        --java-options "-Xmx54G -XX:ParallelGCThreads=4" \
         --STRATEGY Chained \
         --RANDOM_SEED 1 \
         --CREATE_INDEX \
@@ -153,13 +154,14 @@ task PrintReads {
         String sampleId
         String finalBamPath = "~{sampleId}.final.bam"
         # resources
-        Int mem = 36
+        Int mem = 68
         Int cpu = 2
         Int diskSize
     }
 
     command {
         gatk ApplyBQSR \
+        --java-options "-Xmx54G -XX:ParallelGCThreads=4" \
         -R ~{referenceFa.fasta} \
         -I ~{mergedDedupBam.bam} \
         -O ~{finalBamPath} \
@@ -178,5 +180,6 @@ task PrintReads {
         memory : mem + "GB"
         docker : "us.gcr.io/broad-gatk/gatk:4.1.1.0"
         disks: "local-disk " + diskSize + " HDD"
+        preemptible: 0
      }
 }

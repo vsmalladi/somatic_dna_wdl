@@ -15,7 +15,8 @@ workflow MergeBams {
         IndexedVcf MillsAnd1000G
         IndexedVcf Indels
         IndexedVcf dbsnp
-        IndexedTable callRegions
+        File callRegions
+        #IndexedTable callRegions
         IndexedReference referenceFa
         File randomIntervals
         String qcDir = '.'       # To pass to the two QC tasks.
@@ -31,7 +32,7 @@ workflow MergeBams {
             sizes = sample_bam_sizes
     }
 
-    Int diskSize = ceil(SumFloats.total_size) + 50
+    Int diskSize = ceil(SumFloats.total_size * 2) + 100
 
     call mergeBams.NovosortMarkDup as novosort {
         input:
