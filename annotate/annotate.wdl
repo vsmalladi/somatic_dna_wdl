@@ -29,7 +29,7 @@ task Vep{
         String customCosmicCoding = "~{cosmicCoding.vcf},CosmicCoding,vcf,exact,0,CNT,CDS,AA"
         String customCosmicNoncoding = "~{cosmicNoncoding.vcf},CosmicNonCoding,vcf,exact,0"
         String pairName
-        String vcfAnnotatedVepPath = "~{pairName}.v6.vep.annotated.vcf"
+        String vcfAnnotatedVepPath = "~{pairName}.v7.vep.annotated.vcf"
     }
 
     command {
@@ -94,7 +94,7 @@ task AddCosmic {
         Int memoryGb
         String dockerImage
         String pairName
-        String vcfAnnotatedCancerGeneCensusPath = "~{pairName}.v6.cosmic_census.vep.annotated.vcf"
+        String vcfAnnotatedCancerGeneCensusPath = "~{pairName}.v7.cosmic_census.vep.annotated.vcf"
         File vcfAnnotatedVep
         File cosmicCensus
     }
@@ -125,7 +125,7 @@ task AddCancerResistanceMutations {
         String dockerImage
         String genome
         String pairName
-        String vcfAnnotatedResistancePath = "~{pairName}.v6.resistance.vep.annotated.vcf"
+        String vcfAnnotatedResistancePath = "~{pairName}.v7.resistance.vep.annotated.vcf"
         File vcfAnnotatedCancerGeneCensus
         File cancerResistanceMutations
     }
@@ -156,7 +156,7 @@ task AnnotateId {
         Int memoryGb
         String dockerImage
         String pairName
-        String vcfAnnotatedIdPath = "~{pairName}.v6.id.vep.annotated.vcf"
+        String vcfAnnotatedIdPath = "~{pairName}.v7.id.vep.annotated.vcf"
         File vcfAnnotatedResistance
     }
 
@@ -184,7 +184,7 @@ task RenameCsqVcf {
         Int memoryGb
         String dockerImage
         String pairName
-        String vcfCsqRenamedPath = "~{pairName}.snv.indel.supplemental.v6.annotated.vcf"
+        String vcfCsqRenamedPath = "~{pairName}.snv.indel.supplemental.v7.annotated.vcf"
         File vcfAnnotatedId
     }
 
@@ -212,7 +212,7 @@ task MainVcf {
         Int memoryGb
         String dockerImage
         String pairName
-        String mainVcfPath = "~{pairName}.snv.indel.final.v6.annotated.vcf"
+        String mainVcfPath = "~{pairName}.snv.indel.final.v7.annotated.vcf"
         File vcfAnnotated
     }
 
@@ -240,7 +240,7 @@ task TableVcf {
         Int memoryGb
         String dockerImage
         String pairName
-        String vcfAnnotatedTxtPath = "~{pairName}.snv.indel.final.v6.annotated.txt"
+        String vcfAnnotatedTxtPath = "~{pairName}.snv.indel.final.v7.annotated.txt"
         String tumor
         String normal
         File mainVcf
@@ -271,7 +271,7 @@ task VcfToMaf {
         Int memoryGb
         String dockerImage
         String pairName
-        String mafPath = "~{pairName}.snv.indel.final.v6.annotated.maf"
+        String mafPath = "~{pairName}.snv.indel.final.v7.annotated.maf"
         String library
         String vepVersion
         String tumor
@@ -353,7 +353,7 @@ task GermVep {
         String customMitomapDisease = "~{mitomapDisease},mitomap,vcf,exact,0,AC,AF,homoplasmy,heteroplasmy,PubmedIDs,Disease,DiseaseStatus"
         String customMtFuncLoc = "~{mtFuncLoc},mtfl,vcf,overlap,0,FUNCLOC"
         String sampleId
-        String vcfAnnotatedVepPath = "~{sampleId}.v6.vep.annotated.vcf"
+        String vcfAnnotatedVepPath = "~{sampleId}.v7.vep.annotated.vcf"
     }
 
     command {
