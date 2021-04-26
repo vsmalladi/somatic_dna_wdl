@@ -18,8 +18,6 @@ import meta
 log.basicConfig(format='%(levelname)s:  %(message)s', level=log.INFO)
 
 
-
-
 class JsonModify():
     
     def __init__(self, inputs, 
@@ -29,6 +27,7 @@ class JsonModify():
 #                  pair_ids=False,
                  all_pair_ids=False,
                  all_sample_ids=False,
+                 uri_list=False,
                  tool='match'):
         '''
         deep copy required to modify complex outputs structure while
@@ -44,51 +43,47 @@ class JsonModify():
         self.tool = tool
         self.sample_id = sample_id
         self.pair_id = pair_id
-        self.json_obj = copy.deepcopy(inputs)
-        self.final_json_obj = copy.deepcopy(inputs)
+        self.uri_list = uri_list
+        if not self.uri_list:
+            self.json_obj = copy.deepcopy(inputs)
+            self.final_json_obj = copy.deepcopy(inputs)
         self.dir = dir
         self.files = []
-        self.task_uuids = []
         self.other_file_pair_ids = []
+        self.sub_workflow_uuids = []
         if all_pair_ids:
             
             self.other_file_pair_ids = [pair_id + '.' for pair_id in all_pair_ids if 
                                         (not pair_id == self.pair_id)]
-#                                         and (len(pair_id) > len(self.pair_id))]
-#                                         and not ((pair_id in self.pair_id) and (len(pair_id) < len(self.pair_id)))]
             self.other_file_pair_ids += [pair_id + '_' for pair_id in all_pair_ids if 
                                         (not pair_id == self.pair_id)]
-#                                         and (len(pair_id) > len(self.pair_id))]
-#                                         and not ((pair_id in self.pair_id) and (len(pair_id) < len(self.pair_id)))]
             self.other_file_pair_ids += [pair_id + '/' for pair_id in all_pair_ids if 
                                         (not pair_id == self.pair_id)]
-#                                         and not ((pair_id in self.pair_id) and (len(pair_id) < len(self.pair_id)))]
-#                                         and (len(pair_id) > len(self.pair_id))]
             if self.pair_id:
                 self.other_file_pair_ids = [pair_id for pair_id in self.other_file_pair_ids if len(pair_id) > len(self.pair_id)]
         self.other_file_sample_ids = []
         if all_sample_ids:
             self.other_file_sample_ids = [sample_id + '.' for sample_id in all_sample_ids if 
                                           (not sample_id == self.sample_id) 
-#                                           and not ((sample_id in self.sample_id) and (len(sample_id) < len(self.sample_id)))]
                                           and (len(sample_id) > len(self.sample_id))]
             self.other_file_sample_ids += [sample_id + '_' for sample_id in all_sample_ids if 
                                           (not sample_id == self.sample_id) 
                                           and (len(sample_id) > len(self.sample_id))]
-#                                           and not ((sample_id in self.sample_id) and (len(sample_id) < len(self.sample_id)))]
             self.other_file_sample_ids += [sample_id + '/' for sample_id in all_sample_ids if 
                                           (not sample_id == self.sample_id) 
-#                                           and not ((sample_id in self.sample_id) and (len(sample_id) < len(self.sample_id)))]
                                            and (len(sample_id) > len(self.sample_id))]
         if self.tool == 'convert_path':
             assert self.dir, 'dir is required when tool is convert_path'
         elif self.tool in ['match']:
             assert self.sample_id or self.pair_id, 'pair_id or sample_id is required when tool is match'
-        elif self.tool in ['skip', 'task_uuid']:
+        elif self.tool in ['skip', 'sub_workflow_uuid']:
             pass
         else:
-            log.error('tool options are match, skip, task_uuid, and convert_path: ' + tool)
-        self.hlpr_fnc(self.json_obj, self.final_json_obj)
+            log.error('tool options are match, skip, sub_workflow_uuid, and convert_path: ' + tool)
+        if not self.uri_list:
+            self.hlpr_fnc(self.json_obj, self.final_json_obj)
+        else:
+            self.results = [self.run_tool(uri) for uri in self.uri_list if uri]
         if self.tool == 'skip':
             self.skip_obj = len(self.files) == 0
     
@@ -154,7 +149,7 @@ class JsonModify():
             self.files.append(new_uri)
             return new_uri
 
-    def get_task_uuid(self, string):
+    def get_sub_workflow_uuid(self, string):
         '''find task uuid for geting metrics from big query'''
         if string.endswith('...'):
             # LongObject'
@@ -163,11 +158,11 @@ class JsonModify():
             pass
         else:
             uri = string
-            task_uuid = uri.replace('/cacheCopy', '').split('/call-')[-2].split('/')[-1]
-            self.task_uuids.append(task_uuid)
+            sub_workflow_uuid = uri.replace('/cacheCopy', '').split('/call-')[-2].split('/')[-1]
+            self.sub_workflow_uuids.append(sub_workflow_uuid)
         return string
 
-    def run_tool(self, description, subnode, index=False, key=False):
+    def run_tool(self, subnode):
         '''run the correct tool for the string (subnode)'''
         if self.tool == 'convert_path':
             result = self.convert_path(subnode)
@@ -178,8 +173,8 @@ class JsonModify():
         elif self.tool == 'skip':
             skip, result = self.skip(subnode)
             return result
-        elif self.tool == 'task_uuid':
-            self.get_task_uuid(subnode)
+        elif self.tool == 'sub_workflow_uuid':
+            self.get_sub_workflow_uuid(subnode)
             return subnode
         
     def hlpr_fnc_list(self, list1, description):
@@ -194,7 +189,7 @@ class JsonModify():
                 self.hlpr_fnc_list(subnode, description[i])
             else:
                 if isinstance(subnode, str):
-                    result = self.run_tool(description, subnode, index=i)
+                    result = self.run_tool(subnode)
                     if result:
                         description[i] = result
                     if self.tool in ['match']:
@@ -221,7 +216,7 @@ class JsonModify():
                 self.hlpr_fnc_list(subnode, description[node])
             else:
                 if isinstance(subnode, str):
-                    result = self.run_tool(description, subnode, key=node)
+                    result = self.run_tool(subnode)
                     if result:
                         description[node] = result
                     if self.tool in ['match']:
@@ -241,6 +236,8 @@ class CloudOutput():
         self.options = run_data.options
         self.workflow_uuid = self.run_data.workflow_uuid
         self.raw_outputs = self.read_api()
+        self.root_dir = self.read_api(goal='get_root')
+        self.uri_list = self.list_project()
         self.parse_block()
         self.unnamed_files = self.gather_unnamed()
         self.divide_by_id()
@@ -250,7 +247,7 @@ class CloudOutput():
         self.run_data.run_info['outputs'] = self.named_outputs
         self.run_data.run_info['named_files'] = self.named_files
         self.run_data.run_info['unnamed_files'] = self.unnamed_files
-        self.run_data.run_info['task_uuids'] = self.task_uuids
+        self.run_data.run_info['sub_workflow_uuids'] = self.sub_workflow_uuids
         
     def filter_by_id(self, association, pair=True, sample=False):
         '''skip object that have no files after filtering by id'''
@@ -311,32 +308,32 @@ class CloudOutput():
     def divide_uuid_by_id(self):
         ''' Find only task uuids for files with the pair or the sample in the 
         filename with . or _ after the name'''
-        self.task_uuids = {}
+        self.sub_workflow_uuids = {}
         pair_ids = list(set([pair_info["pairId"] for pair_info in self.run_data.project_info["pairInfos"]]))
         for pair_id in pair_ids:
-            # get task uuids
-            pair_output = JsonModify(inputs=self.raw_outputs,
+            matches = JsonModify(inputs={},
+                                 uri_list=self.uri_list,
+                                 all_pair_ids=list(pair_ids),
+                                 pair_id=pair_id,
+                                 tool='match').results
+            sub_workflow_uuids = JsonModify(inputs={},
+                                    uri_list=matches,
                                     all_pair_ids=list(pair_ids),
                                     pair_id=pair_id,
-                                    tool='match').final_json_obj
-            task_pair_association = self.filter_by_id({pair_id: pair_output}, 
-                                                      pair=True, 
-                                                      sample=False)
-            self.task_uuids[pair_id] = self.get_task_uuids(task_pair_association)
+                                    tool='sub_workflow_uuid').sub_workflow_uuids
+            self.sub_workflow_uuids[pair_id] = list(set([uuid for uuid in sub_workflow_uuids if uuid]))
         for sample_id in self.run_data.project_info["sampleIds"]:
-            pair_ids = [pair_info["pairId"] for pair_info in self.run_data.project_info["pairInfos"] 
-                        if pair_info['tumor'] ==  sample_id or 
-                        pair_info['normal'] ==  sample_id]
-            # get task uuids
-            sample_output = JsonModify(inputs=self.raw_outputs,
-                                       all_sample_ids=self.run_data.project_info["sampleIds"],
-                                       all_pair_ids=list(pair_ids),
-                                       sample_id=sample_id,
-                                       tool='match').final_json_obj
-            task_sample_association = self.filter_by_id({sample_id: sample_output}, 
-                                                        pair=False, 
-                                                        sample=True)
-            self.task_uuids[sample_id] = list(set(self.get_task_uuids(task_sample_association)))
+            matches = JsonModify(inputs={},
+                                 uri_list=self.uri_list,
+                                 all_pair_ids=list(pair_ids),
+                                 sample_id=sample_id,
+                                 tool='match').results
+            sub_workflow_uuids = JsonModify(inputs={},
+                                    uri_list=matches,
+                                    all_pair_ids=list(pair_ids),
+                                    sample_id=sample_id,
+                                    tool='sub_workflow_uuid').sub_workflow_uuids
+            self.sub_workflow_uuids[sample_id] = list(set([uuid for uuid in sub_workflow_uuids if uuid]))
 
     def out_path(self):
         if self.options["use_relative_output_paths"]:
@@ -345,13 +342,6 @@ class CloudOutput():
         else:
             log.error('Not tested for non-relative paths')
             sys.exit(1)
-
-    def get_task_uuids(self, outputs):
-        '''Get task uuids for big query searches'''
-        self.out_dir = self.out_path()
-        outputs = JsonModify(inputs=outputs,
-                             tool='task_uuid')
-        return outputs.task_uuids
         
     def parse_block(self):
         self.out_dir =  self.out_path()
@@ -367,6 +357,32 @@ class CloudOutput():
         all_files = self.ls_gsutil()
         unnamed_files = list(set(all_files).difference(set(self.named_files)))
         return unnamed_files
+    
+    def list_project(self):
+        '''get all sub workflow uuids
+        '''
+        skip = [':', '/',
+                 '/gcs_delocalization.sh', '/rc', 
+                '/gcs_localization.sh', '/gcs_transfer.sh',
+                '/script', '/stderr', '/stdout']
+        log.info('Retrieve uuids for run...')
+        try:
+            uris = subprocess.run(['gsutil', 'ls', 
+                                   '-R',
+                                   self.root_dir
+                                   ],
+                                   check=True,
+                                   stdout=subprocess.PIPE).stdout.decode('utf-8')
+        except subprocess.CalledProcessError as err:
+            log.error(err.output.decode('utf-8'))
+            log.error('Failed to recursively list directories')
+            return False
+        final_uris = []
+        for uri in [uri for uri in uris.split('\n') if not uri == '']:
+            failed = any([uri.endswith(end) for end in skip])
+            if not failed:
+                final_uris.append(uri)
+        return final_uris
        
     def ls_gsutil(self):
         try:
@@ -381,10 +397,13 @@ class CloudOutput():
                 and not file.endswith(':')
                 and not file.endswith('/')]
                     
-    def read_api(self):
-        get_outputs = self.parent_dir + '/get_outputs.sh'
+    def read_api(self, goal='get_outputs'):
+        if goal == 'get_outputs':
+            script = self.parent_dir + '/get_outputs.sh'
+        if goal == 'get_root':
+            script = self.parent_dir + '/get_root.sh'
         try:
-            result = subprocess.run(['bash', get_outputs,
+            result = subprocess.run(['bash', script,
                                      '-u', self.url,
                                      '-w', self.workflow_uuid],
                                     check=True,
