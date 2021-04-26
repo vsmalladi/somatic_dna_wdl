@@ -74,7 +74,7 @@ workflow MergeCallers {
                 pairName = pairName,
                 lancetChromVcfPath = "~{pairName}.lancet.merged.v6.~{chrom}.vcf",
                 threads = 8,
-                memoryGb = 40,
+                memoryGb = 60,
                 diskSize = (ceil( size(tumorFinalBam.bam, "GB") + size(normalFinalBam.bam, "GB")) ) + 20
         }
         

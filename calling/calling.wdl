@@ -275,6 +275,7 @@ task LancetWGSRegional {
     }
 
     runtime {
+        preemptible: 0
         cpu : threads        
         disks: "local-disk " + diskSize + " SSD"
         memory : memoryGb + "GB"
@@ -317,6 +318,7 @@ task LancetExome {
     }
 
     runtime {
+        preemptible: 0
         cpu : threads        
         disks: "local-disk " + diskSize + " SSD"
         memory : memoryGb + "GB"
@@ -425,6 +427,7 @@ task SvabaWgs {
     }
 
     runtime {
+        preemptible: 0
         cpu : threads        
         disks: "local-disk " + diskSize + " SSD"
         memory : memoryGb + "GB"
