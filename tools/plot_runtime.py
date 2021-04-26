@@ -27,6 +27,7 @@ class PlotRuntime():
     def __init__(self, 
                  output_info_file,
                  metrics_file,
+                 non_retry_metrics_file,
                  plot_file=False):
         self.set_colors()
         if not plot_file:
@@ -39,12 +40,15 @@ class PlotRuntime():
             self.plot_file = plot_file
         self.output_info = self.load_input(output_info_file)
         self.metadata = self.load_metadata(metrics_file)
+        self.non_retry_metadata = self.load_metadata(non_retry_metrics_file)
         # intro figs
         self.summary_table = self.get_table()
         self.gather_summary()
         self.plot_summary()
         # main figs
         self.fig = self.plot_by_steps(data_steps=self.metadata,
+                                      non_retry_data_steps=self.non_retry_metadata,
+                                      button=True,
                                       x="workflow_name",
                                       ys=["sample_task_core_h", 
                                           "max_mem_g", 
@@ -60,35 +64,39 @@ class PlotRuntime():
                                               'task_call_name' : 'Task'},
                                       x_title="Pipeline tasks")
         self.fig2 = self.plot_by_steps(data_steps=self.metadata,
-                                      x="workflow_name",
-                                      ys=["sample_subworkflow_core_h", 
+                                       non_retry_data_steps=self.non_retry_metadata,
+                                       button=False,
+                                       x="workflow_name",
+                                       ys=["sample_subworkflow_core_h", 
                                           "subworkflow_max_mem_g", 
                                           "sample_subworkflow_run_time_h"],
-                                      color="workflow_name",
-                                      hover_data=['id'],
-                                      color_discrete_sequence=self.colors_set1,
-                                      labels={'sample_subworkflow_run_time_h' : 'Max sub-workflow runtime(h)',
+                                       color="workflow_name",
+                                       hover_data=['id'],
+                                       color_discrete_sequence=self.colors_set1,
+                                       labels={'sample_subworkflow_run_time_h' : 'Max sub-workflow runtime(h)',
                                               'subworkflow_max_mem_g' : 'Mem (G)',
                                               'sample_subworkflow_core_h' : 'Sub-workflow core hours',
                                               'workflow_name' : 'Sub-workflow',
                                               'task_call_name' : 'Task'},
-                                      title='Subworkflows: resource usage summary plot',
-                                      x_title="Pipeline subworkflows")
+                                       title='Subworkflows: resource usage summary plot',
+                                       x_title="Pipeline subworkflows")
         self.fig3 = self.plot_by_steps(data_steps=self.metadata,
-                                      x="id",
-                                      ys=["sample_workflow_core_h", 
+                                       non_retry_data_steps=self.non_retry_metadata,
+                                       button=False,
+                                       x="id",
+                                       ys=["sample_workflow_core_h", 
                                           "workflow_max_mem_g", 
                                           "sample_workflow_run_time_h"],
-                                      color="id",
-                                      hover_data=['id'],
-                                      color_discrete_sequence=self.colors,
-                                      labels={'sample_workflow_run_time_h' : 'Max workflow runtime(h)',
+                                       color="id",
+                                       hover_data=['id'],
+                                       color_discrete_sequence=self.colors,
+                                       labels={'sample_workflow_run_time_h' : 'Max workflow runtime(h)',
                                               'workflow_max_mem_g' : 'Mem (G)',
                                               'sample_workflow_core_h' : 'Workflow core hours',
                                               'workflow_name' : 'Sub-workflow',
                                               'task_call_name' : 'Task'},
-                                      title='Workflows: resource usage summary plot',
-                                      x_title="Full pipeline")
+                                       title='Workflows: resource usage summary plot',
+                                       x_title="Full pipeline")
         
     def set_colors(self):
         self.colors = px.colors.qualitative.Dark24
@@ -107,7 +115,6 @@ class PlotRuntime():
     
     def gather_summary(self):
         '''Add details about percent of instances that are preemptible'''
-        print(self.metadata.shape, self.metadata.drop_duplicates('instance_name').shape)
         # exit status of non-zero exits
         exit_status = self.metadata[['task_call_name', 
                                      'execution_status']].value_counts().to_frame().reset_index()
@@ -119,6 +126,22 @@ class PlotRuntime():
         self.metadata['disk_type']= self.metadata.apply(lambda row: row.disk_types.replace('[\'', '').replace('\']', ''), axis=1)
         self.disk_type = self.metadata.groupby(['id', 'disk_type']).sample_task_run_time_h.sum().reset_index()
         self.disk_type.columns = ['Id', 'Disk type', 'Wall clock (h)']
+        
+    def add_button(self, fig):
+        fig.update_layout(updatemenus=[{'type' : 'buttons',
+                                        'direction' : 'up',
+                                        'buttons' : [{'label' : 'All instances',
+                                                    'method' : 'update',
+                                                    'args' : [{'visible' : [True] * self.all_levels + [False] * self.non_retry_levels},
+                                                              {'title' : 'All instances'}]
+                                                    },
+                                                    {'label' : 'Non-RetryableFailure instances',
+                                                    'method' : 'update',
+                                                    'args' : [{'visible' : [False] * self.all_levels + [True] * self.non_retry_levels},
+                                                              {'title' : 'Non-RetryableFailure instances'}]
+                                                    }]
+                                       }])
+        return fig
         
     def plot_summary(self):
         fig = px.box(self.disk_type, x='Disk type', y='Wall clock (h)', points="all",
@@ -158,13 +181,14 @@ class PlotRuntime():
         return summary_table
     
     def plot_by_steps(self, 
-                      data_steps, 
+                      data_steps,
+                      non_retry_data_steps,
+                      button=False,
                       x="workflow_name",
                       ys=["sample_subworkflow_core_h", "mem_total_gb", "sample_task_run_time_h"],
                       color="task_call_name",
                       hover_data=['id'],
-                      color_discrete_sequence=False, 
-                      color_discrete_map=False, 
+                      color_discrete_sequence=False,
                       title='',
                       labels={},
                       x_title="Pipeline subworkflow"):
@@ -174,41 +198,45 @@ class PlotRuntime():
         for y in ys:
             grouped = data_steps.groupby(x)
             category_orders[y] = grouped[y].agg(['max']).reset_index().sort_values('max')[x].unique().tolist()
-        if color_discrete_sequence:
-            fig1 = px.box(data_steps, x=x, y=ys[0], points="all",
+        # All instances
+        fig1 = px.box(data_steps, x=x, y=ys[0], points="all",
+                      hover_data=hover_data,
+                      color_discrete_sequence=color_discrete_sequence,
+                      labels=labels,
+                      color=color, category_orders=category_orders)
+        fig2 = px.box(data_steps, x=x, y=ys[1], points="all",
+                      hover_data=hover_data,
+                      labels=labels,
+                      color_discrete_sequence=color_discrete_sequence,
+                      color=color, category_orders=category_orders)
+        fig3 = px.box(data_steps, x=x, y=ys[2], points="all",
+                      hover_data=hover_data,
+                      labels=labels,
+                      color_discrete_sequence=color_discrete_sequence,
+                      color=color, category_orders=category_orders)
+        self.all_levels = len(fig1.data) + len(fig2.data) + len(fig3.data)
+        if button:
+            # Non-RetryableFailure instances
+            fig4 = px.box(non_retry_data_steps, x=x, y=ys[0], points="all",
                           hover_data=hover_data,
                           color_discrete_sequence=color_discrete_sequence,
                           labels=labels,
                           color=color, category_orders=category_orders)
-            fig2 = px.box(data_steps, x=x, y=ys[1], points="all",
+            fig5 = px.box(non_retry_data_steps, x=x, y=ys[1], points="all",
                           hover_data=hover_data,
                           labels=labels,
                           color_discrete_sequence=color_discrete_sequence,
                           color=color, category_orders=category_orders)
-            fig3 = px.box(data_steps, x=x, y=ys[2], points="all",
+            fig6 = px.box(non_retry_data_steps, x=x, y=ys[2], points="all",
                           hover_data=hover_data,
                           labels=labels,
                           color_discrete_sequence=color_discrete_sequence,
-                          color=color, category_orders=category_orders)
-        else:
-            fig1 = px.box(data_steps, x=x, y=ys[0], points="all",
-                          color_discrete_map=color_discrete_map,
-                          hover_data=hover_data,
-                          labels=labels,
-                          color=color, category_orders=category_orders)
-            fig2 = px.box(data_steps, x=x, y=ys[1], points="all",
-                          hover_data=hover_data,
-                          labels=labels,
-                          color_discrete_map=color_discrete_map,
-                          color=color, category_orders=category_orders)
-            fig3 = px.box(data_steps, x=x, y=ys[2], points="all",
-                          hover_data=hover_data,
-                          labels=labels,
-                          color_discrete_map=color_discrete_map,
-                          color=color, category_orders=category_orders)
+                          color=color, category_orders=category_orders)        
+            self.non_retry_levels = len(fig4.data) + len(fig5.data) + len(fig6.data)
         fig = make_subplots(rows=1,
                             cols=3,
                             subplot_titles=("CPU", "Mem", "Wall clock"))
+        # All instances
         for trace in fig1.data:
             trace['showlegend'] = False
             trace['pointpos'] = 0
@@ -230,24 +258,59 @@ class PlotRuntime():
                           trace,
                           row=1, col=3
                        )
+        # Non-RetryableFailure instances
+        if button:
+            for trace in fig4.data:
+                trace['showlegend'] = False
+                trace['visible'] = False
+                trace['pointpos'] = 0
+                fig.add_trace(
+                              trace,
+                              row=1, col=1
+                             )
+            for trace in fig5.data:
+                trace['showlegend'] = False
+                trace['visible'] = False
+                trace['pointpos'] = 0
+                fig.add_trace(
+                              trace,
+                              row=1, col=2
+                           )
+            for trace in fig6.data:
+                trace['showlegend'] = True
+                trace['visible'] = False
+                trace['pointpos'] = 0
+                fig.add_trace(
+                              trace,
+                              row=1, col=3
+                           )
         fig.update_layout(xaxis_type='category',
                           title_text=title)
         fig.update_xaxes(title_text='')
-        fig.update_yaxes(title_text="CPU Time (h)", row=1, col=1)
-        fig.update_yaxes(title_text="Mem (G)", row=1, col=2)
-        fig.update_yaxes(title_text="Wall clock (h)", row=1, col=3)
+        fig.update_yaxes(title_text="CPU Time (h)", 
+                         range=[0, self.metadata[ys[0]].max() + 2],
+                         row=1, col=1)
+        fig.update_yaxes(title_text="Mem (G)", 
+                         range=[0, self.metadata[ys[1]].max() + 2],
+                         row=1, col=2)
+        fig.update_yaxes(title_text="Wall clock (h)",
+                         range=[0, self.metadata[ys[2]].max() + 2], 
+                         row=1, col=3)
         fig.update_xaxes(title_text="",
-                        categoryarray=category_orders[ys[0]],
-                        categoryorder='array',
-                        row=1, col=1)
+                         categoryarray=category_orders[ys[0]],
+                         categoryorder='array',
+                         row=1, col=1)
         fig.update_xaxes(title_text=x_title,
-                        categoryarray=category_orders[ys[1]],
-                        categoryorder='array',
+                         categoryarray=category_orders[ys[1]],
+                         categoryorder='array',
                          row=1, col=2)
         fig.update_xaxes(title_text="",
-                        categoryarray=category_orders[ys[2]],
-                        categoryorder='array',
+                         categoryarray=category_orders[ys[2]],
+                         categoryorder='array',
                          row=1, col=3)
+        if button:
+            fig = self.add_button(fig)
+        po.plot(fig, filename = 'example.html', auto_open=False)
         return ploter.Fig(fig)
         
     
@@ -345,9 +408,11 @@ def make_files(results, appendix=False):
 def main():
     output_info_file = sys.argv[1]
     metrics_file = sys.argv[2]
-    plot_file = sys.argv[3]
+    non_retry_metrics_file = sys.argv[3]
+    plot_file = sys.argv[4]
     results = PlotRuntime(output_info_file=output_info_file,
                           metrics_file=metrics_file,
+                          non_retry_metrics_file=non_retry_metrics_file,
                           plot_file=plot_file)
     make_files(results, appendix=False)
     

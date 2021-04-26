@@ -20,8 +20,8 @@ class Runtime():
                  sample_ids=False,
                  pair_ids=False,
                  run_date=False,
-                 task_uuids=False):
-        assert task_uuids or output_info_file, 'Define either output_info_file or task_uuids'
+                 sub_workflow_uuids=False):
+        assert sub_workflow_uuids or output_info_file, 'Define either output_info_file or sub_workflow_uuids'
         if not output_info_file:
             assert run_date, 'Run date must be defined if task uuids is defined'
             assert pair_ids, 'pairIds must be defined if task uuids is defined'
@@ -34,7 +34,7 @@ class Runtime():
         self.limit = str(limit)
         self.metrics_limit = str(limit * 4)
         self.gcp_project = gcp_project
-        self.task_uuids = self.load_task_uuids(task_uuids, output_info_file)
+        self.sub_workflow_uuids = self.load_sub_workflow_uuids(sub_workflow_uuids, output_info_file)
         self.run_date = self.get_rundate(run_date, output_info_file)
         self.get_sample_info(sample_ids, pair_ids,
                              output_info_file)
@@ -44,9 +44,21 @@ class Runtime():
         self.load_metadata()
         self.load_runtime()
         self.load_metrics()
-        self.load_plot_metrics()
+        self.instance_id_map = self.get_max_mems(self.metadata, 
+                                                 instance_id_map=self.instance_id_map, 
+                                                 execution_status=False,
+                                                 metrics_key='mem_used_gb')
+        self.non_retry_instance_id_map = self.get_max_mems(self.metadata, 
+                                                           instance_id_map=self.non_retry_instance_id_map, 
+                                                           execution_status='Done',
+                                                           metrics_key='mem_used_gb')
+        self.non_retry_metadata = self.metadata[self.metadata.execution_status == 'Done'].copy()
+        self.metadata = self.load_plot_metrics(self.metadata,
+                                               instance_id_map=self.instance_id_map)
+        self.non_retry_metadata = self.load_plot_metrics(self.non_retry_metadata,
+                                                         instance_id_map=self.non_retry_instance_id_map)
         self.metadata.to_csv(self.metrics_file, index=False)
-        
+        self.non_retry_metadata.to_csv(self.metrics_file.replace('.csv', '.non_retried.csv'), index=False)
         
     def get_task_core_h(self, grouped, row, ids=['id', 
                                                  'task_call_name', 
@@ -54,29 +66,47 @@ class Runtime():
         ''' get runtime in core hours for the task (within a workflow) '''
         return (row.cpu_count * float(row.run_time_m)) / 60
     
-    def get_max_mems(self, job_id_col='task_call_name', metrics_key='mem_used_gb'):
-        '''Get max mem for a runs with the same workflow_id and task_call_name'''
-        runtime_results = self.metadata.drop_duplicates(['task_call_name', 'workflow_id'])
+    def match_instance_id(self, instance_id_map, row, execution_status='Done'):
+        for inst in instance_id_map:
+            if (row.workflow_id in instance_id_map[inst]['workflow_ids'] \
+                    and row.task_call_name == instance_id_map[inst]['task_call_name']):
+                if execution_status:
+                    if execution_status == row.execution_status:
+                        yield inst
+                else:
+                    yield inst
+            
+    
+    def get_max_mems(self, metadata, instance_id_map, 
+                     execution_status='Done',
+                     job_id_col='task_call_name', metrics_key='mem_used_gb'):
+        '''Get max mem for a runs with the same sub-workflow_id and task_call_name'''
+        runtime_results = metadata.drop_duplicates(['task_call_name', 'workflow_id', 'instance_name'])
         max_values = {}
         for index, row in runtime_results.iterrows():
-            instance_ids = [inst for inst in self.instance_id_map 
-                            if (row.workflow_id in self.instance_id_map[inst]['workflow_ids'] 
-                                and row.task_call_name == self.instance_id_map[inst]['task_call_name'])]
+            instance_ids = []
+            for inst in self.match_instance_id(instance_id_map, 
+                                               row, 
+                                               execution_status=execution_status):
+                instance_ids.append(inst)
             instance_ids = list(set(instance_ids))
             max_value = self.metrics[self.metrics.instance_id.isin(instance_ids)][metrics_key].max()
             for inst in instance_ids:
-                self.instance_id_map[inst][metrics_key] = max_value
+                instance_id_map[inst][metrics_key] = max_value
+        return instance_id_map
     
-    def get_max_mem(self, grouped, row, ids, metrics_key='mem_used_gb'):
+    def get_max_mem(self, grouped, row, ids, 
+                    instance_id_map,
+                    metadata, metrics_key='mem_used_gb'):
         '''Get max mem for a given subset of the runs'''
-        runtime_results = self.metadata.copy()
+        runtime_results = metadata.copy()
         for id in ids:
             runtime_results = runtime_results[runtime_results[id] == row[id]].copy()
         max_values = []
-        for inst in self.instance_id_map:
-            if (row.workflow_id in self.instance_id_map[inst]['workflow_ids']) \
-                    and (row.task_call_name == self.instance_id_map[inst]['task_call_name']):
-                max_values.append(self.instance_id_map[inst][metrics_key])
+        for inst in instance_id_map:
+            if (row.workflow_id in instance_id_map[inst]['workflow_ids']) \
+                    and (row.task_call_name == instance_id_map[inst]['task_call_name']):
+                max_values.append(instance_id_map[inst][metrics_key])
         return max(max_values)
         
     def get_flow_runtime(self, grouped, row, ids):
@@ -103,92 +133,90 @@ class Runtime():
             runtime = end_time - start_time
         return runtime.total_seconds() / 60.0 / 60.0
         
-    def load_plot_metrics(self):
+    def load_plot_metrics(self, metadata, instance_id_map):
         '''add cpu_time, max_mem, wall_clock, cpu_used_percent, mem_efficiency, mem_used_gb'''
         # get wallclock
-        self.metadata['start_time'] = pd.to_datetime(self.metadata.start_time, infer_datetime_format=True)
-        self.metadata['end_time'] = pd.to_datetime(self.metadata.end_time, infer_datetime_format=True)
-        self.metadata['run_time'] = self.metadata['end_time'] - self.metadata['start_time']
-        self.metadata['run_time_m'] = self.metadata.apply(lambda row: 
-                                                          (row.run_time.total_seconds() 
-                                                           / 60.0), 
-                                                          axis=1)
+        metadata['start_time'] = pd.to_datetime(metadata.start_time, infer_datetime_format=True)
+        metadata['end_time'] = pd.to_datetime(metadata.end_time, infer_datetime_format=True)
+        metadata['run_time'] = metadata['end_time'] - metadata['start_time']
+        metadata['run_time_m'] = metadata.apply(lambda row:
+                                                     (row.run_time.total_seconds() / 60.0), axis=1)
         # get cpu_time
-        self.metadata['cpu_time_m'] = self.metadata.apply(lambda row: 
-                                                        (row.run_time_m
-                                                         * row.cpu_count), 
-                                                        axis=1)
+        metadata['cpu_time_m'] = metadata.apply(lambda row:
+                                                (row.run_time_m
+                                                 * row.cpu_count),
+                                                axis=1)
         # ==============
         #     Tasks
         # ==============
-        grouped = self.metadata.groupby('task_call_name')
-        self.metadata['mean_task_core_h'] = self.metadata.apply(lambda row: 
-                                                                (row.cpu_count 
-                                                                * float(grouped.mean().run_time_m[row.task_call_name])) 
-                                                                / 60 , 
-                                                                axis=1)
+        grouped = metadata.groupby('task_call_name')
+        metadata['mean_task_core_h'] = metadata.apply(lambda row:
+                                                           (row.cpu_count
+                                                            * float(grouped.mean().run_time_m[row.task_call_name])) / 60,
+                                                           axis=1)
         # task wallclock time from start to finish
-        self.metadata['mean_task_run_time_h'] = self.metadata.apply(lambda row: 
-                                                                float(grouped.mean().run_time_m[row.task_call_name]) 
-                                                                / 60 , 
-                                                                axis=1)
+        metadata['mean_task_run_time_h'] = metadata.apply(lambda row:
+                                                          float(grouped.mean().run_time_m[row.task_call_name]) / 60,
+                                                          axis=1)
         
         # ============================
         #     Tasks w/in subworkflow
         # ============================
-        grouped = self.metadata.groupby(['id', 'task_call_name', 'workflow_name'])
+        grouped = metadata.groupby(['id', 'task_call_name', 'workflow_name'])
         # sub task wallclock time from start to finish
-        self.metadata['sample_task_run_time_h'] = self.metadata.apply(lambda row: 
-                                                                             self.get_flow_runtime(grouped, row,
-                                                                                                   ids=['id', 
-                                                                                                        'task_call_name', 
-                                                                                                        'workflow_name']), 
-                                                                             axis=1)
-        self.get_max_mems(metrics_key='mem_used_gb')
-        self.metadata['max_mem_g'] = self.metadata.apply(lambda row: self.get_max_mem(grouped, row,
-                                                                                      metrics_key='mem_used_gb',
-                                                                                      ids=['id',
-                                                                                           'task_call_name',
-                                                                                           'workflow_name']), 
-                                                                             axis=1)
-        self.metadata['sample_task_core_h'] = self.metadata.apply(lambda row: 
-                                                                         self.get_task_core_h(grouped, row,
-                                                                                              ids=['id', 
-                                                                                                   'task_call_name', 
-                                                                                                   'workflow_name']), 
-                                                                         axis=1)
+        metadata['sample_task_run_time_h'] = metadata.apply(lambda row: 
+                                                            self.get_flow_runtime(grouped, row,
+                                                                                  ids=['id', 
+                                                                                       'task_call_name',
+                                                                                       'workflow_name']),
+                                                            axis=1)
+        metadata['max_mem_g'] = metadata.apply(lambda row: self.get_max_mem(grouped, row,
+                                                                            metadata=metadata,
+                                                                            metrics_key='mem_used_gb',
+                                                                            instance_id_map=instance_id_map,
+                                                                            ids=['id',
+                                                                                 'task_call_name',
+                                                                                 'workflow_name']),
+                                                                                 axis=1)
+        metadata['sample_task_core_h'] = metadata.apply(lambda row:
+                                                        self.get_task_core_h(grouped, row,
+                                                                             ids=['id', 
+                                                                                  'task_call_name',
+                                                                                  'workflow_name']),
+                                                        axis=1)
         # ============================
         #       sub workflows
         # ============================
-        grouped = self.metadata.groupby(['id', 'workflow_name'])
+        grouped = metadata.groupby(['id', 'workflow_name'])
         sub_metadata = grouped.agg(sample_subworkflow_core_h=pd.NamedAgg(column='sample_task_core_h', aggfunc=sum)).reset_index()
-        self.metadata['sample_subworkflow_core_h'] = self.metadata.apply(lambda row: 
-                                                                         sub_metadata[(sub_metadata.id == row.id)
-                                                                                      & (sub_metadata.workflow_name == row.workflow_name)].sample_subworkflow_core_h.tolist()[0], 
-                                                                         axis=1)
+        metadata['sample_subworkflow_core_h'] = metadata.apply(lambda row:
+                                                               sub_metadata[(sub_metadata.id == row.id)
+                                                                            & (sub_metadata.workflow_name == row.workflow_name)].sample_subworkflow_core_h.tolist()[0], 
+                                                               axis=1)
         # sub workflows wallclock time from start to finish
-        self.metadata['sample_subworkflow_run_time_h'] = self.metadata.apply(lambda row: 
-                                                                             self.get_flow_runtime(grouped, row,
-                                                                                                   ids=['id', 'workflow_name']), 
-                                                                             axis=1)
-        self.metadata['subworkflow_max_mem_g'] = self.metadata.apply(lambda row: self.metadata[(self.metadata.id == row.id) 
-                                                                                               & (self.metadata.workflow_name == row.workflow_name)].max_mem_g.max(),
-                                                                             axis=1)
+        metadata['sample_subworkflow_run_time_h'] = metadata.apply(lambda row:
+                                                                   self.get_flow_runtime(grouped, row,
+                                                                                         ids=['id', 'workflow_name']), 
+                                                                   axis=1)
+        metadata['subworkflow_max_mem_g'] = metadata.apply(lambda row: metadata[(metadata.id == row.id)
+                                                                                & (metadata.workflow_name == row.workflow_name)].max_mem_g.max(),
+                                                                                axis=1)
         # ============================
         #       workflows
         # ============================
         # full workflow wallclock time from start to finish for an id
-        grouped = self.metadata.groupby('id')
+        grouped = metadata.groupby('id')
         sub_metadata = grouped.agg(sample_workflow_core_h=pd.NamedAgg(column='sample_task_core_h', aggfunc=sum)).reset_index()
-        self.metadata['sample_workflow_core_h'] = self.metadata.apply(lambda row: 
-                                                                      sub_metadata[(sub_metadata.id == row.id)].sample_workflow_core_h.tolist()[0],
-                                                                      axis=1)
-        self.metadata['sample_workflow_run_time_h'] = self.metadata.apply(lambda row: 
-                                                                          self.get_flow_runtime(grouped, row, 
-                                                                                                ids=['id']), 
-                                                                          axis=1)
-        self.metadata['workflow_max_mem_g'] = self.metadata.apply(lambda row: self.metadata[(self.metadata.id == row.id)].max_mem_g.max(),
-                                                                             axis=1)        
+        metadata['sample_workflow_core_h'] = metadata.apply(lambda row: 
+                                                            sub_metadata[(sub_metadata.id == row.id)].sample_workflow_core_h.tolist()[0],
+                                                            axis=1)
+        metadata['sample_workflow_run_time_h'] = metadata.apply(lambda row: 
+                                                                self.get_flow_runtime(grouped, row, 
+                                                                                      ids=['id']), 
+                                                                axis=1)
+        metadata['workflow_max_mem_g'] = metadata.apply(lambda row: metadata[(metadata.id == row.id)].max_mem_g.max(),
+                                                        axis=1) 
+        return metadata       
 
     def modify_date(self, run_date):
         return '-'.join(run_date.split('-')[0:3])
@@ -229,14 +257,15 @@ class Runtime():
             .result()
             .to_dataframe(bqstorage_client=self.bqstorageclient)
         )
-        task_uuid_sample_map = self.task_uuids.copy()
-        task_uuid_sample_map.columns = ['workflow_id', 'id']
-        task_uuid_sample_map = task_uuid_sample_map.drop_duplicates().copy()
-        self.metadata = meta[meta.workflow_id.isin(task_uuid_sample_map.workflow_id.tolist())].copy()
+        sub_workflow_uuid_sample_map = self.sub_workflow_uuids.copy()
+        sub_workflow_uuid_sample_map.columns = ['workflow_id', 'id']
+        sub_workflow_uuid_sample_map = sub_workflow_uuid_sample_map.drop_duplicates().copy()
+        self.metadata = meta[meta.workflow_id.isin(sub_workflow_uuid_sample_map.workflow_id.tolist())].copy()
+        self.metadata['inputs'] = self.metadata.apply(lambda row: str(row.inputs).replace('\n', ' '), axis=1)
         unhashable = ['disk_mounts', 'disk_total_gb', 'disk_types', 'inputs']
         hashable = [col for col in self.metadata.columns if not col in unhashable]
         self.metadata = self.metadata.drop_duplicates(hashable)
-        self.metadata = self.metadata.merge(task_uuid_sample_map, on='workflow_id')
+        self.metadata = self.metadata.merge(sub_workflow_uuid_sample_map, on='workflow_id')
         
     def load_runtime(self):
         '''convert big query runtime table into pandas dataframe
@@ -254,14 +283,22 @@ class Runtime():
             .result()
             .to_dataframe(bqstorage_client=self.bqstorageclient)
         )
-        task_uuids = self.task_uuids.task_uuid.tolist()
-        self.runtime = runtime[runtime.workflow_id.isin(task_uuids)].copy()
+        sub_workflow_uuids = self.sub_workflow_uuids.sub_workflow_uuid.tolist()
+        self.runtime = runtime[runtime.workflow_id.isin(sub_workflow_uuids)].copy()
         self.instance_ids = self.runtime.instance_id.unique().tolist()
         self.instance_id_map = {}
         for instance_id in self.instance_ids:
             self.instance_id_map[instance_id] = {}
-            self.instance_id_map[instance_id]['workflow_ids'] = self.runtime[self.runtime.instance_id == instance_id].workflow_id.tolist()
+            self.instance_id_map[instance_id]['workflow_ids'] = self.runtime[self.runtime.instance_id == instance_id].workflow_id.unique().tolist()
             self.instance_id_map[instance_id]['task_call_name'] = self.runtime[self.runtime.instance_id == instance_id].task_call_name.tolist()[0]
+        self.non_retry_instance_id_map = {}
+        map = {row.instance_name: row.execution_status for index, row in self.metadata[['instance_name', 'execution_status']].drop_duplicates().iterrows()}
+        execution_status_map = {row.instance_id : map[row.instance_name] for index, row in self.runtime[['instance_name', 'instance_id']].drop_duplicates().iterrows()}
+        non_retry_instance_ids = [inst for inst in execution_status_map]
+        for instance_id in non_retry_instance_ids:
+            self.non_retry_instance_id_map[instance_id] = {}
+            self.non_retry_instance_id_map[instance_id]['workflow_ids'] = self.runtime[(self.runtime.instance_id == instance_id)].workflow_id.unique().tolist()
+            self.non_retry_instance_id_map[instance_id]['task_call_name'] = self.runtime[(self.runtime.instance_id == instance_id)].task_call_name.tolist()[0]
         
     def load_metrics(self):
         '''convert big query metrics table into pandas dataframe
@@ -281,19 +318,19 @@ class Runtime():
         )
         self.metrics = metrics[metrics.instance_id.isin(self.instance_ids)].copy()
 
-    def load_task_uuids(self, task_uuids, output_info_file):
-        if task_uuids:
-            return task_uuids
+    def load_sub_workflow_uuids(self, sub_workflow_uuids, output_info_file):
+        if sub_workflow_uuids:
+            return sub_workflow_uuids
         else:
             with open(output_info_file) as output_info_object:
                 output_info = json.load(output_info_object)
-            task_uuids_list = []
-            for id in output_info['task_uuids']:
-                data = pd.DataFrame({'task_uuid' : output_info['task_uuids'][id]})
+            sub_workflow_uuids_list = []
+            for id in output_info['sub_workflow_uuids']:
+                data = pd.DataFrame({'sub_workflow_uuid' : output_info['sub_workflow_uuids'][id]})
                 data['id'] = id
-                task_uuids_list.append(data)
-            task_uuids = pd.concat(task_uuids_list)
-            return task_uuids
+                sub_workflow_uuids_list.append(data)
+            sub_workflow_uuids = pd.concat(sub_workflow_uuids_list)
+            return sub_workflow_uuids
            
 
 def main():
@@ -303,7 +340,7 @@ def main():
             limit=10000,
             output_info_file=output_info_file,
             run_date=False,
-            task_uuids=False)
+            sub_workflow_uuids=False)
     
     
 if __name__ == "__main__":
