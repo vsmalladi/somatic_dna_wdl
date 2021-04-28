@@ -94,6 +94,16 @@ for arg in "$@"; do
         shift # Remove argument name from processing
         shift # Remove argument value from processing
         ;;
+        -l|--library)
+        library="$2"
+        shift # Remove argument name from processing
+        shift # Remove argument value from processing
+        ;;
+        -g|--genome)
+        genome="$2"
+        shift # Remove argument name from processing
+        shift # Remove argument value from processing
+        ;;
         -n|--project)
         project_id="$2"
         shift # Remove argument name from processing
@@ -175,32 +185,35 @@ ${workflow} \
 
 # create input json
 echo "Create input json and confirm files exist..." >&2
+echo "|${samples_file}|"
 meta_command="python ${script_dir}/tools/meta.py \
     --project ${project_id} \
     --library ${library} \
     --genome ${genome} \
     --wdl-file ${workflow} \
     --options ${options}"
-if [ -z "$custom_input" ]; then
+if [ ! -z "$custom_inputs" ]; then
     meta_command="${meta_command} \
-    --custom-inputs ${custom_input}"
+    --custom-inputs ${custom_inputs}"
 fi
-if [ -z "$pairs_file" ]; then
+if [ ! -z "$pairs_file" ]; then
     meta_command="${meta_command} \
     --pairs-file ${pairs_file}"
 fi
-if [ -z "$samples_file" ]; then
+if [ ! -z "$samples_file" ]; then
     meta_command="${meta_command} \
     --samples-file ${samples_file}"
 fi
-if [ -z "$interval_list" ]; then
+if [ ! -z "$interval_list" ]; then
     meta_command="${meta_command} \
     --interval-list ${interval_list}"
 fi
-if [ -z "$skip_validate" ]; then
+if [ ! -z "$skip_validate" ]; then
     meta_command="${meta_command} \
     --skip-validate"
 fi
+
+echo "${meta_command}"
 
 eval ${meta_command}
 
@@ -211,9 +224,10 @@ zip dependencies.zip wdl_structs.wdl */*.wdl
 cd -
 
 echo "Precheck input json..." >&2
+workflow_name=$( basename ${workflow} | sed 's/\.wdl//' )
 womtool \
 validate \
---inputs ${workflow_name}_wkfInput.json \
+--inputs ${workflow_name}Input.json \
 ${workflow}
 
 # start run:
@@ -225,6 +239,6 @@ uuid=$( bash ${script_dir}/tools/submit.sh \
     -o ${options} \
     -d ${script_dir}/dependencies.zip \
     -p ${log_dir}/${project_id}_projectInfo.json \
-    -i ${workflow_name}_wkfInput.json )
+    -i ${workflow_name}Input.json )
 
 echo "Done" >&2

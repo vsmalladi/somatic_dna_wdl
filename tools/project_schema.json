@@ -12,10 +12,11 @@
                 "readgroupId": { "type": "string" },
                 "flowcell": { "type": "string" },
                 "lane": { "type": "string" },
-                "barcode": { "type": "string" }
+                "barcode": { "type": "string" },
+                "rgpu": {"type": "string"}
             },
             "required": ["fastqR1", "fastqR2", "readgroupId",
-                "flowcell", "lane", "barcode"]
+                "flowcell", "lane", "barcode", "rgpu"]
         },
         "bam" : {
             "type": "object",
@@ -29,6 +30,7 @@
             "type": "object",
             "properties": {
                 "sampleId" : { "type": "string" },
+                "expectedCoverage": { "type": "number" },
                 "listOfFastqPairs" : { "type": "array",
                     "items": { "$ref": "#/definitions/fastqPair" }
                 }

@@ -156,7 +156,7 @@ def note_updates(key, args_key, project_info):
 
 def note_custom_updates(key, alt_project_info, project_info):
     ''' Add/replace value in project_info with value from custom inputs json'''
-    match = [key for key in alt_project_info if key.split('.')[-1] == key]
+    match = [match_key for match_key in alt_project_info if match_key.split('.')[-1] == key]
     if len(match) == 1:
         if key in project_info:
             log.warning('Note that the value for ' + key + ' will be taken from --custom-inputs file\n')
@@ -171,6 +171,23 @@ def verify_required(key, args, project_info):
         log.error('Note that the value for ' + key + ' is required to be specified in flags or in the  --project-info file')
         sys.exit(1)
     return True
+
+def fill_in_pair_info(project_info):
+    pair_infos = []
+    for info in project_info['listOfPairRelationships']:
+        pair_infos.append({'normal' : info['normal'],
+                           'tumor' : info['tumor'],
+                           'pairId' : info['pairId']})
+    project_info = note_updates(key='pairInfos', args_key=pair_infos, project_info=project_info)
+    return project_info
+
+def fill_in_sample_info(project_info):
+    sample_infos = []
+    for sample_id in project_info['sampleIds']:
+        sample_infos.append({'sampleId' : sample_id})
+    project_info = note_updates(key='sampleInfos', args_key=sample_infos, project_info=project_info)
+    return project_info
+        
     
 def repopulate(args):
     '''Ammend the dictionary of project and sample related metadata 
@@ -218,14 +235,16 @@ def repopulate(args):
             for alt_project_info_file in args['custom_inputs']:
                 alt_project_info = read(alt_project_info_file)
                 project_info = note_custom_updates(key='pairInfos', alt_project_info=alt_project_info, project_info=project_info)
+            if not 'pairInfos' in project_info:
+                project_info = fill_in_pair_info(project_info)
             assert 'pairInfos' in project_info, 'pairInfos needed but no entry found for key in --custom-inputs file\n'
-        pair_ids = list(set([info['pairId'] for info in project_info['pairInfos']]))
+        pair_ids = list(set([info['pairId'] for info in project_info['listOfPairRelationships']]))
         project_info = note_updates(key='pairId', args_key=pair_ids, project_info=project_info)
         
-        normals = list(set([info['normal'] for info in project_info['pairInfos']]))
+        normals = list(set([info['normal'] for info in project_info['listOfPairRelationships']]))
         project_info = note_updates(key='normals', args_key=normals, project_info=project_info)
         
-        tumors = list(set([info['tumor'] for info in project_info['pairInfos']]))
+        tumors = list(set([info['tumor'] for info in project_info['listOfPairRelationships']]))
         project_info = note_updates(key='tumors', args_key=tumors, project_info=project_info)
     # fill in list of samples
     if args['samples_file'] and not args['project_data']:
@@ -240,6 +259,13 @@ def repopulate(args):
             current_sample_id_info = fill_sample(sample_id)
             sample_info.append(current_sample_id_info)
         project_info = note_updates(key='sampleInfos', args_key=sample_info, project_info=project_info)
+    else:
+        for alt_project_info_file in args['custom_inputs']:
+                alt_project_info = read(alt_project_info_file)
+                project_info = note_custom_updates(key='sampleInfos', alt_project_info=alt_project_info, project_info=project_info)
+                if not 'sampleInfos' in project_info:
+                    project_info = fill_in_sample_info(project_info)
+                assert 'sampleInfos' in project_info, 'sampleInfos needed but no entry found for key in --custom-inputs file\n'
     return project_info
 
 def write_wdl_json(args, project_info, project_info_file):
