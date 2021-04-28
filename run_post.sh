@@ -1,5 +1,5 @@
 #!/bin/bash
-# USAGE: run_post.sh -u URL -p PROJECT_ID -w WORKFLOW_UUID -d LOG_DIR [-r RUNINFO_JSON]
+# USAGE: run_post.sh -u URL -p PROJECT_ID -d LOG_DIR [-r RUNINFO_JSON]
 # DESCRIPTION: submit workflow to cromwell.
 # Script requires jq, cromwell-tools, gcloud to be in the path
 # Script generates summary of any workflow.
@@ -9,7 +9,7 @@
 wdl_dir=$(dirname "$0")
 
 print_help() {
-  echo "USAGE: run_post.sh -u URL -p PROJECT_ID -w WORKFLOW_UUID -d LOG_DIR [-r RUNINFO_JSON]"
+  echo "USAGE: run_post.sh -u URL -p PROJECT_ID -d LOG_DIR [-r RUNINFO_JSON]"
   echo "DESCRIPTION: submit workflow to cromwell."
   echo "Script requires jq, cromwell-tools, gcloud to be in the path."
   echo "Script also requires GOOGLE_APPLICATION_CREDENTIALS to be defined"
