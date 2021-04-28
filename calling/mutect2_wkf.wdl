@@ -19,7 +19,8 @@ workflow Mutect2 {
         Int diskSize = ceil( size(tumorFinalBam.bam, "GB") + size(normalFinalBam.bam, "GB")) + 20
         Int memoryGb = 8
         # remove definition after replacing the command step for gcp
-        File jsonLog = "gs://nygc-comp-s-fd4e-input/mutect2_4.0.5.1_COLO-829-NovaSeq_80--COLO-829BL-NovaSeq_40.json"
+        File jsonLog = "gs://nygc-comp-s-fd4e-input/internal/gatk_4.0.5.1_Mutect2Wgs.json"
+        File jsonLogFilter = "gs://nygc-comp-s-fd4e-input/internal/gatk_4.0.5.1_Mutect2Wgs_Mutect2Filter.json"
     }
     
     scatter(chrom in listOfChroms) {
@@ -61,7 +62,7 @@ workflow Mutect2 {
     call calling.AddVcfCommand as filteredAddVcfCommand {
         input:
             inVcf = filteredGatk4MergeSortVcf.sortedVcf.vcf,
-            jsonLog = jsonLog,
+            jsonLog = jsonLogFilter,
             memoryGb = 2,
             diskSize = 1
     }

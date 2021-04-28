@@ -20,7 +20,7 @@ workflow Lancet {
         Int diskSize = ceil( size(tumorFinalBam.bam, "GB") + size(normalFinalBam.bam, "GB")) + 20
         Int memoryGb = 40
         # remove definition after replacing the command step for gcp
-        File jsonLog = "gs://nygc-comp-s-fd4e-input/mutect2_4.0.5.1_COLO-829-NovaSeq_80--COLO-829BL-NovaSeq_40.json"
+        File jsonLog = "gs://nygc-comp-s-fd4e-input/internal/lancet_1.0.7_LancetWGSRegional.json"
     }
     
     scatter(chrom in listOfChroms) {

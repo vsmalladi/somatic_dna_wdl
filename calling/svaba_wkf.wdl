@@ -19,7 +19,7 @@ workflow Svaba {
         Int diskSize = ceil( size(tumorFinalBam.bam, "GB") + size(normalFinalBam.bam, "GB")) + 40
         Int memoryGb = 32
         # remove definition after replacing the command step for gcp
-        File jsonLog = "gs://nygc-comp-s-fd4e-input/mutect2_4.0.5.1_COLO-829-NovaSeq_80--COLO-829BL-NovaSeq_40.json"
+        File jsonLog = "gs://nygc-comp-s-fd4e-input/internal/svaba_1.1.3-c4d7b571_SvabaWgs.json"
     }
     
     call calling.SvabaWgs {

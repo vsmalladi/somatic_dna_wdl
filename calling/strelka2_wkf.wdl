@@ -23,7 +23,7 @@ workflow Strelka2 {
         Int memoryGb = 4
         Int threads = 8
         # remove definition after replacing the command step for gcp
-        File jsonLog = "gs://nygc-comp-s-fd4e-input/mutect2_4.0.5.1_COLO-829-NovaSeq_80--COLO-829BL-NovaSeq_40.json"
+        File jsonLog = "gs://nygc-comp-s-fd4e-input/internal/strelka_v2.9.3_Strelka2.json"
     }
     
     call calling.Strelka2 {
