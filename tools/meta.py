@@ -294,8 +294,8 @@ def get_args():
                             )
     parser.add_argument('--wdl-file',
                         help='WDL workflow. '
-                        'To output an input JSON '
-                        'that matches a WDL workflow parse the workflow file in as a flag.',
+                        'An input JSON that matches this '
+                        'WDL workflow will be created (required)',
                         required=True
                         )
     parser.add_argument('--library',

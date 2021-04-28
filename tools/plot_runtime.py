@@ -5,6 +5,7 @@ import logging as log
 import pandas as pd
 import numpy as np
 import Colorer
+import argparse
 #plots
 import plotly.express as px
 import plotly.offline as po
@@ -24,12 +25,14 @@ log.basicConfig(format='%(levelname)s:  %(message)s', level=log.INFO)
 
 class PlotRuntime():
     '''Plot results from outputMetrics.csv'''
-    def __init__(self, 
+    def __init__(self,
+                 project_id, 
                  output_info_file,
                  metrics_file,
                  non_retry_metrics_file,
                  plot_file=False):
         self.set_colors()
+        self.project_id = project_id
         if not plot_file:
             self.out_md = metrics_file.replace('.csv', '.md')
             self.header_file = metrics_file.replace('.csv', '.header.txt')
@@ -308,6 +311,8 @@ class PlotRuntime():
                          categoryarray=category_orders[ys[2]],
                          categoryorder='array',
                          row=1, col=3)
+        if x.lower() == 'id':
+            fig.update_xaxes(tickfont={'size' : 5})
         if button:
             fig = self.add_button(fig)
         po.plot(fig, filename = 'example.html', auto_open=False)
@@ -329,39 +334,51 @@ def make_files(results, appendix=False):
         #  =======================
         #  Section Logo and basic info
         #  =======================
-        basic_info = ''.join(['\n\nRuntime metrics: v7 pipeline',
-                              '\n\nAverage runtime for different subworkflows of the v7 pipeline are shown below..\n\n'  
-#                               Pre-processing includes "prep_flowcell" (alignment, short alignment filtering and fixmate), "merge" (duplicate marking and base quality score recalibration). Calling includes somatic and germline variant calling, merging, filtering, annotation, HLA typing, MSI classification and signature estimation.\n\n'
-                              ])
-#        basic_info = ''.join(['\n\n<b>Tumor :</b> ' + results.tumor +
-#                              '\n<b>Normal :</b> ' + results.normal +
-#                              '\n\n<b>Project :</b> ' + results.project_name])
-#        if results.organism in ['Mouse']:
-#            basic_info += '\n\n<b>Organism :</b> ' + results.organism
+#         basic_info = ''.join(['\n\nRuntime metrics: v7 pipeline',
+#                               '\n\nRuntime for different task, subworkflows and full workflows of the v7 pipeline are shown below.\n\n',  
+#                               '\n\nTask runtime and core hours can have preempted workflow runtime removed but this cannot be subtracted from the full workflow runtime.\n\n'
+#                               ])
+        basic_info = ''.join(['\n\n<b>Project :</b> ', results.project_id, '\n\n'])
         logo = '<img src="NY-Genome-Logo.jpg" class="center">' + ('\n' * 4)
         section_content = ''.join([logo, basic_info, '\n\n'])
         all_section_content = contents.add_line(content=section_content,
                                                libraries=['WGS', 'Exome'],
                                                types=['tumor_only', 'paired'],
                                                audiences=['internal', 'external'])
-#         md_content = compose.Md(report=report,
-#                                 header_file=header_file,
-#                                 header='NYGC v7 runtime metrics',
-#                                 section_header='Overview',
-#                                 center_content=all_section_content,
-#                                 figures=[])
-
         md_content = compose.Md(report=report,
                                 header_file=header_file,
-                                header='NYGC v7 runtime metrics',
-                                section_header='Overview',
+                                header= results.project_id + ' NYGC v7',
+                                section_header='Project overview',
                                 center_content=all_section_content,
-                                figures=[(results.exit_status_table.script,
-                                          results.exit_status_table.div),
-                                          (results.disk_type_plot.script,
-                                           results.disk_type_plot.div),
-                                          (results.summary_table.script,
+                                figures=[])
+        #  =======================
+        #  Runtime
+        #  =======================
+        section_content = ''.join([''])
+#         section_content = ''.join(['End-to-end runtime per sample'])
+        lines = [contents.add_line(content=section_content,
+                                    libraries=['WGS', 'Exome'],
+                                    types=['tumor_only', 'paired'],
+                                    audiences=['internal', 'external'])]
+        all_section_content = md_content.join_ignore_none(lines)
+        md_content.update_doc(section_header='Runtime overview',
+                              center_content=all_section_content,
+                              figures=[(results.summary_table.script,
                                            results.summary_table.div)])
+        #  =======================
+        #  Non-zero exit status
+        #  =======================
+        section_content = ''.join([''])
+#         section_content = ''.join(['All tasks with non-zero exit status.'])
+        lines = [contents.add_line(content=section_content,
+                                    libraries=['WGS', 'Exome'],
+                                    types=['tumor_only', 'paired'],
+                                    audiences=['internal', 'external'])]
+        all_section_content = md_content.join_ignore_none(lines)
+        md_content.update_doc(section_header='Non-zero exits',
+                              center_content=all_section_content,
+                              figures=[(results.exit_status_table.script,
+                                          results.exit_status_table.div)])
         #  =======================
         #  Task
         #  =======================
@@ -401,19 +418,64 @@ def make_files(results, appendix=False):
                               center_content=all_section_content,
                               figures=[(results.fig3.script,
                                         results.fig3.div)])
+        #  =======================
+        #  Disk types
+        #  =======================
+        section_content = ''.join(['Disk type by runtime.'])
+        lines = [contents.add_line(content=section_content,
+                                    libraries=['WGS', 'Exome'],
+                                    types=['tumor_only', 'paired'],
+                                    audiences=['internal', 'external'])]
+        all_section_content = md_content.join_ignore_none(lines)
+        md_content.update_doc(section_header='Disk type',
+                              center_content=all_section_content,
+                              figures=[(results.disk_type_plot.script,
+                                           results.disk_type_plot.div)])
 
         
-        
+def get_args():
+    '''Parse input flags
+    '''
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--output-info',
+                        help='JSON file with outputInfo. Includes workflow uuid, '
+                        'options JSON dictionary submitted to cromwell, '
+                        'project pairing, sample, '
+                        'genome build, library and interval list information. '
+                        'Also includes output files and '
+                        'the sub-workflow uuids',
+                        required=True
+                        )
+    parser.add_argument('--project-id',
+                        help='Working name of project.',
+                        required=True
+                        )
+    parser.add_argument('--plot',
+                        help='Output path for html file.',
+                        required=True
+                        )
+    parser.add_argument('--metrics',
+                        help='CSV file with outputMetrics. '
+                        'Includes sample id mem, wallclock time, core hours '
+                        'for tasks with any exit status (including Failed)',
+                        required=True
+                        )
+    parser.add_argument('--non-retry-metrics',
+                        help='CSV file with outputMetrics.non_retried. '
+                        'Includes sample id mem, wallclock time, core hours '
+                        'for tasks with an exit status of zero',
+                        required=True
+                        )
+    args_namespace = parser.parse_args()
+    return args_namespace.__dict__       
     
 def main():
-    output_info_file = sys.argv[1]
-    metrics_file = sys.argv[2]
-    non_retry_metrics_file = sys.argv[3]
-    plot_file = sys.argv[4]
-    results = PlotRuntime(output_info_file=output_info_file,
-                          metrics_file=metrics_file,
-                          non_retry_metrics_file=non_retry_metrics_file,
-                          plot_file=plot_file)
+    args = get_args()
+    results = PlotRuntime(project_id=args['project_id'],
+                          output_info_file=args['output_info'],
+                          metrics_file=args['metrics'],
+                          non_retry_metrics_file=args['non_retry_metrics'],
+                          plot_file=args['plot'],)
     make_files(results, appendix=False)
     
     

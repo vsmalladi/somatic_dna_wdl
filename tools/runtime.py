@@ -12,9 +12,9 @@ log.basicConfig(format='%(levelname)s:  %(message)s', level=log.INFO)
 
 
 class Runtime():
-    def __init__(self, 
-                 gcp_project,
+    def __init__(self,
                  limit=10000,
+                 gcp_project=False,
                  output_info_file=False,
                  metrics_file=False,
                  sample_ids=False,
@@ -33,7 +33,7 @@ class Runtime():
         # find relevant project info
         self.limit = str(limit)
         self.metrics_limit = str(limit * 4)
-        self.gcp_project = gcp_project
+        self.gcp_project = self.get_gcp_project(gcp_project, output_info_file)
         self.sub_workflow_uuids = self.load_sub_workflow_uuids(sub_workflow_uuids, output_info_file)
         self.run_date = self.get_rundate(run_date, output_info_file)
         self.get_sample_info(sample_ids, pair_ids,
@@ -162,11 +162,12 @@ class Runtime():
         # ============================
         #     Tasks w/in subworkflow
         # ============================
-        grouped = metadata.groupby(['id', 'task_call_name', 'workflow_name'])
+        grouped = metadata.groupby(['id', 'task_call_name', 'workflow_name', 'instance_name'])
         # sub task wallclock time from start to finish
         metadata['sample_task_run_time_h'] = metadata.apply(lambda row: 
                                                             self.get_flow_runtime(grouped, row,
                                                                                   ids=['id', 
+                                                                                       'instance_name',
                                                                                        'task_call_name',
                                                                                        'workflow_name']),
                                                             axis=1)
@@ -175,12 +176,14 @@ class Runtime():
                                                                             metrics_key='mem_used_gb',
                                                                             instance_id_map=instance_id_map,
                                                                             ids=['id',
+                                                                                 'instance_name',
                                                                                  'task_call_name',
                                                                                  'workflow_name']),
                                                                                  axis=1)
         metadata['sample_task_core_h'] = metadata.apply(lambda row:
                                                         self.get_task_core_h(grouped, row,
-                                                                             ids=['id', 
+                                                                             ids=['id',
+                                                                                  'instance_name',
                                                                                   'task_call_name',
                                                                                   'workflow_name']),
                                                         axis=1)
@@ -238,7 +241,16 @@ class Runtime():
         else:
             with open(output_info_file) as output_info_object:
                 output_info = json.load(output_info_object)
-            return self.modify_date(output_info['project_data']['run_date'])   
+            return self.modify_date(output_info['project_data']['run_date']) 
+        
+    def get_gcp_project(self, gcp_project, output_info_file):
+        if gcp_project:
+            return gcp_project
+        else:
+            with open(output_info_file) as output_info_object:
+                output_info = json.load(output_info_object)
+            return output_info['project_data']['options']['monitoring_image'].split('/')[1]
+
     
     def load_metadata(self):
         '''convert big query metadata table into pandas dataframe
@@ -334,10 +346,8 @@ class Runtime():
            
 
 def main():
-    gcp_project = sys.argv[1]
     output_info_file = sys.argv[2]
-    Runtime(gcp_project=gcp_project,
-            limit=10000,
+    Runtime(limit=10000,
             output_info_file=output_info_file,
             run_date=False,
             sub_workflow_uuids=False)
