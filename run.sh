@@ -1,43 +1,162 @@
 #!/bin/bash
-# USAGE: uuid=$( run.sh -u CROMWELL_URL -w WORKFLOW -o OPTIONS_JSON -i INPUTS -d DEPENDENCIES -p PROJECT_DATA )
-# DESCRIPTION: submit workflow to cromwell.
+
+# USAGE: run.sh [-h] --options OPTIONS --wdl-file WDL_FILE
+#               --url URL --log-dir LOG_DIR
+#               --project PROJECT 
+#               [--library {WGS,Exome}]
+#               [--genome {Human_GRCh38_full_analysis_set_plus_decoy_hla}]
+#               [--pairs-file PAIRS_FILE]
+#               [--samples-file SAMPLES_FILE]
+#               [--interval-list {SureSelect_V6plusCOSMIC.target.GRCh38_full_analysis_set_plus_decoy_hla}]
+#               [--custom-inputs [CUSTOM_INPUTS [CUSTOM_INPUTS ...]]]
+#               [--skip-validate]
+# DESCRIPTION: validate workflow, create input json and submit workflow to cromwell.
 # Script requires jq, cromwell-tools, gcloud to be in the path
 # Script returns the workflow uuid.
 # Script shows submission command and command to check status .
 # in the STDERR stream
 
+help_top="run.sh [-h] --options OPTIONS --wdl-file WDL_FILE
+               --url URL --log-dir LOG_DIR
+               --project PROJECT 
+               [--library {WGS,Exome}]
+               [--genome {Human_GRCh38_full_analysis_set_plus_decoy_hla}]
+               [--pairs-file PAIRS_FILE]
+               [--samples-file SAMPLES_FILE]
+               [--interval-list {SureSelect_V6plusCOSMIC.target.GRCh38_full_analysis_set_plus_decoy_hla}]
+               [--custom-inputs [CUSTOM_INPUTS [CUSTOM_INPUTS ...]]]
+               [--skip-validate]
+"
+
+help_long="-h, --help            show this help message and exit
+  --url URL             Cromwell server URL (required)
+  --log-dir LOG_DIR     Output directory for all logs and reports
+                        related to this workflow UUID (required)
+  --options OPTIONS     Options json file (required)
+  --wdl-file WDL_FILE   WDL workflow. An input JSON that matches this
+                        WDL workflow will be created (required)
+  --library {WGS,Exome}
+                        Sequence library type.
+  --genome {Human_GRCh38_full_analysis_set_plus_decoy_hla}
+                        Genome key to use for pipeline.
+  --project PROJECT     Project name associated with account.
+  --pairs-file PAIRS_FILE
+                        JSON file with items that are required to have
+                        \"tumor\", \"normal\" sample_ids defined.
+  --samples-file [SAMPLES_FILE]
+                        Not generally required. If steps run only require
+                        sample_id and do not use pairing information sample
+                        info can be populated with a CSV file. The CSV file
+                        requires a columns named [\"sampleId\"].
+  --interval-list {SureSelect_V6plusCOSMIC.target.GRCh38_full_analysis_set_plus_decoy_hla}
+                        File basename for interval list.If not supplied the
+                        default (the SureSelect interval list for your genome)
+                        will be used
+  --custom-inputs [CUSTOM_INPUTS]
+                        Optional JSON file with custom input variables. The
+                        name of the variable in the input file must match the
+                        name of the variable in the WDL workflow. It is not
+                        required that the input specify the workflow. By
+                        default the input will be added to the top-level
+                        workflow.
+  --skip-validate       Skip the step where input files are validated.
+                        Otherwise all gs//: URIs will be checked to see that a
+                        file exists. Disable with caution.Cromwell will launch
+                        instances and run without checking. Test a small pairs
+                        file to ensure all references exist and at least some
+                        sample input files can be read by the current user.
+"
+
 print_help() {
-  echo "USAGE: uuid=\$( run.sh -u URL -w WORKFLOW -o OPTIONS_JSON -i INPUTS -d DEPENDENCIES -p PROJECT_DATA )"
-  echo "DESCRIPTION: submit workflow to cromwell."
-  echo "Script requires jq, cromwell-tools, gcloud to be in the path."
-  echo "Script returns the workflow uuid."
-  echo "Script shows submission command and command to check status"
-  echo "in the STDERR stream."
-  exit 1
+    echo "${help_top}"
+    echo "DESCRIPTION: validate workflow, create input json and submit workflow to cromwell."
+    echo "Script requires jq, cromwell-tools, gcloud to be in the path."
+    echo "Script shows submission command and command to check status"
+    echo "in the STDERR stream."
+    echo "${help_long}"
+    exit 1
 }
 
-print_usage() {
-  echo "USAGE: uuid=\$( run.sh -u URL -w WORKFLOW -o OPTIONS_JSON -i INPUTS -d DEPENDENCIES -p PROJECT_DATA )" >&2
-  exit 1
-}
 
-while getopts 'u:w:o:d:p:i:h' flag; do
-  case "${flag}" in
-    u) url="${OPTARG}" ;;
-    w) workflow="${OPTARG}" ;;
-    o) options="${OPTARG}" ;;
-    d) dependencies="${OPTARG}" ;;
-    p) project_data="${OPTARG}" ;;
-    i) inputs="${OPTARG}" ;;
-    h) print_help ;;
-    \?) print_usage; echo "Unknown option: $OPTARG" >&2 ;;
-    :) print_usage; echo "Missing option argument for option: $OPTARG" >&2 ;;
-    *) print_usage; echo "Unimplemented option: $OPTARG" >&2 ;;
-  esac
+# Defaults
+library="WGS"
+genome="Human_GRCh38_full_analysis_set_plus_decoy_hla"
+
+for arg in "$@"; do
+    case $arg in
+        -u|--url)
+        url="$2"
+        shift # Remove argument name from processing
+        shift # Remove argument value from processing
+        ;;
+        -d|--log-dir)
+        log_dir="$2"
+        shift # Remove argument name from processing
+        shift # Remove argument value from processing
+        ;;
+        -n|--project)
+        project_id="$2"
+        shift # Remove argument name from processing
+        shift # Remove argument value from processing
+        ;;
+        -o|--options)
+        options="$2"
+        shift # Remove argument name from processing
+        shift # Remove argument value from processing
+        ;;
+        -p|--pairs-file)
+        pairs_file="$2"
+        shift # Remove argument name from processing
+        shift # Remove argument value from processing
+        ;;
+        -s|--samples-file)
+        samples_file="$2"
+        shift # Remove argument name from processing
+        shift # Remove argument value from processing
+        ;;
+        -i|--interval-list)
+        interval_list="$2"
+        shift # Remove argument name from processing
+        shift # Remove argument value from processing
+        ;;
+        -w|--wdl-file)
+        workflow="$2"
+        shift # Remove argument name from processing
+        shift # Remove argument value from processing
+        ;;
+        -c|--custom-inputs)
+        custom_inputs="$2"
+        shift # Remove argument name from processing
+        shift # Remove argument value from processing
+        ;;
+        -v|--skip-validate)
+        skip_validate=1
+        shift # Remove --initialize from processing
+        ;;
+        -h|--help)
+        print_help
+        shift # Remove --initialize from processing
+        ;;
+        
+    esac
 done
+        
+        
+# Required:
+if [ -z "$log_dir" ]; then
+    echo "Error: Missing required value for -l log dir (for run logs)" >&2
+    print_usage
+    exit 1
+fi
 
-if [ -z "$project_data" ]; then
-    echo "Missing required value for -p project_data json file" >&2
+if [ -z "$url" ]; then
+    echo "Error: Missing required value for -u cromwell server URL" >&2
+    print_usage
+    exit 1
+fi
+
+if [ -z "$project_id" ]; then
+    echo "Error: Missing required value for -p project_id" >&2
     print_usage
     exit 1
 fi
@@ -47,32 +166,65 @@ set -o pipefail
 
 script_dir=$(dirname "$0")
 
+echo "Validate workflow..." >&2
+cd ${log_dir}
+womtool \
+validate \
+${workflow} \
+--list-dependencies
 
-# compose submission...
-cmd="cromwell-tools submit --url ${url} \
---username $(gcloud secrets versions access latest --secret="cromwell_username") \
---password $(gcloud secrets versions access latest --secret="cromwell_password") \
--w ${workflow} -i ${inputs} -o ${options} -d ${dependencies}"
+# create input json
+echo "Create input json and confirm files exist..." >&2
+meta_command="python ${script_dir}/tools/meta.py \
+    --project ${project_id} \
+    --library ${library} \
+    --genome ${genome} \
+    --wdl-file ${workflow} \
+    --options ${options}"
+if [ -z "$custom_input" ]; then
+    meta_command="${meta_command} \
+    --custom-inputs ${custom_input}"
+fi
+if [ -z "$pairs_file" ]; then
+    meta_command="${meta_command} \
+    --pairs-file ${pairs_file}"
+fi
+if [ -z "$samples_file" ]; then
+    meta_command="${meta_command} \
+    --samples-file ${samples_file}"
+fi
+if [ -z "$interval_list" ]; then
+    meta_command="${meta_command} \
+    --interval-list ${interval_list}"
+fi
+if [ -z "$skip_validate" ]; then
+    meta_command="${meta_command} \
+    --skip-validate"
+fi
 
-# submit submission...
-# run workflow...
-echo $cmd >&2
-response=$( eval $cmd )
+eval ${meta_command}
 
-# report status command and return UUID
-uuid=$( echo ${response}  | jq -r ".id")
+# zip dependencies
+echo "Zip dependencies..." >&2
+cd ${script_dir}
+zip dependencies.zip wdl_structs.wdl */*.wdl
+cd -
 
-# display submission status check command...
-echo "cromwell-tools status --url ${url} \
---username $(gcloud secrets versions access latest --secret="cromwell_username") \
---password $(gcloud secrets versions access latest --secret="cromwell_password") \
---uuid ${uuid}" >&2
+echo "Precheck input json..." >&2
+womtool \
+validate \
+--inputs ${workflow_name}_wkfInput.json \
+${workflow}
 
-# return uuid
-echo ${uuid}
+# start run:
+echo "Submit run and write log..." >&2
+cd ${log_dir}
+uuid=$( bash ${script_dir}/tools/submit.sh \
+    -u ${url} \
+    -w ${workflow} \
+    -o ${options} \
+    -d ${script_dir}/dependencies.zip \
+    -p ${log_dir}/${project_id}_projectInfo.json \
+    -i ${workflow_name}_wkfInput.json )
 
-# log uuid, project info, and inputs...
-python ${script_dir}/tools/log.py \
---project-data ${project_data} \
---uuid ${uuid} \
---inputs ${inputs}
+echo "Done" >&2
