@@ -4,7 +4,7 @@ import "calling.wdl" as calling
 import "../wdl_structs.wdl"
 
 workflow Strelka2 {
-    # command 
+    # command
     #   run Strelka2 caller
     input {
         String tumor
@@ -22,12 +22,14 @@ workflow Strelka2 {
         Int diskSize = ceil( size(tumorFinalBam.bam, "GB") + size(normalFinalBam.bam, "GB")) + 20
         Int memoryGb = 4
         Int threads = 8
+        File configureStrelkaSomaticWorkflow
         # remove definition after replacing the command step for gcp
-        File jsonLog = "gs://nygc-comp-s-fd4e-input/mutect2_4.0.5.1_COLO-829-NovaSeq_80--COLO-829BL-NovaSeq_40.json"
+        File jsonLog   # = "gs://nygc-comp-s-fd4e-input/mutect2_4.0.5.1_COLO-829-NovaSeq_80--COLO-829BL-NovaSeq_40.json"
     }
-    
+
     call calling.Strelka2 {
         input:
+            configureStrelkaSomaticWorkflow = configureStrelkaSomaticWorkflow,
             intHVmem = intHVmem,
             referenceFa = referenceFa,
             callRegions = callRegions,
@@ -39,7 +41,7 @@ workflow Strelka2 {
             diskSize = diskSize,
             threads = threads
     }
-    
+
     call calling.AddVcfCommand as strelka2SnvAddVcfCommand {
         input:
             inVcf = Strelka2.strelka2Snvs.vcf,
@@ -47,7 +49,7 @@ workflow Strelka2 {
             memoryGb = 2,
             diskSize = 1
     }
-    
+
     call calling.ReorderVcfColumns as strelka2SnvReorderVcfColumns {
         input:
             tumor = tumor,
@@ -57,7 +59,7 @@ workflow Strelka2 {
             memoryGb = 2,
             diskSize = 1
     }
-    
+
     call calling.AddVcfCommand as strelka2IndelAddVcfCommand {
         input:
             inVcf = Strelka2.strelka2Indels.vcf,
@@ -65,7 +67,7 @@ workflow Strelka2 {
             memoryGb = 2,
             diskSize = 1
     }
-    
+
     call calling.ReorderVcfColumns as strelka2IndelReorderVcfColumns {
         input:
             tumor = tumor,
@@ -75,7 +77,7 @@ workflow Strelka2 {
             memoryGb = 2,
             diskSize = 1
     }
-    
+
     output {
         IndexedVcf strelka2Snvs = Strelka2.strelka2Snvs
         IndexedVcf strelka2Indels = Strelka2.strelka2Indels

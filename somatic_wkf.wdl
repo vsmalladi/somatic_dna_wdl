@@ -56,6 +56,9 @@ workflow SomaticWorkflow {
         IndexedTable callRegions
         File dbsnpIndels
         Map[String, File] chromBedsWgs
+        File jsonLog
+        File configureStrelkaSomaticWorkflow
+
 
         # merge callers
         File intervalListBed
@@ -170,6 +173,8 @@ workflow SomaticWorkflow {
         if (SomaticQcCheck.qcPass) {
             call calling.Calling {
                 input:
+                    jsonLog = jsonLog,
+                    configureStrelkaSomaticWorkflow = configureStrelkaSomaticWorkflow,
                     pairInfo = pairInfoObject,
                     listOfChroms = listOfChroms,
                     referenceFa = referenceFa,

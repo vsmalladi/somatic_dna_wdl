@@ -110,9 +110,9 @@ task MantaWgs {
 
     command {
         set -e -o pipefail
-        
+
         mkdir ~{pairName}.MantaRaw
-        
+
         configManta.py \
         --normalBam ~{normalFinalBam.bam} \
         --tumorBam ~{tumorFinalBam.bam} \
@@ -128,19 +128,19 @@ task MantaWgs {
 
     output {
         IndexedVcf candidateSmallIndels = object {
-                vcf : "~{pairName}.MantaRaw/results/variants/candidateSmallIndels.vcf.gz", 
+                vcf : "~{pairName}.MantaRaw/results/variants/candidateSmallIndels.vcf.gz",
                 index : "~{pairName}.MantaRaw/results/variants/candidateSmallIndels.vcf.gz.tbi"
             }
         IndexedVcf diploidSV = object {
-                vcf : "~{pairName}.MantaRaw/results/variants/diploidSV.vcf.gz", 
+                vcf : "~{pairName}.MantaRaw/results/variants/diploidSV.vcf.gz",
                 index : "~{pairName}.MantaRaw/results/variants/diploidSV.vcf.gz.tbi"
             }
         IndexedVcf somaticSV = object {
-                vcf : "~{pairName}.MantaRaw/results/variants/somaticSV.vcf.gz", 
+                vcf : "~{pairName}.MantaRaw/results/variants/somaticSV.vcf.gz",
                 index : "~{pairName}.MantaRaw/results/variants/somaticSV.vcf.gz.tbi"
             }
         IndexedVcf candidateSV = object {
-                vcf : "~{pairName}.MantaRaw/results/variants/candidateSV.vcf.gz", 
+                vcf : "~{pairName}.MantaRaw/results/variants/candidateSV.vcf.gz",
                 index : "~{pairName}.MantaRaw/results/variants/candidateSV.vcf.gz.tbi"
             }
     }
@@ -198,12 +198,12 @@ task Strelka2 {
         IndexedTable callRegions
         IndexedVcf candidateSmallIndels
         Bam tumorFinalBam
-        File configureStrelkaSomaticWorkflow = "gs://nygc-comp-s-fd4e-resources/configureStrelkaSomaticWorkflow.py.ini"
+        File configureStrelkaSomaticWorkflow # = "gs://nygc-comp-s-fd4e-resources/configureStrelkaSomaticWorkflow.py.ini"
     }
 
     command {
         set -e -o pipefail
-        
+
         mkdir ~{pairName}.Strelka2Raw
 
         configureStrelkaSomaticWorkflow.py \
@@ -223,16 +223,16 @@ task Strelka2 {
 
     output {
         IndexedVcf strelka2Snvs = object {
-                vcf : "~{pairName}.Strelka2Raw/results/variants/somatic.snvs.vcf.gz", 
+                vcf : "~{pairName}.Strelka2Raw/results/variants/somatic.snvs.vcf.gz",
                 index : "~{pairName}.Strelka2Raw/results/variants/somatic.snvs.vcf.gz.tbi"
             }
         IndexedVcf strelka2Indels = object {
-                vcf : "~{pairName}.Strelka2Raw/results/variants/somatic.indels.vcf.gz", 
+                vcf : "~{pairName}.Strelka2Raw/results/variants/somatic.indels.vcf.gz",
                 index : "~{pairName}.Strelka2Raw/results/variants/somatic.indels.vcf.gz.tbi"
             }
     }
 
-    runtime {        
+    runtime {
         cpu : threads
         disks: "local-disk " + diskSize + " SSD"
         memory : memoryGb + "GB"
@@ -275,7 +275,7 @@ task LancetWGSRegional {
     }
 
     runtime {
-        cpu : threads        
+        cpu : threads
         disks: "local-disk " + diskSize + " SSD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/lancet:v1.0.7"
@@ -317,7 +317,7 @@ task LancetExome {
     }
 
     runtime {
-        cpu : threads        
+        cpu : threads
         disks: "local-disk " + diskSize + " SSD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/lancet:v1.0.7"
@@ -425,10 +425,11 @@ task SvabaWgs {
     }
 
     runtime {
-        cpu : threads        
+        cpu : threads
         disks: "local-disk " + diskSize + " SSD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/svaba:1.1.3-c4d7b571"
+        preemptible: 0
     }
 }
 
@@ -462,7 +463,7 @@ task UniqReads {
         -U "BWA,~{tempNormalPrefix},N,N" \
         ~{normalFinalBam.bam}
     }
-    
+
     output {
         Array[File] tempNormalSeqs = tempNormalSeqsPaths
         Array[File] tempTumorSeqs = tempTumorSeqsPaths
@@ -556,6 +557,3 @@ task Bicseq2Wgs {
         docker : dockerImage
     }
 }
-
-
-

@@ -24,9 +24,13 @@ workflow Calling {
         BwaReference bwaReference
         #   Lancet
         Map[String, File] chromBedsWgs
+
+        File jsonLog
+        File configureStrelkaSomaticWorkflow
     }
     call mutect2.Mutect2 {
         input:
+            jsonLog = jsonLog,
             tumor = pairInfo.tumor,
             normal = pairInfo.normal,
             listOfChroms = listOfChroms,
@@ -35,9 +39,10 @@ workflow Calling {
             normalFinalBam = pairInfo.normalFinalBam,
             tumorFinalBam = pairInfo.tumorFinalBam
     }
-    
+
     call manta.Manta {
         input:
+            jsonLog = jsonLog,
             tumor = pairInfo.tumor,
             normal = pairInfo.normal,
             callRegions = callRegions,
@@ -46,9 +51,11 @@ workflow Calling {
             normalFinalBam = pairInfo.normalFinalBam,
             tumorFinalBam = pairInfo.tumorFinalBam
     }
-    
+
     call strelka2.Strelka2 {
         input:
+            jsonLog = jsonLog,
+            configureStrelkaSomaticWorkflow = configureStrelkaSomaticWorkflow,
             tumor = pairInfo.tumor,
             normal = pairInfo.normal,
             callRegions = callRegions,
@@ -58,9 +65,10 @@ workflow Calling {
             normalFinalBam = pairInfo.normalFinalBam,
             tumorFinalBam = pairInfo.tumorFinalBam
     }
-    
+
     call svaba.Svaba {
         input:
+            jsonLog = jsonLog,
             tumor = pairInfo.tumor,
             normal = pairInfo.normal,
             dbsnpIndels = dbsnpIndels,
@@ -69,9 +77,10 @@ workflow Calling {
             normalFinalBam = pairInfo.normalFinalBam,
             tumorFinalBam = pairInfo.tumorFinalBam
     }
-    
+
     call lancet.Lancet {
         input:
+            jsonLog = jsonLog,
             tumor = pairInfo.tumor,
             normal = pairInfo.normal,
             listOfChroms = listOfChroms,
@@ -91,7 +100,7 @@ workflow Calling {
         IndexedVcf diploidSV = Manta.diploidSV
         IndexedVcf  somaticSV = Manta.somaticSV
         IndexedVcf  candidateSV = Manta.candidateSV
-        File unfilteredMantaSV = Manta.unfilteredMantaSV 
+        File unfilteredMantaSV = Manta.unfilteredMantaSV
         File filteredMantaSV = Manta.filteredMantaSV
         # Strelka2
         IndexedVcf strelka2Snvs = Strelka2.strelka2Snvs

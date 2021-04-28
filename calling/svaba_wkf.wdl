@@ -4,7 +4,7 @@ import "calling.wdl" as calling
 import "../wdl_structs.wdl"
 
 workflow Svaba {
-    # command 
+    # command
     #   run Svaba caller
     input {
         String tumor
@@ -19,9 +19,9 @@ workflow Svaba {
         Int diskSize = ceil( size(tumorFinalBam.bam, "GB") + size(normalFinalBam.bam, "GB")) + 40
         Int memoryGb = 12
         # remove definition after replacing the command step for gcp
-        File jsonLog = "gs://nygc-comp-s-fd4e-input/mutect2_4.0.5.1_COLO-829-NovaSeq_80--COLO-829BL-NovaSeq_40.json"
+        File jsonLog # = "gs://nygc-comp-s-fd4e-input/mutect2_4.0.5.1_COLO-829-NovaSeq_80--COLO-829BL-NovaSeq_40.json"
     }
-    
+
     call calling.SvabaWgs {
         input:
             pairName=pairName,
@@ -32,9 +32,9 @@ workflow Svaba {
             memoryGb = memoryGb,
             threads = threads,
             diskSize = diskSize
-            
+
     }
-    
+
     # sv
     call calling.AddVcfCommand as svAddVcfCommand {
         input:
@@ -43,7 +43,7 @@ workflow Svaba {
             memoryGb = 2,
             diskSize = 1
     }
-    
+
     call calling.ReorderVcfColumns as svReorderVcfColumns {
         input:
             tumor = tumor,
@@ -53,7 +53,7 @@ workflow Svaba {
             memoryGb = 2,
             diskSize = 1
     }
-    
+
     # indel
     call calling.AddVcfCommand as indelAddVcfCommand {
         input:
@@ -62,7 +62,7 @@ workflow Svaba {
             memoryGb = 2,
             diskSize = 1
     }
-    
+
     call calling.ReorderVcfColumns as indelReorderVcfColumns {
         input:
             tumor = tumor,
@@ -72,7 +72,7 @@ workflow Svaba {
             memoryGb = 2,
             diskSize = 1
     }
-    
+
     output {
         File svabaRawGermlineIndel = SvabaWgs.svabaRawGermlineIndel
         File svabaRawGermlineSv = SvabaWgs.svabaRawGermlineSv

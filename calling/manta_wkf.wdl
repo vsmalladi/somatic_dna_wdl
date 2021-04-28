@@ -4,7 +4,7 @@ import "calling.wdl" as calling
 import "../wdl_structs.wdl"
 
 workflow Manta {
-    # command 
+    # command
     #   run Manta caller
     input {
         String tumor
@@ -15,7 +15,7 @@ workflow Manta {
         Bam normalFinalBam
         Bam tumorFinalBam
         # reorder columns
-        String pairName 
+        String pairName
         String mantaPath = "~{pairName}.manta.v1.4.0.vcf"
         String filteredMantafPath = "~{pairName}.manta.v1.4.0.filtered.vcf"
         # resources
@@ -23,10 +23,10 @@ workflow Manta {
         Int memoryGb = 64
         Int threads = 8
         # remove definition after replacing the command step for gcp
-        File jsonLog = "gs://nygc-comp-s-fd4e-input/mutect2_4.0.5.1_COLO-829-NovaSeq_80--COLO-829BL-NovaSeq_40.json"
+        File jsonLog # = "gs://nygc-comp-s-fd4e-input/mutect2_4.0.5.1_COLO-829-NovaSeq_80--COLO-829BL-NovaSeq_40.json"
 
     }
-    
+
     call calling.MantaWgs {
         input:
             intHVmem = intHVmem,
@@ -39,7 +39,7 @@ workflow Manta {
             diskSize = diskSize,
             threads = threads
     }
-    
+
     call calling.AddVcfCommand as mantaAddVcfCommand {
         input:
             inVcf = MantaWgs.somaticSV.vcf,
@@ -47,7 +47,7 @@ workflow Manta {
             memoryGb = 2,
             diskSize = 1
     }
-    
+
     call calling.ReorderVcfColumns as mantaReorderVcfColumns {
         input:
             tumor = tumor,
@@ -57,7 +57,7 @@ workflow Manta {
             memoryGb = 2,
             diskSize = 1
     }
-    
+
     call calling.FilterNonpass {
         input:
             referenceFa = referenceFa,
@@ -66,9 +66,9 @@ workflow Manta {
             memoryGb = 8,
             threads = 4,
             diskSize = 5
-            
+
     }
-    
+
     call calling.ReorderVcfColumns as mantaFilteredReorderVcfColumns {
         input:
             tumor = tumor,
@@ -78,7 +78,7 @@ workflow Manta {
             memoryGb = 2,
             diskSize = 1
     }
-    
+
     output {
         IndexedVcf candidateSmallIndels = MantaWgs.candidateSmallIndels
         IndexedVcf diploidSV = MantaWgs.diploidSV
@@ -87,5 +87,5 @@ workflow Manta {
         File unfilteredMantaSV = mantaReorderVcfColumns.orderedVcf
         File filteredMantaSV = mantaFilteredReorderVcfColumns.orderedVcf
     }
-    
+
 }
