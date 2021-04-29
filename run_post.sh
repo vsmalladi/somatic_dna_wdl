@@ -92,7 +92,7 @@ time python ${wdl_dir}/tools/runtime.py \
     ${output_info_file}
 
 echo "Plot usage metrics..." 
-python ../merge/wdl_port/tools/plot_runtime.py \
+python ${wdl_dir}/tools/plot_runtime.py \
     --project-id ${project_id} \
     --output-info ${output_info_file} \
     --metrics ${metrics_file} \

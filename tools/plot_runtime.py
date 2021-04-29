@@ -48,6 +48,7 @@ class PlotRuntime():
         self.summary_table = self.get_table()
         self.gather_summary()
         self.plot_summary()
+        self.plot_preempts()
         # main figs
         self.fig = self.plot_by_steps(data_steps=self.metadata,
                                       non_retry_data_steps=self.non_retry_metadata,
@@ -145,11 +146,24 @@ class PlotRuntime():
                                                     }]
                                        }])
         return fig
+    
+    def plot_preempts(self):
+        preempts = self.metadata[['task_call_name', 'execution_status', 'sample_task_run_time_h']][self.metadata['execution_status'] != 'Done'].copy()
+        preempts.columns = ['Task', 'Exit status', 'Wall clock (h)']
+        fig = px.box(preempts, x='Task', y='Wall clock (h)', points="all",
+                          color_discrete_sequence=self.colors_set2,
+                          color='Exit status')
+        fig.update_layout(xaxis_type='category',
+                          title_text='Runtime of preempted or failed jobs')
+        fig.update_xaxes(title_text='')
+        fig.update_yaxes(title_text="Wall clock (h)")
+        self.preempt_fig = ploter.Fig(fig)
         
     def plot_summary(self):
         fig = px.box(self.disk_type, x='Disk type', y='Wall clock (h)', points="all",
                           color_discrete_sequence=self.colors_set2,
-                          color='Id')
+                          color='Id',
+                          height=300)
         for trace in fig.data:
             trace['showlegend'] = True
             trace['pointpos'] = 0
@@ -315,7 +329,6 @@ class PlotRuntime():
             fig.update_xaxes(tickfont={'size' : 5})
         if button:
             fig = self.add_button(fig)
-        po.plot(fig, filename = 'example.html', auto_open=False)
         return ploter.Fig(fig)
         
     
@@ -378,7 +391,10 @@ def make_files(results, appendix=False):
         md_content.update_doc(section_header='Non-zero exits',
                               center_content=all_section_content,
                               figures=[(results.exit_status_table.script,
-                                          results.exit_status_table.div)])
+                                          results.exit_status_table.div),
+                                        (results.preempt_fig.script,
+                                         results.preempt_fig.div)])
+        
         #  =======================
         #  Task
         #  =======================
