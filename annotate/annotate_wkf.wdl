@@ -2,6 +2,7 @@ version 1.0
 
 import "../merge_vcf/merge_vcf.wdl" as merge_vcf
 import "annotate.wdl" as annotate
+import "variantEffectPredictor.wdl" as variantEffectPredictor
 import "../wdl_structs.wdl"
 
 workflow Annotate {
@@ -11,17 +12,32 @@ workflow Annotate {
         String pairName
         File unannotatedVcf
         
-        String vepVersion
+        String vepGenomeBuild
         IndexedVcf cosmicCoding
         IndexedVcf cosmicNoncoding
-        IndexedVcf vepClinvarXMLTrait
-        IndexedTable vepCaddSnp
-        IndexedVcf vepGnomadExomes
-        IndexedVcf vcfCompressed
-        IndexedTable vepCaddIndel
-        IndexedVcf vepGnomadGenomes
+        
+        # Public
+        File vepCache
+        File annotations
+        File plugins
+        String vepGenomeBuild
         IndexedReference vepFastaReference
         
+        # NYGC-only
+        IndexedVcf hgmdGene
+        IndexedVcf hgmdUd10
+        IndexedVcf hgmdPro
+        IndexedVcf omimVcf
+        
+        # Public
+        IndexedVcf chdGenesVcf
+        IndexedVcf chdEvolvingGenesVcf
+        IndexedVcf chdWhitelistVcf
+        IndexedVcf deepIntronicsVcf
+        IndexedVcf clinvarIntronicsVcf
+        IndexedVcf masterMind
+        
+        # post annotation
         File cosmicCensus
         
         File cancerResistanceMutations
@@ -29,96 +45,78 @@ workflow Annotate {
         
         File ensemblEntrez
         String library
-        
-        String vepFathmmDockerImage
-        String pysamDockerImage
-        String gatkDockerImage
-        String bgzipDockerImage
-        String bcftoolsDockerImage
-        Int threads
-        Int memoryGb
+    
         IndexedReference referenceFa
     }
         
     call merge_vcf.CompressVcf as unannotatedCompressVcf {
         input:
-            vcf = unannotatedVcf,
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = bgzipDockerImage
+            vcf = unannotatedVcf
     }
 
     call merge_vcf.IndexVcf as unannotatedIndexVcf {
         input:
-            vcfCompressed = unannotatedCompressVcf.vcfCompressed,
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = gatkDockerImage
+            vcfCompressed = unannotatedCompressVcf.vcfCompressed
     }
     
-    call annotate.Vep {
+    call variantEffectPredictor.vepSvnIndel {
         input:
             pairName = pairName,
-            vcfCompressed = unannotatedIndexVcf.vcfCompressedIndexed,
-            vepVersion = vepVersion,
+            unannotatedVcf = unannotatedIndexVcf.vcfCompressedIndexed,
+            
+            vepCache = vepCache,
+            annotations = annotations,
+            plugins = plugins,
+            vepGenomeBuild = vepGenomeBuild,
+            vepFastaReference = vepFastaReference,
+            
+            # NYGC-only
+            hgmdGene = hgmdGene,
+            hgmdUd10 = hgmdUd10,
+            hgmdPro = hgmdPro,
+            omimVcf = omimVcf,
+            
+            # Public
+            chdGenesVcf = chdGenesVcf,
+            chdEvolvingGenesVcf = chdEvolvingGenesVcf,
+            chdWhitelistVcf = chdWhitelistVcf,
+            deepIntronicsVcf = deepIntronicsVcf,
+            clinvarIntronicsVcf = clinvarIntronicsVcf,
+            masterMind = masterMind,
             cosmicCoding = cosmicCoding,
-            cosmicNoncoding = cosmicNoncoding,
-            vepClinvarXMLTrait = vepClinvarXMLTrait,
-            vepCaddSnp = vepCaddSnp,
-            vepGnomadExomes = vepGnomadExomes,
-            vepCaddIndel = vepCaddIndel,
-            vepGnomadGenomes = vepGnomadGenomes,
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = vepFathmmDockerImage
+            cosmicNoncoding = cosmicNoncoding
     }
     
     call annotate.AddCosmic {
         input:
             pairName = pairName,
             cosmicCensus = cosmicCensus,
-            vcfAnnotatedVep = Vep.vcfAnnotatedVep,
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = pysamDockerImage
+            vcfAnnotatedVep = vepSvnIndel.vcfAnnotatedVep
     }
     
     call annotate.AddCancerResistanceMutations {
         input:
             pairName = pairName,
             cancerResistanceMutations = cancerResistanceMutations,
-            genome = genome,
-            vcfAnnotatedCancerGeneCensus = AddCosmic.vcfAnnotatedCancerGeneCensus,
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = pysamDockerImage
+            vcfAnnotatedCancerGeneCensus = AddCosmic.vcfAnnotatedCancerGeneCensus
     }
     
     call annotate.AnnotateId {
         input:
             pairName = pairName,
-            vcfAnnotatedResistance = AddCancerResistanceMutations.vcfAnnotatedResistance,
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = pysamDockerImage
+            vcfAnnotatedResistance = AddCancerResistanceMutations.vcfAnnotatedResistance
     }
     
     call annotate.RenameCsqVcf {
         input:
             pairName = pairName,
-            vcfAnnotatedId = AnnotateId.vcfAnnotatedId,
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = pysamDockerImage
+            vcfAnnotatedId = AnnotateId.vcfAnnotatedId
     }
     
     call annotate.MainVcf {
         input:
             pairName = pairName,
-            vcfAnnotated = RenameCsqVcf.vcfCsqRenamed,
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = pysamDockerImage
+            vcfAnnotated = RenameCsqVcf.vcfCsqRenamed
     }
     
     call annotate.TableVcf {
@@ -126,10 +124,7 @@ workflow Annotate {
             tumor = tumor,
             normal = normal,
             pairName = pairName,
-            mainVcf = MainVcf.mainVcf,
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = pysamDockerImage
+            mainVcf = MainVcf.mainVcf
     }
     
     call annotate.VcfToMaf {
@@ -139,11 +134,8 @@ workflow Annotate {
             pairName = pairName,
             mainVcf = MainVcf.mainVcf,
             library = library,
-            vepVersion = vepVersion,
-            ensemblEntrez = ensemblEntrez,
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = pysamDockerImage
+            vepGenomeBuild = vepGenomeBuild,
+            ensemblEntrez = ensemblEntrez
     }
     
     output {

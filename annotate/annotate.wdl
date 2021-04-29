@@ -9,8 +9,7 @@ task Vep{
     input {
         Int threads
         Int memoryGb
-        String dockerImage
-        String vepVersion
+        String vepGenomeBuild
         IndexedVcf cosmicCoding
         IndexedVcf cosmicNoncoding
         IndexedVcf vepClinvarXMLTrait
@@ -30,6 +29,8 @@ task Vep{
         String customCosmicNoncoding = "~{cosmicNoncoding.vcf},CosmicNonCoding,vcf,exact,0"
         String pairName
         String vcfAnnotatedVepPath = "~{pairName}.v7.vep.annotated.vcf"
+        Int diskSize = ceil( size(vcfCompressed.vcf, "GB") * 2) + ceil( size(cosmicCoding.vcf, "GB"))+ ceil( size(cosmicNoncoding.vcf, "GB")) + ceil( size(vepClinvarXMLTrait.vcf, "GB")) + ceil( size(vepCaddSnp.table, "GB")) + ceil( size(vepGnomadExomes.vcf, "GB")) + ceil( size(vepCaddIndel.table, "GB")) + ceil( size(vepGnomadGenomes.vcf, "GB"))  + 5
+        
     }
 
     command {
@@ -40,7 +41,7 @@ task Vep{
         --no_stats \
         --use_transcript_ref \
         --offline \
-        --assembly ~{vepVersion} \
+        --assembly ~{vepGenomeBuild} \
         --cache \
         --dir_cache "/opt/vep/.vep" \
         --gencode_basic \
@@ -82,26 +83,25 @@ task Vep{
     }
 
     runtime {
-        cpu : threads
+        disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : dockerImage
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:0.9.4"
     }
 }
 
 task AddCosmic {
     input {
-        Int threads
-        Int memoryGb
-        String dockerImage
         String pairName
         String vcfAnnotatedCancerGeneCensusPath = "~{pairName}.v7.cosmic_census.vep.annotated.vcf"
         File vcfAnnotatedVep
         File cosmicCensus
+        Int memoryGb = 32
+        Int diskSize = ceil( size(vcfAnnotatedVep, "GB") * 2) + 5
     }
 
     command {
         python \
-        add_cancer_gene_census.py \
+        /add_cancer_gene_census.py \
         ~{cosmicCensus} \
         ~{vcfAnnotatedVep} \
         ~{vcfAnnotatedCancerGeneCensusPath}
@@ -112,29 +112,26 @@ task AddCosmic {
     }
 
     runtime {
-        cpu : threads
+        disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : dockerImage
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:0.9.4"
     }
 }
 
 task AddCancerResistanceMutations {
     input {
-        Int threads
-        Int memoryGb
-        String dockerImage
-        String genome
         String pairName
         String vcfAnnotatedResistancePath = "~{pairName}.v7.resistance.vep.annotated.vcf"
         File vcfAnnotatedCancerGeneCensus
         File cancerResistanceMutations
+        Int memoryGb = 32
+        Int diskSize = ceil( size(vcfAnnotatedCancerGeneCensus, "GB") * 2) + ceil( size(cancerResistanceMutations, "GB")) + 5
     }
 
     command {
         python \
-        add_cancer_resistance_mutations.py \
+        /add_cancer_resistance_mutations.py \
         ~{cancerResistanceMutations} \
-        ~{genome} \
         ~{vcfAnnotatedCancerGeneCensus} \
         ~{vcfAnnotatedResistancePath}
     }
@@ -144,25 +141,24 @@ task AddCancerResistanceMutations {
     }
 
     runtime {
-        cpu : threads
+        disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : dockerImage
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:0.9.4"
     }
 }
 
 task AnnotateId {
     input {
-        Int threads
         Int memoryGb
-        String dockerImage
         String pairName
         String vcfAnnotatedIdPath = "~{pairName}.v7.id.vep.annotated.vcf"
         File vcfAnnotatedResistance
+        Int diskSize = ceil( size(vcfAnnotatedResistance, "GB") * 2) + 5
     }
 
     command {
         python2.7 \
-        annotate_id.py \
+        /annotate_id.py \
         ~{vcfAnnotatedResistance} \
         ~{vcfAnnotatedIdPath}
     }
@@ -172,25 +168,24 @@ task AnnotateId {
     }
 
     runtime {
-        cpu : threads
+        disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : dockerImage
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:0.9.4"
     }
 }
 
 task RenameCsqVcf {
     input {
-        Int threads
         Int memoryGb
-        String dockerImage
         String pairName
         String vcfCsqRenamedPath = "~{pairName}.snv.indel.supplemental.v7.annotated.vcf"
         File vcfAnnotatedId
+        Int diskSize = ceil( size(vcfAnnotatedId, "GB") * 2) + 5
     }
 
     command {
         python \
-        rename_csq_vcf.py \
+        /rename_csq_vcf.py \
         ~{vcfAnnotatedId} \
         ~{vcfCsqRenamedPath} \
     }
@@ -200,25 +195,24 @@ task RenameCsqVcf {
     }
 
     runtime {
-        cpu : threads
+        disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : dockerImage
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:0.9.4"
     }
 }
 
 task MainVcf {
     input {
-        Int threads
         Int memoryGb
-        String dockerImage
         String pairName
         String mainVcfPath = "~{pairName}.snv.indel.final.v7.annotated.vcf"
         File vcfAnnotated
+        Int diskSize = ceil( size(vcfAnnotated, "GB") * 2) + 5
     }
 
     command {
         python \
-        make_main_vcf.py \
+        /make_main_vcf.py \
         ~{vcfAnnotated} \
         ~{mainVcfPath} \
     }
@@ -228,26 +222,25 @@ task MainVcf {
     }
 
     runtime {
-        cpu : threads
+        disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : dockerImage
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:0.9.4"
     }
 }
 
 task TableVcf {
     input {
-        Int threads
         Int memoryGb
-        String dockerImage
         String pairName
         String vcfAnnotatedTxtPath = "~{pairName}.snv.indel.final.v7.annotated.txt"
         String tumor
         String normal
         File mainVcf
+        Int diskSize = ceil( size(mainVcf, "GB") * 2) + 5
     }
 
     command {
-        make_txt.py \
+        /make_txt.py \
         --vcf ~{mainVcf} \
         --txt ~{vcfAnnotatedTxtPath} \
         --tumor ~{tumor} \
@@ -259,34 +252,33 @@ task TableVcf {
     }
 
     runtime {
-        cpu : threads
+        disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : dockerImage
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:0.9.4"
     }
 }
 
 task VcfToMaf {
     input {
-        Int threads
         Int memoryGb
-        String dockerImage
         String pairName
         String mafPath = "~{pairName}.snv.indel.final.v7.annotated.maf"
         String library
-        String vepVersion
+        String vepGenomeBuild
         String tumor
         String normal
         File ensemblEntrez
         File mainVcf
+        Int diskSize = ceil( size(mainVcf, "GB") * 2) + 5
     }
 
     command {
         python \
-        make_maf.py \
+        /make_maf.py \
         --vcf ~{mainVcf} \
         --maf ~{mafPath} \
         --library ~{library} \
-        --vep-version ~{vepVersion} \
+        --vep-version ~{vepGenomeBuild} \
         --tumor ~{tumor} \
         --normal ~{normal} \
         --ensembl-entrez ~{ensemblEntrez} \
@@ -297,9 +289,9 @@ task VcfToMaf {
     }
 
     runtime {
-        cpu : threads
+        disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : dockerImage
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:0.9.4"
     }
 }
 
@@ -307,8 +299,7 @@ task GermVep {
     input {    
         Int threads
         Int memoryGb
-        String dockerImage
-        String vepVersion
+        String vepGenomeBuild
         IndexedVcf cosmicCoding
         IndexedVcf cosmicNoncoding
         IndexedVcf vepClinvarXMLTrait
@@ -354,6 +345,7 @@ task GermVep {
         String customMtFuncLoc = "~{mtFuncLoc},mtfl,vcf,overlap,0,FUNCLOC"
         String sampleId
         String vcfAnnotatedVepPath = "~{sampleId}.v7.vep.annotated.vcf"
+        Int diskSize = ceil( size(vcfCompressed.vcf, "GB") * 2) + ceil( size(cosmicCoding.vcf, "GB"))+ ceil( size(cosmicNoncoding.vcf, "GB")) + ceil( size(vepClinvarXMLTrait.vcf, "GB")) + ceil( size(vepCaddSnp.table, "GB")) + ceil( size(vepGnomadExomes.vcf, "GB")) + ceil( size(vepCaddIndel.table, "GB")) + ceil( size(vepGnomadGenomes.vcf, "GB"))  + 5
     }
 
     command {
@@ -364,7 +356,7 @@ task GermVep {
         --no_stats \
         --use_transcript_ref \
         --offline \
-        --assembly ~{vepVersion} \
+        --assembly ~{vepGenomeBuild} \
         --cache \
         --dir_cache "/opt/vep/.vep" \
         --gencode_basic \
@@ -418,9 +410,9 @@ task GermVep {
     }
 
     runtime {
-        cpu : threads
+        disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : dockerImage
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:0.9.4"
     }
 }
 

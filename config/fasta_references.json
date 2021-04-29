@@ -62,18 +62,18 @@
         },
         "cosmicCoding" : {
             "type" : "IndexedVcf",
-            "description" : "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/external/README_cosmic.md",
+            "description" : "https://cancer.sanger.ac.uk/cosmic/download v92 VCF file of all coding mutations( normalised ) in the current release. The file has the variants 5' shifted as per the VCF standard, and the info part contains the 3' shifted syntaxes for cds and genome, along with the unshifted variants in the OLD_VARIANT field.",
             "object" : {
-                "vcf" : "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/external/CosmicCodingMuts.v86.vcf.gz",
-                "index" : "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/external/CosmicCodingMuts.v86.vcf.gz.tbi"
+                "vcf" : "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/external/v92/CosmicCodingMuts.vcf.gz",
+                "index" : "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/external/v92/CosmicCodingMuts.vcf.gz.tbi"
             }
         },
         "cosmicNoncoding" : {
             "type" : "IndexedVcf",
-            "description" : "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/external/README_cosmic.md",
+            "description" : "https://cancer.sanger.ac.uk/cosmic/download v92 VCF file of all non-coding variants( normalised ) in the current release. The file has the variants 5' shifted as per the VCF standard, and the info part contains the 3' shifted syntaxes for cds and genome, along with the unshifted variants in the OLD_VARIANT field.",
             "object" : {
-                "vcf" : "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/external/CosmicNonCodingVariants.v86.vcf.gz",
-                "index" : "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/external/CosmicNonCodingVariants.v86.vcf.gz.tbi"
+                "vcf" : "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/external/v92/CosmicNonCodingVariants.normal.vcf.gz",
+                "index" : "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/external/v92/CosmicNonCodingVariants.normal.vcf.gz.tbi"
             }
         },
         "vepClinvarXMLTrait" : {
@@ -127,13 +127,23 @@
         },
         "cosmicCensus" : {
             "type" : "File",
-            "description" : "https://cancer.sanger.ac.uk/cosmic/file_download_info?data=GRCh38%2Fcosmic%2Fv86%2Fcancer_gene_census.csv",
-            "object" : "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/external/cancer_gene_census.csv"
+            "description" : "https://cancer.sanger.ac.uk/cosmic/download v92 A list of all cancer census genes from the current release in a comma separated table. The census table is exported from http://cancer.sanger.ac.uk/census and the format is the same.",
+            "object" : "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/external/v92/cancer_gene_census.csv"
         },
         "cancerResistanceMutations" : {
             "type" : "File",
-            "description" : "https://cancer.sanger.ac.uk/cosmic/file_download_info?data=GRCh38%2Fcosmic%2Fv86%2FCosmicResistanceMutations.tsv",
-            "object" : "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/external/CosmicResistanceMutations.tsv"
+            "description" : "https://cancer.sanger.ac.uk/cosmic/download v92 A tab separated table listing the details of all mutations in COSMIC which are known to confer drug resistance.",
+            "object" : "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/external/v92/CosmicResistanceMutations.tsv"
+        },
+        "cosmicActionabilityData" : {
+            "type" : "File",
+            "description" : "https://cancer.sanger.ac.uk/cosmic/download v93 A tab separated table of Actionability information and a read me file. Please Note: This file is based on GRCh37 assembly.",
+            "object" : "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/external/v92/ActionabilityData.tsv"
+        },
+        "cosmicHallmarks_Of_Cancer" : {
+            "type" : "File",
+            "description" : "https://cancer.sanger.ac.uk/cosmic/download v92 A tab separated table listing the hallmarks of cancer for a subset of cancer census genes.",
+            "object" : "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/external/v92/Cancer_Gene_Census_Hallmarks_Of_Cancer.tsv"
         },
         "ensemblEntrez" : {
             "type" : "File",
