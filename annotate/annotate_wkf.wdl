@@ -20,7 +20,6 @@ workflow Annotate {
         File vepCache
         File annotations
         File plugins
-        String vepGenomeBuild
         IndexedReference vepFastaReference
         
         # NYGC-only
@@ -30,6 +29,7 @@ workflow Annotate {
         IndexedVcf omimVcf
         
         # Public
+        File cancerResistanceMutations
         IndexedVcf chdGenesVcf
         IndexedVcf chdEvolvingGenesVcf
         IndexedVcf chdWhitelistVcf
@@ -40,13 +40,11 @@ workflow Annotate {
         # post annotation
         File cosmicCensus
         
-        File cancerResistanceMutations
-        String genome
-        
         File ensemblEntrez
         String library
     
         IndexedReference referenceFa
+        Int vepDiskSize = ceil(size(vepCache, "GB") + size(plugins, "GB") + size(annotations, "GB") + size(hgmdGene.vcf, "GB") + size(hgmdUd10.vcf, "GB") + size(hgmdPro.vcf, "GB") + size(omimVcf.vcf, "GB") + size(chdGenesVcf.vcf, "GB") + size(chdEvolvingGenesVcf.vcf, "GB") + size(chdWhitelistVcf.vcf, "GB") + size(deepIntronicsVcf.vcf, "GB") + size(clinvarIntronicsVcf.vcf, "GB") + size(masterMind.vcf, "GB") + (size(unannotatedVcf, "GB") * 2)) + 500
     }
         
     call merge_vcf.CompressVcf as unannotatedCompressVcf {
@@ -63,19 +61,16 @@ workflow Annotate {
         input:
             pairName = pairName,
             unannotatedVcf = unannotatedIndexVcf.vcfCompressedIndexed,
-            
             vepCache = vepCache,
             annotations = annotations,
             plugins = plugins,
             vepGenomeBuild = vepGenomeBuild,
             vepFastaReference = vepFastaReference,
-            
             # NYGC-only
             hgmdGene = hgmdGene,
             hgmdUd10 = hgmdUd10,
             hgmdPro = hgmdPro,
             omimVcf = omimVcf,
-            
             # Public
             chdGenesVcf = chdGenesVcf,
             chdEvolvingGenesVcf = chdEvolvingGenesVcf,
@@ -84,7 +79,8 @@ workflow Annotate {
             clinvarIntronicsVcf = clinvarIntronicsVcf,
             masterMind = masterMind,
             cosmicCoding = cosmicCoding,
-            cosmicNoncoding = cosmicNoncoding
+            cosmicNoncoding = cosmicNoncoding,
+            diskSize = vepDiskSize
     }
     
     call annotate.AddCosmic {
@@ -139,9 +135,14 @@ workflow Annotate {
     }
     
     output {
-        File supplementalVcf = RenameCsqVcf.vcfCsqRenamed
-        File finalVcf = MainVcf.mainVcf
-        File vcfAnnotatedTxt = TableVcf.vcfAnnotatedTxt
-        File maf = VcfToMaf.maf
+        PairVcfInfo pairVcfInfo  = object {
+            pairId : "~{pairName}",
+            tumor : "~{tumor}",
+            normal : "~{normal}",
+            mainVcf : "~{MainVcf.mainVcf}",
+            supplementalVcf : "~{RenameCsqVcf.vcfCsqRenamed}",
+            vcfAnnotatedTxt : "~{TableVcf.vcfAnnotatedTxt}",
+            maf : "~{VcfToMaf.maf}",
+        }
     }
 }

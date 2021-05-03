@@ -34,7 +34,11 @@ task vepSvnIndel {
 
         String vcfAnnotatedVepPath = "~{pairName}.v7.vep.annotated.vcf"
         Int threads = 16
-        Int disk_size
+        #Int vepResourcesSize = ceil(size(vepCache, "GB") + size(plugins, "GB") + size(annotations, "GB"))
+        #Int vcfSize = ceil(size(hgmdGene.vcf, "GB") + size(hgmdUd10.vcf, "GB") + size(hgmdPro.vcf, "GB") + size(omimVcf.vcf, "GB") + size(chdGenesVcf.vcf, "GB") + size(chdEvolvingGenesVcf.vcf, "GB") + size(chdWhitelistVcf.vcf, "GB") + size(deepIntronicsVcf.vcf, "GB") + size(clinvarIntronicsVcf.vcf, "GB") + size(masterMind.vcf, "GB"))
+        #Int inputVcfSize = ceil(size(unannotatedVcf.vcf, "GB") * 2) 
+        #Int diskSize = vepResourcesSize + vcfSize + inputVcfSize + 20
+        Int diskSize
         
     }
     
@@ -46,10 +50,16 @@ task vepSvnIndel {
         
         mkdir -p ensembl_vep/homo_sapiens_refseq
         tar -xzvf ~{vepCache}
+        echo "first"
+        ls -lth
         mv 97_GRCh38 ensembl_vep/homo_sapiens_refseq/
         tar -xzvf ~{annotations}
+        echo "second"
+        ls -lth
         mv annotations ensembl_vep/
         tar -xzvf ~{plugins}
+        echo "third"
+        ls -lth
         mv gpfs/commons/groups/clinical/ensembl_vep/Plugins ensembl_vep/
 
         /opt/vep/src/ensembl-vep/vep \
@@ -111,7 +121,7 @@ task vepSvnIndel {
     runtime {
         memory: "32 GB"
         cpu: "16"
-        disks: "local-disk " + disk_size + " SSD"
+        disks: "local-disk " + diskSize + " SSD"
         docker: "ensemblorg/ensembl-vep:release_97.4"
     }
 
@@ -152,7 +162,7 @@ task vepGermSvnIndel {
 
         String vcfAnnotatedVepPath = "~{sampleId}.v7.vep.annotated.vcf"
         Int threads = 16
-        Int disk_size
+        Int diskSize
         
     }
     
@@ -231,7 +241,7 @@ task vepGermSvnIndel {
     runtime {
         memory: "32 GB"
         cpu: "16"
-        disks: "local-disk " + disk_size + " SSD"
+        disks: "local-disk " + diskSize + " SSD"
         docker: "ensemblorg/ensembl-vep:release_97.4"
     }
 

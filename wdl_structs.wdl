@@ -62,8 +62,27 @@ struct PairRawVcfInfo {
     Bam normalFinalBam
 }
 
+struct MergedPairVcfInfo {
+    String pairId
+    String tumor
+    String normal
+    File unannotatedVcf
+}
+
 struct PairVcfInfo {
     String pairId
+    String tumor
+    String normal
+    File mainVcf
+    File supplementalVcf
+    File vcfAnnotatedTxt
+    File maf
+}
+
+struct FinalPairInfo {
+    String pairId
+    String tumor
+    String normal
     File mainVcf
     File supplementalVcf
     File filteredMantaSV
@@ -73,8 +92,6 @@ struct PairVcfInfo {
     File lancet
     File svabaSv
     File svabaIndel
-    String tumor
-    String normal
     Bam tumorFinalBam
     Bam normalFinalBam
 }

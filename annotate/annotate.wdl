@@ -124,6 +124,36 @@ task AddCancerResistanceMutations {
         String vcfAnnotatedResistancePath = "~{pairName}.v7.resistance.vep.annotated.vcf"
         File vcfAnnotatedCancerGeneCensus
         File cancerResistanceMutations
+        File add_cancer_resistance_mutations = "gs://nygc-comp-s-fd4e-input/add_cancer_resistance_mutations.py"
+        Int memoryGb = 32
+        Int diskSize = ceil( size(vcfAnnotatedCancerGeneCensus, "GB") * 2) + ceil( size(cancerResistanceMutations, "GB")) + 5
+    }
+
+    command {
+        python \
+        ~{add_cancer_resistance_mutations} \
+        ~{cancerResistanceMutations} \
+        ~{vcfAnnotatedCancerGeneCensus} \
+        ~{vcfAnnotatedResistancePath}
+    }
+
+    output {
+        File vcfAnnotatedResistance = "~{vcfAnnotatedResistancePath}"
+    }
+
+    runtime {
+        disks: "local-disk " + diskSize + " HDD"
+        memory : memoryGb + "GB"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:0.9.4"
+    }
+}
+
+task AddCancerResistanceMutationsFinal {
+    input {
+        String pairName
+        String vcfAnnotatedResistancePath = "~{pairName}.v7.resistance.vep.annotated.vcf"
+        File vcfAnnotatedCancerGeneCensus
+        File cancerResistanceMutations
         Int memoryGb = 32
         Int diskSize = ceil( size(vcfAnnotatedCancerGeneCensus, "GB") * 2) + ceil( size(cancerResistanceMutations, "GB")) + 5
     }
@@ -149,7 +179,7 @@ task AddCancerResistanceMutations {
 
 task AnnotateId {
     input {
-        Int memoryGb
+        Int memoryGb = 8
         String pairName
         String vcfAnnotatedIdPath = "~{pairName}.v7.id.vep.annotated.vcf"
         File vcfAnnotatedResistance
@@ -176,7 +206,7 @@ task AnnotateId {
 
 task RenameCsqVcf {
     input {
-        Int memoryGb
+        Int memoryGb = 8
         String pairName
         String vcfCsqRenamedPath = "~{pairName}.snv.indel.supplemental.v7.annotated.vcf"
         File vcfAnnotatedId
@@ -203,7 +233,7 @@ task RenameCsqVcf {
 
 task MainVcf {
     input {
-        Int memoryGb
+        Int memoryGb = 8
         String pairName
         String mainVcfPath = "~{pairName}.snv.indel.final.v7.annotated.vcf"
         File vcfAnnotated
@@ -230,7 +260,7 @@ task MainVcf {
 
 task TableVcf {
     input {
-        Int memoryGb
+        Int memoryGb = 8
         String pairName
         String vcfAnnotatedTxtPath = "~{pairName}.snv.indel.final.v7.annotated.txt"
         String tumor
@@ -260,7 +290,7 @@ task TableVcf {
 
 task VcfToMaf {
     input {
-        Int memoryGb
+        Int memoryGb = 8
         String pairName
         String mafPath = "~{pairName}.snv.indel.final.v7.annotated.maf"
         String library

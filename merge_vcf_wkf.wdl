@@ -54,6 +54,6 @@ workflow MergeVcf {
     }
     
     output {
-        Array[File] mergedVcfs = mergedVcf
+        Array[File] mergedVcf = mergedVcf
     }
 }
