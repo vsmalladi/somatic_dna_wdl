@@ -121,7 +121,7 @@
             "description" : "ftp://ftp.ensembl.org/pub/release-90/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz",
             "object" : {
                 "fasta" : "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/external/Homo_sapiens.GRCh38.dna.primary_assembly.fa",
-                "dict" : "",
+                "dict" : null,
                 "index" : "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/external/Homo_sapiens.GRCh38.dna.primary_assembly.fa.fai"
             }
         },
@@ -339,7 +339,7 @@
         "ponWGSFile" : {
             "type" : "File",
             "description" : "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/README_PON",
-            "object" : "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/WGS_PON_GRCh38.v1.2.bed"
+            "object" : "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/WGS_PON_GRCh38.v1.1.bed"
         },
         "germFile" : {
             "type" : "IndexedVcf",
