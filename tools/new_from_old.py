@@ -10,7 +10,7 @@ class Lookup():
                  output_info_file,
                  goal_name='pairRawVcfInfo',
                  goal_struct='PairRawVcfInfo'):
-        possible = ['PairRawVcfInfo']
+        possible = ['PairRawVcfInfo', 'MergedPairVcfInfo']
         assert goal_struct in possible, 'goal_struct must be included in: ' + ' '.join(possible)
         self.goal_struct = goal_struct
         self.goal_name = goal_name
@@ -29,6 +29,27 @@ class Lookup():
     def run_lookup(self):
         if self.goal_struct == 'PairRawVcfInfo':
             self.lookup_pair_raw_vcf_info()
+        elif self.goal_struct == 'MergedPairVcfInfo':
+            self.lookup_merged_vcf_info()
+            
+    def lookup_merged_vcf_info(self):
+        self.inputs['mergedPairVcfInfos'] = []
+        for pair_id in self.pair_ids:
+            pair_info = [pair_info for pair_info in self.output_info['project_data']['pairInfos'] 
+                                 if pair_info['pairId'] == pair_id][0]
+            try:
+                pair_merged_info = {'pairId' : pair_id,
+                                     'unannotatedVcf' : self.available_by_pair[pair_id]['mergedVcf'][0],
+                                     'tumor' : pair_info['tumor'],
+                                     'normal' : pair_info['normal']
+                                     }
+            except KeyError:
+                pair_merged_info = {'pairId' : pair_id,
+                                 'unannotatedVcf' : self.available_by_pair[pair_id]['mergedVcfs'][0],
+                                 'tumor' : pair_info['tumor'],
+                                 'normal' : pair_info['normal']
+                                 }
+            self.inputs['mergedPairVcfInfos'].append(pair_merged_info)
             
     def lookup_pair_raw_vcf_info(self):
 #             pairId : pairRelationship.pairId,
@@ -67,6 +88,7 @@ class Lookup():
             json.dump(self.inputs, input_info_file, indent=4)
 
     def load_input(self, output_info_file):
+        print(output_info_file)
         with open(output_info_file) as output_info_object:
                 output_info = json.load(output_info_object)
         return output_info
@@ -105,6 +127,7 @@ class Lookup():
                 else:
                     self.available_by_pair[pair_id] = {}
                 self.available_by_pair[pair_id][key.split('.')[-1]] = self.output_info['pair_association'][pair_id][key]
+            print(self.available_by_pair[pair_id])
         for sample_id in self.sample_ids:
             for key in self.output_info['sample_association'][sample_id]:
                 assert key not in self.available , key + ' is in both inputs and outputs'

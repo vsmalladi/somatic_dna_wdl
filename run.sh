@@ -185,7 +185,6 @@ ${workflow} \
 
 # create input json
 echo "Create input json and confirm files exist..." >&2
-echo "|${samples_file}|"
 meta_command="python ${script_dir}/tools/meta.py \
     --project ${project_id} \
     --library ${library} \
