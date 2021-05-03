@@ -50,16 +50,10 @@ task vepSvnIndel {
         
         mkdir -p ensembl_vep/homo_sapiens_refseq
         tar -xzvf ~{vepCache}
-        echo "first"
-        ls -lth
         mv 97_GRCh38 ensembl_vep/homo_sapiens_refseq/
         tar -xzvf ~{annotations}
-        echo "second"
-        ls -lth
         mv annotations ensembl_vep/
         tar -xzvf ~{plugins}
-        echo "third"
-        ls -lth
         mv gpfs/commons/groups/clinical/ensembl_vep/Plugins ensembl_vep/
 
         /opt/vep/src/ensembl-vep/vep \
@@ -89,8 +83,8 @@ task vepSvnIndel {
         --custom ensembl_vep/annotations/clinvar.vep.vcf.gz,CLN_Exact,vcf,exact,0,CLIN_ID,CLNSIG,CLNREVSTAT,CLNDN \
         --custom ensembl_vep/annotations/gnomad_exomes_subset_final.vcf.gz,GnomadExomes,vcf,exact,0,AF,nhomalt \
         --custom ensembl_vep/annotations/gnomad_genomes_subset_final.vcf.gz,GnomadGenomes,vcf,exact,0,AF,nhomalt \
-        --custom ~{cosmicCoding.vcf},CosmicCoding,vcf,exact,0,GENOMIC_ID,LEGACY_ID,CNT,CDS,AA
-        --custom ~{cosmicNoncoding.vcf},CosmicNonCoding,vcf,exact,0,GENOMIC_ID,LEGACY_ID,CNT,CDS,AA
+        --custom ~{cosmicCoding.vcf},CosmicCoding,vcf,exact,0,GENOMIC_ID,LEGACY_ID,CNT,CDS,AA \
+        --custom ~{cosmicNoncoding.vcf},CosmicNonCoding,vcf,exact,0,GENOMIC_ID,LEGACY_ID,CNT,CDS,AA \
         --custom ~{hgmdPro.vcf},HGMD,vcf,exact,0,CLASS,PHEN,DNA \
         --custom ~{hgmdUd10.vcf},HGMDUD10,vcf,overlap,0,CLASS,PHEN \
         --custom ~{hgmdGene.vcf},_,vcf,overlap,0,HGMD_PHENO \

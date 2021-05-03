@@ -6,7 +6,9 @@
 # If no *.RunInfo.json file is provided then
 # the most recent file in the log dir will be used
 
-wdl_dir=$(dirname "$0")
+init_wdl_dir=$(dirname "$0")
+cd ${init_wdl_dir}
+wdl_dir=$( pwd )
 
 print_help() {
   echo "USAGE: run_post.sh -u URL -p PROJECT_ID -d LOG_DIR [-r RUNINFO_JSON]"
@@ -22,7 +24,7 @@ print_usage() {
   exit 1
 }
 
-while getopts 'u:p:g:rh' flag; do
+while getopts 'u:p:d:rh' flag; do
   case "${flag}" in
     u) url="${OPTARG}" ;;
     p) project_id="${OPTARG}" ;;
@@ -71,15 +73,15 @@ set -o pipefail
 cd ${log_dir}
 workflow_uuid=$( cat ${run_info_json} | jq .workflow_uuid | sed 's/"//g' )
 
-output_info_file="${log_dir}/${project_id}.${work_flow_uuid}_outputInfo.json"
-metrics_file="${log_dir}/${project_id}.${work_flow_uuid}_outputMetrics.csv"
-non_retried_metrics_file="${log_dir}/${project_id}.${work_flow_uuid}_outputMetrics.non_retried.csv"
-plot_file="${log_dir}/${project_id}.${work_flow_uuid}_outputMetrics.html"
+output_info_file="${log_dir}/${project_id}.${workflow_uuid}_outputInfo.json"
+metrics_file="${log_dir}/${project_id}.${workflow_uuid}_outputMetrics.csv"
+non_retried_metrics_file="${log_dir}/${project_id}.${workflow_uuid}_outputMetrics.non_retried.csv"
+plot_file="${log_dir}/${project_id}.${workflow_uuid}_outputMetrics.html"
 nav="${wdl_dir}/pandoc/nav_wgs_v7"
 pandoc_dir="${wdl_dir}/pandoc/"
-md="${log_dir}${project_id}.${work_flow_uuid}_outputMetrics.md"
-html="${log_dir}${project_id}.${work_flow_uuid}_outputMetrics.html"
-header="${log_dir}${project_id}.${work_flow_uuid}_outputMetrics.header.txt"
+md="${log_dir}${project_id}.${workflow_uuid}_outputMetrics.md"
+html="${log_dir}${project_id}.${workflow_uuid}_outputMetrics.html"
+header="${log_dir}${project_id}.${workflow_uuid}_outputMetrics.header.txt"
 
 
 echo "Collect subworkflow uuids..."

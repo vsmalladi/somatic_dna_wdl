@@ -346,7 +346,7 @@ class Runtime():
            
 
 def main():
-    output_info_file = sys.argv[2]
+    output_info_file = sys.argv[1]
     Runtime(limit=10000,
             output_info_file=output_info_file,
             run_date=False,
