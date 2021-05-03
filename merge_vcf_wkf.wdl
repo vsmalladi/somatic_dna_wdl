@@ -50,10 +50,10 @@ workflow MergeVcf {
             }
         }
         
-        File mergedVcf = select_first([wgsMergeVcf.mergedVcf, exomeMergeVcf.mergedVcf])
+        File mergedVcfFile = select_first([wgsMergeVcf.mergedVcf, exomeMergeVcf.mergedVcf])
     }
     
     output {
-        Array[File] mergedVcf = mergedVcf
+        Array[File] mergedVcf = mergedVcfFile
     }
 }

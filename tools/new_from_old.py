@@ -88,7 +88,6 @@ class Lookup():
             json.dump(self.inputs, input_info_file, indent=4)
 
     def load_input(self, output_info_file):
-        print(output_info_file)
         with open(output_info_file) as output_info_object:
                 output_info = json.load(output_info_object)
         return output_info
@@ -127,7 +126,6 @@ class Lookup():
                 else:
                     self.available_by_pair[pair_id] = {}
                 self.available_by_pair[pair_id][key.split('.')[-1]] = self.output_info['pair_association'][pair_id][key]
-            print(self.available_by_pair[pair_id])
         for sample_id in self.sample_ids:
             for key in self.output_info['sample_association'][sample_id]:
                 assert key not in self.available , key + ' is in both inputs and outputs'
