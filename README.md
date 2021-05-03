@@ -113,7 +113,7 @@ Command
 # Create input json
 ./wdl_port/run.sh \
 --log-dir ${working-dir} \
---url https://cromwell-compbio01.nygenome.org \
+--url ${url} \
 --project ${lab_quote_number} \
 --pairs-file ${tumor_normal_pairs_csv} \
 --library WGS \
@@ -143,8 +143,17 @@ cromwell-tools status \
 --uuid ${uuid}
 ```
 
+After workflow finishes and the status is `SUCCEEDED` run:
+
+```
+bash wdl_port/run_post.sh \
+-u ${url} \
+-d ${log_dir} \
+-p ${project_id}
+```
+
 #### Output:
-If the workflow finishes and the status is `SUCCEEDED` then run `run_post.sh`. It will output several log files:
+If the workflow finishes and the status is `SUCCEEDED` and you have run `run_post.sh`. It will output several log files:
 
 `${lab_quote_number}<WORKFLOW_UUID>_outputInfo.json` :
 
