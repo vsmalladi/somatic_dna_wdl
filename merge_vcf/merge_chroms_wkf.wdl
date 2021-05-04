@@ -9,8 +9,8 @@ workflow MergeChroms {
         String tumor
         String normal
         String pairName
-        String sortedVcfPath = "~{pairName}.sorted.merged.v6.vcf"
-        String orderedVcfPath = "~{pairName}.merged.v6.vcf"
+        String sortedVcfPath = "~{pairName}.sorted.merged.v7.vcf"
+        String orderedVcfPath = "~{pairName}.merged.v7.vcf"
         Array[File]+ finalChromVcf
         IndexedReference referenceFa
     }
