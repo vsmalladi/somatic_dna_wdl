@@ -66,7 +66,7 @@ class PlotRuntime():
                                               'sample_task_core_h' : 'Task core hours',
                                               'workflow_name' : 'Sub-workflow',
                                               'task_call_name' : 'Task'},
-                                      x_title="Pipeline tasks")
+                                      x_title="Pipeline subworkflows")
         self.fig2 = self.plot_by_steps(data_steps=self.metadata,
                                        non_retry_data_steps=self.non_retry_metadata,
                                        button=False,
