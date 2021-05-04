@@ -124,14 +124,13 @@ task AddCancerResistanceMutations {
         String vcfAnnotatedResistancePath = "~{pairName}.v7.resistance.vep.annotated.vcf"
         File vcfAnnotatedCancerGeneCensus
         File cancerResistanceMutations
-        File add_cancer_resistance_mutations = "gs://nygc-comp-s-fd4e-input/add_cancer_resistance_mutations.py"
         Int memoryGb = 32
         Int diskSize = ceil( size(vcfAnnotatedCancerGeneCensus, "GB") * 2) + ceil( size(cancerResistanceMutations, "GB")) + 5
     }
 
     command {
         python \
-        ~{add_cancer_resistance_mutations} \
+        /add_cancer_resistance_mutations.py \
         ~{cancerResistanceMutations} \
         ~{vcfAnnotatedCancerGeneCensus} \
         ~{vcfAnnotatedResistancePath}
