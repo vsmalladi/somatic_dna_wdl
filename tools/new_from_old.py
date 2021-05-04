@@ -20,6 +20,7 @@ class Lookup():
         self.sample_ids = self.output_info['project_data']['sampleIds']
         self.available = {}
         self.available_by_pair = {}
+        self.available_by_sample = {}
         self.note_available_inputs()
         self.note_available_outputs()
         self.inputs = {}
@@ -64,24 +65,28 @@ class Lookup():
 #             normal : pairRelationship.normal,
 #             tumorFinalBam : Preprocess.finalBam[tumorGetIndex.index],
 #             normalFinalBam :
+
         self.inputs['pairRawVcfInfos'] = []
         for pair_id in self.pair_ids:
             pair_info = [pair_info for pair_info in self.output_info['project_data']['pairInfos'] 
                                  if pair_info['pairId'] == pair_id][0]
-            pair_raw_vcf_info = {'pairId' : pair_id,
-                                 'filteredMantaSV' : self.available_by_pair[pair_id]['filteredMantaSV'][0],
-                                 'strelka2Snv' : self.available_by_pair[pair_id]['strelka2Snv'][0],
-                                 'strelka2Indel' : self.available_by_pair[pair_id]['strelka2Indel'][0],
-                                 'mutect2' : self.available_by_pair[pair_id]['mutect2'][0],
-                                 'lancet' : self.available_by_pair[pair_id]['lancet'][0],
-                                 'svabaSv' : self.available_by_pair[pair_id]['svabaSv'][0],
-                                 'svabaIndel' : self.available_by_pair[pair_id]['svabaIndel'][0],
-                                 'tumor' : pair_info['tumor'],
-                                 'normal' : pair_info['normal'],
-                                 'tumorFinalBam' : pair_info['tumorFinalBam'],
-                                 'normalFinalBam' : pair_info['normalFinalBam']
-                                 }
-            self.inputs['pairRawVcfInfos'].append(pair_raw_vcf_info)
+            if 'pairRawVcfInfos' in self.available_by_pair[pair_id]:
+                self.inputs['pairRawVcfInfos'].append(self.available_by_pair[pair_id]['pairRawVcfInfos'])
+            else:
+                pair_raw_vcf_info = {'pairId' : pair_id,
+                                     'filteredMantaSV' : self.available_by_pair[pair_id]['filteredMantaSV'],
+                                     'strelka2Snv' : self.available_by_pair[pair_id]['strelka2Snv'],
+                                     'strelka2Indel' : self.available_by_pair[pair_id]['strelka2Indel'],
+                                     'mutect2' : self.available_by_pair[pair_id]['mutect2'],
+                                     'lancet' : self.available_by_pair[pair_id]['lancet'],
+                                     'svabaSv' : self.available_by_pair[pair_id]['svabaSv'],
+                                     'svabaIndel' : self.available_by_pair[pair_id]['svabaIndel'],
+                                     'tumor' : pair_info['tumor'],
+                                     'normal' : pair_info['normal'],
+                                     'tumorFinalBam' : pair_info['tumorFinalBam'],
+                                     'normalFinalBam' : pair_info['normalFinalBam']
+                                     }
+                self.inputs['pairRawVcfInfos'].append(pair_raw_vcf_info)
             
     def write_wdl_json(self):
         with open(self.file_out, 'w') as input_info_file:
@@ -125,7 +130,7 @@ class Lookup():
                     assert key not in self.available_by_pair[pair_id], key + ' is in both inputs and outputs'
                 else:
                     self.available_by_pair[pair_id] = {}
-                self.available_by_pair[pair_id][key.split('.')[-1]] = self.output_info['pair_association'][pair_id][key]
+                self.available_by_pair[pair_id][key.split('.')[-1]] = self.output_info['pair_association'][pair_id][key][0]
         for sample_id in self.sample_ids:
             for key in self.output_info['sample_association'][sample_id]:
                 assert key not in self.available , key + ' is in both inputs and outputs'
@@ -133,7 +138,7 @@ class Lookup():
                     assert key not in self.available_by_sample[sample_id], key + ' is in both inputs and outputs'
                 else:
                     self.available_by_sample[sample_id] = {}
-                self.available_by_sample[sample_id][key.split('.')[-1]] = self.output_info['sample_association'][sample_id][key]
+                self.available_by_sample[sample_id][key.split('.')[-1]] = self.output_info['sample_association'][sample_id][key][0]
        
        
     
