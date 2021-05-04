@@ -24,7 +24,7 @@ print_usage() {
   exit 1
 }
 
-while getopts 'u:p:d:rh' flag; do
+while getopts 'u:p:d:r:h' flag; do
   case "${flag}" in
     u) url="${OPTARG}" ;;
     p) project_id="${OPTARG}" ;;
@@ -60,6 +60,7 @@ if [ -z "$project_id" ]; then
     print_usage
     exit 1
 fi
+
 
 if [ -z "$run_info_json" ]; then
     # get most recent file if none provided
