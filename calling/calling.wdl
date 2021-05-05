@@ -61,7 +61,7 @@ task ReorderVcfColumns {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:0.9.5"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:0.9.6"
     }
 }
 
@@ -89,7 +89,7 @@ task AddVcfCommand {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:0.9.5"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:0.9.6"
     }
 }
 
