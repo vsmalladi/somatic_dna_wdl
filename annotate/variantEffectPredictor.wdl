@@ -67,6 +67,10 @@ task vepSvnIndel {
         --cache \
         --dir_cache ensembl_vep \
         --refseq \
+        --max_af \
+        --af \
+        --af_1kg \
+        --af_gnomad \
         --exclude_predicted \
         --fasta ~{vepFastaReference.fasta} \
         --symbol \
@@ -190,6 +194,10 @@ task vepGermSvnIndel {
         --symbol \
         --hgvs \
         --check_existing \
+        --max_af \
+        --af \
+        --af_1kg \
+        --af_gnomad \
         --vcf \
         --pick_allele_gene \
         --dir_plugins ensembl_vep/Plugins \
