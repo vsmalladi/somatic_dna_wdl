@@ -437,53 +437,37 @@ task SvabaWgs {
 
 task UniqReads {
     input {
-        Int threads
         Int memoryGb
-        String tumor
-        String normal
-        String dockerImage
-        String tempTumorPrefix = "~{tumor}/~{tumor}_"
-        String tempNormalPrefix = "~{normal}/~{normal}"
-        Array[String] tempNormalSeqsPaths
-        Array[String] tempTumorSeqsPaths
-        Bam tumorFinalBam
-        Bam normalFinalBam
+        String sampleId
+        String tempPrefix = "~{sampleId}_"
+        Array[String] tempSeqsPaths
+        Bam finalBam
+        Int diskSize = ceil( size(finalBam.bam, "GB") ) + 20
     }
 
     command {
-        mkdir ~{tumor} \
-        && \
-        mkdir ~{normal} \
-        && \
-        samtools \
+        samtools-0.1.7a_getUnique-0.1.3/samtools \
         view \
-        -U "BWA,~{tempTumorPrefix},N,N" \
-        ~{tumorFinalBam.bam} \
-        && \
-        samtools \
-        view \
-        -U "BWA,~{tempNormalPrefix},N,N" \
-        ~{normalFinalBam.bam}
+        -U "BWA,~{tempPrefix},N,N" \
+        ~{finalBam.bam}
+        
     }
     
     output {
-        Array[File] tempNormalSeqs = tempNormalSeqsPaths
-        Array[File] tempTumorSeqs = tempTumorSeqsPaths
+        Array[File] tempSeqs = tempSeqsPaths
     }
 
     runtime {
-        cpu : threads
+        disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : dockerImage
+        docker : "gcr.io/nygc-public/bicseq2:seg-0.7.2-norm-0.2.4"
     }
 }
 
 
 task Bicseq2Norm {
     input {
-        Int threads
         Int memoryGb
-        String dockerImage
         Int readLength
         Int medianInsertSize
         String GCvsRDPath = "~{sampleId}/~{sampleId}.GCvsRD.pdf"
@@ -495,12 +479,12 @@ task Bicseq2Norm {
         File configFile
         Bam FinalBam
         Array[File] chromFastas
+        Int diskSize = ceil( size(finalBam.bam, "GB") ) + 20
     }
 
     command {
-        mkdir ~{sampleId} \
-        && \
-        perl \
+        mkdir ~{sampleId}
+        
         BICseq2-norm.pl \
         -l=~{readLength} \
         -s=~{medianInsertSize} \
@@ -519,7 +503,7 @@ task Bicseq2Norm {
     runtime {
         cpu : threads
         memory : memoryGb + "GB"
-        docker : dockerImage
+        docker : "gcr.io/nygc-public/bicseq2:seg-0.7.2-norm-0.2.4"
     }
 }
 
@@ -556,7 +540,7 @@ task Bicseq2Wgs {
     runtime {
         cpu : threads
         memory : memoryGb + "GB"
-        docker : dockerImage
+        docker : "gcr.io/nygc-public/bicseq2:seg-0.7.2-norm-0.2.4"
     }
 }
 

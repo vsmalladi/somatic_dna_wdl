@@ -15,6 +15,7 @@ workflow BicSeq2 {
         Bam normalFinalBam
         Bam tumorFinalBam
         Int readLength
+        Int coordReadLength
         Map[Int, Array[File]] uniqCoords
         
         File tumorConfigFile
@@ -37,25 +38,28 @@ workflow BicSeq2 {
     }
     
     scatter (chrom in listOfChroms) {
-            String tempNormalSeq = "~{normal}/~{normal}_~{chrom}.seq"
-            String tempTumorSeq = "~{tumor}/~{tumor}_~{chrom}.seq"
+            String tempNormalSeq = "~{normal}_~{chrom}.seq"
+            String tempTumorSeq = "~{tumor}_~{chrom}.seq"
             File chromFastaFile = chromFastas[chrom]
         }
     Array[String] tempNormalSeqsPaths = tempNormalSeq
     Array[String] tempTumorSeqsPaths = tempTumorSeq
     Array[File] chromFastaFiles = chromFastaFile
     
-    call calling.UniqReads {
+    call calling.UniqReads uniqReadsNormal {
         input:
-            tumor = tumor,
-            normal = normal,
-            tumorFinalBam = tumorFinalBam,
-            normalFinalBam = normalFinalBam,
-            tempNormalSeqsPaths = tempNormalSeqsPaths,
-            tempTumorSeqsPaths = tempTumorSeqsPaths,
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = samtoolsDockerImage
+            sampleId = normal,
+            finalBam = normalFinalBam,
+            tempSeqsPaths = tempNormalSeqsPaths,
+            memoryGb = 8
+    }
+    
+    call calling.UniqReads uniqReadsTumor {
+        input:
+            sampleId = tumor,
+            finalBam = tumorFinalBam,
+            tempSeqsPaths = tempTumorSeqsPaths,
+            memoryGb = 8
     }
     
     scatter(chrom in listOfChroms) {
@@ -74,10 +78,8 @@ workflow BicSeq2 {
             paramsPath = tumorParamsPath,
             tempNormPaths = tempTumorNormPaths,
             chromFastas = chromFastaFiles,
-            uniqCoords = uniqCoords[readLength],
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = bicseq2DockerImage
+            uniqCoords = uniqCoords[coordReadLength],
+            memoryGb = 8
     }
     
     scatter(chrom in listOfChroms) {
@@ -96,10 +98,8 @@ workflow BicSeq2 {
             paramsPath = normalParamsPath,
             tempNormPaths = tempNormalNormPaths,
             chromFastas = chromFastaFiles,
-            uniqCoords = uniqCoords[readLength],
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = bicseq2DockerImage
+            uniqCoords = uniqCoords[coordReadLength],
+            memoryGb = 8
     }
     
     call calling.Bicseq2Wgs {
