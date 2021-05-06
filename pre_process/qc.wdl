@@ -240,7 +240,7 @@ task FormatHsMetrics {
     runtime {
         cpu : threads
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:0.9.6"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:1.0.0"
     }
 }
 
@@ -271,7 +271,7 @@ task Autocorrelations {
     runtime {
         cpu : threads
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:0.9.6"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:1.0.0"
     }
 }
 
@@ -410,7 +410,7 @@ task PlotBinCov {
     runtime {
         cpu : threads
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:0.9.6"  # "gcr.io/nygc-public/r:v3.2.1"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:1.0.0"  # "gcr.io/nygc-public/r:v3.2.1"
     }
 }
 
