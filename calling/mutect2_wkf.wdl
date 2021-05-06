@@ -4,7 +4,7 @@ import "calling.wdl" as calling
 import "../wdl_structs.wdl"
 
 workflow Mutect2 {
-    # command 
+    # command
     #   run Mutect2 caller
     input {
         String tumor
@@ -18,11 +18,11 @@ workflow Mutect2 {
         Bam tumorFinalBam
         Int diskSize = ceil( size(tumorFinalBam.bam, "GB") + size(normalFinalBam.bam, "GB")) + 20
         Int memoryGb = 8
-        # remove definition after replacing the command step for gcp
-        File jsonLog = "gs://nygc-comp-s-fd4e-input/internal/gatk_4.0.5.1_Mutect2Wgs.json"
-        File jsonLogFilter = "gs://nygc-comp-s-fd4e-input/internal/gatk_4.0.5.1_Mutect2Wgs_Mutect2Filter.json"
+        File mutectJsonLog
+        File mutectJsonLogFilter
+
     }
-    
+
     scatter(chrom in listOfChroms) {
         call calling.Mutect2Wgs {
             input:
@@ -36,7 +36,7 @@ workflow Mutect2 {
                 memoryGb = memoryGb,
                 diskSize = diskSize
         }
-        
+
         call calling.Mutect2Filter {
             input:
                 chrom = chrom,
@@ -48,7 +48,7 @@ workflow Mutect2 {
                 diskSize = 10
         }
     }
-    
+
     # filtered
     call calling.Gatk4MergeSortVcf as filteredGatk4MergeSortVcf {
         input:
@@ -58,15 +58,15 @@ workflow Mutect2 {
             memoryGb = 8,
             diskSize = 10
     }
-    
+
     call calling.AddVcfCommand as filteredAddVcfCommand {
         input:
             inVcf = filteredGatk4MergeSortVcf.sortedVcf.vcf,
-            jsonLog = jsonLogFilter,
+            jsonLog = mutectJsonLogFilter,
             memoryGb = 2,
             diskSize = 1
     }
-    
+
     call calling.ReorderVcfColumns as filteredReorderVcfColumns {
         input:
             tumor = tumor,
@@ -76,7 +76,7 @@ workflow Mutect2 {
             memoryGb = 2,
             diskSize = 1
     }
-    
+
     # unfiltered
     call calling.Gatk4MergeSortVcf as unfilteredGatk4MergeSortVcf {
         input:
@@ -86,15 +86,15 @@ workflow Mutect2 {
             memoryGb = 32,
             diskSize = 10
     }
-    
+
     call calling.AddVcfCommand as unfilteredAddVcfCommand {
         input:
             inVcf = unfilteredGatk4MergeSortVcf.sortedVcf.vcf,
-            jsonLog = jsonLog,
+            jsonLog = mutectJsonLog,
             memoryGb = 2,
             diskSize = 1
     }
-    
+
     call calling.ReorderVcfColumns as unfilteredReorderVcfColumns {
         input:
             tumor = tumor,
@@ -104,10 +104,9 @@ workflow Mutect2 {
             memoryGb = 2,
             diskSize = 1
     }
-    
+
     output {
         File mutect2 = filteredReorderVcfColumns.orderedVcf
         File mutect2_unfiltered = unfilteredReorderVcfColumns.orderedVcf
     }
 }
-

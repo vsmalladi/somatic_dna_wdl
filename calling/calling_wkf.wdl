@@ -24,9 +24,19 @@ workflow Calling {
         BwaReference bwaReference
         #   Lancet
         Map[String, File] chromBedsWgs
+
+        File lancetJsonLog
+        File mantaJsonLog
+        File strelkaJsonLog
+        File svabaJsonLog
+        File mutectJsonLog
+        File mutectJsonLogFilter
+        File configureStrelkaSomaticWorkflow
     }
     call mutect2.Mutect2 {
         input:
+            mutectJsonLogFilter = mutectJsonLogFilter,
+            mutectJsonLog = mutectJsonLog,
             tumor = pairInfo.tumor,
             normal = pairInfo.normal,
             listOfChroms = listOfChroms,
@@ -35,9 +45,10 @@ workflow Calling {
             normalFinalBam = pairInfo.normalFinalBam,
             tumorFinalBam = pairInfo.tumorFinalBam
     }
-    
+
     call manta.Manta {
         input:
+            mantaJsonLog = mantaJsonLog,
             tumor = pairInfo.tumor,
             normal = pairInfo.normal,
             callRegions = callRegions,
@@ -46,9 +57,11 @@ workflow Calling {
             normalFinalBam = pairInfo.normalFinalBam,
             tumorFinalBam = pairInfo.tumorFinalBam
     }
-    
+
     call strelka2.Strelka2 {
         input:
+            strelkaJsonLog = strelkaJsonLog,
+            configureStrelkaSomaticWorkflow = configureStrelkaSomaticWorkflow,
             tumor = pairInfo.tumor,
             normal = pairInfo.normal,
             callRegions = callRegions,
@@ -58,9 +71,10 @@ workflow Calling {
             normalFinalBam = pairInfo.normalFinalBam,
             tumorFinalBam = pairInfo.tumorFinalBam
     }
-    
+
     call svaba.Svaba {
         input:
+            svabaJsonLog = svabaJsonLog,
             tumor = pairInfo.tumor,
             normal = pairInfo.normal,
             dbsnpIndels = dbsnpIndels,
@@ -69,9 +83,10 @@ workflow Calling {
             normalFinalBam = pairInfo.normalFinalBam,
             tumorFinalBam = pairInfo.tumorFinalBam
     }
-    
+
     call lancet.Lancet {
         input:
+            lancetJsonLog = lancetJsonLog,
             tumor = pairInfo.tumor,
             normal = pairInfo.normal,
             listOfChroms = listOfChroms,
@@ -91,7 +106,7 @@ workflow Calling {
         IndexedVcf diploidSV = Manta.diploidSV
         IndexedVcf  somaticSV = Manta.somaticSV
         IndexedVcf  candidateSV = Manta.candidateSV
-        File unfilteredMantaSV = Manta.unfilteredMantaSV 
+        File unfilteredMantaSV = Manta.unfilteredMantaSV
         File filteredMantaSV = Manta.filteredMantaSV
         # Strelka2
         IndexedVcf strelka2Snvs = Strelka2.strelka2Snvs

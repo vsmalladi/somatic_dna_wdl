@@ -41,8 +41,6 @@ workflow Annotate {
         
         File ensemblEntrez
         String library
-    
-        IndexedReference referenceFa
 
     }
     

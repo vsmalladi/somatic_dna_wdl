@@ -8,6 +8,7 @@ import "merge_vcf/merge_vcf_wkf.wdl" as mergeVcf
 import "alignment_analysis/kourami_wfk.wdl" as kourami
 import "alignment_analysis/msi_wkf.wdl" as msi
 import "pre_process/conpair_wkf.wdl" as conpair
+import "annotate/annotate_wkf.wdl" as annotate
 
 # for wdl version 1.0
 
@@ -56,6 +57,14 @@ workflow SomaticWorkflow {
         IndexedTable callRegions
         File dbsnpIndels
         Map[String, File] chromBedsWgs
+        File lancetJsonLog
+        File mantaJsonLog
+        File strelkaJsonLog
+        File svabaJsonLog
+        File mutectJsonLog
+        File mutectJsonLogFilter
+        File configureStrelkaSomaticWorkflow
+
 
         # merge callers
         File intervalListBed
@@ -75,6 +84,38 @@ workflow SomaticWorkflow {
         File mantisBed
         File intervalListBed
         IndexedReference referenceFa
+        
+        # annotation:
+        String vepGenomeBuild
+        IndexedVcf cosmicCoding
+        IndexedVcf cosmicNoncoding
+        
+        # Public
+        File cancerResistanceMutations
+        File vepCache
+        File annotations
+        File plugins
+        String vepGenomeBuild
+        IndexedReference vepFastaReference
+        
+        # NYGC-only
+        IndexedVcf hgmdGene
+        IndexedVcf hgmdUd10
+        IndexedVcf hgmdPro
+        IndexedVcf omimVcf
+        
+        # Public
+        IndexedVcf chdGenesVcf
+        IndexedVcf chdEvolvingGenesVcf
+        IndexedVcf chdWhitelistVcf
+        IndexedVcf deepIntronicsVcf
+        IndexedVcf clinvarIntronicsVcf
+        IndexedVcf masterMind
+        
+        # post annotation
+        File cosmicCensus
+        
+        File ensemblEntrez
     }
 
     scatter (sampleInfoObj in sampleInfos) {
@@ -170,6 +211,13 @@ workflow SomaticWorkflow {
         if (SomaticQcCheck.qcPass) {
             call calling.Calling {
                 input:
+                    mantaJsonLog = mantaJsonLog,
+                    lancetJsonLog = lancetJsonLog,
+                    mutectJsonLog = mutectJsonLog,
+                    mutectJsonLogFilter = mutectJsonLogFilter,
+                    svabaJsonLog = svabaJsonLog,
+                    strelkaJsonLog = strelkaJsonLog,
+                    configureStrelkaSomaticWorkflow = configureStrelkaSomaticWorkflow,
                     pairInfo = pairInfoObject,
                     listOfChroms = listOfChroms,
                     referenceFa = referenceFa,
@@ -234,10 +282,46 @@ workflow SomaticWorkflow {
             }
 
             File mergedVcf = select_first([wgsMergeVcf.mergedVcf, exomeMergeVcf.mergedVcf])
+            
+            call annotate.Annotate {
+                input:
+                    unannotatedVcf = mergedVcf,
+                    referenceFa = referenceFa,
+                    tumor = pairRelationship.tumor,
+                    normal = pairRelationship.normal,
+                    pairName = pairRelationship.pairId,
+                    vepGenomeBuild = vepGenomeBuild,
+                    cosmicCoding = cosmicCoding,
+                    cosmicNoncoding = cosmicNoncoding,
+                    # Public
+                    cancerResistanceMutations = cancerResistanceMutations,
+                    vepCache = vepCache,
+                    annotations = annotations,
+                    plugins = plugins,
+                    vepFastaReference = vepFastaReference,
+                    # NYGC-only
+                    hgmdGene = hgmdGene,
+                    hgmdUd10 = hgmdUd10,
+                    hgmdPro = hgmdPro,
+                    omimVcf = omimVcf,
+                    # Public
+                    chdGenesVcf = chdGenesVcf,
+                    chdEvolvingGenesVcf = chdEvolvingGenesVcf,
+                    chdWhitelistVcf = chdWhitelistVcf,
+                    deepIntronicsVcf = deepIntronicsVcf,
+                    clinvarIntronicsVcf = clinvarIntronicsVcf,
+                    masterMind = masterMind,
+                    # post annotation
+                    cosmicCensus = cosmicCensus,
+                    ensemblEntrez = ensemblEntrez,
+                    library = library  
+            }
       }
+      
    }
 
     output {
+        Array[PairVcfInfo?] pairVcfInfos = Annotate.pairVcfInfo
         Array[File?] mergedVcfs = mergedVcf
         Array[Bam] finalBams = Preprocess.finalBam
         Array[PairRawVcfInfo?] pairRawVcfInfos = pairRawVcfInfo

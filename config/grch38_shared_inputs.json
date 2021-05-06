@@ -87,5 +87,7 @@
   "SomaticWorkflow.dbsnpIndels": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/dbsnp_146.indels.hg38.vcf",
   "SomaticWorkflow.markerTxtFile": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/GRCh38.autosomes.phase3_shapeit2_mvncall_integrated.20130502.SNV.genotype.sselect_v4_MAF_0.4_LD_0.8.liftover.txt",
   "SomaticWorkflow.markerBedFile": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/GRCh38.autosomes.phase3_shapeit2_mvncall_integrated.20130502.SNV.genotype.sselect_v4_MAF_0.4_LD_0.8.liftover.bed",
-  "SomaticWorkflow.library": "WGS"
+  "SomaticWorkflow.library": "WGS",
+"SomaticWorkflow.configureStrelkaSomaticWorkflow": "gs://nygc-comp-s-82ed-resources/SomaticWorkflowMisc/configureStrelkaSomaticWorkflow.py.ini",
+"SomaticWorkflow.jsonLog": "gs://nygc-comp-s-82ed-resources/SomaticWorkflowMisc/mutect2_4.0.5.1_COLO-829-NovaSeq_80--COLO-829BL-NovaSeq_40.json"
 }
