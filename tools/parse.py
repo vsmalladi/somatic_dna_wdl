@@ -48,6 +48,7 @@ class Wdl():
     def __init__(self, wdl_file,
                  genome_input,
                  interval_input,
+                 pipeline_input,
                  genome,
                  custom_inputs,
                  validate=True,
@@ -70,6 +71,7 @@ class Wdl():
                                      'type' : type}
         # load preexisting reference variables
         self.load_genome_input(genome_input)
+        self.load_pipeline_input(pipeline_input)
         self.load_interval_input(interval_input)
         self.load_custom()
         # populate
@@ -81,7 +83,10 @@ class Wdl():
     def validate_inputs(self):
         potential_files = Json_leaves(self.inputs)
         files = [string for string in potential_files.files if string.startswith('gs://')]
-        self.validate_input_gsutil(strings=files)
+        found = self.validate_input_gsutil(strings=files)
+        if not found:
+            log.error('searching for first missing/unreadible file. This may be slow...')
+            self.narrow_down(strings=files)
 #         for file in files:
 #             self.validate_input_gsutil(strings=[file])
 #         for potential_file in potential_files.files:
@@ -104,6 +109,12 @@ class Wdl():
             log.error('Failed to locate file in bucket')
             return False
         return True
+    
+    def narrow_down(self, strings):
+        for string in strings:
+             if not self.validate_input_gsutil([string]):
+                 print(string)
+                 sys.exit(1)
         
     def validate_input(self, strings):
         '''validate that file exists in bucket'''
@@ -189,7 +200,16 @@ class Wdl():
             inputs = json.load(input)
             return inputs
         
+    def load_pipeline_input(self, file):
+        '''load files specific to the pipeline'''
+        data = self.load_json(file)
+        assert len(set(data.keys()).intersection(self.input_objects.keys())) == 0, 'reference pipeline inputs must be not be redundant to other input variables'
+        for variable in data:
+            if variable in self.inputs:
+                self.input_objects[variable] = data[variable]
+        
     def load_interval_input(self, file):
+        '''load variables according to the genome FASTA key and the interval list key'''
         assert self.genome in self.load_json(file), 'error genome not in interval file'
         genome_data = self.load_json(file)[self.genome]
         if self.project_info['library'] == 'WGS' or self.project_info['intervalList'] == 'default':
@@ -203,6 +223,7 @@ class Wdl():
                 self.input_objects[variable] = data[variable]
                   
     def load_genome_input(self, file):
+        '''load variables according to the genome FASTA key'''
         assert self.genome in self.load_json(file), 'error genome not in genome file'
         data = self.load_json(file)[self.genome]
         assert len(set(data.keys()).intersection(self.input_objects.keys())) == 0, 'reference genome inputs must be not be redundant to other input variables'
@@ -211,6 +232,7 @@ class Wdl():
                 self.input_objects[variable] = data[variable]
                 
     def load_custom(self):
+        '''load variables from any custom file'''
         if self.custom_inputs:
             for custom_input in self.custom_inputs:
                 data = self.load_json(custom_input)

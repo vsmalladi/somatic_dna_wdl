@@ -32,6 +32,6 @@
     "configureStrelkaSomaticWorkflow" : {
         "type" : "File",
         "description" : "caller command",
-        "object" : "gs://nygc-comp-s-82ed-resources/SomaticWorkflowMisc/configureStrelkaSomaticWorkflow.py.in"
+        "object" : "gs://nygc-comp-s-82ed-resources/SomaticWorkflowMisc/configureStrelkaSomaticWorkflow.py.ini"
     }
 }
