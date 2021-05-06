@@ -270,11 +270,13 @@ def repopulate(args):
 
 def write_wdl_json(args, project_info, project_info_file):
     parent_dir = os.path.abspath(os.path.dirname(__file__))
+    pipeline_input = parent_dir + '/../config/pipeline_references.json'
     interval_input = parent_dir + '/../config/interval_references.json'
     genome_input = parent_dir + '/../config/fasta_references.json'
     input = parse.Wdl(args['wdl_file'], 
-                      genome_input=genome_input, 
-                      interval_input=interval_input, 
+                      genome_input=genome_input,
+                      interval_input=interval_input,
+                      pipeline_input=pipeline_input,
                       genome=args['genome'],
                       custom_inputs=args['custom_inputs'],
                       validate=not args['skip_validate'],

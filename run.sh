@@ -212,8 +212,6 @@ if [ ! -z "$skip_validate" ]; then
     --skip-validate"
 fi
 
-echo "${meta_command}"
-
 eval ${meta_command}
 
 # zip dependencies

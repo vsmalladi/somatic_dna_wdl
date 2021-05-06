@@ -14,20 +14,29 @@ workflow Calling {
     #   annotate
     input {
         Array[pairInfo]+ pairInfos
+        # strelka2
+        File strelkaJsonLog
         #   mutect2
+        File mutectJsonLog
         Array[String]+ listOfChroms
         IndexedReference referenceFa
         #   Manta
         IndexedTable callRegions
+        File mantaJsonLog
         #   Svaba
         File dbsnpIndels
+        File svabaJsonLog
+        File mutectJsonLogFilter
         BwaReference bwaReference
         #   Lancet
         Map[String, File] chromBedsWgs
+        File lancetJsonLog
     }
     scatter(pairInfo in pairInfos) {
         call mutect2.Mutect2 {
             input:
+                mutectJsonLog = mutectJsonLog,
+                mutectJsonLogFilter = mutectJsonLogFilter,
                 tumor = pairInfo.tumor,
                 normal = pairInfo.normal,
                 listOfChroms = listOfChroms,
@@ -39,6 +48,7 @@ workflow Calling {
         
         call manta.Manta {
             input:
+                mantaJsonLog = mantaJsonLog,
                 tumor = pairInfo.tumor,
                 normal = pairInfo.normal,
                 callRegions = callRegions,
@@ -50,6 +60,7 @@ workflow Calling {
         
         call strelka2.Strelka2 {
             input:
+                strelkaJsonLog = strelkaJsonLog,
                 tumor = pairInfo.tumor,
                 normal = pairInfo.normal,
                 callRegions = callRegions,
@@ -62,6 +73,7 @@ workflow Calling {
         
         call svaba.Svaba {
             input:
+                svabaJsonLog = svabaJsonLog,
                 tumor = pairInfo.tumor,
                 normal = pairInfo.normal,
                 dbsnpIndels = dbsnpIndels,
@@ -73,6 +85,7 @@ workflow Calling {
         
         call lancet.Lancet {
             input:
+                lancetJsonLog = lancetJsonLog,
                 tumor = pairInfo.tumor,
                 normal = pairInfo.normal,
                 listOfChroms = listOfChroms,
