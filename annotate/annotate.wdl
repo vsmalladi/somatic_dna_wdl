@@ -216,7 +216,7 @@ task RenameCsqVcf {
         python \
         /rename_csq_vcf.py \
         ~{vcfAnnotatedId} \
-        ~{vcfCsqRenamedPath} \
+        ~{vcfCsqRenamedPath}
     }
 
     output {
@@ -243,7 +243,7 @@ task MainVcf {
         python \
         /make_main_vcf.py \
         ~{vcfAnnotated} \
-        ~{mainVcfPath} \
+        ~{mainVcfPath}
     }
 
     output {
@@ -310,7 +310,7 @@ task VcfToMaf {
         --vep-version ~{vepGenomeBuild} \
         --tumor ~{tumor} \
         --normal ~{normal} \
-        --ensembl-entrez ~{ensemblEntrez} \
+        --ensembl-entrez ~{ensemblEntrez}
     }
 
     output {
