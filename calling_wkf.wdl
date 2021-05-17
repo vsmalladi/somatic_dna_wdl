@@ -1,5 +1,7 @@
 version 1.0
 
+import "calling/gridss_wkf.wdl" as gridss
+import "calling/bicseq2_wkf.wdl" as bicseq2
 import "calling/mutect2_wkf.wdl" as mutect2
 import "calling/strelka2_wkf.wdl" as strelka2
 import "calling/manta_wkf.wdl" as manta
@@ -16,6 +18,7 @@ workflow Calling {
         Array[pairInfo]+ pairInfos
         # strelka2
         File strelkaJsonLog
+        File configureStrelkaSomaticWorkflow
         #   mutect2
         File mutectJsonLog
         Array[String]+ listOfChroms
@@ -31,8 +34,56 @@ workflow Calling {
         #   Lancet
         Map[String, File] chromBedsWgs
         File lancetJsonLog
+        #   BicSeq2
+        Int readLength
+        Int coordReadLength
+        Map[Int, Map[String, File]] uniqCoords
+        Map[String, Map[String, File]] bicseq2ConfigMaps
+        Map[String, File] chromFastas
+        Int tumorMedianInsertSize = 400
+        Int normalMedianInsertSize = 400
+        Int lambda = 4
+        # Gridss
+        String bsGenome
+        File ponTarGz
+        BwaReference gridssReferenceFa
+        Array[File] gridssAdditionalReference
     }
     scatter(pairInfo in pairInfos) {
+        call gridss.Gridss {
+            input:
+                tumor = pairInfo.tumor,
+                normal = pairInfo.normal,
+                pairName = pairInfo.pairId,
+                gridssReferenceFa = gridssReferenceFa,
+                gridssAdditionalReference = gridssAdditionalReference,
+                normalFinalBam = pairInfo.normalFinalBam,
+                tumorFinalBam = pairInfo.tumorFinalBam,
+                bsGenome = bsGenome,
+                ponTarGz = ponTarGz
+        }    
+    
+        call bicseq2.BicSeq2 {
+            input:
+                tumor = pairInfo.tumor,
+                normal = pairInfo.normal,
+                readLength = readLength,
+                coordReadLength = coordReadLength,
+                uniqCoords = uniqCoords,
+                tumorConfigFile = bicseq2ConfigMaps[pairInfo.pairId]["tumorConfigFile"],
+                normalConfigFile = bicseq2ConfigMaps[pairInfo.pairId]["normalConfigFile"],
+                segConfigFile = bicseq2ConfigMaps[pairInfo.pairId]["segConfigFile"],
+                chromFastas = chromFastas,
+                listOfChroms = listOfChroms,
+                pairName = pairInfo.pairId,
+                referenceFa = referenceFa,
+                normalFinalBam = pairInfo.normalFinalBam,
+                tumorFinalBam = pairInfo.tumorFinalBam,
+                tumorMedianInsertSize = tumorMedianInsertSize,
+                normalMedianInsertSize = normalMedianInsertSize,
+                lambda = lambda
+        }
+        
         call mutect2.Mutect2 {
             input:
                 mutectJsonLog = mutectJsonLog,
@@ -61,6 +112,7 @@ workflow Calling {
         call strelka2.Strelka2 {
             input:
                 strelkaJsonLog = strelkaJsonLog,
+                configureStrelkaSomaticWorkflow = configureStrelkaSomaticWorkflow,
                 tumor = pairInfo.tumor,
                 normal = pairInfo.normal,
                 callRegions = callRegions,
@@ -98,6 +150,13 @@ workflow Calling {
     }
 
     output {
+        # Gridss
+        Array[Bam] gridssassemblyBam = Gridss.gridssassemblyBam
+        Array[Bam] gridssassemblySvBam = Gridss.gridssassemblySvBam
+        Array[File] gridssFilteredVcf = Gridss.gridssFilteredVcf
+        # Bicseq2
+        Array[File] bicseq2Png = BicSeq2.bicseq2Png
+        Array[File] bicseq2 = BicSeq2.bicseq2
         # Mutect2
         Array[File] mutect2 = Mutect2.mutect2
         Array[File] mutect2Unfiltered = Mutect2.mutect2_unfiltered
