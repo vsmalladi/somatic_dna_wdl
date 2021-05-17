@@ -232,9 +232,10 @@ def repopulate(args):
         if args['test_data']:
             project_info = note_updates(key='pairInfos', args_key=pair_info, project_info=project_info)
         else:
-            for alt_project_info_file in args['custom_inputs']:
-                alt_project_info = read(alt_project_info_file)
-                project_info = note_custom_updates(key='pairInfos', alt_project_info=alt_project_info, project_info=project_info)
+            if args['custom_inputs']:
+                for alt_project_info_file in args['custom_inputs']:
+                    alt_project_info = read(alt_project_info_file)
+                    project_info = note_custom_updates(key='pairInfos', alt_project_info=alt_project_info, project_info=project_info)
             if not 'pairInfos' in project_info:
                 project_info = fill_in_pair_info(project_info)
             assert 'pairInfos' in project_info, 'pairInfos needed but no entry found for key in --custom-inputs file\n'
@@ -260,12 +261,13 @@ def repopulate(args):
             sample_info.append(current_sample_id_info)
         project_info = note_updates(key='sampleInfos', args_key=sample_info, project_info=project_info)
     else:
-        for alt_project_info_file in args['custom_inputs']:
-                alt_project_info = read(alt_project_info_file)
-                project_info = note_custom_updates(key='sampleInfos', alt_project_info=alt_project_info, project_info=project_info)
-                if not 'sampleInfos' in project_info:
-                    project_info = fill_in_sample_info(project_info)
-                assert 'sampleInfos' in project_info, 'sampleInfos needed but no entry found for key in --custom-inputs file\n'
+        if args['custom_inputs']:
+            for alt_project_info_file in args['custom_inputs']:
+                    alt_project_info = read(alt_project_info_file)
+                    project_info = note_custom_updates(key='sampleInfos', alt_project_info=alt_project_info, project_info=project_info)
+                    if not 'sampleInfos' in project_info:
+                        project_info = fill_in_sample_info(project_info)
+                    assert 'sampleInfos' in project_info, 'sampleInfos needed but no entry found for key in --custom-inputs file\n'
     return project_info
 
 def write_wdl_json(args, project_info, project_info_file):
@@ -278,6 +280,7 @@ def write_wdl_json(args, project_info, project_info_file):
                       interval_input=interval_input,
                       pipeline_input=pipeline_input,
                       genome=args['genome'],
+                      read_length=args['read_length'],
                       custom_inputs=args['custom_inputs'],
                       validate=not args['skip_validate'],
                       project_info_file=project_info_file)
@@ -370,6 +373,11 @@ def get_args():
                         help='Optional JSON file with project pairing, sample, '
                         'genome build, library and interval list information',
                         required=False
+                        )
+    parser.add_argument('--read-length',
+                        help='Required only for steps like BiqSeq2 that use read_length as input',
+                        required=False,
+                        dest='read_length'
                         )
     parser.add_argument('--custom-inputs',
                         help='Optional JSON file with custom input variables. '

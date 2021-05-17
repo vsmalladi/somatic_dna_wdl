@@ -5,6 +5,7 @@
 #               --project PROJECT 
 #               [--library {WGS,Exome}]
 #               [--genome {Human_GRCh38_full_analysis_set_plus_decoy_hla}]
+#               [--read-length READ_LENGTH]
 #               [--pairs-file PAIRS_FILE]
 #               [--samples-file SAMPLES_FILE]
 #               [--interval-list {SureSelect_V6plusCOSMIC.target.GRCh38_full_analysis_set_plus_decoy_hla}]
@@ -21,6 +22,7 @@ help_top="run.sh [-h] --options OPTIONS --wdl-file WDL_FILE
                --project PROJECT 
                [--library {WGS,Exome}]
                [--genome {Human_GRCh38_full_analysis_set_plus_decoy_hla}]
+               [--read-length READ_LENGTH]
                [--pairs-file PAIRS_FILE]
                [--samples-file SAMPLES_FILE]
                [--interval-list {SureSelect_V6plusCOSMIC.target.GRCh38_full_analysis_set_plus_decoy_hla}]
@@ -40,6 +42,8 @@ help_long="-h, --help            show this help message and exit
   --genome {Human_GRCh38_full_analysis_set_plus_decoy_hla}
                         Genome key to use for pipeline.
   --project PROJECT     Project name associated with account.
+  --read-length READ_LENGTH     Required only for steps like BiqSeq2 that 
+                        use read_length as input.
   --pairs-file PAIRS_FILE
                         JSON file with items that are required to have
                         \"tumor\", \"normal\" sample_ids defined.
@@ -106,6 +110,11 @@ for arg in "$@"; do
         ;;
         -n|--project)
         project_id="$2"
+        shift # Remove argument name from processing
+        shift # Remove argument value from processing
+        ;;
+        -r|--read-length)
+        read_length="$2"
         shift # Remove argument name from processing
         shift # Remove argument value from processing
         ;;
@@ -191,6 +200,10 @@ meta_command="python ${script_dir}/tools/meta.py \
     --genome ${genome} \
     --wdl-file ${workflow} \
     --options ${options}"
+if [ ! -z "$read_length" ]; then
+    meta_command="${meta_command} \
+    --read-length ${read_length}"
+fi
 if [ ! -z "$custom_inputs" ]; then
     meta_command="${meta_command} \
     --custom-inputs ${custom_inputs}"
