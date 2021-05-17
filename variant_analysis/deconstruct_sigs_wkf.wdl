@@ -11,7 +11,7 @@ workflow DeconstructSig {
         File mainVcf
         
         File deconstructsigsFasta
-        String deconstructsigsBs
+        String bsGenome
     }
     
     call variant_analysis.DeconstructsigPrep38 {
@@ -24,7 +24,7 @@ workflow DeconstructSig {
     call variant_analysis.Deconstructsig {
         input:
             highconfidence = DeconstructsigPrep38.highconfidence,
-            deconstructsigsBs = deconstructsigsBs,
+            bsGenome = bsGenome,
             deconstructsigsFasta = deconstructsigsFasta,
             pairId = pairId
     }
