@@ -59,6 +59,11 @@
                 "chrY"
             ]
         },
+        "deconstructSigs" :{
+            "type": "File",
+            "description" : "",
+            "object" : "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/signatures.genome.cosmic.v3.2.march2021.grch38.rda"
+        },
         "chromLengths": {
             "type": "File",
             "description": "",
