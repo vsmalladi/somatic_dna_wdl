@@ -444,7 +444,7 @@ task UniqReads {
     }
 
     command {
-        ./samtools-0.1.7a_getUnique-0.1.3/samtools \
+        /samtools-0.1.7a_getUnique-0.1.3/samtools \
         view \
         -U "BWA,~{tempPrefix},N,N" \
         ~{finalBam.bam}
