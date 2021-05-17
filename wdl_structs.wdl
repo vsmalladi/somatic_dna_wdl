@@ -15,6 +15,8 @@ struct BwaReference {
     File ann
     File? alt
     File amb
+    File? dict
+    File? index
 }
 
 struct IndexedReference {
