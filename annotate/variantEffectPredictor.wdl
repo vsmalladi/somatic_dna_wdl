@@ -7,23 +7,22 @@ task vepSvnIndel {
         IndexedReference vepFastaReference
         String pairName
         IndexedVcf unannotatedVcf
-        
+
         # Somatic
         IndexedVcf cosmicCoding
         IndexedVcf cosmicNoncoding
-        
+
         # Public
         File vepCache
         File annotations
         File plugins
         String vepGenomeBuild
-        
+
         # NYGC-only
         IndexedVcf hgmdGene
         IndexedVcf hgmdUd10
         IndexedVcf hgmdPro
-        IndexedVcf omimVcf
-        
+
         # Public
         IndexedVcf chdGenesVcf
         IndexedVcf chdEvolvingGenesVcf
@@ -36,18 +35,18 @@ task vepSvnIndel {
         Int threads = 16
         #Int vepResourcesSize = ceil(size(vepCache, "GB") + size(plugins, "GB") + size(annotations, "GB"))
         #Int vcfSize = ceil(size(hgmdGene.vcf, "GB") + size(hgmdUd10.vcf, "GB") + size(hgmdPro.vcf, "GB") + size(omimVcf.vcf, "GB") + size(chdGenesVcf.vcf, "GB") + size(chdEvolvingGenesVcf.vcf, "GB") + size(chdWhitelistVcf.vcf, "GB") + size(deepIntronicsVcf.vcf, "GB") + size(clinvarIntronicsVcf.vcf, "GB") + size(masterMind.vcf, "GB"))
-        #Int inputVcfSize = ceil(size(unannotatedVcf.vcf, "GB") * 2) 
+        #Int inputVcfSize = ceil(size(unannotatedVcf.vcf, "GB") * 2)
         #Int diskSize = vepResourcesSize + vcfSize + inputVcfSize + 20
         Int diskSize
-        
+
     }
-    
+
     command {
         set -e -o pipefail
-        
+
         # NOTE:task will not work with any other genome build as is
         # because of this section
-        
+
         mkdir -p ensembl_vep/homo_sapiens_refseq
         tar -xzvf ~{vepCache}
         mv 97_GRCh38 ensembl_vep/homo_sapiens_refseq/
@@ -92,7 +91,6 @@ task vepSvnIndel {
         --custom ~{hgmdPro.vcf},HGMD,vcf,exact,0,CLASS,PHEN,DNA \
         --custom ~{hgmdUd10.vcf},HGMDUD10,vcf,overlap,0,CLASS,PHEN \
         --custom ~{hgmdGene.vcf},_,vcf,overlap,0,HGMD_PHENO \
-        --custom ~{omimVcf.vcf},OMIM,vcf,overlap,0,PHENO,INHT \
         --custom ~{chdGenesVcf.vcf},CHD_GENES,vcf,overlap,0,GENE \
         --custom ~{chdEvolvingGenesVcf.vcf},CHD_EVOLVING,vcf,overlap,0,GENE \
         --custom ~{deepIntronicsVcf.vcf},INTRONIC,vcf,exact,0,INTRONIC \
@@ -133,23 +131,22 @@ task vepGermSvnIndel {
         IndexedReference vepFastaReference
         String sampleId
         File unannotatedVcf
-        
+
         # Public
         File vepCache
         File annotations
         File plugins
         String vepGenomeBuild
-        
+
         # Somatic
         IndexedVcf cosmicCoding
         IndexedVcf cosmicNoncoding
-        
+
         # NYGC-only
         IndexedVcf hgmdGene
         IndexedVcf hgmdUd10
         IndexedVcf hgmdPro
-        IndexedVcf omimVcf
-        
+
         # Public
         IndexedVcf chdGenesVcf
         IndexedVcf chdEvolvingGenesVcf
@@ -161,15 +158,15 @@ task vepGermSvnIndel {
         String vcfAnnotatedVepPath = "~{sampleId}.v7.vep.annotated.vcf"
         Int threads = 16
         Int diskSize
-        
+
     }
-    
+
     command {
         set -e -o pipefail
-        
+
         # NOTE:task will not work with any other genome build as is
         # because of this section
-        
+
         mkdir -p ensembl_vep/homo_sapiens_refseq
         tar -xzvf ~{vepCache}
         mv 97_GRCh38 ensembl_vep/homo_sapiens_refseq/
@@ -214,7 +211,6 @@ task vepGermSvnIndel {
         --custom ~{hgmdPro.vcf},HGMD,vcf,exact,0,CLASS,PHEN,DNA \
         --custom ~{hgmdUd10.vcf},HGMDUD10,vcf,overlap,0,CLASS,PHEN \
         --custom ~{hgmdGene.vcf},_,vcf,overlap,0,HGMD_PHENO \
-        --custom ~{omimVcf.vcf},OMIM,vcf,overlap,0,PHENO,INHT \
         --custom ~{chdGenesVcf.vcf},CHD_GENES,vcf,overlap,0,GENE \
         --custom ~{chdEvolvingGenesVcf.vcf},CHD_EVOLVING,vcf,overlap,0,GENE \
         --custom ~{deepIntronicsVcf.vcf},INTRONIC,vcf,exact,0,INTRONIC \
@@ -251,4 +247,3 @@ task vepGermSvnIndel {
         File vcfAnnotatedVep = "~{vcfAnnotatedVepPath}"
     }
 }
-

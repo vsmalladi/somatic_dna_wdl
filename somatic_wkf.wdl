@@ -84,12 +84,12 @@ workflow SomaticWorkflow {
         File mantisBed
         File intervalListBed
         IndexedReference referenceFa
-        
+
         # annotation:
         String vepGenomeBuild
         IndexedVcf cosmicCoding
         IndexedVcf cosmicNoncoding
-        
+
         # Public
         File cancerResistanceMutations
         File vepCache
@@ -97,13 +97,12 @@ workflow SomaticWorkflow {
         File plugins
         String vepGenomeBuild
         IndexedReference vepFastaReference
-        
+
         # NYGC-only
         IndexedVcf hgmdGene
         IndexedVcf hgmdUd10
         IndexedVcf hgmdPro
-        IndexedVcf omimVcf
-        
+
         # Public
         IndexedVcf chdGenesVcf
         IndexedVcf chdEvolvingGenesVcf
@@ -111,10 +110,10 @@ workflow SomaticWorkflow {
         IndexedVcf deepIntronicsVcf
         IndexedVcf clinvarIntronicsVcf
         IndexedVcf masterMind
-        
+
         # post annotation
         File cosmicCensus
-        
+
         File ensemblEntrez
     }
 
@@ -282,7 +281,7 @@ workflow SomaticWorkflow {
             }
 
             File mergedVcf = select_first([wgsMergeVcf.mergedVcf, exomeMergeVcf.mergedVcf])
-            
+
             call annotate.Annotate {
                 input:
                     unannotatedVcf = mergedVcf,
@@ -303,7 +302,6 @@ workflow SomaticWorkflow {
                     hgmdGene = hgmdGene,
                     hgmdUd10 = hgmdUd10,
                     hgmdPro = hgmdPro,
-                    omimVcf = omimVcf,
                     # Public
                     chdGenesVcf = chdGenesVcf,
                     chdEvolvingGenesVcf = chdEvolvingGenesVcf,
@@ -314,10 +312,10 @@ workflow SomaticWorkflow {
                     # post annotation
                     cosmicCensus = cosmicCensus,
                     ensemblEntrez = ensemblEntrez,
-                    library = library  
+                    library = library
             }
       }
-      
+
    }
 
     output {
