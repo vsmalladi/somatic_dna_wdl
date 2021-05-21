@@ -236,6 +236,7 @@ git commit -m "feat: my new workflow"
 - biqsec2 norm
 - svaba?
 - lancet
+- mantis kmer counter ?
 
 
 ##### Cram compatible steps
@@ -246,6 +247,7 @@ git commit -m "feat: my new workflow"
 - gridss
 - manta
 - all samtools/pysam steps
+- kourami w/ custom prep
 
 
 
