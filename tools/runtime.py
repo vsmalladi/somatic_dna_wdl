@@ -90,7 +90,10 @@ class Runtime():
                                                execution_status=execution_status):
                 instance_ids.append(inst)
             instance_ids = list(set(instance_ids))
-            max_value = self.metrics[self.metrics.instance_id.isin(instance_ids)][metrics_key].max()
+            try:
+                max_value = self.metrics[self.metrics.instance_id.isin(instance_ids)][metrics_key].max()
+            except ValueError:
+                max_value = 0
             for inst in instance_ids:
                 instance_id_map[inst][metrics_key] = max_value
         return instance_id_map
@@ -107,7 +110,10 @@ class Runtime():
             if (row.workflow_id in instance_id_map[inst]['workflow_ids']) \
                     and (row.task_call_name == instance_id_map[inst]['task_call_name']):
                 max_values.append(instance_id_map[inst][metrics_key])
-        return max(max_values)
+        try:
+            return max(max_values)
+        except ValueError:
+            return 0
         
     def get_flow_runtime(self, grouped, row, ids):
         ''' get max runtime in hours for group.

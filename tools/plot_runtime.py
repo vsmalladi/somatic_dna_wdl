@@ -149,15 +149,18 @@ class PlotRuntime():
     
     def plot_preempts(self):
         preempts = self.metadata[['task_call_name', 'execution_status', 'sample_task_run_time_h']][self.metadata['execution_status'] != 'Done'].copy()
-        preempts.columns = ['Task', 'Exit status', 'Wall clock (h)']
-        fig = px.box(preempts, x='Task', y='Wall clock (h)', points="all",
-                          color_discrete_sequence=self.colors_set2,
-                          color='Exit status')
-        fig.update_layout(xaxis_type='category',
-                          title_text='Runtime of preempted or failed jobs')
-        fig.update_xaxes(title_text='')
-        fig.update_yaxes(title_text="Wall clock (h)")
-        self.preempt_fig = ploter.Fig(fig)
+        if not preempts.empty:
+            preempts.columns = ['Task', 'Exit status', 'Wall clock (h)']
+            fig = px.box(preempts, x='Task', y='Wall clock (h)', points="all",
+                              color_discrete_sequence=self.colors_set2,
+                              color='Exit status')
+            fig.update_layout(xaxis_type='category',
+                              title_text='Runtime of preempted or failed jobs')
+            fig.update_xaxes(title_text='')
+            fig.update_yaxes(title_text="Wall clock (h)")
+            self.preempt_fig = ploter.Fig(fig)
+        else:
+            self.preempt_fig = False
         
     def plot_summary(self):
         fig = px.box(self.disk_type, x='Disk type', y='Wall clock (h)', points="all",
@@ -381,19 +384,20 @@ def make_files(results, appendix=False):
         #  =======================
         #  Non-zero exit status
         #  =======================
-        section_content = ''.join([''])
-#         section_content = ''.join(['All tasks with non-zero exit status.'])
-        lines = [contents.add_line(content=section_content,
-                                    libraries=['WGS', 'Exome'],
-                                    types=['tumor_only', 'paired'],
-                                    audiences=['internal', 'external'])]
-        all_section_content = md_content.join_ignore_none(lines)
-        md_content.update_doc(section_header='Non-zero exits',
-                              center_content=all_section_content,
-                              figures=[(results.exit_status_table.script,
-                                          results.exit_status_table.div),
-                                        (results.preempt_fig.script,
-                                         results.preempt_fig.div)])
+        if results.preempt_fig:
+            section_content = ''.join([''])
+    #         section_content = ''.join(['All tasks with non-zero exit status.'])
+            lines = [contents.add_line(content=section_content,
+                                        libraries=['WGS', 'Exome'],
+                                        types=['tumor_only', 'paired'],
+                                        audiences=['internal', 'external'])]
+            all_section_content = md_content.join_ignore_none(lines)
+            md_content.update_doc(section_header='Non-zero exits',
+                                  center_content=all_section_content,
+                                  figures=[(results.exit_status_table.script,
+                                              results.exit_status_table.div),
+                                            (results.preempt_fig.script,
+                                             results.preempt_fig.div)])
         
         #  =======================
         #  Task

@@ -80,9 +80,9 @@ non_retried_metrics_file="${log_dir}/${project_id}.${workflow_uuid}_outputMetric
 plot_file="${log_dir}/${project_id}.${workflow_uuid}_outputMetrics.html"
 nav="${wdl_dir}/pandoc/nav_wgs_v7"
 pandoc_dir="${wdl_dir}/pandoc/"
-md="${log_dir}${project_id}.${workflow_uuid}_outputMetrics.md"
-html="${log_dir}${project_id}.${workflow_uuid}_outputMetrics.html"
-header="${log_dir}${project_id}.${workflow_uuid}_outputMetrics.header.txt"
+md="${log_dir}/${project_id}.${workflow_uuid}_outputMetrics.md"
+html="${log_dir}/${project_id}.${workflow_uuid}_outputMetrics.html"
+header="${log_dir}/${project_id}.${workflow_uuid}_outputMetrics.header.txt"
 
 
 echo "Collect subworkflow uuids..."
