@@ -73,8 +73,8 @@ workflow Mutect2 {
             normal = normal,
             rawVcf = filteredAddVcfCommand.outVcf,
             orderedVcfPath = "~{pairName}.mutect2.v4.0.5.1.vcf",
-            memoryGb = 2,
-            diskSize = 1
+            memoryGb = 4,
+            diskSize = 10
     }
 
     # unfiltered
@@ -91,8 +91,8 @@ workflow Mutect2 {
         input:
             inVcf = unfilteredGatk4MergeSortVcf.sortedVcf.vcf,
             jsonLog = mutectJsonLog,
-            memoryGb = 2,
-            diskSize = 1
+            memoryGb = 4,
+            diskSize = 10
     }
 
     call calling.ReorderVcfColumns as unfilteredReorderVcfColumns {
@@ -101,8 +101,8 @@ workflow Mutect2 {
             normal = normal,
             rawVcf = unfilteredAddVcfCommand.outVcf,
             orderedVcfPath = "~{pairName}.mutect2.v4.0.5.1.unfiltered.vcf",
-            memoryGb = 2,
-            diskSize = 1
+            memoryGb = 4,
+            diskSize = 10
     }
 
     output {

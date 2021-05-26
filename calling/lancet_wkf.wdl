@@ -51,8 +51,8 @@ workflow Lancet {
         input:
             inVcf = Gatk4MergeSortVcf.sortedVcf.vcf,
             jsonLog = lancetJsonLog,
-            memoryGb = 2,
-            diskSize = 1
+            memoryGb = 4,
+            diskSize = 10
     }
 
     call calling.ReorderVcfColumns as lancetReorderVcfColumns {
@@ -61,8 +61,8 @@ workflow Lancet {
             normal = normal,
             rawVcf = lancetAddVcfCommand.outVcf,
             orderedVcfPath = "~{pairName}.lancet.v1.0.7.vcf",
-            memoryGb = 2,
-            diskSize = 1
+            memoryGb = 4,
+            diskSize = 10
     }
 
     output {

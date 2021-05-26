@@ -54,8 +54,8 @@ workflow Manta {
             normal = normal,
             rawVcf = mantaAddVcfCommand.outVcf,
             orderedVcfPath = mantaPath,
-            memoryGb = 2,
-            diskSize = 1
+            memoryGb = 4,
+            diskSize = 10
     }
 
     call calling.FilterNonpass {
@@ -65,7 +65,7 @@ workflow Manta {
             vcf = mantaReorderVcfColumns.orderedVcf,
             memoryGb = 8,
             threads = 4,
-            diskSize = 5
+            diskSize = 10
 
     }
 
@@ -75,8 +75,8 @@ workflow Manta {
             normal = normal,
             rawVcf = FilterNonpass.outVcf,
             orderedVcfPath = filteredMantafPath,
-            memoryGb = 2,
-            diskSize = 1
+            memoryGb = 4,
+            diskSize = 10
     }
 
     output {

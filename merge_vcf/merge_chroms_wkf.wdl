@@ -14,7 +14,7 @@ workflow MergeChroms {
         Array[File]+ finalChromVcf
         IndexedReference referenceFa
     }
-    
+
     call merge_vcf.Gatk4MergeSortVcf {
             input:
                 tempVcfs = finalChromVcf,
@@ -23,17 +23,17 @@ workflow MergeChroms {
                 memoryGb = 8,
                 diskSize = 10
         }
-    
+
     call calling.ReorderVcfColumns {
         input:
             tumor = tumor,
             normal = normal,
             rawVcf = Gatk4MergeSortVcf.sortedVcf.vcf,
             orderedVcfPath = orderedVcfPath,
-            memoryGb = 2,
-            diskSize = 1
+            memoryGb = 4,
+            diskSize = 10
     }
-    
+
     output {
         File unannotatedVcf = ReorderVcfColumns.orderedVcf
     }
