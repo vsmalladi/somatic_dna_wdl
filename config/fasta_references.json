@@ -424,7 +424,10 @@
                 "bwt": "gs://nygc-comp-s-82ed-resources/GRCh38_1000genomes/GRCh38_full_analysis_set_plus_decoy_hla.fa.bwt",
                 "ann": "gs://nygc-comp-s-82ed-resources/GRCh38_1000genomes/GRCh38_full_analysis_set_plus_decoy_hla.fa.ann",
                 "alt": "gs://nygc-comp-s-82ed-resources/GRCh38_1000genomes/GRCh38_full_analysis_set_plus_decoy_hla.fa.alt",
-                "amb": "gs://nygc-comp-s-82ed-resources/GRCh38_1000genomes/GRCh38_full_analysis_set_plus_decoy_hla.fa.amb"
+                "amb": "gs://nygc-comp-s-82ed-resources/GRCh38_1000genomes/GRCh38_full_analysis_set_plus_decoy_hla.fa.amb",
+                "dict": "gs://nygc-comp-s-82ed-resources/GRCh38_1000genomes/GRCh38_full_analysis_set_plus_decoy_hla.dict",
+                "index": "gs://nygc-comp-s-82ed-resources/GRCh38_1000genomes/GRCh38_full_analysis_set_plus_decoy_hla.fa.fai"
+
             }
         },
         "MillsAnd1000G": {
