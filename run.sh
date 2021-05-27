@@ -192,6 +192,7 @@ validate \
 ${workflow} \
 --list-dependencies
 
+
 # create input json
 echo "Create input json and confirm files exist..." >&2
 meta_command="python ${script_dir}/tools/meta.py \

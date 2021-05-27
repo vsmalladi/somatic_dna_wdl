@@ -73,13 +73,12 @@ class Wdl():
                                      'object' : None,
                                      'type' : type}
         # load bicseq variables for custom config files
-        if 'bicseq2ConfigMaps' in self.inputs:
+        if 'bicseq2ConfigFile' in self.inputs:
             assert self.genome in self.load_json(genome_input), 'error genome not in interval file'
             assert read_length, '--read-length is required to run BicSeq2'
             genome_data = self.load_json(genome_input)[self.genome]
             upload_bucket = self.project_info['options']['final_workflow_log_dir'].replace('cromwell-logs', 'input')
-            bicseq = bicseq_config_prep.Bicseq2Prep(pair_relationships=self.project_info['listOfPairRelationships'],
-                                                    list_of_chroms_full=genome_data['listOfChromsFull'],
+            bicseq = bicseq_config_prep.Bicseq2Prep(list_of_chroms_full=genome_data['listOfChromsFull'],
                                                     uniq_coords=genome_data['uniqCoords'],
                                                     read_length=read_length,
                                                     upload_bucket=upload_bucket)

@@ -23,7 +23,7 @@ class Bicseq2Prep():
         self.write_sample_configs()
         self.write_pair_config()
         
-    def write_sample_configs(self, pair_relationship):
+    def write_sample_configs(self):
         '''create and upload configs for the normalization steps'''
         data = self.prep()
         file = 'sampleId.bicseq2.config'
