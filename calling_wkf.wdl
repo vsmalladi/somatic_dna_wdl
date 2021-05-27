@@ -7,6 +7,10 @@ import "calling/strelka2_wkf.wdl" as strelka2
 import "calling/manta_wkf.wdl" as manta
 import "calling/svaba_wkf.wdl" as svaba
 import "calling/lancet_wkf.wdl" as lancet
+import "calling/gridss_wkf.wdl" as gridss
+import "calling/bicseq2_wkf.wdl" as bicseq2
+
+
 import "wdl_structs.wdl"
 
 workflow Calling {
@@ -35,6 +39,7 @@ workflow Calling {
         Map[String, File] chromBedsWgs
         File lancetJsonLog
         #   BicSeq2
+        Array[String]+ listOfChromsFull
         Int readLength
         Int coordReadLength
         Map[Int, Map[String, File]] uniqCoords
@@ -74,7 +79,7 @@ workflow Calling {
                 normalConfigFile = bicseq2ConfigMaps[pairInfo.pairId]["normalConfigFile"],
                 segConfigFile = bicseq2ConfigMaps[pairInfo.pairId]["segConfigFile"],
                 chromFastas = chromFastas,
-                listOfChroms = listOfChroms,
+                listOfChromsFull = listOfChromsFull,
                 pairName = pairInfo.pairId,
                 referenceFa = referenceFa,
                 normalFinalBam = pairInfo.normalFinalBam,
@@ -151,9 +156,7 @@ workflow Calling {
 
     output {
         # Gridss
-        Array[Bam] gridssassemblyBam = Gridss.gridssassemblyBam
-        Array[Bam] gridssassemblySvBam = Gridss.gridssassemblySvBam
-        Array[File] gridssFilteredVcf = Gridss.gridssFilteredVcf
+        Array[File] gridssVcf = Gridss.gridssVcf
         # Bicseq2
         Array[File] bicseq2Png = BicSeq2.bicseq2Png
         Array[File] bicseq2 = BicSeq2.bicseq2

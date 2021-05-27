@@ -10,7 +10,7 @@ workflow BicSeq2 {
         String tumor
         String normal
         String pairName
-        Array[String] listOfChroms
+        Array[String] listOfChromsFull
         
         Bam normalFinalBam
         Bam tumorFinalBam
@@ -31,14 +31,14 @@ workflow BicSeq2 {
         Int lambda = 4
     }
     
-    scatter (chrom in listOfChroms) {
+    scatter (chrom in listOfChromsFull) {
             String tempNormalSeq = "~{normal}_~{chrom}.seq"
             String tempTumorSeq = "~{tumor}_~{chrom}.seq"
-            File chromFastaFile = chromFastas[chrom]
+            File chromFastasFile = chromFastas[chrom]
         }
     Array[String] tempNormalSeqsPaths = tempNormalSeq
     Array[String] tempTumorSeqsPaths = tempTumorSeq
-    Array[File] chromFastaFiles = chromFastaFile
+    Array[File] chromFastasFiles = chromFastasFile
     
     call calling.UniqReads as uniqReadsNormal {
         input:
@@ -56,10 +56,16 @@ workflow BicSeq2 {
             memoryGb = 8
     }
     
-    scatter(chrom in listOfChroms) {
+    scatter(chrom in listOfChromsFull) {
         String tempTumorNormFile = "~{tumor}/~{tumor}_~{chrom}.norm.bin.txt"
     }
     Array[String]+ tempTumorNormPaths = tempTumorNormFile
+    
+    # prep chrom resources
+    scatter(chrom in listOfChromsFull) {
+        File uniqCoordFile = uniqCoords[coordReadLength][chrom]
+    }
+    Array[File] uniqCoordsFiles = uniqCoordFile
     
     call calling.Bicseq2Norm as tumorBicseq2Norm {
         input:
@@ -70,15 +76,15 @@ workflow BicSeq2 {
             readLength = readLength,
             medianInsertSize = tumorMedianInsertSize,
             tempNormPaths = tempTumorNormPaths,
-            chromFastas = chromFastaFiles,
-            uniqCoords = uniqCoords[coordReadLength],
+            uniqCoordsFiles=uniqCoordsFiles,
+            chromFastasFiles=chromFastasFiles,
             memoryGb = 8
     }
     
-    scatter(chrom in listOfChroms) {
-        File tempNormalNormFile = "~{normal}/~{normal}_~{chrom}.norm.bin.txt"
+    scatter(chrom in listOfChromsFull) {
+        String tempNormalNormFile = "~{normal}/~{normal}_~{chrom}.norm.bin.txt"
     }
-    Array[File]+ tempNormalNormPaths = tempNormalNormFile
+    Array[String]+ tempNormalNormPaths = tempNormalNormFile
     
     call calling.Bicseq2Norm as normalBicseq2Norm {
         input:
@@ -89,8 +95,8 @@ workflow BicSeq2 {
             readLength = readLength,
             medianInsertSize = normalMedianInsertSize,
             tempNormPaths = tempNormalNormPaths,
-            chromFastas = chromFastaFiles,
-            uniqCoords = uniqCoords[coordReadLength],
+            uniqCoordsFiles=uniqCoordsFiles,
+            chromFastasFiles=chromFastasFiles,
             memoryGb = 8
     }
     

@@ -5,6 +5,9 @@ import "strelka2_wkf.wdl" as strelka2
 import "manta_wkf.wdl" as manta
 import "svaba_wkf.wdl" as svaba
 import "lancet_wkf.wdl" as lancet
+import "gridss_wkf.wdl" as gridss
+import "bicseq2_wkf.wdl" as bicseq2
+
 import "../wdl_structs.wdl"
 
 workflow Calling {
@@ -16,6 +19,7 @@ workflow Calling {
         pairInfo pairInfo
         #   mutect2
         Array[String]+ listOfChroms
+        Array[String]+ listOfChromsFull
         IndexedReference referenceFa
         #   Manta
         IndexedTable callRegions
@@ -24,6 +28,20 @@ workflow Calling {
         BwaReference bwaReference
         #   Lancet
         Map[String, File] chromBedsWgs
+        #   BicSeq2
+        Int readLength
+        Int coordReadLength
+        Map[Int, Map[String, File]] uniqCoords
+        Map[String, Map[String, File]] bicseq2ConfigMaps
+        Map[String, File] chromFastas
+        Int tumorMedianInsertSize = 400
+        Int normalMedianInsertSize = 400
+        Int lambda = 4
+        # Gridss
+        String bsGenome
+        File ponTarGz
+        BwaReference gridssReferenceFa
+        Array[File] gridssAdditionalReference
 
         File lancetJsonLog
         File mantaJsonLog
@@ -96,6 +114,40 @@ workflow Calling {
             normalFinalBam = pairInfo.normalFinalBam,
             tumorFinalBam = pairInfo.tumorFinalBam
     }
+    
+    call gridss.Gridss {
+        input:
+            tumor = pairInfo.tumor,
+            normal = pairInfo.normal,
+            pairName = pairInfo.pairId,
+            gridssReferenceFa = gridssReferenceFa,
+            gridssAdditionalReference = gridssAdditionalReference,
+            normalFinalBam = pairInfo.normalFinalBam,
+            tumorFinalBam = pairInfo.tumorFinalBam,
+            bsGenome = bsGenome,
+            ponTarGz = ponTarGz
+    }    
+
+    call bicseq2.BicSeq2 {
+        input:
+            tumor = pairInfo.tumor,
+            normal = pairInfo.normal,
+            readLength = readLength,
+            coordReadLength = coordReadLength,
+            uniqCoords = uniqCoords,
+            tumorConfigFile = bicseq2ConfigMaps[pairInfo.pairId]["tumorConfigFile"],
+            normalConfigFile = bicseq2ConfigMaps[pairInfo.pairId]["normalConfigFile"],
+            segConfigFile = bicseq2ConfigMaps[pairInfo.pairId]["segConfigFile"],
+            chromFastas = chromFastas,
+            listOfChromsFull = listOfChromsFull,
+            pairName = pairInfo.pairId,
+            referenceFa = referenceFa,
+            normalFinalBam = pairInfo.normalFinalBam,
+            tumorFinalBam = pairInfo.tumorFinalBam,
+            tumorMedianInsertSize = tumorMedianInsertSize,
+            normalMedianInsertSize = normalMedianInsertSize,
+            lambda = lambda
+    }
 
     output {
         # Mutect2
@@ -120,5 +172,10 @@ workflow Calling {
         File svabaIndel = Svaba.svabaIndel
         # Lancet
         File lancet = Lancet.lancet
+        # Gridss
+        File gridssVcf = Gridss.gridssVcf
+        # Bicseq2
+        File bicseq2Png = BicSeq2.bicseq2Png
+        File bicseq2 = BicSeq2.bicseq2
     }
 }

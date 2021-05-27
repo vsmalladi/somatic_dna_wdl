@@ -5,18 +5,20 @@ from google.cloud import storage
 
 
 class Bicseq2Prep():
+    ''''Prep the non-sample-specific and non-filesystem-specific 
+    portion of the config files.
+    Also returns the Bicseq2 WDL input variables that will be required for the run.'''
     def __init__(self, pair_relationships,
-                 chrom_fastas,
+                 list_of_chroms_full,
                  uniq_coords,
                  read_length,
                  upload_bucket
                  ):
-        
+        self.list_of_chroms_full = list_of_chroms_full['object']
         self.upload_bucket_uri = upload_bucket
         self.pair_relationships = pair_relationships
         self.read_length = self.match_read_length(uniq_coords, read_length)
         self.uniq_coords = uniq_coords['object'][self.read_length]
-        self.chrom_fastas = chrom_fastas['object']
         self.inputs = {}
         self.inputs['coordReadLength'] = self.read_length
         self.inputs['readLength'] = read_length
@@ -75,21 +77,18 @@ class Bicseq2Prep():
                 length_key = length
                 return length_key
             
+    def convert_path(self, uri):
+        '''convert to gcp path (not ideal but forced by config-style running'''
+        return uri.replace('gs://', '/cromwell_root/')
+            
     def prep_pair(self, pair_relationship):
-        data = pd.DataFrame({'chr' : [chrom for chrom in self.chrom_fastas]})
-        data['case'] = data.apply(lambda row: pair_relationship['tumor'] + '/' + 
-                                  pair_relationship['tumor'] + '_' + 
-                                  row.chr + '.norm.bin.txt', axis=1)
-        data['control'] = data.apply(lambda row: pair_relationship['normal'] + '/' +
-                                      pair_relationship['normal'] + '_' + 
-                                      row.chr + '.norm.bin.txt', axis=1)
+        ''' file: tumor--normal.bicseq2.seg.config
+        prep fasta-specific but sample independent portion of config file'''
+        data = pd.DataFrame({'chr' : [chrom for chrom in self.list_of_chroms_full]})
         return data
         
     def prep(self, sample_id):
-        data = pd.DataFrame({'chrom_name' : [chrom for chrom in self.chrom_fastas],
-                             'fa_file' : [self.chrom_fastas[chrom] for chrom in self.chrom_fastas],
-                             'mappability' : [self.uniq_coords[chrom] for chrom in self.uniq_coords]})
-        data['readPosFile'] = data.apply(lambda row: sample_id + '/' + sample_id + '_' + row.chrom_name + '.seq', axis=1)
-        data['bin_file_normalized'] = data.apply(lambda row: sample_id + '/' + sample_id + '_' + 
-                                                 row.chrom_name + '.norm.bin.txt', axis=1)
+        ''' sample_id.bicseq2.config
+        prep fasta-specific but sample independent portion of config file'''
+        data = pd.DataFrame({'chrom_name' : [chrom for chrom in self.list_of_chroms_full]})
         return data

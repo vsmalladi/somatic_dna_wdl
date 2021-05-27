@@ -79,6 +79,7 @@
             "description": "",
             "object": {
                 "fasta": "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/GRCh38_full_analysis_set_plus_decoy_hla.cleaned.fasta",
+                "alt": "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/GRCh38_full_analysis_set_plus_decoy_hla.cleaned.fasta.alt",
                 "sa": "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/GRCh38_full_analysis_set_plus_decoy_hla.cleaned.fasta.sa",
                 "pac": "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/GRCh38_full_analysis_set_plus_decoy_hla.cleaned.fasta.pac",
                 "bwt": "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/GRCh38_full_analysis_set_plus_decoy_hla.cleaned.fasta.bwt",

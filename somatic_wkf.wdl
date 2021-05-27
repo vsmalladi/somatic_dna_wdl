@@ -53,6 +53,7 @@ workflow SomaticWorkflow {
         File markerTxtFile
 
         # calling
+        Array[String]+ listOfChromsFull
         Array[String]+ listOfChroms
         IndexedTable callRegions
         File dbsnpIndels
@@ -84,6 +85,22 @@ workflow SomaticWorkflow {
         File mantisBed
         File intervalListBed
         IndexedReference referenceFa
+        
+        #   BicSeq2
+        Int readLength
+        Int coordReadLength
+        Map[Int, Map[String, File]] uniqCoords
+        Map[String, Map[String, File]] bicseq2ConfigMaps
+        Map[String, File] chromFastas
+        Int tumorMedianInsertSize = 400
+        Int normalMedianInsertSize = 400
+        Int lambda = 4
+        
+        # Gridss
+        String bsGenome
+        File ponTarGz
+        BwaReference gridssReferenceFa
+        Array[File] gridssAdditionalReference
         
         # annotation:
         String vepGenomeBuild
@@ -248,6 +265,9 @@ workflow SomaticWorkflow {
                 lancet : Calling.lancet,
                 svabaSv : Calling.svabaSv,
                 svabaIndel : Calling.svabaIndel,
+                gridssVcf : Calling.gridssVcf,
+                bicseq2Png : Calling.bicseq2Png,
+                bicseq2 : Calling.bicseq2,
                 tumor : pairRelationship.tumor,
                 normal : pairRelationship.normal,
                 tumorFinalBam : Preprocess.finalBam[tumorGetIndex.index],
@@ -321,6 +341,7 @@ workflow SomaticWorkflow {
    }
 
     output {
+        # alignment and calling results (calling results may not exist if qc failed)
         Array[PairVcfInfo?] pairVcfInfos = Annotate.pairVcfInfo
         Array[File?] mergedVcfs = mergedVcf
         Array[Bam] finalBams = Preprocess.finalBam
@@ -352,7 +373,7 @@ workflow SomaticWorkflow {
         Array[File] collectWgsMetrics = Preprocess.collectWgsMetrics
         Array[File] binestCov = Preprocess.binestCov
         Array[File] normCoverageByChrPng = Preprocess.normCoverageByChrPng
-        # Dedup metrics.
+        # Dedup metrics
         Array[File] collectWgsMetricsPreBqsr = Preprocess.collectWgsMetricsPreBqsr
         Array[File] qualityDistributionPdfPreBqsr = Preprocess.qualityDistributionPdfPreBqsr
         Array[File] qualityByCycleMetricsPreBqsr = Preprocess.qualityByCycleMetricsPreBqsr
@@ -364,7 +385,7 @@ workflow SomaticWorkflow {
         Array[File] concordanceHomoz = Conpair.concordanceHomoz
         Array[File] contamination = Conpair.contamination
 
-        # Pass/Fail indicator.
+        # Pass/Fail indicator
         Array[File] qcResults = SomaticQcCheck.qcResult
     }
 }

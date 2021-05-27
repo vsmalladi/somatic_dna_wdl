@@ -58,6 +58,9 @@ struct PairRawVcfInfo {
     File lancet
     File svabaSv
     File svabaIndel
+    File gridssVcf
+    File bicseq2Png
+    File bicseq2
     String tumor
     String normal
     Bam tumorFinalBam
@@ -94,6 +97,9 @@ struct FinalPairInfo {
     File lancet
     File svabaSv
     File svabaIndel
+    File gridssVcf
+    File bicseq2Png
+    File bicseq2
     Bam tumorFinalBam
     Bam normalFinalBam
 }

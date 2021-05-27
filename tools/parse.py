@@ -79,7 +79,7 @@ class Wdl():
             genome_data = self.load_json(genome_input)[self.genome]
             upload_bucket = self.project_info['options']['final_workflow_log_dir'].replace('cromwell-logs', 'input')
             bicseq = bicseq_config_prep.Bicseq2Prep(pair_relationships=self.project_info['listOfPairRelationships'],
-                                                    chrom_fastas=genome_data['chromFastas'],
+                                                    list_of_chroms_full=genome_data['listOfChromsFull'],
                                                     uniq_coords=genome_data['uniqCoords'],
                                                     read_length=read_length,
                                                     upload_bucket=upload_bucket)

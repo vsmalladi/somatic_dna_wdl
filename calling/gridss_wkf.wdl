@@ -48,7 +48,7 @@ workflow Gridss {
         call calling.GridssAssembleChunk {
             input:
                 threads = threads,
-                memory_gb = memory_gb,
+                memory_gb = 100,
                 pairName = pairName,
                 gridssReferenceFa = gridssReferenceFa,
                 gridssAdditionalReference = gridssAdditionalReference,
@@ -74,22 +74,7 @@ workflow Gridss {
     call calling.GridssAssemble {
         input:
             threads = threads,
-            memory_gb = memory_gb,
-            pairName = pairName,
-            gridssReferenceFa = gridssReferenceFa,
-            gridssAdditionalReference = gridssAdditionalReference,
-            tumorFinalBam = tumorFinalBam,
-            normalFinalBam = normalFinalBam,
-            downsampled = GridssAssembleChunk.downsampled,
-            excluded = GridssAssembleChunk.excluded,
-            subsetCalled = GridssAssembleChunk.subsetCalled
-            
-    }
-    
-    call calling.GridssCalling {
-        input:
-            threads = threads,
-            memory_gb = memory_gb,
+            memory_gb = 100,
             pairName = pairName,
             gridssReferenceFa = gridssReferenceFa,
             gridssAdditionalReference = gridssAdditionalReference,
@@ -99,8 +84,48 @@ workflow Gridss {
             excluded = GridssAssembleChunk.excluded,
             subsetCalled = GridssAssembleChunk.subsetCalled,
             
+            normalSvBam = normalGridssPreprocess.svBam,
+            normalCigarMetrics = normalGridssPreprocess.cigarMetrics,
+            normalIdsvMetrics = normalGridssPreprocess.idsvMetrics,
+            normalTagMetrics = normalGridssPreprocess.tagMetrics,
+            normalMapqMetrics = normalGridssPreprocess.mapqMetrics,
+            normalInsertSizeMetrics = normalGridssPreprocess.insertSizeMetrics,
+            tumorSvBam = tumorGridssPreprocess.svBam,
+            tumorCigarMetrics = tumorGridssPreprocess.cigarMetrics,
+            tumorIdsvMetrics = tumorGridssPreprocess.idsvMetrics,
+            tumorTagMetrics = tumorGridssPreprocess.tagMetrics,
+            tumorMapqMetrics = tumorGridssPreprocess.mapqMetrics,
+            tumorInsertSizeMetrics = tumorGridssPreprocess.insertSizeMetrics
+            
+    }
+    
+    call calling.GridssCalling {
+        input:
+            threads = threads,
+            memory_gb = 100,
+            pairName = pairName,
+            gridssReferenceFa = gridssReferenceFa,
+            gridssAdditionalReference = gridssAdditionalReference,
+            tumorFinalBam = tumorFinalBam,
+            normalFinalBam = normalFinalBam,
+            downsampled = GridssAssembleChunk.downsampled,
+            excluded = GridssAssembleChunk.excluded,
+            subsetCalled = GridssAssembleChunk.subsetCalled,
             gridssassemblyBam = GridssAssemble.gridssassemblyBam,
             gridssassemblySvBam = GridssAssemble.gridssassemblySvBam,
+            
+            normalSvBam = normalGridssPreprocess.svBam,
+            normalCigarMetrics = normalGridssPreprocess.cigarMetrics,
+            normalIdsvMetrics = normalGridssPreprocess.idsvMetrics,
+            normalTagMetrics = normalGridssPreprocess.tagMetrics,
+            normalMapqMetrics = normalGridssPreprocess.mapqMetrics,
+            normalInsertSizeMetrics = normalGridssPreprocess.insertSizeMetrics,
+            tumorSvBam = tumorGridssPreprocess.svBam,
+            tumorCigarMetrics = tumorGridssPreprocess.cigarMetrics,
+            tumorIdsvMetrics = tumorGridssPreprocess.idsvMetrics,
+            tumorTagMetrics = tumorGridssPreprocess.tagMetrics,
+            tumorMapqMetrics = tumorGridssPreprocess.mapqMetrics,
+            tumorInsertSizeMetrics = tumorGridssPreprocess.insertSizeMetrics
             
     }
     
@@ -116,8 +141,6 @@ workflow Gridss {
     }
     
     output {
-        Bam gridssassemblyBam = GridssAssemble.gridssassemblyBam
-        Bam gridssassemblySvBam = GridssAssemble.gridssassemblySvBam
-        File gridssFilteredVcf = GridssFilter.gridssFilteredVcf
+        File gridssVcf = GridssFilter.gridssVcf
     }
 }
