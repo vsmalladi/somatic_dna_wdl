@@ -74,26 +74,11 @@
             "description": "HG38 GRIDSS PON resources required for somatic call filtering. Downloaded from https://nextcloud.hartwigmedicalfoundation.nl/s/LTiKTd8XxBqwaiC?path=%2FHMFTools-Resources%2FGRIDSS",
             "object": "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/pon.grch38.tar.gz"
         },
-        "gridssReferenceFa": {
-            "type": "BwaReference",
-            "description": "",
-            "object": {
-                "fasta": "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/GRCh38_full_analysis_set_plus_decoy_hla.cleaned.fasta",
-                "alt": "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/GRCh38_full_analysis_set_plus_decoy_hla.cleaned.fasta.alt",
-                "sa": "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/GRCh38_full_analysis_set_plus_decoy_hla.cleaned.fasta.sa",
-                "pac": "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/GRCh38_full_analysis_set_plus_decoy_hla.cleaned.fasta.pac",
-                "bwt": "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/GRCh38_full_analysis_set_plus_decoy_hla.cleaned.fasta.bwt",
-                "ann": "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/GRCh38_full_analysis_set_plus_decoy_hla.cleaned.fasta.ann",
-                "amb": "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/GRCh38_full_analysis_set_plus_decoy_hla.cleaned.fasta.amb",
-                "dict": "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/GRCh38_full_analysis_set_plus_decoy_hla.cleaned.fasta.dict",
-                "index": "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/GRCh38_full_analysis_set_plus_decoy_hla.cleaned.fasta.fai"
-            }
-        },
         "gridssAdditionalReference": {
             "type": "Array[File]",
             "description": "",
-            "object": ["gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/GRCh38_full_analysis_set_plus_decoy_hla.cleaned.fasta.img",
-            "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/GRCh38_full_analysis_set_plus_decoy_hla.cleaned.fasta.gridsscache"]
+            "object": ["gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/external/GRCh38_full_analysis_set_plus_decoy_hla.fa.img",
+            "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/external/GRCh38_full_analysis_set_plus_decoy_hla.fa.gridsscache"]
         },
         "bqsrCallRegions": {
             "type": "File",

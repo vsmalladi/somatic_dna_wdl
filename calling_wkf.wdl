@@ -51,7 +51,6 @@ workflow Calling {
         # Gridss
         String bsGenome
         File ponTarGz
-        BwaReference gridssReferenceFa
         Array[File] gridssAdditionalReference
     }
     scatter(pairInfo in pairInfos) {
@@ -60,7 +59,7 @@ workflow Calling {
                 tumor = pairInfo.tumor,
                 normal = pairInfo.normal,
                 pairName = pairInfo.pairId,
-                gridssReferenceFa = gridssReferenceFa,
+                bwaReference = bwaReference,
                 gridssAdditionalReference = gridssAdditionalReference,
                 normalFinalBam = pairInfo.normalFinalBam,
                 tumorFinalBam = pairInfo.tumorFinalBam,

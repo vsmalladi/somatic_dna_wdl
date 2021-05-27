@@ -40,7 +40,6 @@ workflow Calling {
         # Gridss
         String bsGenome
         File ponTarGz
-        BwaReference gridssReferenceFa
         Array[File] gridssAdditionalReference
 
         File lancetJsonLog
@@ -120,7 +119,7 @@ workflow Calling {
             tumor = pairInfo.tumor,
             normal = pairInfo.normal,
             pairName = pairInfo.pairId,
-            gridssReferenceFa = gridssReferenceFa,
+            bwaReference = bwaReference,
             gridssAdditionalReference = gridssAdditionalReference,
             normalFinalBam = pairInfo.normalFinalBam,
             tumorFinalBam = pairInfo.tumorFinalBam,

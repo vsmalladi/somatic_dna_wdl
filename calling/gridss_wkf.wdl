@@ -11,7 +11,7 @@ workflow Gridss {
         String normal
         String pairName
         
-        BwaReference gridssReferenceFa
+        BwaReference bwaReference
         Array[File] gridssAdditionalReference
                 
         Bam normalFinalBam
@@ -30,7 +30,7 @@ workflow Gridss {
         input:
             threads = threads,
             memory_gb = memory_gb,
-            gridssReferenceFa = gridssReferenceFa,
+            bwaReference = bwaReference,
             gridssAdditionalReference = gridssAdditionalReference,
             finalBam = tumorFinalBam  
     }
@@ -39,7 +39,7 @@ workflow Gridss {
         input:
             threads = threads,
             memory_gb = memory_gb,
-            gridssReferenceFa = gridssReferenceFa,
+            bwaReference= bwaReference,
             gridssAdditionalReference = gridssAdditionalReference,
             finalBam = normalFinalBam  
     }
@@ -50,7 +50,7 @@ workflow Gridss {
                 threads = threads,
                 memory_gb = 100,
                 pairName = pairName,
-                gridssReferenceFa = gridssReferenceFa,
+                bwaReference = bwaReference,
                 gridssAdditionalReference = gridssAdditionalReference,
                 jobIndex = i,
                 assembleChunks = assembleChunks,
@@ -76,7 +76,7 @@ workflow Gridss {
             threads = threads,
             memory_gb = 100,
             pairName = pairName,
-            gridssReferenceFa = gridssReferenceFa,
+            bwaReference = bwaReference,
             gridssAdditionalReference = gridssAdditionalReference,
             tumorFinalBam = tumorFinalBam,
             normalFinalBam = normalFinalBam,
@@ -104,7 +104,7 @@ workflow Gridss {
             threads = threads,
             memory_gb = 100,
             pairName = pairName,
-            gridssReferenceFa = gridssReferenceFa,
+            bwaReference = bwaReference,
             gridssAdditionalReference = gridssAdditionalReference,
             tumorFinalBam = tumorFinalBam,
             normalFinalBam = normalFinalBam,

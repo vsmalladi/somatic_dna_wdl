@@ -572,7 +572,7 @@ task GridssPreprocess {
         Int memory_gb
         Bam finalBam
         
-        BwaReference gridssReferenceFa
+        BwaReference bwaReference
         Array[File] gridssAdditionalReference
         Int diskSize = ceil( size(finalBam.bam, "GB") * 2 ) + 20
     }
@@ -588,12 +588,16 @@ task GridssPreprocess {
     command {
         set -e -o pipefail
         
+        # mv gridss fasta refs into position in the fasta dir
+        fasta_dir=$( dirname ~{bwaReference.fasta} )
+        mv ~{sep=" " gridssAdditionalReference} $fasta_dir
+        
         mkdir -p /scratch/
         working=$( pwd )
         
         gridss.sh \
         --steps preprocess \
-        --reference ~{gridssReferenceFa.fasta} \
+        --reference ~{bwaReference.fasta} \
         --jar /opt/gridss/gridss-2.11.1-gridss-jar-with-dependencies.jar \
         --threads ~{threads} \
         --workingdir $working \
@@ -631,7 +635,7 @@ task GridssAssembleChunk {
         String gridssassemblyBamPath = "~{pairName}.gridssassembly.bam"
         Int jobIndex
         Int assembleChunks
-        BwaReference gridssReferenceFa
+        BwaReference bwaReference
         Array[File] gridssAdditionalReference
         Bam tumorFinalBam
         Bam normalFinalBam
@@ -661,6 +665,11 @@ task GridssAssembleChunk {
     command {
         set -e -o pipefail
         
+        # mv gridss fasta refs into position in the fasta dir
+        fasta_dir=$( dirname ~{bwaReference.fasta} )
+        mv ~{sep=" " gridssAdditionalReference} $fasta_dir
+        
+        
         # reposition unnamed input
         sub_dir=~{normalFinalBamBase}.gridss.working/
         mkdir -p $sub_dir
@@ -677,7 +686,7 @@ task GridssAssembleChunk {
         
         bash gridss.sh \
         --steps assemble \
-        --reference ~{gridssReferenceFa.fasta} \
+        --reference ~{bwaReference.fasta} \
         --jar /opt/gridss/gridss-2.11.1-gridss-jar-with-dependencies.jar \
         --threads ~{threads} \
         --workingdir $working \
@@ -711,7 +720,7 @@ task GridssAssemble {
         String pairName
         String gridssassemblyBamPath = "~{pairName}.gridssassembly.bam"
         String gridssassemblySvBamPath = "~{pairName}.gridssassembly.bam.gridss.working/~{pairName}.gridssassembly.bam.sv.bam"
-        BwaReference gridssReferenceFa
+        BwaReference bwaReference
         Array[File] gridssAdditionalReference
         Bam tumorFinalBam
         Bam normalFinalBam
@@ -745,6 +754,10 @@ task GridssAssemble {
     command {
         set -e -o pipefail
         
+        # mv gridss fasta refs into position in the fasta dir
+        fasta_dir=$( dirname ~{bwaReference.fasta} )
+        mv ~{sep=" " gridssAdditionalReference} $fasta_dir
+        
         # link preprocess results
         # reposition unnamed input
         sub_dir=~{normalFinalBamBase}.gridss.working/
@@ -768,7 +781,7 @@ task GridssAssemble {
         
         bash gridss.sh \
         --steps assemble \
-        --reference ~{gridssReferenceFa.fasta} \
+        --reference ~{bwaReference.fasta} \
         --jar /opt/gridss/gridss-2.11.1-gridss-jar-with-dependencies.jar \
         --threads ~{threads} \
         --workingdir $working \
@@ -800,7 +813,7 @@ task GridssCalling {
         Int memory_gb
         String pairName
         String gridssUnfilteredVcfPath = "~{pairName}.sv.gridss.v2.10.2.unfiltered.vcf"
-        BwaReference gridssReferenceFa
+        BwaReference bwaReference
         Array[File] gridssAdditionalReference
         Array[File] downsampled
         Array[File] excluded
@@ -832,6 +845,10 @@ task GridssCalling {
     command {
         set -e -o pipefail
         
+        # mv gridss fasta refs into position in the fasta dir
+        fasta_dir=$( dirname ~{bwaReference.fasta} )
+        mv ~{sep=" " gridssAdditionalReference} $fasta_dir
+        
         # link assembly results
         sub_dir=~{gridssassemblyBamBase}.gridss.working/
         mkdir -p $sub_dir
@@ -846,7 +863,7 @@ task GridssCalling {
         
         bash gridss.sh \
         --steps call \
-        --reference ~{gridssReferenceFa.fasta} \
+        --reference ~{bwaReference.fasta} \
         --jar /opt/gridss/gridss-2.11.1-gridss-jar-with-dependencies.jar \
         --threads ~{threads} \
         --workingdir $working \

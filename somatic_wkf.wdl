@@ -99,7 +99,6 @@ workflow SomaticWorkflow {
         # Gridss
         String bsGenome
         File ponTarGz
-        BwaReference gridssReferenceFa
         Array[File] gridssAdditionalReference
         
         # annotation:
@@ -241,8 +240,15 @@ workflow SomaticWorkflow {
                     callRegions = callRegions,
                     bwaReference = bwaReference,
                     dbsnpIndels = dbsnpIndels,
-                    chromBedsWgs = chromBedsWgs
-
+                    chromBedsWgs = chromBedsWgs,
+                    readLength = readLength,
+                    coordReadLength = coordReadLength,
+                    uniqCoords = uniqCoords,
+                    bicseq2ConfigMaps = bicseq2ConfigMaps,
+                    chromFastas = chromFastas,
+                    bsGenome = bsGenome,
+                    ponTarGz = ponTarGz,
+                    gridssAdditionalReference = gridssAdditionalReference
             }
 
             call msi.Msi {
