@@ -475,7 +475,7 @@ task Bicseq2Norm {
         Array[File] tempSeqs
         Array[String] tempNormPaths
         
-        File configFile
+        File bicseq2ConfigFile
         String configFilePath = "~{sampleId}.bicseq2.config"
 
         Array[File] uniqCoordsFiles
@@ -492,7 +492,7 @@ task Bicseq2Norm {
         --mappability-files ~{sep=" " uniqCoordsFiles} \
         --temp-seqs ~{sep=" " tempSeqs} \
         --temp-norm-paths ~{sep=" " tempNormPaths} \
-        --norm-bicseq2-config ~{configFile} \
+        --norm-bicseq2-config ~{bicseq2ConfigFile} \
         --sample-id ~{sampleId} \
         --out-file ~{configFilePath}
         
@@ -528,7 +528,7 @@ task Bicseq2Wgs {
         String bicseq2Path = "~{pairName}.bicseq2.v0.2.6.txt"
         Array[File] tempTumorNorms
         Array[File] tempNormalNorms
-        File segConfigFile
+        File bicseq2SegConfigFile
         String segConfigFilePath = "~{pairName}.bicseq2.seg.config"
         Int lambda = 4
         Int diskSize = 100
@@ -541,7 +541,7 @@ task Bicseq2Wgs {
         /bicseq2_seg_config_writer.py \
         --tumor-norms ~{sep=" " tempTumorNorms} \
         --normal-norms ~{sep=" " tempNormalNorms} \
-        --seg-bicseq2-config ~{segConfigFile} \
+        --seg-bicseq2-config ~{bicseq2SegConfigFile} \
         --out-file ~{segConfigFilePath} \
         --pair-id ~{pairName}
         

@@ -90,7 +90,8 @@ workflow SomaticWorkflow {
         Int readLength
         Int coordReadLength
         Map[Int, Map[String, File]] uniqCoords
-        Map[String, Map[String, File]] bicseq2ConfigMaps
+        File bicseq2ConfigFile
+        File bicseq2SegConfigFile
         Map[String, File] chromFastas
         Int tumorMedianInsertSize = 400
         Int normalMedianInsertSize = 400
@@ -244,7 +245,8 @@ workflow SomaticWorkflow {
                     readLength = readLength,
                     coordReadLength = coordReadLength,
                     uniqCoords = uniqCoords,
-                    bicseq2ConfigMaps = bicseq2ConfigMaps,
+                    bicseq2ConfigFile = bicseq2ConfigFile,
+                    bicseq2SegConfigFile = bicseq2SegConfigFile,
                     chromFastas = chromFastas,
                     bsGenome = bsGenome,
                     ponTarGz = ponTarGz,

@@ -32,7 +32,8 @@ workflow Calling {
         Int readLength
         Int coordReadLength
         Map[Int, Map[String, File]] uniqCoords
-        Map[String, Map[String, File]] bicseq2ConfigMaps
+        File bicseq2ConfigFile
+        File bicseq2SegConfigFile
         Map[String, File] chromFastas
         Int tumorMedianInsertSize = 400
         Int normalMedianInsertSize = 400
@@ -134,9 +135,8 @@ workflow Calling {
             readLength = readLength,
             coordReadLength = coordReadLength,
             uniqCoords = uniqCoords,
-            tumorConfigFile = bicseq2ConfigMaps[pairInfo.pairId]["tumorConfigFile"],
-            normalConfigFile = bicseq2ConfigMaps[pairInfo.pairId]["normalConfigFile"],
-            segConfigFile = bicseq2ConfigMaps[pairInfo.pairId]["segConfigFile"],
+            bicseq2ConfigFile = bicseq2ConfigFile,
+            bicseq2SegConfigFile = bicseq2SegConfigFile,
             chromFastas = chromFastas,
             listOfChromsFull = listOfChromsFull,
             pairName = pairInfo.pairId,

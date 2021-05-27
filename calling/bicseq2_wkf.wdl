@@ -18,15 +18,13 @@ workflow BicSeq2 {
         Int coordReadLength
         Map[Int, Map[String, File]] uniqCoords
         
-        File tumorConfigFile
-        File normalConfigFile
+        File bicseq2ConfigFile
+        File bicseq2SegConfigFile
         Int tumorMedianInsertSize = 400
         Int normalMedianInsertSize = 400
         Map[String, File] chromFastas
         
         IndexedReference referenceFa
-        
-        File segConfigFile
         
         Int lambda = 4
     }
@@ -71,7 +69,7 @@ workflow BicSeq2 {
         input:
             sampleId = tumor,
             tempSeqs = uniqReadsTumor.tempSeqs,
-            configFile = tumorConfigFile,
+            bicseq2ConfigFile = bicseq2ConfigFile,
             sampleId = tumor,
             readLength = readLength,
             medianInsertSize = tumorMedianInsertSize,
@@ -90,7 +88,7 @@ workflow BicSeq2 {
         input:
             sampleId = normal,
             tempSeqs = uniqReadsNormal.tempSeqs,
-            configFile = normalConfigFile,
+            bicseq2ConfigFile = bicseq2ConfigFile,
             sampleId = normal,
             readLength = readLength,
             medianInsertSize = normalMedianInsertSize,
@@ -105,7 +103,7 @@ workflow BicSeq2 {
             pairName = pairName,
             tempTumorNorms = tumorBicseq2Norm.tempNorm,
             tempNormalNorms = normalBicseq2Norm.tempNorm,
-            segConfigFile = segConfigFile,
+            bicseq2SegConfigFile = bicseq2SegConfigFile,
             lambda = lambda,
             memoryGb = 8
     }

@@ -8,47 +8,35 @@ class Bicseq2Prep():
     ''''Prep the non-sample-specific and non-filesystem-specific 
     portion of the config files.
     Also returns the Bicseq2 WDL input variables that will be required for the run.'''
-    def __init__(self, pair_relationships,
-                 list_of_chroms_full,
+    def __init__(self, list_of_chroms_full,
                  uniq_coords,
                  read_length,
                  upload_bucket
                  ):
         self.list_of_chroms_full = list_of_chroms_full['object']
         self.upload_bucket_uri = upload_bucket
-        self.pair_relationships = pair_relationships
         self.read_length = self.match_read_length(uniq_coords, read_length)
         self.uniq_coords = uniq_coords['object'][self.read_length]
         self.inputs = {}
         self.inputs['coordReadLength'] = self.read_length
         self.inputs['readLength'] = read_length
-        self.inputs['bicseq2ConfigMaps'] = {}
-        for pair_relationship in self.pair_relationships:
-            self.inputs['bicseq2ConfigMaps'][pair_relationship['pairId']] = {}
-            self.write_sample_configs(pair_relationship)
-            self.write_pair_config(pair_relationship)
+        self.write_sample_configs()
+        self.write_pair_config()
         
     def write_sample_configs(self, pair_relationship):
         '''create and upload configs for the normalization steps'''
-        # tumor
-        data = self.prep(pair_relationship['tumor'])
-        file = pair_relationship['tumor'] + '.bicseq2.config'
+        data = self.prep()
+        file = 'sampleId.bicseq2.config'
         config = data.to_csv(sep='\t', index=False)
         uri = self.upload(file, config)
-        self.inputs['bicseq2ConfigMaps'][pair_relationship['pairId']]['tumorConfigFile'] = uri
-        # normal
-        data = self.prep(pair_relationship['normal'])
-        file = pair_relationship['normal'] + '.bicseq2.config'
-        config = data.to_csv(sep='\t', index=False)
-        uri = self.upload(file, config)
-        self.inputs['bicseq2ConfigMaps'][pair_relationship['pairId']]['normalConfigFile'] = uri
+        self.inputs['bicseq2ConfigFile'] = uri
         
-    def write_pair_config(self, pair_relationship):
-        file = pair_relationship['pairId'] + '.bicseq2.seg.config'
-        data = self.prep_pair(pair_relationship)
+    def write_pair_config(self):
+        file = 'pairId.bicseq2.seg.config'
+        data = self.prep_pair()
         config = data.to_csv(sep='\t', index=False)
         uri = self.upload(file, config)
-        self.inputs['bicseq2ConfigMaps'][pair_relationship['pairId']]['segConfigFile'] = uri
+        self.inputs['bicseq2SegConfigFile'] = uri
             
     def parse_url(self, url):
         '''divide gcp bucket location into parts'''
@@ -77,18 +65,14 @@ class Bicseq2Prep():
                 length_key = length
                 return length_key
             
-    def convert_path(self, uri):
-        '''convert to gcp path (not ideal but forced by config-style running'''
-        return uri.replace('gs://', '/cromwell_root/')
-            
-    def prep_pair(self, pair_relationship):
-        ''' file: tumor--normal.bicseq2.seg.config
+    def prep_pair(self):
+        ''' file: pairId.bicseq2.seg.config
         prep fasta-specific but sample independent portion of config file'''
         data = pd.DataFrame({'chr' : [chrom for chrom in self.list_of_chroms_full]})
         return data
         
-    def prep(self, sample_id):
-        ''' sample_id.bicseq2.config
+    def prep(self):
+        ''' sampleId.bicseq2.config
         prep fasta-specific but sample independent portion of config file'''
         data = pd.DataFrame({'chrom_name' : [chrom for chrom in self.list_of_chroms_full]})
         return data
