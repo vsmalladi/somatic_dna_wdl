@@ -840,6 +840,12 @@ task GridssCalling {
         Int diskSize = ceil( size(tumorFinalBam.bam, "GB") * 2) + ceil( size(normalFinalBam.bam, "GB") *2) + 20
     }
     
+    String normalSvbamBase = basename(normalSvBam.bam)
+    String tumorSvbamBase = basename(tumorSvBam.bam)
+    String normalFinalBamBase = basename(normalFinalBam.bam)
+    String tumorFinalBamBase = basename(tumorFinalBam.bam)
+    
+    
     String gridssassemblyBamBase = basename(gridssassemblyBam)
 
     command {
@@ -858,6 +864,25 @@ task GridssCalling {
         ln -s \
         ~{gridssassemblyBam} \
         ~{gridssassemblyBamBase}
+        
+        # link chunk assembly results
+        sub_dir=~{gridssassemblyBamBase}.gridss.working/
+        mkdir -p $sub_dir
+        copied_sub_dir=$( dirname ~{downsampled[0]} )
+        ln -s $copied_sub_dir/* $sub_dir
+        
+        # link preprocess results
+        # reposition unnamed input
+        sub_dir=~{normalFinalBamBase}.gridss.working/
+        mkdir -p $sub_dir
+        copied_sub_dir=$( dirname ~{normalSvBam.bam} )
+        ln -s $copied_sub_dir/* $sub_dir
+        
+        # reposition unnamed input
+        sub_dir=~{tumorFinalBamBase}.gridss.working/
+        mkdir -p $sub_dir
+        copied_sub_dir=$( dirname ~{tumorSvBam.bam} )
+        ln -s $copied_sub_dir/* $sub_dir
         
         working=$( pwd )
         
@@ -900,6 +925,10 @@ task GridssFilter {
     }
 
     command {
+    
+        echo "install.packages(\"tidyverse\")" | R --no-save
+        echo "install.packages(\"testthat\")" | R --no-save
+        
         set -e -o pipefail
         
         tar -zxvf ~{ponTarGz}
