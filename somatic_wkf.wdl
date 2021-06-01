@@ -65,8 +65,23 @@ workflow SomaticWorkflow {
         File mutectJsonLog
         File mutectJsonLogFilter
         File configureStrelkaSomaticWorkflow
-
-
+        
+        #   BicSeq2
+        Int readLength
+        Int coordReadLength
+        Map[Int, Map[String, File]] uniqCoords
+        File bicseq2ConfigFile
+        File bicseq2SegConfigFile
+        Map[String, File] chromFastas
+        Int tumorMedianInsertSize = 400
+        Int normalMedianInsertSize = 400
+        Int lambda = 4
+        
+        # Gridss
+        String bsGenome
+        File ponTarGz
+        Array[File] gridssAdditionalReference
+        
         # merge callers
         File intervalListBed
 
@@ -85,22 +100,6 @@ workflow SomaticWorkflow {
         File mantisBed
         File intervalListBed
         IndexedReference referenceFa
-        
-        #   BicSeq2
-        Int readLength
-        Int coordReadLength
-        Map[Int, Map[String, File]] uniqCoords
-        File bicseq2ConfigFile
-        File bicseq2SegConfigFile
-        Map[String, File] chromFastas
-        Int tumorMedianInsertSize = 400
-        Int normalMedianInsertSize = 400
-        Int lambda = 4
-        
-        # Gridss
-        String bsGenome
-        File ponTarGz
-        Array[File] gridssAdditionalReference
         
         # annotation:
         String vepGenomeBuild

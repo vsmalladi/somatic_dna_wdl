@@ -28,6 +28,7 @@ workflow Calling {
         BwaReference bwaReference
         #   Lancet
         Map[String, File] chromBedsWgs
+        
         #   BicSeq2
         Int readLength
         Int coordReadLength
