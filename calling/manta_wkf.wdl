@@ -44,8 +44,8 @@ workflow Manta {
         input:
             inVcf = MantaWgs.somaticSV.vcf,
             jsonLog = mantaJsonLog,
-            memoryGb = 2,
-            diskSize = 1
+            memoryGb = 4,
+            diskSize = 10
     }
 
     call calling.ReorderVcfColumns as mantaReorderVcfColumns {

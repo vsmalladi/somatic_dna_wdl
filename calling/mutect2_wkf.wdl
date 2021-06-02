@@ -63,8 +63,8 @@ workflow Mutect2 {
         input:
             inVcf = filteredGatk4MergeSortVcf.sortedVcf.vcf,
             jsonLog = mutectJsonLogFilter,
-            memoryGb = 2,
-            diskSize = 1
+            memoryGb = 4,
+            diskSize = 10
     }
 
     call calling.ReorderVcfColumns as filteredReorderVcfColumns {
