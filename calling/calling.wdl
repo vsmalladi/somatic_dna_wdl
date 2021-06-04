@@ -919,16 +919,13 @@ task GridssFilter {
         String pairName
         File ponTarGz
         String gridssVcfPath = "~{pairName}.sv.gridss.v2.10.2.vcf"
+        String gridssVcfPathOut = "~{pairName}.sv.gridss.v2.10.2.vcf.bgz"
         String tumourordinal = 2
         File gridssUnfilteredVcf
         Int diskSize = 30
     }
 
     command {
-    
-        echo "install.packages(\"tidyverse\")" | R --no-save
-        echo "install.packages(\"testthat\")" | R --no-save
-        
         set -e -o pipefail
         
         tar -zxvf ~{ponTarGz}
@@ -947,7 +944,10 @@ task GridssFilter {
     }
 
     output {
-        File gridssVcf = "~{pairName}.sv.gridss.v2.10.2.vcf"
+        IndexedVcf gridssVcf = object {
+                vcf : "~{gridssVcfPathOut}",
+                index : "~{gridssVcfPathOut}.tbi"
+            }
     }
 
     runtime {

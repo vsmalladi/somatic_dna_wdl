@@ -173,7 +173,7 @@ workflow Calling {
         # Lancet
         File lancet = Lancet.lancet
         # Gridss
-        File gridssVcf = Gridss.gridssVcf
+        IndexedVcf gridssVcf = Gridss.gridssVcf
         # Bicseq2
         File bicseq2Png = BicSeq2.bicseq2Png
         File bicseq2 = BicSeq2.bicseq2
