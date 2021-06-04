@@ -141,6 +141,6 @@ workflow Gridss {
     }
     
     output {
-        File gridssVcf = GridssFilter.gridssVcf
+        IndexedVcf gridssVcf = GridssFilter.gridssVcf
     }
 }

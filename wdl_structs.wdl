@@ -1,6 +1,16 @@
 version 1.0
 
 
+struct IndexedVcf {
+    File vcf
+    File index
+}
+
+struct IndexedTable {
+    File table
+    File index
+}
+
 struct Bam {
     File bam
     File bamIndex
@@ -58,7 +68,7 @@ struct PairRawVcfInfo {
     File lancet
     File svabaSv
     File svabaIndel
-    File gridssVcf
+    IndexedVcf gridssVcf
     File bicseq2Png
     File bicseq2
     String tumor
@@ -118,12 +128,3 @@ struct pairInfo {
     String normal
 }
 
-struct IndexedVcf {
-    File vcf
-    File index
-}
-
-struct IndexedTable {
-    File table
-    File index
-}
