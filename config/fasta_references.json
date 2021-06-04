@@ -59,6 +59,62 @@
                 "chrY"
             ]
         },
+        "dgvBedpe" :{
+            "type": "File",
+            "description" : "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/DGV.GRCh38_hg38_variants_2020-02-25.README.txt",
+            "object" : "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/DGV.GRCh38_hg38_variants_2020-02-25.bedpe"
+        },
+        "gap" :{
+            "type": "File",
+            "description" : "",
+            "object" : "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/GRCh38.gap.UCSC.annotated.chr.sorted.bed"
+        },
+        "thousandGVcf" :{
+            "type": "File",
+            "description" : "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/1KGP.pruned_wAFs.PASS_and_MULTIALLELIC_Mosaic.GRCh38.README.txt",
+            "object" : "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/1KGP.pruned_wAFs.PASS_and_MULTIALLELIC_Mosaic.GRCh38.vcf"
+        },
+        "svPon" :{
+            "type": "File",
+            "description" : "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/README_PON",
+            "object" : "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/PON_lumpy_allsamples_merge.01_16_19.annotated.filter_variants.bedpe"
+        },
+        "cosmicBedPe" :{
+            "type": "File",
+            "description" : "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/cosmic-sv-GRCh38-v92.README.txt",
+            "object" : "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/cosmic-sv-GRCh38-v92.bedpe"
+        },
+        "dgv" :{
+            "type": "File",
+            "description" : "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/DGV.GRCh38_hg38_variants_2020-02-25.README.txt",
+            "object" : "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/DGV.GRCh38_hg38_variants_2020-02-25.bed"
+        },
+        "cytoBand" :{
+            "type": "File",
+            "description" : "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/CosmicCompleteCNA.GRch38.README.txt",
+            "object" : "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/external/GRCh38.cytoBand.UCSC.chr.sorted.txt"
+        },
+        "thousandG" :{
+            "type": "File",
+            "description" : "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/v92/1KGP.CNV.GRCh38.canvas.merged.README.txt",
+            "object" : "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/v92/1KGP.CNV.GRCh38.canvas.merged.bed"
+        },
+        "cosmicUniqueBed" :{
+            "type": "File",
+            "description" : "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/CosmicCompleteCNA.GRch38.README.txt",
+            "object" : "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/v92/CosmicCompleteCNA.GRch38.bed"
+        },
+        "cancerCensusBed" :{
+            "type": "File",
+            "description" : "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/v86/cancer_census.README.internal.txt",
+            "object" : "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/v86/cancer_gene_census.v86.final.chr.sorted.final.withTier.bed"
+        },
+        "ensemblUniqueBed" :{
+            "type": "File",
+            "description" : "",
+            "object" : "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/ensembl_genes_unique_sorted.final.v93.chr.sorted.bed"
+        },
+
         "deconstructSigs" :{
             "type": "File",
             "description" : "",
