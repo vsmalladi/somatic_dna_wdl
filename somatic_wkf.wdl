@@ -9,6 +9,7 @@ import "alignment_analysis/kourami_wfk.wdl" as kourami
 import "alignment_analysis/msi_wkf.wdl" as msi
 import "pre_process/conpair_wkf.wdl" as conpair
 import "annotate/annotate_wkf.wdl" as annotate
+import "annotate/annotate_cnv_sv_wkf.wdl" as annotate_cnv_sv
 
 # for wdl version 1.0
 
@@ -127,6 +128,23 @@ workflow SomaticWorkflow {
         IndexedVcf deepIntronicsVcf
         IndexedVcf clinvarIntronicsVcf
         IndexedVcf masterMind
+        
+        # annotate cnv
+        File cytoBand
+        File dgv
+        File thousandG
+        File cosmicUniqueBed
+        File cancerCensusBed
+        File ensemblUniqueBed
+        
+        # annotate sv
+        String vepGenomeBuild
+        # gap,DGV,1000G,PON,COSMIC
+        File gap
+        File dgvBedpe
+        File thousandGVcf
+        File svPon
+        File cosmicBedPe
         
         # post annotation
         File cosmicCensus
@@ -343,12 +361,46 @@ workflow SomaticWorkflow {
                     ensemblEntrez = ensemblEntrez,
                     library = library  
             }
+            
+            call annotate_cnv_sv.AnnotateCnvSv {
+                input:
+                    tumor=pairRawVcfInfo.tumor,
+                    normal=pairRawVcfInfo.normal,
+                    pairName=pairRawVcfInfo.pairId,
+                    listOfChroms=listOfChroms,
+                    bicseq2=pairRawVcfInfo.bicseq2,
+                    cytoBand=cytoBand,
+                    dgv=dgv,
+                    thousandG=thousandG,
+                    cosmicUniqueBed=cosmicUniqueBed,
+                    cancerCensusBed=cancerCensusBed, 
+                    ensemblUniqueBed=ensemblUniqueBed,
+                    
+                    filteredMantaSV=pairRawVcfInfo.filteredMantaSV,
+                    svabaSv=pairRawVcfInfo.svabaSv,
+                    gridssVcf=pairRawVcfInfo.gridssVcf,
+                    vepGenomeBuild=vepGenomeBuild,
+                    gap=gap,
+                    dgvBedpe=dgvBedpe,
+                    thousandGVcf=thousandGVcf,
+                    svPon=svPon,
+                    cosmicBedPe=cosmicBedPe
+                
+        }
       }
       
    }
 
     output {
         # alignment and calling results (calling results may not exist if qc failed)
+        # CNV SV output
+        Array[File?] cnvAnnotatedFinalBed  = AnnotateCnvSv.cnvAnnotatedFinalBed
+        Array[File?] cnvAnnotatedSupplementalBed  = AnnotateCnvSv.cnvAnnotatedSupplementalBed
+        Array[File?] svFinalBedPe = AnnotateCnvSv.svFinalBedPe
+        Array[File?] svHighConfidenceFinalBedPe = AnnotateCnvSv.svHighConfidenceFinalBedPe
+        Array[File?] svSupplementalBedPe = AnnotateCnvSv.svSupplementalBedPe
+        Array[File?] svHighConfidenceSupplementalBedPe = AnnotateCnvSv.svHighConfidenceSupplementalBedPe
+        # SNV INDELs
         Array[PairVcfInfo?] pairVcfInfos = Annotate.pairVcfInfo
         Array[File?] mergedVcfs = mergedVcf
         Array[Bam] finalBams = Preprocess.finalBam
