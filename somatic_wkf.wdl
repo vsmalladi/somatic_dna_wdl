@@ -46,6 +46,7 @@ workflow SomaticWorkflow {
         File chromLengths
         File hsMetricsIntervals
         File randomIntervals
+        Array[sampleInfo]+ normalSampleInfos
         Array[sampleInfo]+ sampleInfos
         Array[PairRelationship]+ listOfPairRelationships
 
@@ -151,7 +152,7 @@ workflow SomaticWorkflow {
         
         File ensemblEntrez
     }
-
+    
     scatter (sampleInfoObj in sampleInfos) {
         call preProcess.Preprocess {
             input:
@@ -174,15 +175,6 @@ workflow SomaticWorkflow {
                 wgsMetricsFile = Preprocess.collectWgsMetrics,
                 expectedCoverage = sampleInfoObj.expectedCoverage
         }
-        if (BamQcCheck.coveragePass) {
-            call kourami.Kourami {
-                input:
-                    sampleId = sampleInfoObj.sampleId,
-                    kouramiReference = kouramiReference,
-                    finalBam = Preprocess.finalBam,
-                    kouramiFastaGem1Index = kouramiFastaGem1Index
-            }
-        }
 
         # for wdl version 1.0
         String sampleIds = sampleInfoObj.sampleId
@@ -190,6 +182,25 @@ workflow SomaticWorkflow {
         # for wdl version 1.1
         # Pair[String, Bam] bamPairs = (sampleInfo.sampleId, Preprocess.finalBam)
 
+    }
+    
+    scatter (sampleInfoObj in normalSampleInfos) {
+    
+        call GetIndex as germlineGetIndex {
+            input:
+                sampleIds = sampleIds,
+                sampleId = sampleInfoObj.sampleId
+        }
+        
+        if (BamQcCheck.coveragePass[germlineGetIndex.index]) {
+            call kourami.Kourami {
+                input:
+                    sampleId = sampleInfoObj.sampleId,
+                    kouramiReference = kouramiReference,
+                    finalBam = Preprocess.finalBam[germlineGetIndex.index],
+                    kouramiFastaGem1Index = kouramiFastaGem1Index
+            }
+        }
     }
 
     # for wdl version 1.1
