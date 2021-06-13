@@ -4,6 +4,55 @@ import "../wdl_structs.wdl"
 
 # General tasks
 
+task Gatk4MergeSortCompressVcf {
+    input {
+        Int diskSize = 10
+        Int memoryGb = 8
+        String sortedVcfPath
+        Array[File] tempChromVcfs
+        IndexedReference referenceFa
+    }
+
+    command {
+        gatk \
+        SortVcf \
+        --java-options "-XX:ParallelGCThreads=4" \
+        -SD ~{referenceFa.dict} \
+        -I ~{sep=" -I " tempChromVcfs} \
+        -O ~{sortedVcfPath}
+    }
+
+    output {
+        IndexedVcf sortedIndexedVcf = object {
+                vcf : "~{sortedVcfPath}",
+                index : "~{sortedVcfPath}.tbi"
+            }
+    }
+    
+    parameter_meta {
+        sortedVcfPath: {
+            description: "Output VCF filename for file in BGZF format. Must end in .gz. Corresponding index file will end in .tbi",
+            category: "other"
+        }
+        
+        tempChromVcfs: {
+            description: "Input VCF filenames",
+            category: "required"
+        }
+        
+        referenceFa: {
+            description: "Fasta object (the dictionary will be used to order the final VCF)",
+            category: "required"
+        }
+    }
+
+    runtime {
+        disks: "local-disk " + diskSize + " HDD"
+        memory : memoryGb + "GB"
+        docker : "us.gcr.io/broad-gatk/gatk:4.1.1.0"
+    }
+}
+
 task Gatk4MergeSortVcf {
     input {
         Int diskSize = 10
@@ -27,6 +76,23 @@ task Gatk4MergeSortVcf {
                 vcf : "~{sortedVcfPath}",
                 index : "~{sortedVcfPath}.idx"
             }
+    }
+    
+    parameter_meta {
+        sortedVcfPath: {
+            description: "Output VCF filename for uncompressed output file. Must not end in .gz. Corresponding index file will end in .idx",
+            category: "other"
+        }
+        
+        tempChromVcfs: {
+            description: "Input VCF filenames",
+            category: "required"
+        }
+        
+        referenceFa: {
+            description: "Fasta object (the dictionary will be used to order the final VCF)",
+            category: "required"
+        }
     }
 
     runtime {
