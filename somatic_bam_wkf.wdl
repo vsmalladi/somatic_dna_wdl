@@ -318,21 +318,21 @@ workflow SomaticBamWorkflow {
     output {
         # alignment and calling results (calling results may not exist if qc failed)
         # CNV SV output
-        Array[File?] cnvAnnotatedFinalBed  = AnnotateCnvSv.cnvAnnotatedFinalBed
-        Array[File?] cnvAnnotatedSupplementalBed  = AnnotateCnvSv.cnvAnnotatedSupplementalBed
-        Array[File?] svFinalBedPe = AnnotateCnvSv.svFinalBedPe
-        Array[File?] svHighConfidenceFinalBedPe = AnnotateCnvSv.svHighConfidenceFinalBedPe
-        Array[File?] svSupplementalBedPe = AnnotateCnvSv.svSupplementalBedPe
-        Array[File?] svHighConfidenceSupplementalBedPe = AnnotateCnvSv.svHighConfidenceSupplementalBedPe
+        Array[File] cnvAnnotatedFinalBed  = AnnotateCnvSv.cnvAnnotatedFinalBed
+        Array[File] cnvAnnotatedSupplementalBed  = AnnotateCnvSv.cnvAnnotatedSupplementalBed
+        Array[File] svFinalBedPe = AnnotateCnvSv.svFinalBedPe
+        Array[File] svHighConfidenceFinalBedPe = AnnotateCnvSv.svHighConfidenceFinalBedPe
+        Array[File] svSupplementalBedPe = AnnotateCnvSv.svSupplementalBedPe
+        Array[File] svHighConfidenceSupplementalBedPe = AnnotateCnvSv.svHighConfidenceSupplementalBedPe
         # SNV INDELs
-        Array[PairVcfInfo?] pairVcfInfos = Annotate.pairVcfInfo
-        Array[File?] mergedVcfs = mergedVcf
-        Array[PairRawVcfInfo?] pairRawVcfInfos = pairRawVcfInfo
-        Array[File?] kouramiResult = Kourami.result
-        Array[File?] mantisWxsKmerCountsFinal = Msi.mantisWxsKmerCountsFinal
-        Array[File?] mantisWxsKmerCountsFiltered = Msi.mantisWxsKmerCountsFiltered
-        Array[File?] mantisExomeTxt = Msi.mantisExomeTxt
-        Array[File?] mantisStatusFinal = Msi.mantisStatusFinal
+        Array[PairVcfInfo] pairVcfInfos = Annotate.pairVcfInfo
+        Array[File] mergedVcfs = mergedVcf
+        Array[PairRawVcfInfo] pairRawVcfInfos = pairRawVcfInfo
+        Array[File] kouramiResult = Kourami.result
+        Array[File] mantisWxsKmerCountsFinal = Msi.mantisWxsKmerCountsFinal
+        Array[File] mantisWxsKmerCountsFiltered = Msi.mantisWxsKmerCountsFiltered
+        Array[File] mantisExomeTxt = Msi.mantisExomeTxt
+        Array[File] mantisStatusFinal = Msi.mantisStatusFinal
 
         # Conpair
         Array[File] concordanceAll = Conpair.concordanceAll
