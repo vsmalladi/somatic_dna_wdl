@@ -199,7 +199,7 @@ workflow SomaticBamWorkflow {
         
         call germlineAnnotate.GermlineAnnotate {
             input:
-                unannotatedVcf = Germline.haplotypecallerFinalFiltered.vcf,
+                unannotatedVcf = Germline.haplotypecallerFinalFiltered,
                 referenceFa = referenceFa,
                 normal = normalSampleBamInfo.sampleId,
                 vepGenomeBuild = vepGenomeBuild,

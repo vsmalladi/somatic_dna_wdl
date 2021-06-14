@@ -9,7 +9,7 @@ workflow GermlineAnnotate {
     input {
         String normal
         String sampleId = "~{normal}"
-        File unannotatedVcf
+        IndexedVcf unannotatedVcf
         
         String vepGenomeBuild
         IndexedVcf cosmicCoding
@@ -43,23 +43,13 @@ workflow GermlineAnnotate {
         String library
     
         IndexedReference referenceFa
-        Int vepDiskSize = ceil(size(vepCache, "GB") + size(plugins, "GB") + size(annotations, "GB") + size(hgmdGene.vcf, "GB") + size(hgmdUd10.vcf, "GB") + size(hgmdPro.vcf, "GB") + size(omimVcf.vcf, "GB") + size(chdGenesVcf.vcf, "GB") + size(chdEvolvingGenesVcf.vcf, "GB") + size(chdWhitelistVcf.vcf, "GB") + size(deepIntronicsVcf.vcf, "GB") + size(clinvarIntronicsVcf.vcf, "GB") + size(masterMind.vcf, "GB") + (size(unannotatedVcf, "GB") * 2)) + 500
-    }
-        
-    call merge_vcf.CompressVcf as unannotatedCompressVcf {
-        input:
-            vcf = unannotatedVcf
-    }
-
-    call merge_vcf.IndexVcf as unannotatedIndexVcf {
-        input:
-            vcfCompressed = unannotatedCompressVcf.vcfCompressed
+        Int vepDiskSize = ceil(size(vepCache, "GB") + size(plugins, "GB") + size(annotations, "GB") + size(hgmdGene.vcf, "GB") + size(hgmdUd10.vcf, "GB") + size(hgmdPro.vcf, "GB") + size(omimVcf.vcf, "GB") + size(chdGenesVcf.vcf, "GB") + size(chdEvolvingGenesVcf.vcf, "GB") + size(chdWhitelistVcf.vcf, "GB") + size(deepIntronicsVcf.vcf, "GB") + size(clinvarIntronicsVcf.vcf, "GB") + size(masterMind.vcf, "GB") + (size(unannotatedVcf.vcf, "GB") * 2)) + 500
     }
     
     call variantEffectPredictor.vepSvnIndel {
         input:
             pairName = sampleId,
-            unannotatedVcf = unannotatedIndexVcf.vcfCompressedIndexed,
+            unannotatedVcf = unannotatedVcf,
             vepCache = vepCache,
             annotations = annotations,
             plugins = plugins,

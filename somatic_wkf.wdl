@@ -245,7 +245,7 @@ workflow SomaticWorkflow {
             
             call germlineAnnotate.GermlineAnnotate {
                 input:
-                    unannotatedVcf = Germline.haplotypecallerFinalFiltered.vcf,
+                    unannotatedVcf = Germline.haplotypecallerFinalFiltered,
                     referenceFa = referenceFa,
                     normal = sampleInfoObj.sampleId,
                     vepGenomeBuild = vepGenomeBuild,
