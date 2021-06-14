@@ -243,37 +243,6 @@ workflow SomaticWorkflow {
                     clinvarIntronicsVcf=clinvarIntronicsVcf
             }
             
-            call germlineAnnotate.GermlineAnnotate {
-                input:
-                    unannotatedVcf = Germline.haplotypecallerFinalFiltered,
-                    referenceFa = referenceFa,
-                    normal = sampleInfoObj.sampleId,
-                    vepGenomeBuild = vepGenomeBuild,
-                    cosmicCoding = cosmicCoding,
-                    cosmicNoncoding = cosmicNoncoding,
-                    # Public
-                    cancerResistanceMutations = cancerResistanceMutations,
-                    vepCache = vepCache,
-                    annotations = annotations,
-                    plugins = plugins,
-                    vepFastaReference = vepFastaReference,
-                    # NYGC-only
-                    hgmdGene = hgmdGene,
-                    hgmdUd10 = hgmdUd10,
-                    hgmdPro = hgmdPro,
-                    omimVcf = omimVcf,
-                    # Public
-                    chdGenesVcf = chdGenesVcf,
-                    chdEvolvingGenesVcf = chdEvolvingGenesVcf,
-                    chdWhitelistVcf = chdWhitelistVcf,
-                    deepIntronicsVcf = deepIntronicsVcf,
-                    clinvarIntronicsVcf = clinvarIntronicsVcf,
-                    masterMind = masterMind,
-                    # post annotation
-                    cosmicCensus = cosmicCensus,
-                    ensemblEntrez = ensemblEntrez,
-                    library = library  
-            }
         }
     }
 
@@ -491,7 +460,6 @@ workflow SomaticWorkflow {
         Array[File?] mergedVcfs = mergedVcf
         Array[Bam] finalBams = Preprocess.finalBam
         Array[PairRawVcfInfo?] pairRawVcfInfos = pairRawVcfInfo
-        Array[File?] kouramiResult = Kourami.result
         Array[File?] mantisWxsKmerCountsFinal = Msi.mantisWxsKmerCountsFinal
         Array[File?] mantisWxsKmerCountsFiltered = Msi.mantisWxsKmerCountsFiltered
         Array[File?] mantisExomeTxt = Msi.mantisExomeTxt
@@ -534,9 +502,9 @@ workflow SomaticWorkflow {
         Array[File] qcResults = SomaticQcCheck.qcResult
         
         # Germline
+        Array[File?] kouramiResult = Kourami.result
         Array[IndexedVcf?] haplotypecallerVcf = Germline.haplotypecallerVcf 
         Array[IndexedVcf?] haplotypecallerFinalFiltered = Germline.haplotypecallerFinalFiltered 
-        Array[File?] haplotypecallerAnnotatedVcf = GermlineAnnotate.haplotypecallerAnnotatedVcf
         
     }
 }

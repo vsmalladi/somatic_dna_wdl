@@ -196,38 +196,6 @@ workflow SomaticBamWorkflow {
                 deepIntronicsVcf=deepIntronicsVcf,
                 clinvarIntronicsVcf=clinvarIntronicsVcf
         }
-        
-        call germlineAnnotate.GermlineAnnotate {
-            input:
-                unannotatedVcf = Germline.haplotypecallerFinalFiltered,
-                referenceFa = referenceFa,
-                normal = normalSampleBamInfo.sampleId,
-                vepGenomeBuild = vepGenomeBuild,
-                cosmicCoding = cosmicCoding,
-                cosmicNoncoding = cosmicNoncoding,
-                # Public
-                cancerResistanceMutations = cancerResistanceMutations,
-                vepCache = vepCache,
-                annotations = annotations,
-                plugins = plugins,
-                vepFastaReference = vepFastaReference,
-                # NYGC-only
-                hgmdGene = hgmdGene,
-                hgmdUd10 = hgmdUd10,
-                hgmdPro = hgmdPro,
-                omimVcf = omimVcf,
-                # Public
-                chdGenesVcf = chdGenesVcf,
-                chdEvolvingGenesVcf = chdEvolvingGenesVcf,
-                chdWhitelistVcf = chdWhitelistVcf,
-                deepIntronicsVcf = deepIntronicsVcf,
-                clinvarIntronicsVcf = clinvarIntronicsVcf,
-                masterMind = masterMind,
-                # post annotation
-                cosmicCensus = cosmicCensus,
-                ensemblEntrez = ensemblEntrez,
-                library = library  
-        }
     }
     
     scatter(pairInfo in pairInfos) {
@@ -392,7 +360,9 @@ workflow SomaticBamWorkflow {
    }
 
     output {
-        # alignment and calling results (calling results may not exist if qc failed)
+        # Germline
+        Array[IndexedVcf] haplotypecallerFinalFiltered = Germline.haplotypecallerFinalFiltered
+        Array[File] kouramiResult = Kourami.result
         # CNV SV output
         Array[File] cnvAnnotatedFinalBed  = AnnotateCnvSv.cnvAnnotatedFinalBed
         Array[File] cnvAnnotatedSupplementalBed  = AnnotateCnvSv.cnvAnnotatedSupplementalBed
@@ -404,7 +374,6 @@ workflow SomaticBamWorkflow {
         Array[PairVcfInfo] pairVcfInfos = Annotate.pairVcfInfo
         Array[File] mergedVcfs = mergedVcf
         Array[PairRawVcfInfo] pairRawVcfInfos = pairRawVcfInfo
-        Array[File] kouramiResult = Kourami.result
         Array[File] mantisWxsKmerCountsFinal = Msi.mantisWxsKmerCountsFinal
         Array[File] mantisWxsKmerCountsFiltered = Msi.mantisWxsKmerCountsFiltered
         Array[File] mantisExomeTxt = Msi.mantisExomeTxt
