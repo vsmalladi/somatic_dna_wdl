@@ -155,7 +155,7 @@ workflow Calling {
 
     output {
         # Gridss
-        Array[File] gridssVcf = Gridss.gridssVcf
+        Array[IndexedVcf] gridssVcf = Gridss.gridssVcf
         # Bicseq2
         Array[File] bicseq2Png = BicSeq2.bicseq2Png
         Array[File] bicseq2 = BicSeq2.bicseq2

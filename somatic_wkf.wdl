@@ -265,6 +265,7 @@ workflow SomaticWorkflow {
                     configureStrelkaSomaticWorkflow = configureStrelkaSomaticWorkflow,
                     pairInfo = pairInfoObject,
                     listOfChroms = listOfChroms,
+                    listOfChromsFull = listOfChromsFull,
                     referenceFa = referenceFa,
                     callRegions = callRegions,
                     bwaReference = bwaReference,
