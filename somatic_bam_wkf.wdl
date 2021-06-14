@@ -8,6 +8,8 @@ import "alignment_analysis/msi_wkf.wdl" as msi
 import "pre_process/conpair_wkf.wdl" as conpair
 import "annotate/annotate_wkf.wdl" as annotate
 import "annotate/annotate_cnv_sv_wkf.wdl" as annotate_cnv_sv
+import "germline/germline_wkf.wdl" as germline
+import "annotate/germline_annotate_wkf.wdl" as germlineAnnotate
 
 # for wdl version 1.0
 
@@ -142,6 +144,25 @@ workflow SomaticBamWorkflow {
         File cosmicCensus
         
         File ensemblEntrez
+        
+        # germline
+        
+        File excludeIntervalList
+        Array[File] scatterIntervalsHcs
+        
+        IndexedVcf MillsAnd1000G
+        IndexedVcf omni
+        IndexedVcf hapmap
+        IndexedVcf onekG
+        IndexedVcf dbsnp
+        
+        IndexedVcf whitelist
+        IndexedVcf nygcAf
+        IndexedVcf pgx
+        IndexedTable rwgsPgxBed
+        IndexedVcf deepIntronicsVcf
+        IndexedVcf clinvarIntronicsVcf
+        IndexedVcf chdWhitelistVcf
     }
     
     scatter (normalSampleBamInfo in normalSampleBamInfos) {
@@ -152,6 +173,60 @@ workflow SomaticBamWorkflow {
                 kouramiReference = kouramiReference,
                 finalBam = normalSampleBamInfo.finalBam,
                 kouramiFastaGem1Index = kouramiFastaGem1Index
+        }
+        
+        call germline.Germline {
+            input:
+                finalBam = normalSampleBamInfo.finalBam,
+                normal = normalSampleBamInfo.sampleId,
+                referenceFa = referenceFa,
+                listOfChroms = listOfChroms,
+                MillsAnd1000G = MillsAnd1000G,
+                omni = omni,
+                hapmap = hapmap,
+                onekG = onekG,
+                dbsnp = dbsnp,
+                nygcAf = nygcAf,
+                excludeIntervalList=excludeIntervalList,
+                scatterIntervalsHcs=scatterIntervalsHcs,
+                pgx=pgx,
+                rwgsPgxBed=rwgsPgxBed,
+                whitelist=whitelist,
+                chdWhitelistVcf=chdWhitelistVcf,
+                deepIntronicsVcf=deepIntronicsVcf,
+                clinvarIntronicsVcf=clinvarIntronicsVcf
+        }
+        
+        call germlineAnnotate.GermlineAnnotate {
+            input:
+                unannotatedVcf = Germline.haplotypecallerFinalFiltered.vcf,
+                referenceFa = referenceFa,
+                normal = normalSampleBamInfo.sampleId,
+                vepGenomeBuild = vepGenomeBuild,
+                cosmicCoding = cosmicCoding,
+                cosmicNoncoding = cosmicNoncoding,
+                # Public
+                cancerResistanceMutations = cancerResistanceMutations,
+                vepCache = vepCache,
+                annotations = annotations,
+                plugins = plugins,
+                vepFastaReference = vepFastaReference,
+                # NYGC-only
+                hgmdGene = hgmdGene,
+                hgmdUd10 = hgmdUd10,
+                hgmdPro = hgmdPro,
+                omimVcf = omimVcf,
+                # Public
+                chdGenesVcf = chdGenesVcf,
+                chdEvolvingGenesVcf = chdEvolvingGenesVcf,
+                chdWhitelistVcf = chdWhitelistVcf,
+                deepIntronicsVcf = deepIntronicsVcf,
+                clinvarIntronicsVcf = clinvarIntronicsVcf,
+                masterMind = masterMind,
+                # post annotation
+                cosmicCensus = cosmicCensus,
+                ensemblEntrez = ensemblEntrez,
+                library = library  
         }
     }
     

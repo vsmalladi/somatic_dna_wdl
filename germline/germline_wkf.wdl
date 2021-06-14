@@ -7,11 +7,15 @@ import "../calling/calling.wdl"
 
 workflow Germline {
     # command 
+    
     input {
         Bam finalBam
         IndexedReference referenceFa
         Array[String]+ listOfChroms
         String normal
+        
+        File excludeIntervalList
+        Array[File] scatterIntervalsHcs
         
         IndexedVcf MillsAnd1000G
         IndexedVcf omni
@@ -20,135 +24,100 @@ workflow Germline {
         IndexedVcf onekG
         IndexedVcf dbsnp
         
+        IndexedVcf whitelist
+        IndexedVcf nygcAf
+        IndexedVcf pgx
+        IndexedTable rwgsPgxBed
+        IndexedVcf deepIntronicsVcf
+        IndexedVcf clinvarIntronicsVcf
+        IndexedVcf chdWhitelistVcf
+
         Int hcDiskSize = ceil( size(finalBam.bam, "GB") ) + 20
     }
-    scatter(chrom in listOfChroms) {
-        call germline.Haplotypecaller {
+    scatter (i in range(length(scatterIntervalsHcs))) {
+        call germline.haplotypeCallerGatk4 {
             input:
                 referenceFa = referenceFa,
                 finalBam = finalBam,
-                chrom = chrom,
-                sampleId = normal,
+                index = i,
+                sampleId=normal,
+                hapmap=hapmap,
+                omni=omni,
+                onekG=onekG,
+                dbsnp=dbsnp,
+                excludeIntervalList=excludeIntervalList,
+                scatterIntervalsHc=scatterIntervalsHcs[i],
                 diskSize = hcDiskSize
         }
     }
     
-    call calling.Gatk4MergeSortVcf {
+    scatter (vcf in haplotypeCallerGatk4.haplotypecallerIntervalVcf) {
+        File haplotypecallerIntervalVcf = vcf.vcf
+    }
+    Array[File] haplotypecallerIntervalVcfs = haplotypecallerIntervalVcf
+    
+    call calling.Gatk4MergeSortCompressVcf as haplotypecallerGatk4MergeSortCompressVcf {
         input:
-            sortedVcfPath = "~{normal}.haplotypeCalls.er.raw.vcf",
-            tempChromVcfs = Haplotypecaller.haplotypecallerChromVcf,
+            sortedVcfPath = "~{normal}.haplotypecaller.g.vcf.gz",
+            tempChromVcfs = haplotypecallerIntervalVcfs,
             referenceFa = referenceFa,
             memoryGb = 16,
             diskSize = 200
     }
     
-    call merge_vcf.CompressVcf as haplotypecallerCompressVcf {
-        input:
-            vcf = Gatk4MergeSortVcf.sortedVcf.vcf,
-            memoryGb = 4
+    scatter (i in range(length(scatterIntervalsHcs))) {
+        call germline.GentotypeGvcfsGatk4 {
+            input:
+                referenceFa = referenceFa,
+                sampleId=normal,
+                index=i,
+                sortedVcf = haplotypecallerGatk4MergeSortCompressVcf.sortedIndexedVcf,
+                scatterIntervalsHc=scatterIntervalsHcs[i],
+                omni = omni,
+                hapmap = hapmap,
+                onekG = onekG,
+                dbsnp = dbsnp
+        }
     }
     
-    call merge_vcf.IndexVcf as haplotypecallerIndexVcf {
-        input:
-            vcfCompressed = haplotypecallerCompressVcf.vcfCompressed
+    scatter (vcf in GentotypeGvcfsGatk4.haplotypecallerFilteredGenoVcf) {
+        File haplotypecallerFilteredGenoVcf = vcf.vcf
     }
+    Array[File] haplotypecallerFilteredGenoVcfs = haplotypecallerFilteredGenoVcf
     
-    call germline.GentotypeGvcfs {
+    call calling.Gatk4MergeSortCompressVcf as genotypedFilteredMergeSortCompressVcf {
         input:
+            sortedVcfPath = "~{normal}.haplotypecaller.gatk.v4.1.8.0.filtered.genotypedGVCFs.vcf.gz",
+            tempChromVcfs = haplotypecallerFilteredGenoVcfs,
             referenceFa = referenceFa,
-            sampleId = normal,
-            sortedVcf = haplotypecallerIndexVcf.vcfCompressedIndexed
+            memoryGb = 16,
+            diskSize = 200
     }
     
-    call germline.RecalVcfsSnp {
+    call germline.genotypeRefinementWorkflow {
         input:
-            referenceFa = referenceFa,
-            sampleId = normal,
-            omni = omni,
-            hapmap = hapmap,
-            onekG = onekG,
-            dbsnp = dbsnp,
-            haplotypecallerGenoVcf = GentotypeGvcfs.haplotypecallerGenoVcf
+            genotypedGatk4=genotypedFilteredMergeSortCompressVcf.sortedIndexedVcf,
+            sampleId=normal,
+            referenceFa=referenceFa
     }
     
-    call germline.RecalVcfsIndel {
+    call germline.filterHO as filterHO {
         input:
-            referenceFa = referenceFa,
-            sampleId = normal,
-            dbsnp = dbsnp,
-            MillsAnd1000G = MillsAnd1000G,
-            haplotypecallerGenoVcf = GentotypeGvcfs.haplotypecallerGenoVcf  
+            sampleId=normal,
+            nygcAf = nygcAf,
+            haplotypecallerAfVcf = genotypeRefinementWorkflow.haplotypecallerAfVcf,
+            pgx=pgx,
+            rwgsPgxBed=rwgsPgxBed,
+            whitelist=whitelist,
+            chdWhitelistVcf=chdWhitelistVcf,
+            deepIntronicsVcf=deepIntronicsVcf,
+            clinvarIntronicsVcf=clinvarIntronicsVcf
     }
-    
-    call germline.ApplyRecal as snpApplyRecal {
-        input:
-            referenceFa = referenceFa,
-            sampleId = normal,
-            haplotypecallerGenoVcfApplySnpIndelPath = "~{normal}.SNP.apply_vqsr.vcf",
-            haplotypecallerGenoVcfApply = GentotypeGvcfs.haplotypecallerGenoVcf,
-            mode = "SNP",
-            tranches = RecalVcfsSnp.tranchesSnp,
-            recal = RecalVcfsSnp.recalSnp    
-    }
-    
-    call germline.ApplyRecal as indelApplyRecal {
-        input:
-            referenceFa = referenceFa,
-            sampleId = normal,
-            haplotypecallerGenoVcfApplySnpIndelPath = "~{normal}.SNP.INDEL.apply_vqsr.vcf",
-            haplotypecallerGenoVcfApply = snpApplyRecal.haplotypecallerGenoVcfApplySnpIndel,
-            mode = "INDEL",
-            tranches = RecalVcfsIndel.tranchesIndel,
-            recal = RecalVcfsIndel.recalIndel   
-    }
-    
-    call germline.VarFilter {
-        input:
-            referenceFa = referenceFa,
-            sampleId = normal,
-            haplotypecallerGenoVcfApplySnpIndel = indelApplyRecal.haplotypecallerGenoVcfApplySnpIndel
-    }
-    
-    call merge_vcf.CompressVcf as recalCompressVcf {
-        input:
-            vcf = VarFilter.haplotypecallerRecalVcf,
-            memoryGb = 4
-    }
-    
-    call merge_vcf.IndexVcf as recalIndexVcf {
-        input:
-            vcfCompressed = recalCompressVcf.vcfCompressed
-    }
-    
-    call germline.VcfNorm {
-        input:
-            sampleId = normal,
-            haplotypecallerRecalVcf = recalIndexVcf.vcfCompressedIndexed    
-    }
-    
-    call merge_vcf.IndexVcf as normIndexVcf {
-        input:
-            vcfCompressed = VcfNorm.haplotypecallerNormVcf
-    }
-    
-    call germline.VarEval {
-        input:
-            referenceFa = referenceFa,
-            sampleId = normal,
-            haplotypecallerGenoVcfApplySnpIndel = indelApplyRecal.haplotypecallerGenoVcfApplySnpIndel,
-            dbsnp = dbsnp   
-    }
-    
-#    call germline.VarSum {
-#        input:
-#            sampleId = normal,
-#            varReport = VarEval.varReport  
-#    }
     
     output {
-#        File varSummary = VarSum.varSummary
-#        File varReport = VarEval.varReport
-        IndexedVcf haplotypecallerNormVcf = normIndexVcf.vcfCompressedIndexed
+        # equal to mergeHO.output_vcf
+        IndexedVcf haplotypecallerVcf = genotypeRefinementWorkflow.haplotypecallerAfVcf
+        # pass on to annotation
+        IndexedVcf haplotypecallerFinalFiltered = filterHO.haplotypecallerFinalFiltered
     }
-    
 }

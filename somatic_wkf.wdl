@@ -10,6 +10,9 @@ import "alignment_analysis/msi_wkf.wdl" as msi
 import "pre_process/conpair_wkf.wdl" as conpair
 import "annotate/annotate_wkf.wdl" as annotate
 import "annotate/annotate_cnv_sv_wkf.wdl" as annotate_cnv_sv
+import "germline/germline_wkf.wdl" as germline
+import "annotate/germline_annotate_wkf.wdl" as germlineAnnotate
+
 
 # for wdl version 1.0
 
@@ -151,6 +154,23 @@ workflow SomaticWorkflow {
         File cosmicCensus
         
         File ensemblEntrez
+        
+        # germline
+        
+        File excludeIntervalList
+        Array[File] scatterIntervalsHcs
+        
+        IndexedVcf omni
+        IndexedVcf hapmap
+        IndexedVcf onekG
+
+        IndexedVcf whitelist
+        IndexedVcf nygcAf
+        IndexedVcf pgx
+        IndexedTable rwgsPgxBed
+        IndexedVcf deepIntronicsVcf
+        IndexedVcf clinvarIntronicsVcf
+        IndexedVcf chdWhitelistVcf
     }
     
     scatter (sampleInfoObj in sampleInfos) {
@@ -199,6 +219,60 @@ workflow SomaticWorkflow {
                     kouramiReference = kouramiReference,
                     finalBam = Preprocess.finalBam[germlineGetIndex.index],
                     kouramiFastaGem1Index = kouramiFastaGem1Index
+            }
+            
+            call germline.Germline {
+                input:
+                    finalBam = Preprocess.finalBam[germlineGetIndex.index],
+                    normal = sampleInfoObj.sampleId,
+                    referenceFa = referenceFa,
+                    listOfChroms = listOfChroms,
+                    MillsAnd1000G = MillsAnd1000G,
+                    omni = omni,
+                    hapmap = hapmap,
+                    onekG = onekG,
+                    dbsnp = dbsnp,
+                    nygcAf = nygcAf,
+                    excludeIntervalList=excludeIntervalList,
+                    scatterIntervalsHcs=scatterIntervalsHcs,
+                    pgx=pgx,
+                    rwgsPgxBed=rwgsPgxBed,
+                    whitelist=whitelist,
+                    chdWhitelistVcf=chdWhitelistVcf,
+                    deepIntronicsVcf=deepIntronicsVcf,
+                    clinvarIntronicsVcf=clinvarIntronicsVcf
+            }
+            
+            call germlineAnnotate.GermlineAnnotate {
+                input:
+                    unannotatedVcf = Germline.haplotypecallerFinalFiltered.vcf,
+                    referenceFa = referenceFa,
+                    normal = sampleInfoObj.sampleId,
+                    vepGenomeBuild = vepGenomeBuild,
+                    cosmicCoding = cosmicCoding,
+                    cosmicNoncoding = cosmicNoncoding,
+                    # Public
+                    cancerResistanceMutations = cancerResistanceMutations,
+                    vepCache = vepCache,
+                    annotations = annotations,
+                    plugins = plugins,
+                    vepFastaReference = vepFastaReference,
+                    # NYGC-only
+                    hgmdGene = hgmdGene,
+                    hgmdUd10 = hgmdUd10,
+                    hgmdPro = hgmdPro,
+                    omimVcf = omimVcf,
+                    # Public
+                    chdGenesVcf = chdGenesVcf,
+                    chdEvolvingGenesVcf = chdEvolvingGenesVcf,
+                    chdWhitelistVcf = chdWhitelistVcf,
+                    deepIntronicsVcf = deepIntronicsVcf,
+                    clinvarIntronicsVcf = clinvarIntronicsVcf,
+                    masterMind = masterMind,
+                    # post annotation
+                    cosmicCensus = cosmicCensus,
+                    ensemblEntrez = ensemblEntrez,
+                    library = library  
             }
         }
     }
@@ -458,6 +532,12 @@ workflow SomaticWorkflow {
 
         # Pass/Fail indicator
         Array[File] qcResults = SomaticQcCheck.qcResult
+        
+        # Germline
+        Array[IndexedVcf?] haplotypecallerVcf = Germline.haplotypecallerVcf 
+        Array[IndexedVcf?] haplotypecallerFinalFiltered = Germline.haplotypecallerFinalFiltered 
+        Array[File?] haplotypecallerAnnotatedVcf = GermlineAnnotate.haplotypecallerAnnotatedVcf
+        
     }
 }
 
