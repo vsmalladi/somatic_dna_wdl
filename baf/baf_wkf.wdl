@@ -7,68 +7,45 @@ import "baf.wdl"
 workflow Baf {
     # command 
     input {
+        String sampleId
         String pairName
         Bam normalFinalBam
         Bam tumorFinalBam
-        File finalGermlineVcf
+        File? finalGermlineVcf
         IndexedReference referenceFa
-        Int threads
-        Int memoryGb
-        String gatkDockerImage
-        String bcftoolsDockerImage
-        String pysamDockerImage
     }
     
-    call baf.MultiMerge {
-        input:
-            pairName = pairName,
-            finalGermlineVcf = finalGermlineVcf,
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = bcftoolsDockerImage
-    }
-    
-    call baf.FilterForHetSnps {
-        input:
-            pairName = pairName,
-            referenceFa = referenceFa,
-            multiallelicVcf = MultiMerge.multiallelicVcf,
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = gatkDockerImage
-    }
-    
-    call baf.FilterBaf {
-        input:
-            pairName = pairName,
-            hetVcf = FilterForHetSnps.hetVcf,
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = pysamDockerImage
-    }
-    
-    call baf.AlleleCounts {
-        input:
-            pairName = pairName,
-            referenceFa = referenceFa,
-            normalFinalBam = normalFinalBam,
-            tumorFinalBam = tumorFinalBam,
-            knownHetVcf = FilterBaf.knownHetVcf,
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = pysamDockerImage
-    }
-    
-    call baf.CalcBaf {
-        input:
-            pairName = pairName,
-            alleleCountsTxt = AlleleCounts.alleleCountsTxt,
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = pysamDockerImage 
+    if ( size(finalGermlineVcf) > 0 ) {
+        call baf.FilterForHetSnps {
+            input:
+                sampleId = sampleId,
+                referenceFa = referenceFa,
+                finalGermlineVcf = finalGermlineVcf
+        }
+        
+        call baf.FilterBaf {
+            input:
+                sampleId = sampleId,
+                hetVcf = FilterForHetSnps.hetVcf
+        }
+        
+        call baf.AlleleCounts {
+            input:
+                pairName = pairName,
+                referenceFa = referenceFa,
+                normalFinalBam = normalFinalBam,
+                tumorFinalBam = tumorFinalBam,
+                knownHetVcf = FilterBaf.knownHetVcf
+        }
+        
+        call baf.CalcBaf {
+            input:
+                pairName = pairName,
+                alleleCountsTxt = AlleleCounts.alleleCountsTxt
+        }
     }
     
     output {
-        File alleleCountsTxt = CalcBaf.bafTxt
+        File? alleleCountsTxt = CalcBaf.bafTxt
     }
 }
