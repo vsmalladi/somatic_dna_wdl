@@ -12,6 +12,7 @@ import "annotate/annotate_wkf.wdl" as annotate
 import "annotate/annotate_cnv_sv_wkf.wdl" as annotate_cnv_sv
 import "germline/germline_wkf.wdl" as germline
 import "annotate/germline_annotate_wkf.wdl" as germlineAnnotate
+import "baf/baf_wkf.wdl" as baf
 
 
 # for wdl version 1.0
@@ -206,24 +207,26 @@ workflow SomaticWorkflow {
     
     scatter (sampleInfoObj in normalSampleInfos) {
     
-        call GetIndex as germlineGetIndex {
+        String normalSampleIds = sampleInfoObj.sampleId
+    
+        call GetIndex as germlineRunGetIndex {
             input:
                 sampleIds = sampleIds,
                 sampleId = sampleInfoObj.sampleId
         }
         
-        if (BamQcCheck.coveragePass[germlineGetIndex.index]) {
+        if (BamQcCheck.coveragePass[germlineRunGetIndex.index]) {
             call kourami.Kourami {
                 input:
                     sampleId = sampleInfoObj.sampleId,
                     kouramiReference = kouramiReference,
-                    finalBam = Preprocess.finalBam[germlineGetIndex.index],
+                    finalBam = Preprocess.finalBam[germlineRunGetIndex.index],
                     kouramiFastaGem1Index = kouramiFastaGem1Index
             }
             
             call germline.Germline {
                 input:
-                    finalBam = Preprocess.finalBam[germlineGetIndex.index],
+                    finalBam = Preprocess.finalBam[germlineRunGetIndex.index],
                     normal = sampleInfoObj.sampleId,
                     referenceFa = referenceFa,
                     listOfChroms = listOfChroms,
@@ -241,6 +244,38 @@ workflow SomaticWorkflow {
                     chdWhitelistVcf=chdWhitelistVcf,
                     deepIntronicsVcf=deepIntronicsVcf,
                     clinvarIntronicsVcf=clinvarIntronicsVcf
+            }
+            
+            call germlineAnnotate.GermlineAnnotate {
+                input:
+                    unannotatedVcf = Germline.haplotypecallerFinalFiltered,
+                    referenceFa = referenceFa,
+                    normal = sampleInfoObj.sampleId,
+                    vepGenomeBuild = vepGenomeBuild,
+                    cosmicCoding = cosmicCoding,
+                    cosmicNoncoding = cosmicNoncoding,
+                    # Public
+                    cancerResistanceMutations = cancerResistanceMutations,
+                    vepCache = vepCache,
+                    annotations = annotations,
+                    plugins = plugins,
+                    vepFastaReference = vepFastaReference,
+                    # NYGC-only
+                    hgmdGene = hgmdGene,
+                    hgmdUd10 = hgmdUd10,
+                    hgmdPro = hgmdPro,
+                    omimVcf = omimVcf,
+                    # Public
+                    chdGenesVcf = chdGenesVcf,
+                    chdEvolvingGenesVcf = chdEvolvingGenesVcf,
+                    chdWhitelistVcf = chdWhitelistVcf,
+                    deepIntronicsVcf = deepIntronicsVcf,
+                    clinvarIntronicsVcf = clinvarIntronicsVcf,
+                    masterMind = masterMind,
+                    # post annotation
+                    cosmicCensus = cosmicCensus,
+                    ensemblEntrez = ensemblEntrez,
+                    library = library  
             }
             
         }
@@ -263,6 +298,12 @@ workflow SomaticWorkflow {
                 sampleIds = sampleIds,
                 sampleId = pairRelationship.normal
         }
+        
+        call GetIndex as germlineGetIndex {
+            input:
+                sampleIds = normalSampleIds,
+                sampleId = pairRelationship.normal
+        }
 
         pairInfo pairInfoObject = object {
             pairId : pairRelationship.pairId,
@@ -271,7 +312,18 @@ workflow SomaticWorkflow {
             tumor : pairRelationship.tumor,
             normal : pairRelationship.normal
         }
-
+        
+        if ( size(GermlineAnnotate.haplotypecallerAnnotatedVcf[normalGetIndex.index]) > 0 ) {
+            call baf.Baf {
+                input:
+                    referenceFa = referenceFa,
+                    pairName = pairRelationship.pairId,
+                    sampleId = pairRelationship.normal,
+                    tumorFinalBam = Preprocess.finalBam[tumorGetIndex.index],
+                    normalFinalBam = Preprocess.finalBam[normalGetIndex.index],
+                    finalGermlineVcf = GermlineAnnotate.haplotypecallerAnnotatedVcf[germlineGetIndex.index]
+                }
+        }
 
         call conpair.Conpair {
             input:
@@ -505,6 +557,8 @@ workflow SomaticWorkflow {
         Array[File?] kouramiResult = Kourami.result
         Array[IndexedVcf?] haplotypecallerVcf = Germline.haplotypecallerVcf 
         Array[IndexedVcf?] haplotypecallerFinalFiltered = Germline.haplotypecallerFinalFiltered 
+        Array[File?] haplotypecallerAnnotatedVcf = GermlineAnnotate.haplotypecallerAnnotatedVcf
+        Array[File?] alleleCountsTxt = Baf.alleleCountsTxt
         
     }
 }
