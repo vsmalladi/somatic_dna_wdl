@@ -2,62 +2,32 @@ version 1.0
 
 import "../wdl_structs.wdl"
 
-task MultiMerge {
-    input {
-        Int threads
-        Int memoryGb
-        String dockerImage
-        String flipAD = "'s/##FORMAT=<ID=AD,Number=R/##FORMAT=<ID=AD,Number=./'"
-        String flipBackAD = "'s/##FORMAT=<ID=AD,Number=./##FORMAT=<ID=AD,Number=R/'"
-        String pairName
-        String multiallelicVcfPath = "~{pairName}.haplotypecaller.v3.5.0.multiallelic.vcf"
-        File finalGermlineVcf
-    }
-
-    command {
-        sed ~{flipAD} ~{finalGermlineVcf} \
-        | bcftools \
-        norm \
-        -O v \
-        -m+both - \
-        -o - \
-        | sed ~{flipBackAD} \
-        > ~{multiallelicVcfPath}
-    }
-
-    output {
-        File multiallelicVcf = "~{multiallelicVcfPath}"
-    }
-
-    runtime {
-        cpu : threads
-        memory : memoryGb + "GB"
-        docker : dockerImage
-    }
-}
-
 task FilterForHetSnps {
     input {
-        Int threads
-        Int memoryGb
-        String dockerImage
-        String sellectionString = "'vc.getGenotype(\"NORMAL\").isHet()'"
-        String pairName
-        String hetVcfPath = "~{pairName}.haplotypecaller.v3.5.0.het.vcf"
+        String sampleId
+        String hetVcfPath = "~{sampleId}.haplotypecaller.gatk.v4.1.8.0.final.filtered.het.vcf"
+        String sellectionString = "'vc.getGenotype(\"~{sampleId}\").isHet()'"
         IndexedReference referenceFa
-        File multiallelicVcf
+        # require file!
+        # marked as optional so that pipeline can be dependent on input that may not 
+        # pass QC
+        # do not run with out input file!
+        File? finalGermlineVcf
+        
+        Int memoryGb = 24
+        Int diskSize = (ceil( size(finalGermlineVcf, "GB") )  * 2 ) + 20
     }
 
     command {
         gatk \
         SelectVariants \
-        --java-options "-Xmx20g -XX:ParallelGCThreads=2" \
+        --java-options "-Xmx20g" \
         -restrict-alleles-to BIALLELIC \
         -select-type SNP \
         -select ~{sellectionString} \
         -R ~{referenceFa.fasta} \
         --exclude-filtered \
-        -V ~{multiallelicVcf} \
+        -V ~{finalGermlineVcf} \
         -O ~{hetVcfPath}
     }
 
@@ -66,24 +36,23 @@ task FilterForHetSnps {
     }
 
     runtime {
-        cpu : threads
         memory : memoryGb + "GB"
-        docker : dockerImage
+        disks: "local-disk " + diskSize + " HDD"
+        docker: "us.gcr.io/broad-gatk/gatk:4.1.8.0"
     }
 }
 
 task FilterBaf {
     input {
-        Int threads
-        Int memoryGb
-        String dockerImage
-        String pairName
-        String knownHetVcfPath = "~{pairName}.haplotypecaller.v3.5.0.known.het.vcf"
+        String sampleId
+        String knownHetVcfPath = "~{sampleId}.haplotypecaller.gatk.v4.1.8.0.final.filtered.known.het.vcf"
         File hetVcf
+        Int memoryGb = 24
+        Int diskSize = (ceil( size(hetVcf, "GB") )  * 2 ) + 10
     }
 
     command {
-        python2.7 \
+        python \
         /filter_baf.py \
         ~{hetVcf} \
         ~{knownHetVcfPath}
@@ -94,28 +63,28 @@ task FilterBaf {
     }
 
     runtime {
-        cpu : threads
+        disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : dockerImage
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:1.0.2"
     }
 }
 
 task AlleleCounts {
     input {
-        Int threads
-        Int memoryGb
-        String dockerImage
         String pairName
-        String alleleCountsTxtPath = "~{pairName}haplotypecaller.v3.5.0.alleles.txt"
+        String alleleCountsTxtPath = "~{pairName}.haplotypecaller.gatk.v4.1.8.0.final.filtered.alleles.txt"
         IndexedReference referenceFa
         Bam normalFinalBam
         File knownHetVcf
         Bam tumorFinalBam
+        
+        Int memoryGb = 24
+        Int diskSize = (ceil( size(knownHetVcf, "GB") )  * 2 ) + ceil( size(tumorFinalBam.bam, "GB")) + ceil( size(normalFinalBam.bam, "GB")) + 10
     }
 
     command {
-        python2.7 \
-        /parse_bam_generate_features_v3.py \
+        python \
+        /parse_bam_generate_features.py \
         --tumor_bam ~{tumorFinalBam.bam} \
         --normal_bam ~{normalFinalBam.bam} \
         --vcf ~{knownHetVcf} \
@@ -128,24 +97,23 @@ task AlleleCounts {
     }
 
     runtime {
-        cpu : threads
+        disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : dockerImage
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:1.0.2"
     }
 }
 
 task CalcBaf {
     input {
-        Int threads
-        Int memoryGb
-        String dockerImage
         String pairName
-        String bafTxtPath = "~{pairName}.haplotypecaller.v3.5.0.baf.txt"
+        String bafTxtPath = "~{pairName}.haplotypecaller.gatk.v4.1.8.0.baf.txt"
         File alleleCountsTxt
+        Int memoryGb = 24
+        Int diskSize = (ceil( size(alleleCountsTxt, "GB") )  * 2 ) + 10
     }
 
     command {
-        python2.7 \
+        python \
         /calc_baf.py \
         ~{alleleCountsTxt} \
         ~{bafTxtPath}
@@ -156,9 +124,9 @@ task CalcBaf {
     }
 
     runtime {
-        cpu : threads
+        disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : dockerImage
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:1.0.2"
     }
 }
 
