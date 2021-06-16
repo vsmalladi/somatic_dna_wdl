@@ -271,7 +271,9 @@ class Wdl():
         Replace with python parser later'''
         custom_types = {variable: type for type, variable in self.load_custom_type(file)}
         try:
-            result = subprocess.run(['womtool', 'inputs', file],
+            result = subprocess.run(['womtool', 'inputs', 
+                                     '--optional-inputs', 'false',
+                                     file],
                                     check=True,
                                     stdout=subprocess.PIPE).stdout.decode('utf-8')
         except subprocess.CalledProcessError:
