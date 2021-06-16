@@ -1,6 +1,6 @@
 version 1.0
 
-import "../merge_vcf/merge_vcf.wdl" as merge_vcf
+import "../merge_vcf/merge_vcf.wdl" as mergeVcf
 import "annotate.wdl" as annotate
 import "variantEffectPredictor.wdl" as variantEffectPredictor
 import "../wdl_structs.wdl"
@@ -46,10 +46,24 @@ workflow GermlineAnnotate {
         Int vepDiskSize = ceil(size(vepCache, "GB") + size(plugins, "GB") + size(annotations, "GB") + size(hgmdGene.vcf, "GB") + size(hgmdUd10.vcf, "GB") + size(hgmdPro.vcf, "GB") + size(omimVcf.vcf, "GB") + size(chdGenesVcf.vcf, "GB") + size(chdEvolvingGenesVcf.vcf, "GB") + size(chdWhitelistVcf.vcf, "GB") + size(deepIntronicsVcf.vcf, "GB") + size(clinvarIntronicsVcf.vcf, "GB") + size(masterMind.vcf, "GB") + (size(unannotatedVcf.vcf, "GB") * 2)) + 500
     }
     
+    call mergeVcf.SplitMultiAllelicCompress {
+            input:
+                pairName = sampleId,
+                vcfCompressedIndexed = unannotatedVcf,
+                splitVcfPath = sub(basename(unannotatedVcf.vcf), ".vcf.gz$", ".split.vcf.gz"),
+                referenceFa = referenceFa
+        }
+        
+    call mergeVcf.IndexVcf {
+        input:
+            vcfCompressed = SplitMultiAllelicCompress.sortedVcf
+    }
+    
+    
     call variantEffectPredictor.vepSvnIndel {
         input:
             pairName = sampleId,
-            unannotatedVcf = unannotatedVcf,
+            unannotatedVcf = IndexVcf.vcfCompressedIndexed,
             vepCache = vepCache,
             annotations = annotations,
             plugins = plugins,
@@ -72,11 +86,17 @@ workflow GermlineAnnotate {
             diskSize = vepDiskSize
     }
     
+    call annotate.RemoveSpanning {
+        input:
+            sampleId = sampleId,
+            vcfAnnotatedVep = vepSvnIndel.vcfAnnotatedVep
+    }
+    
     call annotate.AddCosmic {
         input:
             pairName = sampleId,
             cosmicCensus = cosmicCensus,
-            vcfAnnotatedVep = vepSvnIndel.vcfAnnotatedVep
+            vcfAnnotatedVep = RemoveSpanning.noSpanningVcf
     }
     
     call annotate.AddCancerResistanceMutations {

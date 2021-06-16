@@ -228,6 +228,44 @@ task SplitMultiAllelic {
     }
 }
 
+task SplitMultiAllelicCompress {
+    input {
+        String pairName
+        String splitVcfPath
+        IndexedReference referenceFa
+        IndexedVcf vcfCompressedIndexed
+        Boolean gzipped = true 
+        String suffix = if gzipped then ".tbi" else ".idx"
+        Int threads = 16
+        Int memoryGb = 16
+        Int diskSize = (ceil( size(vcfCompressedIndexed.vcf, "GB") )  * 3 ) + 10
+    }
+
+    command {
+        bcftools \
+        norm \
+        -m \
+        -any \
+        --threads ~{threads} \
+        --no-version \
+        --output-type z \
+        -f ~{referenceFa.fasta} \
+        -o ~{splitVcfPath} \
+        ~{vcfCompressedIndexed.vcf}
+    }
+
+    output {
+        File sortedVcf = "~{splitVcfPath}"
+    }
+
+    runtime {
+        cpu : threads
+        disks: "local-disk " + diskSize + " HDD"
+        memory : memoryGb + "GB"
+        docker : "gcr.io/nygc-public/bcftools:1.5"
+    }
+}
+
 task SplitMnv {
     input {
         File splitVcf

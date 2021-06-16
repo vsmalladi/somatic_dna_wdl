@@ -89,6 +89,37 @@ task Vep{
     }
 }
 
+task RemoveSpanning {
+    input {
+        String sampleId
+        String noSpanningVcfPath = "~{sampleId}.v7.remove_spanning.vep.annotated.vcf"
+        File vcfAnnotatedVep
+        Int threads = 16
+        Int memoryGb = 16
+        Int diskSize = 20
+    }
+
+    command {
+        bcftools \
+        view \
+        --exclude 'ALT="*"' \
+        --threads ~{threads} \
+        -o ~{noSpanningVcfPath} \
+        ~{vcfAnnotatedVep}
+    }
+
+    output {
+        File noSpanningVcf = "~{noSpanningVcfPath}"
+    }
+
+    runtime {
+        cpu : threads
+        disks: "local-disk " + diskSize + " HDD"
+        memory : memoryGb + "GB"
+        docker : "gcr.io/nygc-public/bcftools:1.5"
+    }
+}
+
 task AddCosmic {
     input {
         String pairName
