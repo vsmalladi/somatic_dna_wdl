@@ -126,7 +126,7 @@ task AddCosmic {
         String vcfAnnotatedCancerGeneCensusPath = "~{pairName}.v7.cosmic_census.vep.annotated.vcf"
         File vcfAnnotatedVep
         File cosmicCensus
-        Int memoryGb = 32
+        Int memoryGb = 48
         Int diskSize = ceil( size(vcfAnnotatedVep, "GB") * 2) + 5
     }
 
@@ -155,7 +155,7 @@ task AddCancerResistanceMutations {
         String vcfAnnotatedResistancePath = "~{pairName}.v7.resistance.vep.annotated.vcf"
         File vcfAnnotatedCancerGeneCensus
         File cancerResistanceMutations
-        Int memoryGb = 32
+        Int memoryGb = 48
         Int diskSize = ceil( size(vcfAnnotatedCancerGeneCensus, "GB") * 2) + ceil( size(cancerResistanceMutations, "GB")) + 5
     }
 
@@ -184,7 +184,7 @@ task AddCancerResistanceMutationsFinal {
         String vcfAnnotatedResistancePath = "~{pairName}.v7.resistance.vep.annotated.vcf"
         File vcfAnnotatedCancerGeneCensus
         File cancerResistanceMutations
-        Int memoryGb = 32
+        Int memoryGb = 48
         Int diskSize = ceil( size(vcfAnnotatedCancerGeneCensus, "GB") * 2) + ceil( size(cancerResistanceMutations, "GB")) + 5
     }
 
@@ -209,7 +209,7 @@ task AddCancerResistanceMutationsFinal {
 
 task AnnotateId {
     input {
-        Int memoryGb = 8
+        Int memoryGb = 48
         String pairName
         String vcfAnnotatedIdPath = "~{pairName}.v7.id.vep.annotated.vcf"
         File vcfAnnotatedResistance
@@ -236,7 +236,7 @@ task AnnotateId {
 
 task RenameCsqVcf {
     input {
-        Int memoryGb = 8
+        Int memoryGb = 48
         String pairName
         String vcfCsqRenamedPath = "~{pairName}.snv.indel.supplemental.v7.annotated.vcf"
         File vcfAnnotatedId
@@ -263,7 +263,7 @@ task RenameCsqVcf {
 
 task MainVcf {
     input {
-        Int memoryGb = 8
+        Int memoryGb = 48
         String pairName
         String mainVcfPath = "~{pairName}.snv.indel.final.v7.annotated.vcf"
         File vcfAnnotated
@@ -320,7 +320,7 @@ task TableVcf {
 
 task VcfToMaf {
     input {
-        Int memoryGb = 8
+        Int memoryGb = 48
         String pairName
         String mafPath = "~{pairName}.snv.indel.final.v7.annotated.maf"
         String library
