@@ -9,6 +9,10 @@ import "alignment_analysis/kourami_wfk.wdl" as kourami
 import "alignment_analysis/msi_wkf.wdl" as msi
 import "pre_process/conpair_wkf.wdl" as conpair
 import "annotate/annotate_wkf.wdl" as annotate
+import "annotate/annotate_cnv_sv_wkf.wdl" as annotate_cnv_sv
+import "germline/germline_wkf.wdl" as germline
+import "annotate/germline_annotate_wkf.wdl" as germlineAnnotate
+
 
 # for wdl version 1.0
 
@@ -45,6 +49,7 @@ workflow SomaticWorkflow {
         File chromLengths
         File hsMetricsIntervals
         File randomIntervals
+        Array[sampleInfo]+ normalSampleInfos
         Array[sampleInfo]+ sampleInfos
         Array[PairRelationship]+ listOfPairRelationships
 
@@ -54,6 +59,7 @@ workflow SomaticWorkflow {
         Boolean bypassQcCheck = false
 
         # calling
+        Array[String]+ listOfChromsFull
         Array[String]+ listOfChroms
         IndexedTable callRegions
         File dbsnpIndels
@@ -66,6 +72,21 @@ workflow SomaticWorkflow {
         File mutectJsonLogFilter
         File configureStrelkaSomaticWorkflow
 
+        #   BicSeq2
+        Int readLength
+        Int coordReadLength
+        Map[Int, Map[String, File]] uniqCoords
+        File bicseq2ConfigFile
+        File bicseq2SegConfigFile
+        Map[String, File] chromFastas
+        Int tumorMedianInsertSize = 400
+        Int normalMedianInsertSize = 400
+        Int lambda = 4
+
+        # Gridss
+        String bsGenome
+        File ponTarGz
+        Array[File] gridssAdditionalReference
 
         # merge callers
         File intervalListBed
@@ -112,10 +133,44 @@ workflow SomaticWorkflow {
         IndexedVcf clinvarIntronicsVcf
         IndexedVcf masterMind
 
+        # annotate cnv
+        File cytoBand
+        File dgv
+        File thousandG
+        File cosmicUniqueBed
+        File cancerCensusBed
+        File ensemblUniqueBed
+
+        # annotate sv
+        String vepGenomeBuild
+        # gap,DGV,1000G,PON,COSMIC
+        File gap
+        File dgvBedpe
+        File thousandGVcf
+        File svPon
+        File cosmicBedPe
+
+
         # post annotation
         File cosmicCensus
 
         File ensemblEntrez
+
+        # germline
+
+        File excludeIntervalList
+        Array[File] scatterIntervalsHcs
+
+        IndexedVcf hapmap
+        IndexedVcf onekG
+
+        IndexedVcf whitelist
+        IndexedVcf nygcAf
+        IndexedVcf pgx
+        IndexedTable rwgsPgxBed
+        IndexedVcf deepIntronicsVcf
+        IndexedVcf clinvarIntronicsVcf
+        IndexedVcf chdWhitelistVcf
 
     }
 
@@ -136,6 +191,21 @@ workflow SomaticWorkflow {
                 chromLengths = chromLengths
         }
 
+        # for wdl version 1.0
+        String sampleIds = sampleInfoObj.sampleId
+        # for wdl version 1.1
+        # Pair[String, Bam] bamPairs = (sampleInfo.sampleId, Preprocess.finalBam)
+
+    }
+
+    scatter (sampleInfoObj in normalSampleInfos) {
+
+        call GetIndex as germlineGetIndex {
+            input:
+                sampleIds = sampleIds,
+                sampleId = sampleInfoObj.sampleId
+        }
+
         if (!bypassQcCheck) {
             call BamQcCheck {
                 input:
@@ -143,21 +213,38 @@ workflow SomaticWorkflow {
                     expectedCoverage = sampleInfoObj.expectedCoverage
             }
         }
+
         if (bypassQcCheck || select_first([BamQcCheck.coveragePass, false])) {
             call kourami.Kourami {
                 input:
                     sampleId = sampleInfoObj.sampleId,
                     kouramiReference = kouramiReference,
-                    finalBam = Preprocess.finalBam,
+                    finalBam = Preprocess.finalBam[germlineGetIndex.index],
                     kouramiFastaGem1Index = kouramiFastaGem1Index
             }
+
+            call germline.Germline {
+                input:
+                    finalBam = Preprocess.finalBam[germlineGetIndex.index],
+                    normal = sampleInfoObj.sampleId,
+                    referenceFa = referenceFa,
+                    listOfChroms = listOfChroms,
+                    MillsAnd1000G = MillsAnd1000G,
+                    hapmap = hapmap,
+                    onekG = onekG,
+                    dbsnp = dbsnp,
+                    nygcAf = nygcAf,
+                    excludeIntervalList=excludeIntervalList,
+                    scatterIntervalsHcs=scatterIntervalsHcs,
+                    pgx=pgx,
+                    rwgsPgxBed=rwgsPgxBed,
+                    whitelist=whitelist,
+                    chdWhitelistVcf=chdWhitelistVcf,
+                    deepIntronicsVcf=deepIntronicsVcf,
+                    clinvarIntronicsVcf=clinvarIntronicsVcf
+            }
+
         }
-
-        # for wdl version 1.0
-        String sampleIds = sampleInfoObj.sampleId
-        # for wdl version 1.1
-        # Pair[String, Bam] bamPairs = (sampleInfo.sampleId, Preprocess.finalBam)
-
     }
 
     # for wdl version 1.1
@@ -224,12 +311,21 @@ workflow SomaticWorkflow {
                     configureStrelkaSomaticWorkflow = configureStrelkaSomaticWorkflow,
                     pairInfo = pairInfoObject,
                     listOfChroms = listOfChroms,
+                    listOfChromsFull = listOfChromsFull,
                     referenceFa = referenceFa,
                     callRegions = callRegions,
                     bwaReference = bwaReference,
                     dbsnpIndels = dbsnpIndels,
-                    chromBedsWgs = chromBedsWgs
-
+                    chromBedsWgs = chromBedsWgs,
+                    readLength = readLength,
+                    coordReadLength = coordReadLength,
+                    uniqCoords = uniqCoords,
+                    bicseq2ConfigFile = bicseq2ConfigFile,
+                    bicseq2SegConfigFile = bicseq2SegConfigFile,
+                    chromFastas = chromFastas,
+                    bsGenome = bsGenome,
+                    ponTarGz = ponTarGz,
+                    gridssAdditionalReference = gridssAdditionalReference
             }
 
             call msi.Msi {
@@ -252,6 +348,9 @@ workflow SomaticWorkflow {
                 lancet : Calling.lancet,
                 svabaSv : Calling.svabaSv,
                 svabaIndel : Calling.svabaIndel,
+                gridssVcf : Calling.gridssVcf,
+                bicseq2Png : Calling.bicseq2Png,
+                bicseq2 : Calling.bicseq2,
                 tumor : pairRelationship.tumor,
                 normal : pairRelationship.normal,
                 tumorFinalBam : Preprocess.finalBam[tumorGetIndex.index],
@@ -319,16 +418,50 @@ workflow SomaticWorkflow {
                     ensemblEntrez = ensemblEntrez,
                     library = library
             }
+
+            call annotate_cnv_sv.AnnotateCnvSv {
+                input:
+                    tumor=pairRawVcfInfo.tumor,
+                    normal=pairRawVcfInfo.normal,
+                    pairName=pairRawVcfInfo.pairId,
+                    listOfChroms=listOfChroms,
+                    bicseq2=pairRawVcfInfo.bicseq2,
+                    cytoBand=cytoBand,
+                    dgv=dgv,
+                    thousandG=thousandG,
+                    cosmicUniqueBed=cosmicUniqueBed,
+                    cancerCensusBed=cancerCensusBed,
+                    ensemblUniqueBed=ensemblUniqueBed,
+
+                    filteredMantaSV=pairRawVcfInfo.filteredMantaSV,
+                    svabaSv=pairRawVcfInfo.svabaSv,
+                    gridssVcf=pairRawVcfInfo.gridssVcf,
+                    vepGenomeBuild=vepGenomeBuild,
+                    gap=gap,
+                    dgvBedpe=dgvBedpe,
+                    thousandGVcf=thousandGVcf,
+                    svPon=svPon,
+                    cosmicBedPe=cosmicBedPe
+
+        }
       }
 
    }
 
     output {
+        # alignment and calling results (calling results may not exist if qc failed)
+        # CNV SV output
+        Array[File?] cnvAnnotatedFinalBed  = AnnotateCnvSv.cnvAnnotatedFinalBed
+        Array[File?] cnvAnnotatedSupplementalBed  = AnnotateCnvSv.cnvAnnotatedSupplementalBed
+        Array[File?] svFinalBedPe = AnnotateCnvSv.svFinalBedPe
+        Array[File?] svHighConfidenceFinalBedPe = AnnotateCnvSv.svHighConfidenceFinalBedPe
+        Array[File?] svSupplementalBedPe = AnnotateCnvSv.svSupplementalBedPe
+        Array[File?] svHighConfidenceSupplementalBedPe = AnnotateCnvSv.svHighConfidenceSupplementalBedPe
+        # SNV INDELs
         Array[PairVcfInfo?] pairVcfInfos = Annotate.pairVcfInfo
         Array[File?] mergedVcfs = mergedVcf
         Array[Bam] finalBams = Preprocess.finalBam
         Array[PairRawVcfInfo?] pairRawVcfInfos = pairRawVcfInfo
-        Array[File?] kouramiResult = Kourami.result
         Array[File?] mantisWxsKmerCountsFinal = Msi.mantisWxsKmerCountsFinal
         Array[File?] mantisWxsKmerCountsFiltered = Msi.mantisWxsKmerCountsFiltered
         Array[File?] mantisExomeTxt = Msi.mantisExomeTxt
@@ -355,7 +488,7 @@ workflow SomaticWorkflow {
         Array[File] collectWgsMetrics = Preprocess.collectWgsMetrics
         Array[File] binestCov = Preprocess.binestCov
         Array[File] normCoverageByChrPng = Preprocess.normCoverageByChrPng
-        # Dedup metrics.
+        # Dedup metrics
         Array[File] collectWgsMetricsPreBqsr = Preprocess.collectWgsMetricsPreBqsr
         Array[File] qualityDistributionPdfPreBqsr = Preprocess.qualityDistributionPdfPreBqsr
         Array[File] qualityByCycleMetricsPreBqsr = Preprocess.qualityByCycleMetricsPreBqsr
@@ -366,6 +499,14 @@ workflow SomaticWorkflow {
         Array[File] concordanceAll = Conpair.concordanceAll
         Array[File] concordanceHomoz = Conpair.concordanceHomoz
         Array[File] contamination = Conpair.contamination
+
+        # Pass/Fail indicator
+        Array[File] qcResults = SomaticQcCheck.qcResult
+
+        # Germline
+        Array[File?] kouramiResult = Kourami.result
+        Array[IndexedVcf?] haplotypecallerVcf = Germline.haplotypecallerVcf
+        Array[IndexedVcf?] haplotypecallerFinalFiltered = Germline.haplotypecallerFinalFiltered
 
     }
 }

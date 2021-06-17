@@ -1,6 +1,16 @@
 version 1.0
 
 
+struct IndexedVcf {
+    File vcf
+    File index
+}
+
+struct IndexedTable {
+    File table
+    File index
+}
+
 struct Bam {
     File bam
     File bamIndex
@@ -15,6 +25,8 @@ struct BwaReference {
     File ann
     File? alt
     File amb
+    File? dict
+    File? index
 }
 
 struct IndexedReference {
@@ -56,6 +68,9 @@ struct PairRawVcfInfo {
     File lancet
     File svabaSv
     File svabaIndel
+    IndexedVcf gridssVcf
+    File bicseq2Png
+    File bicseq2
     String tumor
     String normal
     Bam tumorFinalBam
@@ -92,6 +107,9 @@ struct FinalPairInfo {
     File lancet
     File svabaSv
     File svabaIndel
+    File gridssVcf
+    File bicseq2Png
+    File bicseq2
     Bam tumorFinalBam
     Bam normalFinalBam
 }
@@ -110,12 +128,3 @@ struct pairInfo {
     String normal
 }
 
-struct IndexedVcf {
-    File vcf
-    File index
-}
-
-struct IndexedTable {
-    File table
-    File index
-}

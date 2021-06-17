@@ -45,7 +45,7 @@ task Deconstructsig {
         Int diskSize = 10
         String pairId
         String suffix = "deconstructSigs.v1.8.0.signatures.highconfidence"
-        String deconstructsigsBs
+        String bsGenome
         File deconstructsigsFasta
         File highconfidence
         File plotting_r = "gs://nygc-comp-s-fd4e-resources/plotting.R"
@@ -57,7 +57,7 @@ task Deconstructsig {
         ~{runDeconstructSigs} \
         ~{highconfidence} \
         ~{suffix} \
-        ~{deconstructsigsBs} \
+        ~{bsGenome} \
         ~{deconstructsigsFasta} \
         ~{plotting_r}
     }

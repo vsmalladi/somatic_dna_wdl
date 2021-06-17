@@ -7,6 +7,9 @@
 - [Write input and submit](#write_input)
 - [Post run reports](#post_run)
 - [Create new workflow](#create_new_workflow) 
+- [Appendix](#appendix)
+  - [Cram incompatible steps](#cram-incompatible)
+  - [Cram compatible steps](#cram-compatible)
 
 ![NYGC Somatic Pipeline overview](diagrams/WDL_Pipeline.png)
 
@@ -23,6 +26,7 @@ Python
 
 - pandas
 - jsonschema
+
 
 ### On prem environment setup
 <a name="environment"/>
@@ -222,4 +226,28 @@ git commit -m "feat: my new workflow"
 ```
 
 5. [Run](#write_input) the new workflow as before
+
+### Appendix
+<a name="appendix"/>
+
+##### Cram incompatible steps
+<a name="cram-incompatible"/>
+
+- biqsec2 norm
+- svaba?
+- lancet
+- mantis kmer counter ?
+
+
+##### Cram compatible steps
+<a name="cram-compatible"/>
+
+- strelka2
+- mutect2
+- gridss
+- manta
+- all samtools/pysam steps
+- kourami w/ custom prep
+
+
 

@@ -8,6 +8,8 @@ from google.cloud import storage
 import logging as log
 import google
 import re 
+import bicseq_config_prep
+
 
 class Json_leaves():
     
@@ -50,6 +52,7 @@ class Wdl():
                  interval_input,
                  pipeline_input,
                  genome,
+                 read_length,
                  custom_inputs,
                  validate=True,
                  project_info_file=False):
@@ -69,6 +72,17 @@ class Wdl():
                                      'full_variable' : full_variable,
                                      'object' : None,
                                      'type' : type}
+        # load bicseq variables for custom config files
+        if 'bicseq2ConfigFile' in self.inputs:
+            assert self.genome in self.load_json(genome_input), 'error genome not in interval file'
+            assert read_length, '--read-length is required to run BicSeq2'
+            genome_data = self.load_json(genome_input)[self.genome]
+            upload_bucket = self.project_info['options']['final_workflow_log_dir'].replace('cromwell-logs', 'input')
+            bicseq = bicseq_config_prep.Bicseq2Prep(list_of_chroms_full=genome_data['listOfChromsFull'],
+                                                    uniq_coords=genome_data['uniqCoords'],
+                                                    read_length=read_length,
+                                                    upload_bucket=upload_bucket)
+            self.load_custom_dict(custom_dict=bicseq.inputs)   
         # load preexisting reference variables
         self.load_genome_input(genome_input)
         self.load_pipeline_input(pipeline_input)
@@ -87,10 +101,6 @@ class Wdl():
         if not found:
             log.error('searching for first missing/unreadible file. This may be slow...')
             self.narrow_down(strings=files)
-#         for file in files:
-#             self.validate_input_gsutil(strings=[file])
-#         for potential_file in potential_files.files:
-#             self.validate_input(string=potential_file)
         
     def parse_url(self, url):
         '''divide gcp bucket location into parts'''
@@ -231,6 +241,14 @@ class Wdl():
             if variable in self.inputs:
                 self.input_objects[variable] = data[variable]
                 
+    def load_custom_dict(self, custom_dict):
+        '''load variables from any custom file'''
+        for variable in custom_dict:
+            if variable in self.input_objects.keys():
+                log.warning(variable + 'value is being taken from custom generated dictionary.')
+            self.input_objects[variable] = {}
+            self.input_objects[variable]['object'] = custom_dict[variable]
+                
     def load_custom(self):
         '''load variables from any custom file'''
         if self.custom_inputs:
@@ -238,7 +256,6 @@ class Wdl():
                 data = self.load_json(custom_input)
                 new_vars = [variable.split('.')[-1] for variable in set(data.keys())]
                 assert len(set(new_vars)) == len(new_vars), 'input variables must have unique variable names (after removing workflow names).'
-#                 assert len(set(new_vars).intersection(self.input_objects.keys())) == 0, 'custom inputs must be not be redundant to other input variables'
                 for variable in data:
                     new_var = variable.split('.')[-1]
                     if new_var in self.input_objects.keys():

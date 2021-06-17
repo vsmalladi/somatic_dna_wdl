@@ -391,8 +391,8 @@ class CloudOutput():
                                     stdout=subprocess.PIPE).stdout.decode('utf-8')
         except subprocess.CalledProcessError as err:
             log.error(err.output.decode('utf-8'))
-            log.error('Failed to read URI: ' + uri)
-            return False
+            log.error('Failed to read URI: ' + self.out_dir)
+            return []
         return [file for file in result.split('\n') if not file == '' 
                 and not file.endswith(':')
                 and not file.endswith('/')]

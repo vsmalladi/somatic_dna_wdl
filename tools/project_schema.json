@@ -72,6 +72,10 @@
             "items": { "$ref": "#/definitions/sampleInfo" }
             
         },
+        "normalSampleInfos": { "type": "array",
+            "items": { "$ref": "#/definitions/sampleInfo" }
+            
+        },
         "library": { "type": "string",
             "enum": ["WGS", "Exome"]
         },

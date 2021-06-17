@@ -10,105 +10,102 @@ workflow BicSeq2 {
         String tumor
         String normal
         String pairName
-        Array[String] listOfChroms
+        Array[String] listOfChromsFull
         
         Bam normalFinalBam
         Bam tumorFinalBam
         Int readLength
-        Map[Int, Array[File]] uniqCoords
+        Int coordReadLength
+        Map[Int, Map[String, File]] uniqCoords
         
-        File tumorConfigFile
-        File normalConfigFile
-        Int tumorMedianInsertSize
-        Int normalMedianInsertSize
-        String tumorParamsPath
-        String normalParamsPath
+        File bicseq2ConfigFile
+        File bicseq2SegConfigFile
+        Int tumorMedianInsertSize = 400
+        Int normalMedianInsertSize = 400
         Map[String, File] chromFastas
         
         IndexedReference referenceFa
         
-        Int threads
-        Int memoryGb
-        String samtoolsDockerImage
-        String bicseq2DockerImage
-        String gatkDockerImage
-        String pysamDockerImage
-        File jsonLog
+        Int lambda = 4
     }
     
-    scatter (chrom in listOfChroms) {
-            String tempNormalSeq = "~{normal}/~{normal}_~{chrom}.seq"
-            String tempTumorSeq = "~{tumor}/~{tumor}_~{chrom}.seq"
-            File chromFastaFile = chromFastas[chrom]
+    scatter (chrom in listOfChromsFull) {
+            String tempNormalSeq = "~{normal}_~{chrom}.seq"
+            String tempTumorSeq = "~{tumor}_~{chrom}.seq"
+            File chromFastasFile = chromFastas[chrom]
         }
     Array[String] tempNormalSeqsPaths = tempNormalSeq
     Array[String] tempTumorSeqsPaths = tempTumorSeq
-    Array[File] chromFastaFiles = chromFastaFile
+    Array[File] chromFastasFiles = chromFastasFile
     
-    call calling.UniqReads {
+    call calling.UniqReads as uniqReadsNormal {
         input:
-            tumor = tumor,
-            normal = normal,
-            tumorFinalBam = tumorFinalBam,
-            normalFinalBam = normalFinalBam,
-            tempNormalSeqsPaths = tempNormalSeqsPaths,
-            tempTumorSeqsPaths = tempTumorSeqsPaths,
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = samtoolsDockerImage
+            sampleId = normal,
+            finalBam = normalFinalBam,
+            tempSeqsPaths = tempNormalSeqsPaths,
+            memoryGb = 8
     }
     
-    scatter(chrom in listOfChroms) {
+    call calling.UniqReads as uniqReadsTumor {
+        input:
+            sampleId = tumor,
+            finalBam = tumorFinalBam,
+            tempSeqsPaths = tempTumorSeqsPaths,
+            memoryGb = 8
+    }
+    
+    scatter(chrom in listOfChromsFull) {
         String tempTumorNormFile = "~{tumor}/~{tumor}_~{chrom}.norm.bin.txt"
     }
     Array[String]+ tempTumorNormPaths = tempTumorNormFile
     
+    # prep chrom resources
+    scatter(chrom in listOfChromsFull) {
+        File uniqCoordFile = uniqCoords[coordReadLength][chrom]
+    }
+    Array[File] uniqCoordsFiles = uniqCoordFile
+    
     call calling.Bicseq2Norm as tumorBicseq2Norm {
         input:
             sampleId = tumor,
-            tempSeqs = UniqReads.tempTumorSeqs,
-            configFile = tumorConfigFile,
+            tempSeqs = uniqReadsTumor.tempSeqs,
+            bicseq2ConfigFile = bicseq2ConfigFile,
             sampleId = tumor,
             readLength = readLength,
             medianInsertSize = tumorMedianInsertSize,
-            paramsPath = tumorParamsPath,
             tempNormPaths = tempTumorNormPaths,
-            chromFastas = chromFastaFiles,
-            uniqCoords = uniqCoords[readLength],
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = bicseq2DockerImage
+            uniqCoordsFiles=uniqCoordsFiles,
+            chromFastasFiles=chromFastasFiles,
+            memoryGb = 8
     }
     
-    scatter(chrom in listOfChroms) {
-        File tempNormalNormFile = "~{normal}/~{normal}_~{chrom}.norm.bin.txt"
+    scatter(chrom in listOfChromsFull) {
+        String tempNormalNormFile = "~{normal}/~{normal}_~{chrom}.norm.bin.txt"
     }
-    Array[File]+ tempNormalNormPaths = tempNormalNormFile
+    Array[String]+ tempNormalNormPaths = tempNormalNormFile
     
     call calling.Bicseq2Norm as normalBicseq2Norm {
         input:
             sampleId = normal,
-            tempSeqs = UniqReads.tempNormalSeqs,
-            configFile = normalConfigFile,
+            tempSeqs = uniqReadsNormal.tempSeqs,
+            bicseq2ConfigFile = bicseq2ConfigFile,
             sampleId = normal,
             readLength = readLength,
             medianInsertSize = normalMedianInsertSize,
-            paramsPath = normalParamsPath,
             tempNormPaths = tempNormalNormPaths,
-            chromFastas = chromFastaFiles,
-            uniqCoords = uniqCoords[readLength],
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = bicseq2DockerImage
+            uniqCoordsFiles=uniqCoordsFiles,
+            chromFastasFiles=chromFastasFiles,
+            memoryGb = 8
     }
     
     call calling.Bicseq2Wgs {
         input:
+            pairName = pairName,
             tempTumorNorms = tumorBicseq2Norm.tempNorm,
             tempNormalNorms = normalBicseq2Norm.tempNorm,
-            memoryGb = memoryGb,
-            threads = threads,
-            dockerImage = bicseq2DockerImage
+            bicseq2SegConfigFile = bicseq2SegConfigFile,
+            lambda = lambda,
+            memoryGb = 8
     }
     
     output {

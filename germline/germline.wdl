@@ -2,409 +2,333 @@ version 1.0
 
 import "../wdl_structs.wdl"
 
-task Haplotypecaller {
+
+task haplotypeCallerGatk4 {
     input {
         Bam finalBam
         IndexedReference referenceFa
-        String chrom
         String sampleId
-        String haplotypecallerChromVcfPath = "~{sampleId}.~{chrom}.haplotypeCalls.er.raw.vcf"
-        Int threads = 18
-        Int memoryGb = 26
+        Int index
+        String haplotypecallerIntervalVcfPath = "~{sampleId}.~{index}.haplotypecaller.g.vcf.gz"
+        String bamOutPath = "~{sampleId}.bamout.bam"
+        Int memoryGb = 7
         Int diskSize
+        
+        
+        ## Inputs for haplotypecaller
+        IndexedVcf hapmap
+        IndexedVcf omni
+        IndexedVcf onekG
+        IndexedVcf dbsnp
+        File excludeIntervalList
+        File scatterIntervalsHc
+        
     }
 
     command {
-        java \
-        -Xmx24g \
-        -XX:ParallelGCThreads=2 \
-        -jar /usr/GenomeAnalysisTK.jar \
-        -T HaplotypeCaller \
-        --genotyping_mode DISCOVERY \
-        -A AlleleBalanceBySample \
-        -A DepthPerAlleleBySample \
-        -A DepthPerSampleHC \
-        -A InbreedingCoeff \
-        -A MappingQualityZeroBySample \
-        -A StrandBiasBySample \
-        -A Coverage \
-        -A FisherStrand \
-        -A HaplotypeScore \
-        -A MappingQualityRankSumTest \
-        -A MappingQualityZero \
-        -A QualByDepth \
-        -A RMSMappingQuality \
-        -A ReadPosRankSumTest \
-        -A VariantType \
-        -l INFO \
-        --emitRefConfidence GVCF \
-        -rf BadCigar \
-        --variant_index_parameter 128000 \
-        --variant_index_type LINEAR \
-        -R ~{referenceFa.fasta} \
-        -nct 16 \
-        -I ~{finalBam.bam} \
-        -L ~{chrom} \
-        -o ~{haplotypecallerChromVcfPath}
+            /gatk/gatk \
+            --java-options "-Xmx7G -XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10" \
+            HaplotypeCaller \
+            -R ~{referenceFa.fasta} \
+            -I ~{finalBam.bam} \
+            -L ~{scatterIntervalsHc} \
+            -XL ~{excludeIntervalList} \
+            -O ~{haplotypecallerIntervalVcfPath} \
+            -G StandardAnnotation \
+            -G StandardHCAnnotation \
+            -G AS_StandardAnnotation \
+            -GQB 10 -GQB 20 -GQB 30 -GQB 40 -GQB 50 -GQB 60 -GQB 70 -GQB 80 -GQB 90 \
+            -ERC GVCF \
+            -bamout ~{bamOutPath}
     }
 
     output {
-        File haplotypecallerChromVcf = "~{haplotypecallerChromVcfPath} "
+        IndexedVcf haplotypecallerIntervalVcf = object {
+                vcf : "~{haplotypecallerIntervalVcfPath}",
+                index : "~{haplotypecallerIntervalVcfPath}.tbi"
+            }
+        File bamOut = "~{bamOutPath}"
     }
 
     runtime {
-        cpu : threads
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker : "gcr.io/nygc-public/broadinstitute/gatk3:3.5-0"
+        docker: "us.gcr.io/broad-gatk/gatk:4.1.8.0"
     }
 }
 
-task GentotypeGvcfs {
+task GentotypeGvcfsGatk4 {
     input {
         IndexedReference referenceFa
         IndexedVcf sortedVcf
         String sampleId
-        String haplotypecallerGenoVcfPath = "~{sampleId}.genotypeGVCFs.vcf"
-        Int threads = 12
-        Int memoryGb = 26
-        Int diskSize = (ceil( size(sortedVcf.vcf, "GB") )  * 2 ) + 4
-    }
-
-    command {
-        java \
-        -Xmx24g \
-        -XX:ParallelGCThreads=4 \
-        -jar /usr/GenomeAnalysisTK.jar \
-        -T GenotypeGVCFs \
-        -R ~{referenceFa.fasta} \
-        -nt 8 \
-        --disable_auto_index_creation_and_locking_when_reading_rods \
-        --variant ~{sortedVcf.vcf} \
-        -o ~{haplotypecallerGenoVcfPath}
-    }
-
-    output {
-        File haplotypecallerGenoVcf = "~{haplotypecallerGenoVcfPath}"
-    }
-
-    runtime {
-        cpu : threads
-        memory : memoryGb + "GB"
-        disks: "local-disk " + diskSize + " HDD"
-        docker : "gcr.io/nygc-public/broadinstitute/gatk3:3.5-0"
-    }
-}
-
-task RecalVcfsSnp {
-    input {
-        String sampleId
-        String recalSnpPath = "~{sampleId}.recalibrate_SNP.recal"
-        String tranchesSnpPath = "~{sampleId}.recalibrate_SNP.tranches"
-        String recalibratePlotsPath = "~{sampleId}.recalibrate_SNP_plots.R"
-        IndexedVcf omni
+        String index
+        String haplotypecallerGenoVcfPath = "~{sampleId}.~{index}.haplotypecaller.gatk.v4.1.8.0.genotypedGVCFs.vcf.gz"
+        String haplotypecallerFilteredGenoVcfPath = "~{sampleId}.~{index}.haplotypecaller.gatk.v4.1.8.0.filtered.genotypedGVCFs.vcf.gz"
+        File scatterIntervalsHc
+        
+        ## Inputs for haplotypecaller
         IndexedVcf hapmap
-        IndexedReference referenceFa
+        IndexedVcf omni
         IndexedVcf onekG
         IndexedVcf dbsnp
-        File haplotypecallerGenoVcf
-        Int memoryGb = 34
-        Int threads = 8
-        Int diskSize = (ceil( size(haplotypecallerGenoVcf, "GB") )  * 2 ) + 20
+
+        Int memoryGb = 16
+        Int diskSize = (ceil( size(sortedVcf.vcf, "GB") )  * 2 ) + 20
     }
 
-    command {
-        java \
-        -Xmx32g \
-        -XX:ParallelGCThreads=4 \
-        -jar /usr/GenomeAnalysisTK.jar \
-        -T VariantRecalibrator \
-        --maxGaussians 4 \
-        -tranche 100.0 \
-        -tranche 99.8 \
-        -tranche 99.6 \
-        -tranche 99.4 \
-        -tranche 99.2 \
-        -tranche 99.0 \
-        -tranche 95.0 \
-        -tranche 90.0 \
-        -an QD \
-        -an MQ \
-        -an FS \
-        -an MQRankSum \
-        -an ReadPosRankSum \
-        -an SOR \
-        -an DP \
-        -mode SNP \
+    command {    
+        ## GenotypeGvcfs
+        /gatk/gatk \
+        --java-options "-Xmx12G -XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10" \
+        GenotypeGVCFs \
+        -V ~{sortedVcf.vcf} \
         -R ~{referenceFa.fasta} \
-        -nt 4 \
-        --input ~{haplotypecallerGenoVcf} \
-        -recalFile ~{recalSnpPath} \
-        -tranchesFile ~{tranchesSnpPath} \
-        -rscriptFile ~{recalibratePlotsPath} \
-        -resource:dbsnp,known=true,training=false,truth=false,prior=2.0 ~{dbsnp.vcf} \
-        -resource:hapmap,known=false,training=true,truth=true,prior=15.0 ~{hapmap.vcf} \
-        -resource:omni,known=false,training=true,truth=true,prior=12.0 ~{omni.vcf} \
-        -resource:1000G,known=false,training=true,truth=false,prior=10.0 ~{onekG.vcf}
+        -L ~{scatterIntervalsHc} \
+        -O ~{haplotypecallerGenoVcfPath}
+
+        ## Score variants using CNN
+        /gatk/gatk \
+        --java-options "-Xmx12G -XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10" \
+        CNNScoreVariants \
+        -V ~{haplotypecallerGenoVcfPath} \
+        -R ~{referenceFa.fasta} \
+        -L ~{scatterIntervalsHc} \
+        -O ~{sampleId}.haplotypecaller.annotated.vcf
+
+        ## Filter variant tranches
+        /gatk/gatk \
+        --java-options "-Xmx12G -XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10" \
+        FilterVariantTranches \
+        -L ~{scatterIntervalsHc} \
+        -V ~{sampleId}.haplotypecaller.annotated.vcf \
+        -O ~{haplotypecallerFilteredGenoVcfPath} \
+        --snp-tranche 99.9 --snp-tranche 99.95 \
+        --indel-tranche 99.0 --indel-tranche 99.4 \
+        --resource ~{hapmap.vcf} \
+        --resource ~{omni.vcf} \
+        --resource ~{onekG.vcf} \
+        --resource ~{dbsnp.vcf} \
+        --info-key CNN_1D \
+        --create-output-variant-index true
+        
     }
 
     output {
-        File tranchesSnp = "~{tranchesSnpPath}"
-        File recalibratePlots = "~{recalibratePlotsPath}"
-        File recalSnp = "~{recalSnpPath}"
+        IndexedVcf haplotypecallerGenoVcf = object {
+                vcf : "~{haplotypecallerGenoVcfPath}",
+                index : "~{haplotypecallerGenoVcfPath}.tbi"
+            }
+        IndexedVcf haplotypecallerFilteredGenoVcf = object {
+                vcf : "~{haplotypecallerFilteredGenoVcfPath}",
+                index : "~{haplotypecallerFilteredGenoVcfPath}.tbi"
+            }
     }
 
     runtime {
-        cpu : threads
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker : "gcr.io/nygc-public/broadinstitute/gatk3:3.5-0"
+        docker : "us.gcr.io/broad-gatk/gatk:4.1.8.0"
     }
 }
 
-task RecalVcfsIndel {
+
+task genotypeRefinementWorkflow {
     input {
         String sampleId
-        String recalIndelPath = "~{sampleId}.recalibrate_INDEL.recal"
-        String tranchesIndelPath = "~{sampleId}.recalibrate_INDEL.tranches"
-        String recalibratePlotsIndelPath = "~{sampleId}.recalibrate_INDEL_plots.R"
+        IndexedVcf genotypedGatk4
+        String haplotypecallerAfVcfPath = "~{sampleId}.haplotypecaller.gatk.v4.1.8.0.af.vcf.gz"
+        String haplotypecallerAfGqFilteredVcfPath = "~{sampleId}.haplotypecaller.gatk.v4.1.8.0.af-gq-filtered.vcf.gz"
         IndexedReference referenceFa
-        IndexedVcf dbsnp
-        File haplotypecallerGenoVcf
-        IndexedVcf MillsAnd1000G
-        Int memoryGb = 34
-        Int threads = 8
-        Int diskSize = (ceil( size(haplotypecallerGenoVcf, "GB") )  * 2 ) + 20
-    }
-
-    command {
-        java \
-        -Xmx32g \
-        -XX:ParallelGCThreads=4 \
-        -jar /usr/GenomeAnalysisTK.jar \
-        -T VariantRecalibrator \
-        --maxGaussians 4 \
-        -tranche 100.0 \
-        -tranche 99.0 \
-        -tranche 95.0 \
-        -tranche 92.0 \
-        -tranche 90.0 \
-        -an QD \
-        -an FS \
-        -an MQRankSum \
-        -an ReadPosRankSum \
-        -an SOR \
-        -an DP \
-        -mode INDEL \
-        -R ~{referenceFa.fasta} \
-        -nt 4 \
-        --input ~{haplotypecallerGenoVcf} \
-        -recalFile ~{recalIndelPath} \
-        -tranchesFile ~{tranchesIndelPath} \
-        -rscriptFile ~{recalibratePlotsIndelPath} \
-        -resource:dbsnp,known=true,training=false,truth=false,prior=2.0  ~{dbsnp.vcf} \
-        -resource:mills,known=true,training=true,truth=true,prior=12.0 ~{MillsAnd1000G.vcf}
-    }
-    
-    output {
-        File recalibratePlotsIndel = "~{recalibratePlotsIndelPath}"
-        File tranchesIndel = "~{tranchesIndelPath}"
-        File recalIndel = "~{recalIndelPath}"
-    }
-    
-
-    runtime {
-        cpu : threads
-        memory : memoryGb + "GB"
-        disks: "local-disk " + diskSize + " HDD"
-        docker : "gcr.io/nygc-public/broadinstitute/gatk3:3.5-0"
-    }
-}
-
-task ApplyRecal {
-    input {
-        String mode
-        String sampleId
-        String haplotypecallerGenoVcfApplySnpIndelPath
-        IndexedReference referenceFa
-        File tranches
-        File recal
-        File haplotypecallerGenoVcfApply
-        Int threads = 20
-        Int memoryGb = 10
-        Int diskSize = ceil( size(haplotypecallerGenoVcfApply, "GB") + size(recal, "GB") + size(tranches, "GB") ) + 20
-    }
-
-    command {
-        java \
-        -Xmx8g \
-        -XX:ParallelGCThreads=4 \
-        -jar /usr/GenomeAnalysisTK.jar \
-        -T ApplyRecalibration \
-        --ts_filter_level 99.6 \
-        -R ~{referenceFa.fasta} \
-        -nt 16 \
-        --input ~{haplotypecallerGenoVcfApply} \
-        -mode ~{mode} \
-        -recalFile ~{recal} \
-        -tranchesFile ~{tranches} \
-        -o ~{haplotypecallerGenoVcfApplySnpIndelPath}
-    }
-
-    output {
-        File haplotypecallerGenoVcfApplySnpIndel = "~{haplotypecallerGenoVcfApplySnpIndelPath}"
-    }
-
-    runtime {
-        cpu : threads
-        memory : memoryGb + "GB"
-        disks: "local-disk " + diskSize + " HDD"
-        docker : "gcr.io/nygc-public/broadinstitute/gatk3:3.5-0"
-    }
-}
-
-task VarFilter {
-    input {
-        String sampleId
-        String haplotypecallerRecalVcfPath = "~{sampleId}.recalibrated.haplotypeCalls.vcf"
-        IndexedReference referenceFa
-        File haplotypecallerGenoVcfApplySnpIndel
-        File varfiltReheader = "gs://nygc-comp-s-fd4e-input/varfilt_reheader"
-        Int threads = 2
-        Int memoryGb = 26
-        Int diskSize = (ceil( size(haplotypecallerGenoVcfApplySnpIndel, "GB") ) * 2 ) + 10
+        Int memoryGb = 16
+        Int diskSize = (ceil( size(genotypedGatk4.vcf, "GB") ) * 4 ) + 20
     }
 
     command {
         set -e -o pipefail
-
-        chmod 777 ~{varfiltReheader}
         
-        java \
-        -Xmx24g \
-        -XX:ParallelGCThreads=2 \
-        -jar /usr/GenomeAnalysisTK.jar \
-        -T VariantFiltration \
+        ## Annotate FORMAT/AF (deliver)
+        /gatk/gatk \
+        --java-options "-Xmx12G -XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10" \
+        VariantAnnotator \
         -R ~{referenceFa.fasta} \
-        -V ~{haplotypecallerGenoVcfApplySnpIndel} \
-        --genotypeFilterName "GQbelow20" \
-        --genotypeFilterExpression "GQ < 20.0" \
-        --genotypeFilterName "DPbelow10" \
-        --genotypeFilterExpression "DP < 10.0" \
-        | ~{varfiltReheader} \
-        > ~{haplotypecallerRecalVcfPath}
-    }
-
-    output {
-        File haplotypecallerRecalVcf = "~{haplotypecallerRecalVcfPath}"
-    }
-
-    runtime {
-        cpu : threads
-        memory : memoryGb + "GB"
-        disks: "local-disk " + diskSize + " HDD"
-        docker : "gcr.io/nygc-public/broadinstitute/gatk3:3.5-0"
-    }
-}
-
-task VcfNorm {
-    input {
-        String sampleId
-        String haplotypecallerNormVcfPath = "~{sampleId}.recalibrated.haplotypeCalls.norm.vcf.gz"
-        IndexedVcf haplotypecallerRecalVcf
-        Int threads = 4
-        Int memoryGb = 20
-        Int diskSize = (ceil( size(haplotypecallerRecalVcf.vcf, "GB") ) * 2 ) + 5
-    }
-
-    command {
-        bcftools \
-        norm \
-        --threads ~{threads} \
-        -O z \
-        -m-both ~{haplotypecallerRecalVcf.vcf} \
-        -o ~{haplotypecallerNormVcfPath} \
-    }
-
-    output {
-        File haplotypecallerNormVcf = "~{haplotypecallerNormVcfPath}"
-    }
-
-    runtime {
-        cpu : threads
-        memory : memoryGb + "GB"
-        disks: "local-disk " + diskSize + " HDD"
-        docker : "gcr.io/nygc-public/bcftools:1.5"
-    }
-}
-
-task VarEval {
-    input {
-        String sampleId
-        String varReportPath = "~{sampleId}.VariantEval.report.jg.txt"
-        IndexedReference referenceFa
-        IndexedVcf dbsnp
-        File haplotypecallerGenoVcfApplySnpIndel
-        Int threads = 4
-        Int memoryGb = 26
-        Int diskSize = (ceil( size(haplotypecallerGenoVcfApplySnpIndel, "GB") ) * 2 ) + 20    
-    }
-
-    command {
-        java \
-        -XX:ParallelGCThreads=4 \
-        -Xmx24g \
-        -jar /usr/GenomeAnalysisTK.jar \
-        -T VariantEval \
-        -ST Sample \
-        -ST Novelty \
-        -EV CompOverlap \
-        -EV CountVariants \
-        -EV IndelSummary \
-        -EV TiTvVariantEvaluator \
-        -noEV \
-        -noST \
+        -V ~{genotypedGatk4.vcf} \
+        -O ~{haplotypecallerAfVcfPath} \
+        -A AlleleFraction
+        
+        
+        ## remove biallellic sites
+        zcat ~{haplotypecallerAfVcfPath} \
+        | awk '($5 !~ ",")' \
+        > ~{sampleId}.biallellic.vcf
+        
+        ## Variant filtration
+        /gatk/gatk \
+        --java-options "-Xmx12G -XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10" \
+        VariantFiltration \
         -R ~{referenceFa.fasta} \
-        --eval ~{haplotypecallerGenoVcfApplySnpIndel} \
-        -o ~{varReportPath} \
-        --dbsnp ~{dbsnp.vcf} \
+        -V ~{sampleId}.biallellic.vcf \
+        -O ~{sampleId}.haplotypecaller.af-gq-filtered.vcf.gz \
+        --genotype-filter-name "AlleleFraction" \
+        --genotype-filter-expression "(AF < 0.25 && AF > 0.0) || AF > 0.75" \
+        --genotype-filter-name "GQ20" \
+        --genotype-filter-expression "GQ < 20"
+    
+        # filter with AF (deliver)
+        zcat ~{sampleId}.haplotypecaller.af-gq-filtered.vcf.gz \
+        | grep -v "AlleleFraction" \
+        > ~{haplotypecallerAfGqFilteredVcfPath}
     }
 
     output {
-        File varReport = "~{varReportPath}"
+        IndexedVcf haplotypecallerAfVcf = object {
+                vcf : "~{haplotypecallerAfVcfPath}",
+                index : "~{haplotypecallerAfVcfPath}.tbi"
+            }
+        File haplotypecallerAfGqFilteredVcf = "~{haplotypecallerAfGqFilteredVcfPath}"
     }
 
     runtime {
-        cpu : threads
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker : "gcr.io/nygc-public/broadinstitute/gatk3:3.5-0"
+        docker : "us.gcr.io/broad-gatk/gatk:4.1.8.0"
     }
 }
 
-task VarSum {
-    input {
-        String sampleId
-        String varSummaryPath = "~{sampleId}.VariantEval.summary.jg.txt"
-        File varReport
-        Int memoryGb = 4
-        Int diskSize = ceil( size(varReport, "GB") ) + 4
+task filterHO {
+        input {
+            String sampleId
+            IndexedVcf haplotypecallerAfVcf
+            IndexedVcf nygcAf
+            IndexedVcf pgx
+            IndexedTable rwgsPgxBed
+            IndexedVcf whitelist
+            IndexedVcf chdWhitelistVcf
+            IndexedVcf deepIntronicsVcf
+            IndexedVcf clinvarIntronicsVcf
+            String haplotypecallerFinalFilteredPath = "~{sampleId}.haplotypecaller.gatk.v4.1.8.0.final.filtered.vcf.gz"
+            Int diskSize = 100
     }
-
-    command {
-        python2.7 \
-        /make_vareval_summary.py \
-        ~{varReport} \
-        ~{varSummaryPath} \
-    }
-
-    output {
-        File varSummary = "~{sampleId}.VariantEval.summary.jg.txt"
-    }
-
+    
+    command <<<
+          ## Remove existing AF annotations from merged VCF
+          bcftools annotate \
+          -x INFO/AF \
+          -Oz \
+          ~{haplotypecallerAfVcf.vcf} \
+          > noaf.vcf.gz
+        
+          tabix -p vcf noaf.vcf.gz
+        
+          ## Annotate with NYGC AF for filtering
+          bcftools annotate \
+          --annotations ~{nygcAf.vcf} \
+          --columns 'INFO/AF,INFO/AC_Hom' \
+          -Oz \
+          noaf.vcf.gz \
+          > ~{sampleId}.final.annotated.vcf.gz
+        
+          tabix -p vcf ~{sampleId}.final.annotated.vcf.gz
+        
+          ## filter variants >3% AF and >10 Homozygotes in NYGC vars
+          bcftools filter \
+          --exclude 'INFO/AF[*] > 0.03 || INFO/AC_Hom[*] > 10' \
+          ~{sampleId}.final.annotated.vcf.gz \
+          > ~{sampleId}.pop.filtered.vcf
+        
+          bgzip ~{sampleId}.pop.filtered.vcf
+          tabix -p vcf ~{sampleId}.pop.filtered.vcf.gz
+        
+          ## select whitelist variants
+          bcftools view \
+          -Oz \
+          -R ~{whitelist.vcf} \
+          ~{haplotypecallerAfVcf.vcf} \
+          > ~{sampleId}.whitelist.filtered.vcf.gz
+        
+          tabix -p vcf ~{sampleId}.whitelist.filtered.vcf.gz
+        
+          ## select pgx variants
+          bcftools view \
+          -Oz \
+          -R ~{pgx.vcf} \
+          ~{haplotypecallerAfVcf.vcf} \
+          > ~{sampleId}.pgx.filtered.vcf.gz
+        
+          tabix -p vcf ~{sampleId}.pgx.filtered.vcf.gz
+        
+          ## select chd whitelist variants
+          bcftools view \
+          -Oz \
+          -R ~{chdWhitelistVcf.vcf} \
+          ~{haplotypecallerAfVcf.vcf} \
+          > ~{sampleId}.chdwhitelist.filtered.vcf.gz
+        
+          tabix -p vcf ~{sampleId}.chdwhitelist.filtered.vcf.gz
+        
+          ## select rwgs pgx variants
+          bcftools view \
+          -Oz \
+          -R ~{rwgsPgxBed.table} \
+          ~{haplotypecallerAfVcf.vcf} \
+          > ~{sampleId}.rwgspgx.filtered.vcf.gz
+        
+          tabix -p vcf ~{sampleId}.rwgspgx.filtered.vcf.gz
+        
+          ## Select deep intronics
+          bcftools view \
+          -Oz \
+          -R ~{deepIntronicsVcf.vcf} \
+          ~{haplotypecallerAfVcf.vcf} \
+          > ~{sampleId}.deep_intronics.filtered.vcf.gz
+        
+          tabix -p vcf ~{sampleId}.deep_intronics.filtered.vcf.gz
+        
+          ## Select clinvar intronics
+          bcftools view \
+          -Oz \
+          -R ~{clinvarIntronicsVcf.vcf} \
+          ~{haplotypecallerAfVcf.vcf} \
+          > ~{sampleId}.clinvar_intronics.filtered.vcf.gz
+        
+          tabix -p vcf ~{sampleId}.clinvar_intronics.filtered.vcf.gz
+          
+          echo ~{sampleId} > samples.txt
+        
+          ## merge all filtered files for further processing
+          bcftools concat \
+          -a \
+          -d all \
+          ~{sampleId}.pop.filtered.vcf.gz \
+          ~{sampleId}.whitelist.filtered.vcf.gz \
+          ~{sampleId}.pgx.filtered.vcf.gz \
+          ~{sampleId}.chdwhitelist.filtered.vcf.gz \
+          ~{sampleId}.rwgspgx.filtered.vcf.gz \
+          ~{sampleId}.deep_intronics.filtered.vcf.gz \
+          ~{sampleId}.clinvar_intronics.filtered.vcf.gz \
+          | \
+          bcftools view \
+          -i 'GT[@samples.txt]="alt"' \
+          | \
+          bcftools sort \
+          -Oz \
+          > ~{haplotypecallerFinalFilteredPath}
+        
+          tabix -p vcf ~{haplotypecallerFinalFilteredPath}
+    >>>
+    
     runtime {
-        memory : memoryGb + "GB"
-        disks: "local-disk " + diskSize + " HDD"
+      memory: "7.5 GB"
+      cpu: "2"
+      disks: "local-disk " + diskSize + " HDD"
+      docker: "gcr.io/nygc-public/genome-utils:v8"
+    }
+    
+    output {
+        IndexedVcf haplotypecallerFinalFiltered = object {
+                vcf : "~{haplotypecallerFinalFilteredPath}",
+                index : "~{haplotypecallerFinalFilteredPath}.tbi"
+        }
     }
 }
 

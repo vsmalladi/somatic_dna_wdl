@@ -6,7 +6,7 @@ import "wdl_structs.wdl"
 workflow VariantAnalysis {
     input {
         Array[PairVcfInfo]+ pairVcfInfos
-        String deconstructsigsBs
+        String bsGenome
         File deconstructsigsFasta
     }
     
@@ -15,7 +15,7 @@ workflow VariantAnalysis {
             input:
                 mainVcf = pairVcfInfo.mainVcf,
                 pairId = pairVcfInfo.pairId,
-                deconstructsigsBs = deconstructsigsBs,
+                bsGenome = bsGenome,
                 deconstructsigsFasta = deconstructsigsFasta
         }
         

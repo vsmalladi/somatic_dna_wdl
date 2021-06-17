@@ -44,6 +44,8 @@ class Runtime():
         self.load_metadata()
         self.load_runtime()
         self.load_metrics()
+        hashable = ['instance_name', 'workflow_id', 'attempt']
+        self.metadata = self.metadata.drop_duplicates(subset=hashable)
         self.instance_id_map = self.get_max_mems(self.metadata, 
                                                  instance_id_map=self.instance_id_map, 
                                                  execution_status=False,
@@ -90,7 +92,10 @@ class Runtime():
                                                execution_status=execution_status):
                 instance_ids.append(inst)
             instance_ids = list(set(instance_ids))
-            max_value = self.metrics[self.metrics.instance_id.isin(instance_ids)][metrics_key].max()
+            try:
+                max_value = self.metrics[self.metrics.instance_id.isin(instance_ids)][metrics_key].max()
+            except ValueError:
+                max_value = 0
             for inst in instance_ids:
                 instance_id_map[inst][metrics_key] = max_value
         return instance_id_map
@@ -107,7 +112,10 @@ class Runtime():
             if (row.workflow_id in instance_id_map[inst]['workflow_ids']) \
                     and (row.task_call_name == instance_id_map[inst]['task_call_name']):
                 max_values.append(instance_id_map[inst][metrics_key])
-        return max(max_values)
+        try:
+            return max(max_values)
+        except ValueError:
+            return 0
         
     def get_flow_runtime(self, grouped, row, ids):
         ''' get max runtime in hours for group.
@@ -275,8 +283,9 @@ class Runtime():
         self.metadata = meta[meta.workflow_id.isin(sub_workflow_uuid_sample_map.workflow_id.tolist())].copy()
         self.metadata['inputs'] = self.metadata.apply(lambda row: str(row.inputs).replace('\n', ' '), axis=1)
         unhashable = ['disk_mounts', 'disk_total_gb', 'disk_types', 'inputs']
-        hashable = [col for col in self.metadata.columns if not col in unhashable]
-        self.metadata = self.metadata.drop_duplicates(hashable)
+        # hashable = [col for col in self.metadata.columns if not col in unhashable]
+        hashable = ['instance_name', 'workflow_id', 'attempt']
+        self.metadata = self.metadata.drop_duplicates(subset=hashable)
         self.metadata = self.metadata.merge(sub_workflow_uuid_sample_map, on='workflow_id')
         
     def load_runtime(self):

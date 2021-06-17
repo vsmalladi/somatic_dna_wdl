@@ -40,13 +40,13 @@ class Lookup():
                                  if pair_info['pairId'] == pair_id][0]
             try:
                 pair_merged_info = {'pairId' : pair_id,
-                                     'unannotatedVcf' : self.available_by_pair[pair_id]['mergedVcf'][0],
+                                     'unannotatedVcf' : self.available_by_pair[pair_id]['mergedVcf'],
                                      'tumor' : pair_info['tumor'],
                                      'normal' : pair_info['normal']
                                      }
             except KeyError:
                 pair_merged_info = {'pairId' : pair_id,
-                                 'unannotatedVcf' : self.available_by_pair[pair_id]['mergedVcfs'][0],
+                                 'unannotatedVcf' : self.available_by_pair[pair_id]['mergedVcfs'],
                                  'tumor' : pair_info['tumor'],
                                  'normal' : pair_info['normal']
                                  }
