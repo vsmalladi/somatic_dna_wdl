@@ -43,6 +43,7 @@ workflow SomaticWorkflow {
     input {
         BwaReference bwaReference
         IndexedReference referenceFa
+        File adaptersFa
         IndexedVcf MillsAnd1000G
         IndexedVcf Indels
         IndexedVcf dbsnp
@@ -180,6 +181,7 @@ workflow SomaticWorkflow {
             input:
                 listOfFastqPairs = sampleInfoObj.listOfFastqPairs,
                 trim = trim,
+                adaptersFa = adaptersFa,
                 sampleId = sampleInfoObj.sampleId,
                 bwaReference = bwaReference,
                 referenceFa = referenceFa,

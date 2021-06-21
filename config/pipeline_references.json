@@ -38,5 +38,5 @@
         "type" : "File",
         "description" : "caller command",
         "object" : "gs://nygc-comp-s-fd4e-resources/adapters.fa"
-    },
+    }
 }

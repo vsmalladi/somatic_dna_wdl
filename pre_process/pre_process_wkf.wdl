@@ -14,6 +14,7 @@ workflow Preprocess {
         Array[Fastqs] listOfFastqPairs
         Boolean trim = true
         BwaReference bwaReference
+        File adaptersFa
         #    command merge flowcell
         String sampleId
         IndexedVcf MillsAnd1000G
@@ -39,6 +40,7 @@ workflow Preprocess {
         input:
             listOfFastqPairs = listOfFastqPairs,
             trim = trim,
+            adaptersFa = adaptersFa,
             bwaReference = bwaReference,
             bwaMem = bwaMem,
             threads = threads,
