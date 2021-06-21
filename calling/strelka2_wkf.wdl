@@ -45,8 +45,8 @@ workflow Strelka2 {
         input:
             inVcf = Strelka2.strelka2Snvs.vcf,
             jsonLog = strelkaJsonLog,
-            memoryGb = 2,
-            diskSize = 1
+            memoryGb = 4,
+            diskSize = 10
     }
 
     call calling.ReorderVcfColumns as strelka2SnvReorderVcfColumns {
@@ -55,16 +55,16 @@ workflow Strelka2 {
             normal = normal,
             rawVcf = strelka2SnvAddVcfCommand.outVcf,
             orderedVcfPath = strelka2SnvPath,
-            memoryGb = 2,
-            diskSize = 1
+            memoryGb = 4,
+            diskSize = 10
     }
 
     call calling.AddVcfCommand as strelka2IndelAddVcfCommand {
         input:
             inVcf = Strelka2.strelka2Indels.vcf,
             jsonLog = strelkaJsonLog,
-            memoryGb = 2,
-            diskSize = 1
+            memoryGb = 4,
+            diskSize = 10
     }
 
     call calling.ReorderVcfColumns as strelka2IndelReorderVcfColumns {
@@ -73,8 +73,8 @@ workflow Strelka2 {
             normal = normal,
             rawVcf = strelka2IndelAddVcfCommand.outVcf,
             orderedVcfPath = strelka2IndelPath,
-            memoryGb = 2,
-            diskSize = 1
+            memoryGb = 4,
+            diskSize = 10
     }
 
     output {

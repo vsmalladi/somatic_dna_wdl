@@ -30,8 +30,8 @@ workflow MergeChroms {
             normal = normal,
             rawVcf = Gatk4MergeSortVcf.sortedVcf.vcf,
             orderedVcfPath = orderedVcfPath,
-            memoryGb = 2,
-            diskSize = 1
+            memoryGb = 4,
+            diskSize = 10
     }
     
     output {

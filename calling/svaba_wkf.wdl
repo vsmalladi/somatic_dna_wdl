@@ -39,8 +39,8 @@ workflow Svaba {
         input:
             inVcf = SvabaWgs.svabaGz,
             jsonLog = svabaJsonLog,
-            memoryGb = 2,
-            diskSize = 1
+            memoryGb = 4,
+            diskSize = 10
     }
 
     call calling.ReorderVcfColumns as svReorderVcfColumns {
@@ -49,8 +49,8 @@ workflow Svaba {
             normal = normal,
             rawVcf = svAddVcfCommand.outVcf,
             orderedVcfPath = "~{pairName}.sv.svaba.v0.2.1.vcf",
-            memoryGb = 2,
-            diskSize = 1
+            memoryGb = 4,
+            diskSize = 10
     }
 
     # indel
@@ -58,8 +58,8 @@ workflow Svaba {
         input:
             inVcf = SvabaWgs.svabaIndelGz,
             jsonLog = svabaJsonLog,
-            memoryGb = 2,
-            diskSize = 1
+            memoryGb = 4,
+            diskSize = 10
     }
 
     call calling.ReorderVcfColumns as indelReorderVcfColumns {
@@ -68,8 +68,8 @@ workflow Svaba {
             normal = normal,
             rawVcf = indelAddVcfCommand.outVcf,
             orderedVcfPath = "~{pairName}.indel.svaba.v0.2.1.vcf",
-            memoryGb = 2,
-            diskSize = 1
+            memoryGb = 4,
+            diskSize = 10
     }
 
     output {
