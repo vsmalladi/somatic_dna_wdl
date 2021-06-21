@@ -8,9 +8,9 @@ task Skewer {
         Fastqs fastqs
         File adaptersFa
         # replace .fastq.gz or .fq.gz with "-trimmed-pair2.fastq.gz"
-        String fastqPrefix = sub(basename(fastqs.fastqR1), "...\\.f*q\\.gz$", "")
-        String fastqOutR1Path = "~{fastqPrefix}-trimmed-pair1.fastq.gz"
-        String fastqOutR2Path = "~{fastqPrefix}-trimmed-pair2.fastq.gz"
+        String fastqPrefix = sub(basename(fastqs.fastqR1), ".\\.f.*q\\.gz$", "")
+        String fastqOutR1Path = sub(basename(fastqs.fastqR1), ".\\.f.*q\\.gz$", "-trimmed-pair1.fastq.gz")
+        String fastqOutR2Path = sub(basename(fastqs.fastqR1), ".\\.f.*q\\.gz$", "-trimmed-pair2.fastq.gz")
         # resources
         Int threads = 16
         Int mem = 24
@@ -24,7 +24,7 @@ task Skewer {
         -f "sanger" \
         -t ~{threads} \
         -m "pe" \
-        -o fastqPrefix \
+        -o ~{fastqPrefix} \
         ~{fastqs.fastqR1} \
         ~{fastqs.fastqR2}
     }
