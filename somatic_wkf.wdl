@@ -53,8 +53,10 @@ workflow SomaticWorkflow {
         File randomIntervals
         Array[sampleInfo]+ normalSampleInfos
         Array[sampleInfo]+ sampleInfos
-        Boolean trim = true
         Array[PairRelationship]+ listOfPairRelationships
+        
+        Boolean trim = true
+        Boolean production = true
 
         # For Tumor-Normal QC
         File markerBedFile
@@ -477,6 +479,7 @@ workflow SomaticWorkflow {
                 input:
                     unannotatedVcf = mergedVcf,
                     referenceFa = referenceFa,
+                    production = production,
                     tumor = pairRelationship.tumor,
                     normal = pairRelationship.normal,
                     pairName = pairRelationship.pairId,

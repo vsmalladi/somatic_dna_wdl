@@ -40,6 +40,8 @@ workflow SomaticBamWorkflow {
     input {
         BwaReference bwaReference
         IndexedReference referenceFa
+        
+        Boolean production = true
 
         Array[pairInfo]+ pairInfos
         Array[SampleBamInfo]+ normalSampleBamInfos
@@ -385,6 +387,7 @@ workflow SomaticBamWorkflow {
             input:
                 unannotatedVcf = mergedVcf,
                 referenceFa = referenceFa,
+                production = production,
                 tumor = pairInfo.tumor,
                 normal = pairInfo.normal,
                 pairName = pairInfo.pairId,

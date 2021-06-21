@@ -11,6 +11,7 @@ workflow Annotate {
         String normal
         String pairName
         File unannotatedVcf
+        Boolean production = true
         
         String vepGenomeBuild
         IndexedVcf cosmicCoding
@@ -44,7 +45,7 @@ workflow Annotate {
         String library
     
         IndexedReference referenceFa
-        Int vepDiskSize = ceil(size(vepCache, "GB") + size(plugins, "GB") + size(annotations, "GB") + size(hgmdGene.vcf, "GB") + size(hgmdUd10.vcf, "GB") + size(hgmdPro.vcf, "GB") + size(omimVcf.vcf, "GB") + size(chdGenesVcf.vcf, "GB") + size(chdEvolvingGenesVcf.vcf, "GB") + size(chdWhitelistVcf.vcf, "GB") + size(deepIntronicsVcf.vcf, "GB") + size(clinvarIntronicsVcf.vcf, "GB") + size(masterMind.vcf, "GB") + (size(unannotatedVcf, "GB") * 2)) + 500
+        Int vepDiskSize = ceil(size(vepCache, "GB") + size(plugins, "GB") + size(annotations, "GB") + size(hgmdGene.vcf, "GB") + size(hgmdUd10.vcf, "GB") + size(hgmdPro.vcf, "GB") + size(chdGenesVcf.vcf, "GB") + size(chdEvolvingGenesVcf.vcf, "GB") + size(chdWhitelistVcf.vcf, "GB") + size(deepIntronicsVcf.vcf, "GB") + size(clinvarIntronicsVcf.vcf, "GB") + size(masterMind.vcf, "GB") + (size(unannotatedVcf, "GB") * 2)) + 500
     }
         
     call merge_vcf.CompressVcf as unannotatedCompressVcf {
@@ -57,37 +58,66 @@ workflow Annotate {
             vcfCompressed = unannotatedCompressVcf.vcfCompressed
     }
     
-    call variantEffectPredictor.vepSvnIndel {
-        input:
-            pairName = pairName,
-            unannotatedVcf = unannotatedIndexVcf.vcfCompressedIndexed,
-            vepCache = vepCache,
-            annotations = annotations,
-            plugins = plugins,
-            vepGenomeBuild = vepGenomeBuild,
-            vepFastaReference = vepFastaReference,
-            # NYGC-only
-            hgmdGene = hgmdGene,
-            hgmdUd10 = hgmdUd10,
-            hgmdPro = hgmdPro,
-            omimVcf = omimVcf,
-            # Public
-            chdGenesVcf = chdGenesVcf,
-            chdEvolvingGenesVcf = chdEvolvingGenesVcf,
-            chdWhitelistVcf = chdWhitelistVcf,
-            deepIntronicsVcf = deepIntronicsVcf,
-            clinvarIntronicsVcf = clinvarIntronicsVcf,
-            masterMind = masterMind,
-            cosmicCoding = cosmicCoding,
-            cosmicNoncoding = cosmicNoncoding,
-            diskSize = vepDiskSize
+    if (production) {
+        call variantEffectPredictor.vepPublicSvnIndel as productionVepSvnIndel {
+            input:
+                pairName = pairName,
+                unannotatedVcf = unannotatedIndexVcf.vcfCompressedIndexed,
+                vepCache = vepCache,
+                annotations = annotations,
+                plugins = plugins,
+                vepGenomeBuild = vepGenomeBuild,
+                vepFastaReference = vepFastaReference,
+                # Public
+                chdGenesVcf = chdGenesVcf,
+                chdEvolvingGenesVcf = chdEvolvingGenesVcf,
+                chdWhitelistVcf = chdWhitelistVcf,
+                deepIntronicsVcf = deepIntronicsVcf,
+                clinvarIntronicsVcf = clinvarIntronicsVcf,
+                masterMind = masterMind,
+                cosmicCoding = cosmicCoding,
+                cosmicNoncoding = cosmicNoncoding,
+                diskSize = vepDiskSize
+        }
     }
+    
+    if (!production) {
+        if ( size(omimVcf.vcf) > 0 ) {
+            call variantEffectPredictor.vepSvnIndel as notProductionVepSvnIndel{
+                input:
+                    pairName = pairName,
+                    unannotatedVcf = unannotatedIndexVcf.vcfCompressedIndexed,
+                    vepCache = vepCache,
+                    annotations = annotations,
+                    plugins = plugins,
+                    vepGenomeBuild = vepGenomeBuild,
+                    vepFastaReference = vepFastaReference,
+                    # NYGC-only
+                    hgmdGene = hgmdGene,
+                    hgmdUd10 = hgmdUd10,
+                    hgmdPro = hgmdPro,
+                    omimVcf = omimVcf,
+                    # Public
+                    chdGenesVcf = chdGenesVcf,
+                    chdEvolvingGenesVcf = chdEvolvingGenesVcf,
+                    chdWhitelistVcf = chdWhitelistVcf,
+                    deepIntronicsVcf = deepIntronicsVcf,
+                    clinvarIntronicsVcf = clinvarIntronicsVcf,
+                    masterMind = masterMind,
+                    cosmicCoding = cosmicCoding,
+                    cosmicNoncoding = cosmicNoncoding,
+                    diskSize = vepDiskSize
+            }
+        }
+    }
+    
+    File vcfAnnotatedVep = select_first([notProductionVepSvnIndel.vcfAnnotatedVep, productionVepSvnIndel.vcfAnnotatedVep])
     
     call annotate.AddCosmic {
         input:
             pairName = pairName,
             cosmicCensus = cosmicCensus,
-            vcfAnnotatedVep = vepSvnIndel.vcfAnnotatedVep
+            vcfAnnotatedVep = vcfAnnotatedVep
     }
     
     call annotate.AddCancerResistanceMutations {
