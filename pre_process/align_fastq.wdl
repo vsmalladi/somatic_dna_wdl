@@ -2,10 +2,52 @@ version 1.0
 
 import "../wdl_structs.wdl"
 
+task Skewer {
+    input {
+        # command
+        Fastqs fastqs
+        File adaptersFa
+        # replace .fastq.gz or .fq.gz with "-trimmed-pair2.fastq.gz"
+        String fastqPrefix = sub(basename(fastqs.fastqR1), "...\\.f*q\\.gz$", "")
+        String fastqOutR1Path = "~{fastqPrefix}-trimmed-pair1.fastq.gz"
+        String fastqOutR2Path = "~{fastqPrefix}-trimmed-pair2.fastq.gz"
+        # resources
+        Int threads = 16
+        Int mem = 24
+        Int diskSize
+    }
+
+    command {
+        skewer \
+        --compress \
+        -x adaptersFa \
+        -f "sanger" \
+        -t ~{threads} \
+        -m "pe" \
+        -o fastqPrefix \
+        ~{fastqs.fastqR1} \
+        ~{fastqs.fastqR2}
+    }
+
+    output {
+        File fastqOutR1 = "~{fastqOutR1Path}"
+        File fastqOutR2 = "~{fastqOutR2Path}"
+    }
+
+    runtime {
+        cpu : threads
+        memory : mem + " GB"
+        docker : "gcr.io/nygc-public/skewer:v0.2.2"
+        disks: "local-disk " + diskSize + " HDD"
+    }
+}
+
 task AlignBwaMem {
     input {
         # command
         Fastqs fastqs
+        File fastqR1
+        File fastqR2
         BwaReference bwaReference
         String laneBamPath = "~{fastqs.readgroupId}.readgroup.bam"
         # resources
@@ -31,14 +73,13 @@ task AlignBwaMem {
         -t ~{bwaThreads} \
         -R '@RG\tID:~{fastqs.readgroupId}\tPL:~{platform}\tPM:~{machineType}\tLB:~{fastqs.sampleId}\tDS:hg38\tSM:~{fastqs.sampleId}\tCN:~{center}\tPU:${fastqs.rgpu}' \
         ~{bwaReference.fasta} \
-        ~{fastqs.fastqR1} \
-        ~{fastqs.fastqR2} \
+        ~{fastqR1} \
+        ~{fastqR2} \
         | samtools view \
         -@ ~{threads} \
         -Shb \
         -o ~{laneBamPath} \
         -
-
     }
 
     output {

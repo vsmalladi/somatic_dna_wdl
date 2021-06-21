@@ -52,6 +52,7 @@ workflow SomaticWorkflow {
         File randomIntervals
         Array[sampleInfo]+ normalSampleInfos
         Array[sampleInfo]+ sampleInfos
+        Boolean trim = true
         Array[PairRelationship]+ listOfPairRelationships
 
         # For Tumor-Normal QC
@@ -178,6 +179,7 @@ workflow SomaticWorkflow {
         call preProcess.Preprocess {
             input:
                 listOfFastqPairs = sampleInfoObj.listOfFastqPairs,
+                trim = trim,
                 sampleId = sampleInfoObj.sampleId,
                 bwaReference = bwaReference,
                 referenceFa = referenceFa,

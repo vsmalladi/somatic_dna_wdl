@@ -9,6 +9,8 @@ workflow AlignFastq {
     input {
         Array[Fastqs] listOfFastqPairs
         BwaReference bwaReference
+        File adaptersFa
+        Boolean trim = true
         # resources
         Int bwaMem
         Int threads
@@ -22,9 +24,24 @@ workflow AlignFastq {
         # Assumption: The bam will be about the same size as the input fastqs. So double
         # the size to account for input and output.
         Int diskSize = fastqsSize * 2 + additionalDiskSize
+        
+        if (trim) {
+            call alignFastq.Skewer {
+                input:
+                    fastqs = fastqs,
+                    adaptersFa = adaptersFa,
+                    diskSize = diskSize
+            }
+        }
+        
+        File fastqR1 = select_first([Skewer.fastqOutR1, fastqs.fastqR1])
+        File fastqR2 = select_first([Skewer.fastqOutR2, fastqs.fastqR2])
+        
         call alignFastq.AlignBwaMem {
             input:
                 fastqs = fastqs,
+                fastqR1 = fastqR1,
+                fastqR2 = fastqR2,
                 bwaReference = bwaReference,
                 mem = bwaMem,
                 threads = threads,

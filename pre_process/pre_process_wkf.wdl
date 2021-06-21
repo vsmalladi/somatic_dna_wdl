@@ -12,6 +12,7 @@ workflow Preprocess {
     #   merge lane level BAMs
     input {
         Array[Fastqs] listOfFastqPairs
+        Boolean trim = true
         BwaReference bwaReference
         #    command merge flowcell
         String sampleId
@@ -37,6 +38,7 @@ workflow Preprocess {
     call alignFastq.AlignFastq {
         input:
             listOfFastqPairs = listOfFastqPairs,
+            trim = trim,
             bwaReference = bwaReference,
             bwaMem = bwaMem,
             threads = threads,
