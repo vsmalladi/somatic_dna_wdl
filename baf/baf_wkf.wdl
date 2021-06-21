@@ -1,6 +1,7 @@
 version 1.0
 
 import "../wdl_structs.wdl"
+import "../annotate/germline_annotate_wkf.wdl" as germlineAnnotate
 import "baf.wdl"
 
 
@@ -11,16 +12,17 @@ workflow Baf {
         String pairName
         Bam normalFinalBam
         Bam tumorFinalBam
-        File? finalGermlineVcf
+        File? germlineVcf
         IndexedReference referenceFa
     }
     
-    if ( size(finalGermlineVcf) > 0 ) {
+    if ( size(germlineVcf) > 0 ) {
+        
         call baf.FilterForHetSnps {
             input:
                 sampleId = sampleId,
                 referenceFa = referenceFa,
-                finalGermlineVcf = finalGermlineVcf
+                germlineVcf = germlineVcf
         }
         
         call baf.FilterBaf {

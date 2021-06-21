@@ -97,7 +97,7 @@ task RenameMetadata {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:1.0.2"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.1"
     }
 }
 
@@ -127,7 +127,7 @@ task MergePrepSupport {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:1.0.2"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.1"
     }
 }
 
@@ -156,7 +156,7 @@ task MergePrep {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:1.0.2"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.1"
     }
 }
 
@@ -189,7 +189,7 @@ task RenameVcf {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:1.0.2"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.1"
     }
 }
 
@@ -235,6 +235,7 @@ task SplitMultiAllelicCompress {
         IndexedReference referenceFa
         IndexedVcf vcfCompressedIndexed
         Boolean gzipped = true 
+        Array[String]+ listOfChroms
         String suffix = if gzipped then ".tbi" else ".idx"
         Int threads = 16
         Int memoryGb = 16
@@ -247,6 +248,7 @@ task SplitMultiAllelicCompress {
         -m \
         -any \
         --threads ~{threads} \
+        --regions ~{sep="," listOfChroms} \
         --no-version \
         --output-type z \
         -f ~{referenceFa.fasta} \
@@ -290,7 +292,7 @@ task SplitMnv {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:1.0.2"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.1"
     }
 }
 
@@ -317,7 +319,7 @@ task RemoveContig {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:1.0.2"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.1"
     }
 }
 
@@ -455,7 +457,7 @@ task GetCandidates {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:1.0.2"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.1"
     }
 }
 
@@ -487,7 +489,7 @@ task VcfToBed {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:1.0.2"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.1"
     }
 }
 
@@ -604,7 +606,7 @@ task MergeColumns {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:1.0.2"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.1"
     }
 }
 
@@ -638,7 +640,7 @@ task AddNygcAlleleCountsToVcf {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:1.0.2"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.1"
     }
 }
 
@@ -666,7 +668,7 @@ task AddFinalAlleleCountsToVcf {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:1.0.2"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.1"
     }
 }
 
@@ -697,7 +699,7 @@ task FilterPon {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:1.0.2"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.1"
     }
 }
 
@@ -727,7 +729,7 @@ task FilterVcf {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:1.0.2"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.1"
     }
 }
 
@@ -755,7 +757,7 @@ task SnvstomnvsCountsbasedfilterAnnotatehighconf {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:1.0.2"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.1"
     }
 }
 

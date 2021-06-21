@@ -5,17 +5,17 @@ import "../wdl_structs.wdl"
 task FilterForHetSnps {
     input {
         String sampleId
-        String hetVcfPath = "~{sampleId}.haplotypecaller.gatk.v4.1.8.0.final.filtered.het.vcf"
+        String hetVcfPath = "~{sampleId}.haplotypecaller.gatk.v4.1.8.0.het.vcf"
         String sellectionString = "'vc.getGenotype(\"~{sampleId}\").isHet()'"
         IndexedReference referenceFa
         # require file!
         # marked as optional so that pipeline can be dependent on input that may not 
         # pass QC
         # do not run with out input file!
-        File? finalGermlineVcf
+        File? germlineVcf
         
         Int memoryGb = 24
-        Int diskSize = (ceil( size(finalGermlineVcf, "GB") )  * 2 ) + 20
+        Int diskSize = (ceil( size(germlineVcf, "GB") )  * 2 ) + 20
     }
 
     command {
@@ -27,7 +27,7 @@ task FilterForHetSnps {
         -select ~{sellectionString} \
         -R ~{referenceFa.fasta} \
         --exclude-filtered \
-        -V ~{finalGermlineVcf} \
+        -V ~{germlineVcf} \
         -O ~{hetVcfPath}
     }
 
@@ -45,7 +45,7 @@ task FilterForHetSnps {
 task FilterBaf {
     input {
         String sampleId
-        String knownHetVcfPath = "~{sampleId}.haplotypecaller.gatk.v4.1.8.0.final.filtered.known.het.vcf"
+        String knownHetVcfPath = "~{sampleId}.haplotypecaller.gatk.v4.1.8.0.known.het.vcf"
         File hetVcf
         Int memoryGb = 24
         Int diskSize = (ceil( size(hetVcf, "GB") )  * 2 ) + 10
@@ -65,14 +65,14 @@ task FilterBaf {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:1.0.2"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.1"
     }
 }
 
 task AlleleCounts {
     input {
         String pairName
-        String alleleCountsTxtPath = "~{pairName}.haplotypecaller.gatk.v4.1.8.0.final.filtered.alleles.txt"
+        String alleleCountsTxtPath = "~{pairName}.haplotypecaller.gatk.v4.1.8.0.alleles.txt"
         IndexedReference referenceFa
         Bam normalFinalBam
         File knownHetVcf
@@ -99,7 +99,7 @@ task AlleleCounts {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:1.0.2"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.1"
     }
 }
 
@@ -126,7 +126,7 @@ task CalcBaf {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:1.0.2"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.1"
     }
 }
 

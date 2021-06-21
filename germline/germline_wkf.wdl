@@ -51,6 +51,7 @@ workflow Germline {
         }
     }
     
+    
     scatter (vcf in haplotypeCallerGatk4.haplotypecallerIntervalVcf) {
         File haplotypecallerIntervalVcf = vcf.vcf
     }

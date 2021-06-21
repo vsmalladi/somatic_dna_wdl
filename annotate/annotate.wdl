@@ -85,7 +85,7 @@ task Vep{
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:1.0.2"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.1"
     }
 }
 
@@ -145,7 +145,7 @@ task AddCosmic {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:1.0.2"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.1"
     }
 }
 
@@ -174,7 +174,7 @@ task AddCancerResistanceMutations {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:1.0.2"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.1"
     }
 }
 
@@ -203,7 +203,7 @@ task AddCancerResistanceMutationsFinal {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:1.0.2"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.1"
     }
 }
 
@@ -230,7 +230,7 @@ task AnnotateId {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:1.0.2"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.1"
     }
 }
 
@@ -257,7 +257,7 @@ task RenameCsqVcf {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:1.0.2"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.1"
     }
 }
 
@@ -284,7 +284,7 @@ task MainVcf {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:1.0.2"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.1"
     }
 }
 
@@ -314,7 +314,7 @@ task TableVcf {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:1.0.2"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.1"
     }
 }
 
@@ -351,7 +351,7 @@ task VcfToMaf {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:1.0.2"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.1"
     }
 }
 
@@ -472,7 +472,7 @@ task GermVep {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:1.0.2"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.1"
     }
 }
 

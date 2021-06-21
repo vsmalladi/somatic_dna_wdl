@@ -11,6 +11,7 @@ workflow GermlineAnnotate {
         String sampleId = "~{normal}"
         IndexedVcf unannotatedVcf
         
+        Array[String]+ listOfChroms
         String vepGenomeBuild
         IndexedVcf cosmicCoding
         IndexedVcf cosmicNoncoding
@@ -46,10 +47,12 @@ workflow GermlineAnnotate {
         Int vepDiskSize = ceil(size(vepCache, "GB") + size(plugins, "GB") + size(annotations, "GB") + size(hgmdGene.vcf, "GB") + size(hgmdUd10.vcf, "GB") + size(hgmdPro.vcf, "GB") + size(omimVcf.vcf, "GB") + size(chdGenesVcf.vcf, "GB") + size(chdEvolvingGenesVcf.vcf, "GB") + size(chdWhitelistVcf.vcf, "GB") + size(deepIntronicsVcf.vcf, "GB") + size(clinvarIntronicsVcf.vcf, "GB") + size(masterMind.vcf, "GB") + (size(unannotatedVcf.vcf, "GB") * 2)) + 500
     }
     
+    # split multi alleleic sites and remove HLA contig calls
     call mergeVcf.SplitMultiAllelicCompress {
             input:
                 pairName = sampleId,
                 vcfCompressedIndexed = unannotatedVcf,
+                listOfChroms = listOfChroms,
                 splitVcfPath = sub(basename(unannotatedVcf.vcf), ".vcf.gz$", ".split.vcf.gz"),
                 referenceFa = referenceFa
         }

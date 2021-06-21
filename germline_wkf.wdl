@@ -86,11 +86,45 @@ workflow GermlineAll {
                 clinvarIntronicsVcf=clinvarIntronicsVcf
         }
         
-        call germlineAnnotate.GermlineAnnotate {
+        call germlineAnnotate.GermlineAnnotate as filteredGermlineAnnotate {
             input:
                 unannotatedVcf = Germline.haplotypecallerFinalFiltered,
                 referenceFa = referenceFa,
                 normal = normalSampleBamInfo.sampleId,
+                listOfChroms = listOfChroms,
+                vepGenomeBuild = vepGenomeBuild,
+                cosmicCoding = cosmicCoding,
+                cosmicNoncoding = cosmicNoncoding,
+                # Public
+                cancerResistanceMutations = cancerResistanceMutations,
+                vepCache = vepCache,
+                annotations = annotations,
+                plugins = plugins,
+                vepFastaReference = vepFastaReference,
+                # NYGC-only
+                hgmdGene = hgmdGene,
+                hgmdUd10 = hgmdUd10,
+                hgmdPro = hgmdPro,
+                omimVcf = omimVcf,
+                # Public
+                chdGenesVcf = chdGenesVcf,
+                chdEvolvingGenesVcf = chdEvolvingGenesVcf,
+                chdWhitelistVcf = chdWhitelistVcf,
+                deepIntronicsVcf = deepIntronicsVcf,
+                clinvarIntronicsVcf = clinvarIntronicsVcf,
+                masterMind = masterMind,
+                # post annotation
+                cosmicCensus = cosmicCensus,
+                ensemblEntrez = ensemblEntrez,
+                library = library  
+        }
+        
+        call germlineAnnotate.GermlineAnnotate as unFilteredGermlineAnnotate {
+            input:
+                unannotatedVcf = Germline.haplotypecallerVcf,
+                referenceFa = referenceFa,
+                normal = normalSampleBamInfo.sampleId,
+                listOfChroms = listOfChroms,
                 vepGenomeBuild = vepGenomeBuild,
                 cosmicCoding = cosmicCoding,
                 cosmicNoncoding = cosmicNoncoding,
@@ -122,7 +156,8 @@ workflow GermlineAll {
     output {
         Array[IndexedVcf] haplotypecallerVcf = Germline.haplotypecallerVcf 
         Array[IndexedVcf] haplotypecallerFinalFiltered = Germline.haplotypecallerFinalFiltered 
-        Array[File] haplotypecallerAnnotatedVcf = GermlineAnnotate.haplotypecallerAnnotatedVcf
+        Array[File] filteredHaplotypecallerAnnotatedVcf = filteredGermlineAnnotate.haplotypecallerAnnotatedVcf
+        Array[File] haplotypecallerAnnotatedVcf = unFilteredGermlineAnnotate.haplotypecallerAnnotatedVcf
     }
     
 }
