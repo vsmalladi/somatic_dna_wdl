@@ -209,7 +209,7 @@ workflow SomaticWorkflow {
         if (!bypassQcCheck) {
             call BamQcCheck {
                 input:
-                    wgsMetricsFile = Preprocess.collectWgsMetrics,
+                    wgsMetricsFile = Preprocess.collectWgsMetrics[germlineGetIndex.index],
                     expectedCoverage = sampleInfoObj.expectedCoverage
             }
         }
@@ -499,9 +499,6 @@ workflow SomaticWorkflow {
         Array[File] concordanceAll = Conpair.concordanceAll
         Array[File] concordanceHomoz = Conpair.concordanceHomoz
         Array[File] contamination = Conpair.contamination
-
-        # Pass/Fail indicator
-        Array[File] qcResults = SomaticQcCheck.qcResult
 
         # Germline
         Array[File?] kouramiResult = Kourami.result
