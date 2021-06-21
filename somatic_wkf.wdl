@@ -57,6 +57,7 @@ workflow SomaticWorkflow {
         
         Boolean trim = true
         Boolean production = true
+        Boolean bypassQcCheck = false
 
         # For Tumor-Normal QC
         File markerBedFile
@@ -197,15 +198,16 @@ workflow SomaticWorkflow {
                 chromLengths = chromLengths
         }
 
-        call BamQcCheck {
-            input:
-                wgsMetricsFile = Preprocess.collectWgsMetrics,
-                expectedCoverage = sampleInfoObj.expectedCoverage
+        if (!bypassQcCheck) {
+            call BamQcCheck {
+                input:
+                    wgsMetricsFile = Preprocess.collectWgsMetrics,
+                    expectedCoverage = sampleInfoObj.expectedCoverage
+            }
         }
 
         # for wdl version 1.0
         String sampleIds = sampleInfoObj.sampleId
-        Boolean samplesCoveragePass = BamQcCheck.coveragePass
         # for wdl version 1.1
         # Pair[String, Bam] bamPairs = (sampleInfo.sampleId, Preprocess.finalBam)
 
@@ -221,7 +223,9 @@ workflow SomaticWorkflow {
                 sampleId = sampleInfoObj.sampleId
         }
         
-        if (BamQcCheck.coveragePass[germlineRunGetIndex.index]) {
+        Boolean coveragePass = select_first([BamQcCheck.coveragePass, false])
+        
+        if (bypassQcCheck || coveragePass ) {
             call kourami.Kourami {
                 input:
                     sampleId = sampleInfoObj.sampleId,
@@ -317,7 +321,6 @@ workflow SomaticWorkflow {
                     ensemblEntrez = ensemblEntrez,
                     library = library  
             }
-            
         }
     }
 
@@ -377,18 +380,20 @@ workflow SomaticWorkflow {
                 markerTxtFile = markerTxtFile
         }
 
-        call SomaticQcCheck {
-            input:
-                tumorWgsMetricsFile = Preprocess.collectWgsMetrics[tumorGetIndex.index],
-                tumorExpectedCoverage = sampleInfos[tumorGetIndex.index].expectedCoverage,
-                normalWgsMetricsFile = Preprocess.collectWgsMetrics[normalGetIndex.index],
-                normalExpectedCoverage = sampleInfos[normalGetIndex.index].expectedCoverage,
-                concordanceFile = Conpair.concordanceAll,
-                contaminationFile = Conpair.contamination
+        if (!bypassQcCheck) {
+            call SomaticQcCheck {
+                input:
+                    tumorWgsMetricsFile = Preprocess.collectWgsMetrics[tumorGetIndex.index],
+                    tumorExpectedCoverage = sampleInfos[tumorGetIndex.index].expectedCoverage,
+                    normalWgsMetricsFile = Preprocess.collectWgsMetrics[normalGetIndex.index],
+                    normalExpectedCoverage = sampleInfos[normalGetIndex.index].expectedCoverage,
+                    concordanceFile = Conpair.concordanceAll,
+                    contaminationFile = Conpair.contamination
+            }
+            Boolean qcPass = SomaticQcCheck.qcPass
         }
 
-
-        if (SomaticQcCheck.qcPass) {
+        if (bypassQcCheck || select_first([SomaticQcCheck.qcPass, false])) {
             call calling.Calling {
                 input:
                     mantaJsonLog = mantaJsonLog,
@@ -592,7 +597,7 @@ workflow SomaticWorkflow {
         Array[File] contamination = Conpair.contamination
 
         # Pass/Fail indicator
-        Array[File] qcResults = SomaticQcCheck.qcResult
+        Array[File?] qcResults = SomaticQcCheck.qcResult
         
         # Germline
         Array[File?] kouramiResult = Kourami.result
@@ -620,7 +625,7 @@ task BamQcCheck {
     }
 
     runtime {
-        docker: "gcr.io/nygc-internal-tools/workflow_utils:2.0"
+        docker: "gcr.io/nygc-internal-tools/workflow_utils:3.0"
     }
 }
 
@@ -655,6 +660,6 @@ task SomaticQcCheck {
     }
 
     runtime {
-        docker: "gcr.io/nygc-internal-tools/workflow_utils:2.0"
+        docker: "gcr.io/nygc-internal-tools/workflow_utils:3.0"
     }
 }
