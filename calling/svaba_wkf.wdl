@@ -11,6 +11,7 @@ workflow Svaba {
         String normal
         String pairName
         BwaReference bwaReference
+        IndexedTable callRegions
         File dbsnpIndels
         Bam normalFinalBam
         Bam tumorFinalBam
@@ -25,6 +26,7 @@ workflow Svaba {
         input:
             pairName=pairName,
             bwaReference = bwaReference,
+            callRegions = callRegions,
             normalFinalBam = normalFinalBam,
             tumorFinalBam = tumorFinalBam,
             dbsnpIndels = dbsnpIndels,

@@ -98,6 +98,7 @@ workflow Calling {
             normal = pairInfo.normal,
             dbsnpIndels = dbsnpIndels,
             bwaReference = bwaReference,
+            callRegions = callRegions,
             pairName = pairInfo.pairId,
             normalFinalBam = pairInfo.normalFinalBam,
             tumorFinalBam = pairInfo.tumorFinalBam

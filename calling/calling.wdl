@@ -464,6 +464,7 @@ task SvabaWgs {
         Int threads
         Int memoryGb
         String pairName
+        IndexedTable callRegions
         BwaReference bwaReference
         Bam normalFinalBam
         File dbsnpIndels
@@ -477,6 +478,7 @@ task SvabaWgs {
         -t ~{tumorFinalBam.bam} \
         -n ~{normalFinalBam.bam} \
         -p ~{threads} \
+        --region ~{callRegions.table} \
         -D ~{dbsnpIndels} \
         -a ~{pairName} \
         -G ~{bwaReference.fasta} \
