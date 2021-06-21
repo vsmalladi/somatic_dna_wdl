@@ -198,14 +198,6 @@ workflow SomaticWorkflow {
                 chromLengths = chromLengths
         }
 
-        if (!bypassQcCheck) {
-            call BamQcCheck {
-                input:
-                    wgsMetricsFile = Preprocess.collectWgsMetrics,
-                    expectedCoverage = sampleInfoObj.expectedCoverage
-            }
-        }
-
         # for wdl version 1.0
         String sampleIds = sampleInfoObj.sampleId
         # for wdl version 1.1
@@ -221,6 +213,14 @@ workflow SomaticWorkflow {
             input:
                 sampleIds = sampleIds,
                 sampleId = sampleInfoObj.sampleId
+        }
+        
+        if (!bypassQcCheck) {
+            call BamQcCheck {
+                input:
+                    wgsMetricsFile = Preprocess.collectWgsMetrics[germlineRunGetIndex.index],
+                    expectedCoverage = sampleInfoObj.expectedCoverage
+            }
         }
         
         Boolean coveragePass = select_first([BamQcCheck.coveragePass, false])
