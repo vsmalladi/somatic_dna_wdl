@@ -262,8 +262,8 @@ task LookUpMates {
 
 task GetMates {
     input {
-        Int threads = 32
-        Int samtoolsThreads = 16
+        Int threads = 8
+        Int samtoolsThreads = 4
         Int memoryGb = 12
         Int diskSize
         String sampleId

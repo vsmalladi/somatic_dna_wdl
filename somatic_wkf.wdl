@@ -656,7 +656,7 @@ task SomaticQcCheck {
 
     output {
         Boolean qcPass = read_boolean(stdout())
-        File qcResult = glob("QC_*")[0]
+        File qcResult = "qc_summary.txt"
     }
 
     runtime {
