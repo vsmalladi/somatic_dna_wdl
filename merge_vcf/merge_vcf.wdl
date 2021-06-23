@@ -228,15 +228,13 @@ task SplitMultiAllelic {
     }
 }
 
-task SplitMultiAllelicCompress {
+task SplitMultiAllelicRegions {
     input {
         String pairName
         String splitVcfPath
         IndexedReference referenceFa
         IndexedVcf vcfCompressedIndexed
-        Boolean gzipped = true 
         Array[String]+ listOfChroms
-        String suffix = if gzipped then ".tbi" else ".idx"
         Int threads = 16
         Int memoryGb = 16
         Int diskSize = (ceil( size(vcfCompressedIndexed.vcf, "GB") )  * 3 ) + 10
@@ -250,7 +248,6 @@ task SplitMultiAllelicCompress {
         --threads ~{threads} \
         --regions ~{sep="," listOfChroms} \
         --no-version \
-        --output-type z \
         -f ~{referenceFa.fasta} \
         -o ~{splitVcfPath} \
         ~{vcfCompressedIndexed.vcf}

@@ -48,18 +48,23 @@ workflow GermlineAnnotate {
     }
     
     # split multi alleleic sites and remove HLA contig calls
-    call mergeVcf.SplitMultiAllelicCompress {
+    call mergeVcf.SplitMultiAllelicRegions {
             input:
                 pairName = sampleId,
                 vcfCompressedIndexed = unannotatedVcf,
                 listOfChroms = listOfChroms,
-                splitVcfPath = sub(basename(unannotatedVcf.vcf), ".vcf.gz$", ".split.vcf.gz"),
+                splitVcfPath = sub(basename(unannotatedVcf.vcf), ".vcf.gz$", ".split.vcf"),
                 referenceFa = referenceFa
         }
         
+    call mergeVcf.CompressVcf {
+        input:
+            vcf = SplitMultiAllelicRegions.sortedVcf
+    }
+    
     call mergeVcf.IndexVcf {
         input:
-            vcfCompressed = SplitMultiAllelicCompress.sortedVcf
+            vcfCompressed = CompressVcf.vcfCompressed
     }
     
     
