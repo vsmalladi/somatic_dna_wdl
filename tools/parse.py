@@ -270,6 +270,7 @@ class Wdl():
         '''Use womtool to list input files
         Replace with python parser later'''
         custom_types = {variable: type for type, variable in self.load_custom_type(file)}
+        # inputs with no defaults
         try:
             result = subprocess.run(['womtool', 'inputs', 
                                      '--optional-inputs', 'false',
@@ -279,14 +280,25 @@ class Wdl():
         except subprocess.CalledProcessError:
             log.error('Failed to read file: ' + file)
             sys.exit(1)
-        inputs = json.loads(result)
-        for input in inputs:
+        required_inputs = [full_variable for full_variable in json.loads(result)]
+        # all inputs
+        try:
+            result = subprocess.run(['womtool', 'inputs', 
+                                     file],
+                                    check=True,
+                                    stdout=subprocess.PIPE).stdout.decode('utf-8')
+        except subprocess.CalledProcessError:
+            log.error('Failed to read file: ' + file)
+            sys.exit(1)
+        all_inputs = [full_variable for full_variable in json.loads(result)]
+        optional_inputs = list(set(all_inputs).difference(set(required_inputs)))
+        for input in all_inputs:
             variable = input.split('.')[-1]
             # skip variables only defined with default
             if variable in custom_types:
                 type = custom_types[variable]
                 full_variable = input
-                default = ('default =' in inputs[input]) or ('(optional)' in inputs[input])
+                default = input in optional_inputs
                 yield type, variable, full_variable, default
                       
     def load_custom_type(self, file):
