@@ -1,7 +1,6 @@
 version 1.0
 
 import "../wdl_structs.wdl"
-import "../annotate/germline_annotate_wkf.wdl" as germlineAnnotate
 import "baf.wdl"
 
 

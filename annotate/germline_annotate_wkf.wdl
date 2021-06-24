@@ -71,8 +71,8 @@ workflow GermlineAnnotate {
     if (production) {
         call variantEffectPredictor.vepPublicSvnIndel as productionVepSvnIndel {
             input:
-                pairName = pairName,
-                unannotatedVcf = unannotatedIndexVcf.vcfCompressedIndexed,
+                pairName = sampleId,
+                unannotatedVcf = IndexVcf.vcfCompressedIndexed,
                 vepCache = vepCache,
                 annotations = annotations,
                 plugins = plugins,
@@ -95,8 +95,8 @@ workflow GermlineAnnotate {
         if ( size(omimVcf.vcf) > 0 ) {
             call variantEffectPredictor.vepSvnIndel as notProductionVepSvnIndel{
                 input:
-                    pairName = pairName,
-                    unannotatedVcf = unannotatedIndexVcf.vcfCompressedIndexed,
+                    pairName = sampleId,
+                    unannotatedVcf = IndexVcf.vcfCompressedIndexed,
                     vepCache = vepCache,
                     annotations = annotations,
                     plugins = plugins,

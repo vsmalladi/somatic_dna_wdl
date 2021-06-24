@@ -2,8 +2,8 @@ version 1.0
 
 import "../wdl_structs.wdl"
 import "germline.wdl" as germline
-import "../merge_vcf/merge_vcf.wdl"
-import "../calling/calling.wdl"
+import "../merge_vcf/merge_vcf.wdl" as mergeVcf
+import "../calling/calling.wdl" as calling
 
 workflow Germline {
     # command 
@@ -107,7 +107,7 @@ workflow Germline {
     
     call mergeVcf.CompressVcf as genotypedFilteredCompressVcf {
         input:
-            vcf = genotypedFilteredMergeSortVcf.sortedIndexedVcf.vcf
+            vcf = genotypedFilteredMergeSortVcf.sortedVcf.vcf
     }
     
     call mergeVcf.IndexVcf as genotypedFilteredIndexVcf {
