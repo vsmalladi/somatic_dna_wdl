@@ -57,13 +57,23 @@ workflow Germline {
     }
     Array[File] haplotypecallerIntervalVcfs = haplotypecallerIntervalVcf
     
-    call calling.Gatk4MergeSortCompressVcf as haplotypecallerGatk4MergeSortCompressVcf {
+    call calling.Gatk4MergeSortVcf as haplotypecallerGatk4MergeSortVcf {
         input:
-            sortedVcfPath = "~{normal}.haplotypecaller.g.vcf.gz",
+            sortedVcfPath = "~{normal}.haplotypecaller.g.vcf",
             tempChromVcfs = haplotypecallerIntervalVcfs,
             referenceFa = referenceFa,
             memoryGb = 16,
             diskSize = 200
+    }
+    
+    call mergeVcf.CompressVcf as haplotypecallerCompressVcf {
+        input:
+            vcf = haplotypecallerGatk4MergeSortVcf.sortedVcf.vcf
+    }
+    
+    call mergeVcf.IndexVcf as haplotypecallerIndexVcf {
+        input:
+            vcfCompressed = haplotypecallerCompressVcf.vcfCompressed
     }
     
     scatter (i in range(length(scatterIntervalsHcs))) {
@@ -72,7 +82,7 @@ workflow Germline {
                 referenceFa = referenceFa,
                 sampleId=normal,
                 index=i,
-                sortedVcf = haplotypecallerGatk4MergeSortCompressVcf.sortedIndexedVcf,
+                sortedVcf = haplotypecallerIndexVcf.vcfCompressedIndexed,
                 scatterIntervalsHc=scatterIntervalsHcs[i],
                 omni = omni,
                 hapmap = hapmap,
@@ -86,7 +96,7 @@ workflow Germline {
     }
     Array[File] haplotypecallerFilteredGenoVcfs = haplotypecallerFilteredGenoVcf
     
-    call calling.Gatk4MergeSortCompressVcf as genotypedFilteredMergeSortCompressVcf {
+    call calling.Gatk4MergeSortVcf as genotypedFilteredMergeSortVcf {
         input:
             sortedVcfPath = "~{normal}.haplotypecaller.gatk.v4.1.8.0.filtered.genotypedGVCFs.vcf.gz",
             tempChromVcfs = haplotypecallerFilteredGenoVcfs,
@@ -95,9 +105,19 @@ workflow Germline {
             diskSize = 200
     }
     
+    call mergeVcf.CompressVcf as genotypedFilteredCompressVcf {
+        input:
+            vcf = genotypedFilteredMergeSortVcf.sortedIndexedVcf.vcf
+    }
+    
+    call mergeVcf.IndexVcf as genotypedFilteredIndexVcf {
+        input:
+            vcfCompressed = genotypedFilteredCompressVcf.vcfCompressed
+    }
+    
     call germline.genotypeRefinementWorkflow {
         input:
-            genotypedGatk4=genotypedFilteredMergeSortCompressVcf.sortedIndexedVcf,
+            genotypedGatk4=genotypedFilteredIndexVcf.vcfCompressedIndexed,
             sampleId=normal,
             referenceFa=referenceFa
     }

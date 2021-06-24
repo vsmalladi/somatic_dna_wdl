@@ -10,6 +10,7 @@ workflow GermlineAnnotate {
         String normal
         String sampleId = "~{normal}"
         IndexedVcf unannotatedVcf
+        Boolean production = true
         
         Array[String]+ listOfChroms
         String vepGenomeBuild
@@ -67,37 +68,65 @@ workflow GermlineAnnotate {
             vcfCompressed = CompressVcf.vcfCompressed
     }
     
-    
-    call variantEffectPredictor.vepSvnIndel {
-        input:
-            pairName = sampleId,
-            unannotatedVcf = IndexVcf.vcfCompressedIndexed,
-            vepCache = vepCache,
-            annotations = annotations,
-            plugins = plugins,
-            vepGenomeBuild = vepGenomeBuild,
-            vepFastaReference = vepFastaReference,
-            # NYGC-only
-            hgmdGene = hgmdGene,
-            hgmdUd10 = hgmdUd10,
-            hgmdPro = hgmdPro,
-            omimVcf = omimVcf,
-            # Public
-            chdGenesVcf = chdGenesVcf,
-            chdEvolvingGenesVcf = chdEvolvingGenesVcf,
-            chdWhitelistVcf = chdWhitelistVcf,
-            deepIntronicsVcf = deepIntronicsVcf,
-            clinvarIntronicsVcf = clinvarIntronicsVcf,
-            masterMind = masterMind,
-            cosmicCoding = cosmicCoding,
-            cosmicNoncoding = cosmicNoncoding,
-            diskSize = vepDiskSize
+    if (production) {
+        call variantEffectPredictor.vepPublicSvnIndel as productionVepSvnIndel {
+            input:
+                pairName = pairName,
+                unannotatedVcf = unannotatedIndexVcf.vcfCompressedIndexed,
+                vepCache = vepCache,
+                annotations = annotations,
+                plugins = plugins,
+                vepGenomeBuild = vepGenomeBuild,
+                vepFastaReference = vepFastaReference,
+                # Public
+                chdGenesVcf = chdGenesVcf,
+                chdEvolvingGenesVcf = chdEvolvingGenesVcf,
+                chdWhitelistVcf = chdWhitelistVcf,
+                deepIntronicsVcf = deepIntronicsVcf,
+                clinvarIntronicsVcf = clinvarIntronicsVcf,
+                masterMind = masterMind,
+                cosmicCoding = cosmicCoding,
+                cosmicNoncoding = cosmicNoncoding,
+                diskSize = vepDiskSize
+        }
     }
+    
+    if (!production) {
+        if ( size(omimVcf.vcf) > 0 ) {
+            call variantEffectPredictor.vepSvnIndel as notProductionVepSvnIndel{
+                input:
+                    pairName = pairName,
+                    unannotatedVcf = unannotatedIndexVcf.vcfCompressedIndexed,
+                    vepCache = vepCache,
+                    annotations = annotations,
+                    plugins = plugins,
+                    vepGenomeBuild = vepGenomeBuild,
+                    vepFastaReference = vepFastaReference,
+                    # NYGC-only
+                    hgmdGene = hgmdGene,
+                    hgmdUd10 = hgmdUd10,
+                    hgmdPro = hgmdPro,
+                    omimVcf = omimVcf,
+                    # Public
+                    chdGenesVcf = chdGenesVcf,
+                    chdEvolvingGenesVcf = chdEvolvingGenesVcf,
+                    chdWhitelistVcf = chdWhitelistVcf,
+                    deepIntronicsVcf = deepIntronicsVcf,
+                    clinvarIntronicsVcf = clinvarIntronicsVcf,
+                    masterMind = masterMind,
+                    cosmicCoding = cosmicCoding,
+                    cosmicNoncoding = cosmicNoncoding,
+                    diskSize = vepDiskSize
+            }
+        }
+    }
+    
+    File vcfAnnotatedVep = select_first([notProductionVepSvnIndel.vcfAnnotatedVep, productionVepSvnIndel.vcfAnnotatedVep])
     
     call annotate.RemoveSpanning {
         input:
             sampleId = sampleId,
-            vcfAnnotatedVep = vepSvnIndel.vcfAnnotatedVep
+            vcfAnnotatedVep = vcfAnnotatedVep
     }
     
     call annotate.AddCosmic {

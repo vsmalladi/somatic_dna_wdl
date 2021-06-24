@@ -31,7 +31,7 @@ task Gatk4MergeSortCompressVcf {
     
     parameter_meta {
         sortedVcfPath: {
-            description: "Output VCF filename for file in BGZF format. Must end in .gz. Corresponding index file will end in .tbi",
+            description: "Output VCF filename for file in compressed format. Must end in .gz. Corresponding index file will end in .tbi",
             category: "other"
         }
         

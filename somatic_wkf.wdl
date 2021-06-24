@@ -259,6 +259,7 @@ workflow SomaticWorkflow {
             call germlineAnnotate.GermlineAnnotate as filteredGermlineAnnotate {
                 input:
                     unannotatedVcf = Germline.haplotypecallerFinalFiltered,
+                    production = production,
                     referenceFa = referenceFa,
                     normal = sampleInfoObj.sampleId,
                     listOfChroms = listOfChroms,
@@ -292,6 +293,7 @@ workflow SomaticWorkflow {
             call germlineAnnotate.GermlineAnnotate as unFilteredGermlineAnnotate {
                 input:
                     unannotatedVcf = Germline.haplotypecallerVcf,
+                    production = production,
                     referenceFa = referenceFa,
                     normal = sampleInfoObj.sampleId,
                     listOfChroms = listOfChroms,

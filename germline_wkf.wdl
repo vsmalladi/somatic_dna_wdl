@@ -12,6 +12,8 @@ workflow GermlineAll {
         IndexedReference referenceFa
         Array[String]+ listOfChroms
         
+        Boolean production = true
+        
         File excludeIntervalList
         Array[File] scatterIntervalsHcs
         
@@ -89,6 +91,7 @@ workflow GermlineAll {
         call germlineAnnotate.GermlineAnnotate as filteredGermlineAnnotate {
             input:
                 unannotatedVcf = Germline.haplotypecallerFinalFiltered,
+                production = production,
                 referenceFa = referenceFa,
                 normal = normalSampleBamInfo.sampleId,
                 listOfChroms = listOfChroms,
@@ -122,6 +125,7 @@ workflow GermlineAll {
         call germlineAnnotate.GermlineAnnotate as unFilteredGermlineAnnotate {
             input:
                 unannotatedVcf = Germline.haplotypecallerVcf,
+                production = production,
                 referenceFa = referenceFa,
                 normal = normalSampleBamInfo.sampleId,
                 listOfChroms = listOfChroms,
