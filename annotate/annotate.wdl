@@ -12,7 +12,7 @@ task RemoveSpanning {
         File vcfAnnotatedVep
         Int threads = 16
         Int memoryGb = 16
-        Int diskSize = 20
+        Int diskSize = ceil( size(vcfAnnotatedVep, "GB") * 2) + 20
     }
 
     command {
