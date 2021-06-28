@@ -360,6 +360,7 @@ class CloudOutput():
     
     def list_project(self):
         '''get all sub workflow uuids
+            
         '''
         skip = [':', '/',
                  '/gcs_delocalization.sh', '/rc', 
@@ -385,13 +386,16 @@ class CloudOutput():
         return final_uris
        
     def ls_gsutil(self):
+        '''
+            return empty list if no URLs are found
+        '''
         try:
             result = subprocess.run(['gsutil', 'ls', self.out_dir + '/*'],
                                     check=True,
                                     stdout=subprocess.PIPE).stdout.decode('utf-8')
         except subprocess.CalledProcessError as err:
-            log.error(err.output.decode('utf-8'))
-            log.error('Failed to read URI: ' + self.out_dir)
+            log.warning(err.output.decode('utf-8'))
+            log.warning('Failed to read URI: ' + self.out_dir)
             return []
         return [file for file in result.split('\n') if not file == '' 
                 and not file.endswith(':')
