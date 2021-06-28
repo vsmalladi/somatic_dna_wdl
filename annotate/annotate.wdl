@@ -273,7 +273,7 @@ task VcfToMaf {
 
 task annotateBicSeq2Cnv {
     input {
-        Int memoryGb = 40
+        Int memoryGb = 80
         String pairName
         Array[String] listOfChroms
         String tumor

@@ -508,7 +508,7 @@ task UniqReads {
         String tempPrefix = "~{sampleId}_"
         Array[String] tempSeqsPaths
         Bam finalBam
-        Int diskSize = ceil( size(finalBam.bam, "GB") ) + 20
+        Int diskSize = ceil( size(finalBam.bam, "GB") ) + 100
     }
 
     command {
