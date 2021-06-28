@@ -78,6 +78,10 @@ workflow GermlineAnnotate {
                 plugins = plugins,
                 vepGenomeBuild = vepGenomeBuild,
                 vepFastaReference = vepFastaReference,
+                # NYGC-only
+                hgmdGene = hgmdGene,
+                hgmdUd10 = hgmdUd10,
+                hgmdPro = hgmdPro,
                 # Public
                 chdGenesVcf = chdGenesVcf,
                 chdEvolvingGenesVcf = chdEvolvingGenesVcf,
@@ -93,7 +97,7 @@ workflow GermlineAnnotate {
     
     if (!production) {
         if ( size(omimVcf.vcf) > 0 ) {
-            call variantEffectPredictor.vepSvnIndel as notProductionVepSvnIndel{
+            call variantEffectPredictor.vepSvnIndel as notProductionVepSvnIndel {
                 input:
                     pairName = sampleId,
                     unannotatedVcf = IndexVcf.vcfCompressedIndexed,
