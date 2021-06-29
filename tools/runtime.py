@@ -55,12 +55,15 @@ class Runtime():
                                                            execution_status='Done',
                                                            metrics_key='mem_used_gb')
         self.non_retry_metadata = self.metadata[self.metadata.execution_status == 'Done'].copy()
-        self.metadata = self.load_plot_metrics(self.metadata,
-                                               instance_id_map=self.instance_id_map)
-        self.non_retry_metadata = self.load_plot_metrics(self.non_retry_metadata,
-                                                         instance_id_map=self.non_retry_instance_id_map)
-        self.metadata.to_csv(self.metrics_file, index=False)
-        self.non_retry_metadata.to_csv(self.metrics_file.replace('.csv', '.non_retried.csv'), index=False)
+        if self.metadata[self.metadata.execution_status != 'RUNNING'].empty:
+            self.metadata.to_csv(self.metrics_file, index=False)
+        else:
+            self.metadata = self.load_plot_metrics(self.metadata,
+                                                   instance_id_map=self.instance_id_map)
+            self.non_retry_metadata = self.load_plot_metrics(self.non_retry_metadata,
+                                                             instance_id_map=self.non_retry_instance_id_map)
+            self.metadata.to_csv(self.metrics_file, index=False)
+            self.non_retry_metadata.to_csv(self.metrics_file.replace('.csv', '.non_retried.csv'), index=False)
         
     def get_task_core_h(self, grouped, row, ids=['id', 
                                                  'task_call_name', 
@@ -314,7 +317,8 @@ class Runtime():
             self.instance_id_map[instance_id]['task_call_name'] = self.runtime[self.runtime.instance_id == instance_id].task_call_name.tolist()[0]
         self.non_retry_instance_id_map = {}
         map = {row.instance_name: row.execution_status for index, row in self.metadata[['instance_name', 'execution_status']].drop_duplicates().iterrows()}
-        execution_status_map = {row.instance_id : map[row.instance_name] for index, row in self.runtime[['instance_name', 'instance_id']].drop_duplicates().iterrows()}
+        execution_status_map = {row.instance_id : map[row.instance_name] for index, row in 
+                                self.runtime[['instance_name', 'instance_id']].drop_duplicates().iterrows()}
         non_retry_instance_ids = [inst for inst in execution_status_map]
         for instance_id in non_retry_instance_ids:
             self.non_retry_instance_id_map[instance_id] = {}
