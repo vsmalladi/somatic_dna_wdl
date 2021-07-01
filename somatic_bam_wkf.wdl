@@ -154,7 +154,6 @@ workflow SomaticBamWorkflow {
         Array[File] scatterIntervalsHcs
         
         IndexedVcf MillsAnd1000G
-        IndexedVcf omni
         IndexedVcf hapmap
         IndexedVcf onekG
         IndexedVcf dbsnp
@@ -186,7 +185,6 @@ workflow SomaticBamWorkflow {
                 referenceFa = referenceFa,
                 listOfChroms = listOfChroms,
                 MillsAnd1000G = MillsAnd1000G,
-                omni = omni,
                 hapmap = hapmap,
                 onekG = onekG,
                 dbsnp = dbsnp,

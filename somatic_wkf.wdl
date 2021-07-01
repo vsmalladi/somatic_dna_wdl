@@ -62,6 +62,7 @@ workflow SomaticWorkflow {
         # For Tumor-Normal QC
         File markerBedFile
         File markerTxtFile
+        Boolean bypassQcCheck = false
 
         # calling
         Array[String]+ listOfChromsFull
@@ -76,7 +77,7 @@ workflow SomaticWorkflow {
         File mutectJsonLog
         File mutectJsonLogFilter
         File configureStrelkaSomaticWorkflow
-        
+
         #   BicSeq2
         Int readLength
         Int coordReadLength
@@ -87,12 +88,12 @@ workflow SomaticWorkflow {
         Int tumorMedianInsertSize = 400
         Int normalMedianInsertSize = 400
         Int lambda = 4
-        
+
         # Gridss
         String bsGenome
         File ponTarGz
         Array[File] gridssAdditionalReference
-        
+
         # merge callers
         File intervalListBed
 
@@ -111,12 +112,12 @@ workflow SomaticWorkflow {
         File mantisBed
         File intervalListBed
         IndexedReference referenceFa
-        
+
         # annotation:
         String vepGenomeBuild
         IndexedVcf cosmicCoding
         IndexedVcf cosmicNoncoding
-        
+
         # Public
         File cancerResistanceMutations
         File vepCache
@@ -124,13 +125,13 @@ workflow SomaticWorkflow {
         File plugins
         String vepGenomeBuild
         IndexedReference vepFastaReference
-        
+
         # NYGC-only
         IndexedVcf hgmdGene
         IndexedVcf hgmdUd10
         IndexedVcf hgmdPro
         IndexedVcf omimVcf
-        
+
         # Public
         IndexedVcf chdGenesVcf
         IndexedVcf chdEvolvingGenesVcf
@@ -138,7 +139,7 @@ workflow SomaticWorkflow {
         IndexedVcf deepIntronicsVcf
         IndexedVcf clinvarIntronicsVcf
         IndexedVcf masterMind
-        
+
         # annotate cnv
         File cytoBand
         File dgv
@@ -146,7 +147,7 @@ workflow SomaticWorkflow {
         File cosmicUniqueBed
         File cancerCensusBed
         File ensemblUniqueBed
-        
+
         # annotate sv
         String vepGenomeBuild
         # gap,DGV,1000G,PON,COSMIC
@@ -155,17 +156,18 @@ workflow SomaticWorkflow {
         File thousandGVcf
         File svPon
         File cosmicBedPe
-        
+
+
         # post annotation
         File cosmicCensus
-        
+
         File ensemblEntrez
-        
+
         # germline
-        
+
         File excludeIntervalList
         Array[File] scatterIntervalsHcs
-        
+
         IndexedVcf omni
         IndexedVcf hapmap
         IndexedVcf onekG
@@ -177,8 +179,9 @@ workflow SomaticWorkflow {
         IndexedVcf deepIntronicsVcf
         IndexedVcf clinvarIntronicsVcf
         IndexedVcf chdWhitelistVcf
+
     }
-    
+
     scatter (sampleInfoObj in sampleInfos) {
         call preProcess.Preprocess {
             input:
@@ -204,9 +207,8 @@ workflow SomaticWorkflow {
         # Pair[String, Bam] bamPairs = (sampleInfo.sampleId, Preprocess.finalBam)
 
     }
-    
+
     scatter (sampleInfoObj in normalSampleInfos) {
-    
         String normalSampleIds = sampleInfoObj.sampleId
     
         call GetIndex as germlineRunGetIndex {
@@ -214,7 +216,7 @@ workflow SomaticWorkflow {
                 sampleIds = sampleIds,
                 sampleId = sampleInfoObj.sampleId
         }
-        
+
         if (!bypassQcCheck) {
             call BamQcCheck {
                 input:
@@ -233,7 +235,7 @@ workflow SomaticWorkflow {
                     finalBam = Preprocess.finalBam[germlineRunGetIndex.index],
                     kouramiFastaGem1Index = kouramiFastaGem1Index
             }
-            
+
             call germline.Germline {
                 input:
                     finalBam = Preprocess.finalBam[germlineRunGetIndex.index],
@@ -241,7 +243,6 @@ workflow SomaticWorkflow {
                     referenceFa = referenceFa,
                     listOfChroms = listOfChroms,
                     MillsAnd1000G = MillsAnd1000G,
-                    omni = omni,
                     hapmap = hapmap,
                     onekG = onekG,
                     dbsnp = dbsnp,
@@ -358,7 +359,7 @@ workflow SomaticWorkflow {
             tumor : pairRelationship.tumor,
             normal : pairRelationship.normal
         }
-        
+
         if ( size(unFilteredGermlineAnnotate.haplotypecallerAnnotatedVcf[germlineGetIndex.index]) > 0 ) {
             call baf.Baf {
                 input:
@@ -482,7 +483,7 @@ workflow SomaticWorkflow {
             }
 
             File mergedVcf = select_first([wgsMergeVcf.mergedVcf, exomeMergeVcf.mergedVcf])
-            
+
             call annotate.Annotate {
                 input:
                     unannotatedVcf = mergedVcf,
@@ -515,9 +516,9 @@ workflow SomaticWorkflow {
                     # post annotation
                     cosmicCensus = cosmicCensus,
                     ensemblEntrez = ensemblEntrez,
-                    library = library  
+                    library = library
             }
-            
+
             call annotate_cnv_sv.AnnotateCnvSv {
                 input:
                     tumor=pairRawVcfInfo.tumor,
@@ -529,9 +530,9 @@ workflow SomaticWorkflow {
                     dgv=dgv,
                     thousandG=thousandG,
                     cosmicUniqueBed=cosmicUniqueBed,
-                    cancerCensusBed=cancerCensusBed, 
+                    cancerCensusBed=cancerCensusBed,
                     ensemblUniqueBed=ensemblUniqueBed,
-                    
+
                     filteredMantaSV=pairRawVcfInfo.filteredMantaSV,
                     svabaSv=pairRawVcfInfo.svabaSv,
                     gridssVcf=pairRawVcfInfo.gridssVcf,
@@ -541,10 +542,10 @@ workflow SomaticWorkflow {
                     thousandGVcf=thousandGVcf,
                     svPon=svPon,
                     cosmicBedPe=cosmicBedPe
-                
+
         }
       }
-      
+
    }
 
     output {
@@ -599,9 +600,6 @@ workflow SomaticWorkflow {
         Array[File] concordanceHomoz = Conpair.concordanceHomoz
         Array[File] contamination = Conpair.contamination
 
-        # Pass/Fail indicator
-        Array[File?] qcResults = SomaticQcCheck.qcResult
-        
         # Germline
         Array[File?] kouramiResult = Kourami.result
         Array[IndexedVcf?] haplotypecallerVcf = Germline.haplotypecallerVcf 
@@ -609,7 +607,6 @@ workflow SomaticWorkflow {
         Array[File?] filteredHaplotypecallerAnnotatedVcf = filteredGermlineAnnotate.haplotypecallerAnnotatedVcf
         Array[File?] haplotypecallerAnnotatedVcf = unFilteredGermlineAnnotate.haplotypecallerAnnotatedVcf
         Array[File?] alleleCountsTxt = Baf.alleleCountsTxt
-        
     }
 }
 
@@ -659,7 +656,6 @@ task SomaticQcCheck {
 
     output {
         Boolean qcPass = read_boolean(stdout())
-        File qcResult = "qc_summary.txt"
     }
 
     runtime {

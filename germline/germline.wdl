@@ -13,16 +13,15 @@ task haplotypeCallerGatk4 {
         String bamOutPath = "~{sampleId}.bamout.bam"
         Int memoryGb = 7
         Int diskSize
-        
-        
+
+
         ## Inputs for haplotypecaller
         IndexedVcf hapmap
-        IndexedVcf omni
         IndexedVcf onekG
         IndexedVcf dbsnp
         File excludeIntervalList
         File scatterIntervalsHc
-        
+
     }
 
     command {
@@ -66,10 +65,9 @@ task GentotypeGvcfsGatk4 {
         String haplotypecallerGenoVcfPath = "~{sampleId}.~{index}.haplotypecaller.gatk.v4.1.8.0.genotypedGVCFs.vcf.gz"
         String haplotypecallerFilteredGenoVcfPath = "~{sampleId}.~{index}.haplotypecaller.gatk.v4.1.8.0.filtered.genotypedGVCFs.vcf.gz"
         File scatterIntervalsHc
-        
+
         ## Inputs for haplotypecaller
         IndexedVcf hapmap
-        IndexedVcf omni
         IndexedVcf onekG
         IndexedVcf dbsnp
 
@@ -77,7 +75,7 @@ task GentotypeGvcfsGatk4 {
         Int diskSize = (ceil( size(sortedVcf.vcf, "GB") )  * 2 ) + 20
     }
 
-    command {    
+    command {
         ## GenotypeGvcfs
         /gatk/gatk \
         --java-options "-Xmx12G -XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10" \
@@ -106,12 +104,11 @@ task GentotypeGvcfsGatk4 {
         --snp-tranche 99.9 --snp-tranche 99.95 \
         --indel-tranche 99.0 --indel-tranche 99.4 \
         --resource ~{hapmap.vcf} \
-        --resource ~{omni.vcf} \
         --resource ~{onekG.vcf} \
         --resource ~{dbsnp.vcf} \
         --info-key CNN_1D \
         --create-output-variant-index true
-        
+
     }
 
     output {
@@ -146,7 +143,7 @@ task genotypeRefinementWorkflow {
 
     command {
         set -e -o pipefail
-        
+
         ## Annotate FORMAT/AF (deliver)
         /gatk/gatk \
         --java-options "-Xmx12G -XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10" \
@@ -155,13 +152,13 @@ task genotypeRefinementWorkflow {
         -V ~{genotypedGatk4.vcf} \
         -O ~{haplotypecallerAfVcfPath} \
         -A AlleleFraction
-        
-        
+
+
         ## remove biallellic sites
         zcat ~{haplotypecallerAfVcfPath} \
         | awk '($5 !~ ",")' \
         > ~{sampleId}.biallellic.vcf
-        
+
         ## Variant filtration
         /gatk/gatk \
         --java-options "-Xmx12G -XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10" \
@@ -173,7 +170,7 @@ task genotypeRefinementWorkflow {
         --genotype-filter-expression "(AF < 0.25 && AF > 0.0) || AF > 0.75" \
         --genotype-filter-name "GQ20" \
         --genotype-filter-expression "GQ < 20"
-    
+
         # filter with AF (deliver)
         zcat ~{sampleId}.haplotypecaller.af-gq-filtered.vcf.gz \
         | grep -v "AlleleFraction" \
@@ -209,7 +206,7 @@ task filterHO {
             String haplotypecallerFinalFilteredPath = "~{sampleId}.haplotypecaller.gatk.v4.1.8.0.final.filtered.vcf.gz"
             Int diskSize = 100
     }
-    
+
     command <<<
           ## Remove existing AF annotations from merged VCF
           bcftools annotate \
@@ -217,9 +214,9 @@ task filterHO {
           -Oz \
           ~{haplotypecallerAfVcf.vcf} \
           > noaf.vcf.gz
-        
+
           tabix -p vcf noaf.vcf.gz
-        
+
           ## Annotate with NYGC AF for filtering
           bcftools annotate \
           --annotations ~{nygcAf.vcf} \
@@ -227,74 +224,74 @@ task filterHO {
           -Oz \
           noaf.vcf.gz \
           > ~{sampleId}.final.annotated.vcf.gz
-        
+
           tabix -p vcf ~{sampleId}.final.annotated.vcf.gz
-        
+
           ## filter variants >3% AF and >10 Homozygotes in NYGC vars
           bcftools filter \
           --exclude 'INFO/AF[*] > 0.03 || INFO/AC_Hom[*] > 10' \
           ~{sampleId}.final.annotated.vcf.gz \
           > ~{sampleId}.pop.filtered.vcf
-        
+
           bgzip ~{sampleId}.pop.filtered.vcf
           tabix -p vcf ~{sampleId}.pop.filtered.vcf.gz
-        
+
           ## select whitelist variants
           bcftools view \
           -Oz \
           -R ~{whitelist.vcf} \
           ~{haplotypecallerAfVcf.vcf} \
           > ~{sampleId}.whitelist.filtered.vcf.gz
-        
+
           tabix -p vcf ~{sampleId}.whitelist.filtered.vcf.gz
-        
+
           ## select pgx variants
           bcftools view \
           -Oz \
           -R ~{pgx.vcf} \
           ~{haplotypecallerAfVcf.vcf} \
           > ~{sampleId}.pgx.filtered.vcf.gz
-        
+
           tabix -p vcf ~{sampleId}.pgx.filtered.vcf.gz
-        
+
           ## select chd whitelist variants
           bcftools view \
           -Oz \
           -R ~{chdWhitelistVcf.vcf} \
           ~{haplotypecallerAfVcf.vcf} \
           > ~{sampleId}.chdwhitelist.filtered.vcf.gz
-        
+
           tabix -p vcf ~{sampleId}.chdwhitelist.filtered.vcf.gz
-        
+
           ## select rwgs pgx variants
           bcftools view \
           -Oz \
           -R ~{rwgsPgxBed.table} \
           ~{haplotypecallerAfVcf.vcf} \
           > ~{sampleId}.rwgspgx.filtered.vcf.gz
-        
+
           tabix -p vcf ~{sampleId}.rwgspgx.filtered.vcf.gz
-        
+
           ## Select deep intronics
           bcftools view \
           -Oz \
           -R ~{deepIntronicsVcf.vcf} \
           ~{haplotypecallerAfVcf.vcf} \
           > ~{sampleId}.deep_intronics.filtered.vcf.gz
-        
+
           tabix -p vcf ~{sampleId}.deep_intronics.filtered.vcf.gz
-        
+
           ## Select clinvar intronics
           bcftools view \
           -Oz \
           -R ~{clinvarIntronicsVcf.vcf} \
           ~{haplotypecallerAfVcf.vcf} \
           > ~{sampleId}.clinvar_intronics.filtered.vcf.gz
-        
+
           tabix -p vcf ~{sampleId}.clinvar_intronics.filtered.vcf.gz
-          
+
           echo ~{sampleId} > samples.txt
-        
+
           ## merge all filtered files for further processing
           bcftools concat \
           -a \
@@ -313,17 +310,17 @@ task filterHO {
           bcftools sort \
           -Oz \
           > ~{haplotypecallerFinalFilteredPath}
-        
+
           tabix -p vcf ~{haplotypecallerFinalFilteredPath}
     >>>
-    
+
     runtime {
       memory: "7.5 GB"
       cpu: "2"
       disks: "local-disk " + diskSize + " HDD"
       docker: "gcr.io/nygc-public/genome-utils:v8"
     }
-    
+
     output {
         IndexedVcf haplotypecallerFinalFiltered = object {
                 vcf : "~{haplotypecallerFinalFilteredPath}",
@@ -331,4 +328,3 @@ task filterHO {
         }
     }
 }
-

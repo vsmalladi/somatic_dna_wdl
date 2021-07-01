@@ -54,8 +54,8 @@ workflow Manta {
             normal = normal,
             rawVcf = mantaAddVcfCommand.outVcf,
             orderedVcfPath = mantaPath,
-            memoryGb = 2,
-            diskSize = 1
+            memoryGb = 4,
+            diskSize = 10
     }
 
     call calling.FilterNonpass {

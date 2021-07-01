@@ -6,24 +6,23 @@ import "../merge_vcf/merge_vcf.wdl" as mergeVcf
 import "../calling/calling.wdl" as calling
 
 workflow Germline {
-    # command 
-    
+    # command
+
     input {
         Bam finalBam
         IndexedReference referenceFa
         Array[String]+ listOfChroms
         String normal
-        
+
         File excludeIntervalList
         Array[File] scatterIntervalsHcs
-        
+
         IndexedVcf MillsAnd1000G
-        IndexedVcf omni
         IndexedVcf hapmap
         IndexedReference referenceFa
         IndexedVcf onekG
         IndexedVcf dbsnp
-        
+
         IndexedVcf whitelist
         IndexedVcf nygcAf
         IndexedVcf pgx
@@ -42,7 +41,6 @@ workflow Germline {
                 index = i,
                 sampleId=normal,
                 hapmap=hapmap,
-                omni=omni,
                 onekG=onekG,
                 dbsnp=dbsnp,
                 excludeIntervalList=excludeIntervalList,
@@ -50,13 +48,12 @@ workflow Germline {
                 diskSize = hcDiskSize
         }
     }
-    
-    
+
     scatter (vcf in haplotypeCallerGatk4.haplotypecallerIntervalVcf) {
         File haplotypecallerIntervalVcf = vcf.vcf
     }
     Array[File] haplotypecallerIntervalVcfs = haplotypecallerIntervalVcf
-    
+
     call calling.Gatk4MergeSortVcf as haplotypecallerGatk4MergeSortVcf {
         input:
             sortedVcfPath = "~{normal}.haplotypecaller.g.vcf",
@@ -65,7 +62,7 @@ workflow Germline {
             memoryGb = 16,
             diskSize = 200
     }
-    
+
     call mergeVcf.CompressVcf as haplotypecallerCompressVcf {
         input:
             vcf = haplotypecallerGatk4MergeSortVcf.sortedVcf.vcf
@@ -75,7 +72,7 @@ workflow Germline {
         input:
             vcfCompressed = haplotypecallerCompressVcf.vcfCompressed
     }
-    
+
     scatter (i in range(length(scatterIntervalsHcs))) {
         call germline.GentotypeGvcfsGatk4 {
             input:
@@ -84,18 +81,17 @@ workflow Germline {
                 index=i,
                 sortedVcf = haplotypecallerIndexVcf.vcfCompressedIndexed,
                 scatterIntervalsHc=scatterIntervalsHcs[i],
-                omni = omni,
                 hapmap = hapmap,
                 onekG = onekG,
                 dbsnp = dbsnp
         }
     }
-    
+
     scatter (vcf in GentotypeGvcfsGatk4.haplotypecallerFilteredGenoVcf) {
         File haplotypecallerFilteredGenoVcf = vcf.vcf
     }
     Array[File] haplotypecallerFilteredGenoVcfs = haplotypecallerFilteredGenoVcf
-    
+
     call calling.Gatk4MergeSortVcf as genotypedFilteredMergeSortVcf {
         input:
             sortedVcfPath = "~{normal}.haplotypecaller.gatk.v4.1.8.0.filtered.genotypedGVCFs.vcf",
@@ -104,7 +100,7 @@ workflow Germline {
             memoryGb = 16,
             diskSize = 200
     }
-    
+
     call mergeVcf.CompressVcf as genotypedFilteredCompressVcf {
         input:
             vcf = genotypedFilteredMergeSortVcf.sortedVcf.vcf
@@ -114,14 +110,14 @@ workflow Germline {
         input:
             vcfCompressed = genotypedFilteredCompressVcf.vcfCompressed
     }
-    
+
     call germline.genotypeRefinementWorkflow {
         input:
             genotypedGatk4=genotypedFilteredIndexVcf.vcfCompressedIndexed,
             sampleId=normal,
             referenceFa=referenceFa
     }
-    
+
     call germline.filterHO as filterHO {
         input:
             sampleId=normal,
@@ -134,7 +130,7 @@ workflow Germline {
             deepIntronicsVcf=deepIntronicsVcf,
             clinvarIntronicsVcf=clinvarIntronicsVcf
     }
-    
+
     output {
         # equal to mergeHO.output_vcf
         IndexedVcf haplotypecallerVcf = genotypeRefinementWorkflow.haplotypecallerAfVcf

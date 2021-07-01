@@ -8,21 +8,20 @@ workflow GermlineAll {
     # command 
     input {
         Array[SampleBamInfo]+ normalSampleBamInfos
-        
+
         IndexedReference referenceFa
         Array[String]+ listOfChroms
-        
+
         Boolean production = true
-        
+
         File excludeIntervalList
         Array[File] scatterIntervalsHcs
-        
+
         IndexedVcf MillsAnd1000G
-        IndexedVcf omni
         IndexedVcf hapmap
         IndexedVcf onekG
         IndexedVcf dbsnp
-        
+
         IndexedVcf whitelist
         IndexedVcf nygcAf
         IndexedVcf pgx
@@ -30,12 +29,12 @@ workflow GermlineAll {
         IndexedVcf deepIntronicsVcf
         IndexedVcf clinvarIntronicsVcf
         IndexedVcf chdWhitelistVcf
-        
+
         # annotation:
         String vepGenomeBuild
         IndexedVcf cosmicCoding
         IndexedVcf cosmicNoncoding
-        
+
         # Public
         File cancerResistanceMutations
         File vepCache
@@ -43,13 +42,13 @@ workflow GermlineAll {
         File plugins
         String vepGenomeBuild
         IndexedReference vepFastaReference
-        
+
         # NYGC-only
         IndexedVcf hgmdGene
         IndexedVcf hgmdUd10
         IndexedVcf hgmdPro
         IndexedVcf omimVcf
-        
+
         # Public
         IndexedVcf chdGenesVcf
         IndexedVcf chdEvolvingGenesVcf
@@ -64,7 +63,7 @@ workflow GermlineAll {
         File ensemblEntrez
         String library
     }
-    
+
     scatter (normalSampleBamInfo in normalSampleBamInfos) {
         call germline.Germline {
             input:
@@ -73,7 +72,6 @@ workflow GermlineAll {
                 referenceFa = referenceFa,
                 listOfChroms = listOfChroms,
                 MillsAnd1000G = MillsAnd1000G,
-                omni = omni,
                 hapmap = hapmap,
                 onekG = onekG,
                 dbsnp = dbsnp,
@@ -121,7 +119,7 @@ workflow GermlineAll {
                 ensemblEntrez = ensemblEntrez,
                 library = library  
         }
-        
+
         call germlineAnnotate.GermlineAnnotate as unFilteredGermlineAnnotate {
             input:
                 unannotatedVcf = Germline.haplotypecallerVcf,
@@ -156,7 +154,7 @@ workflow GermlineAll {
                 library = library  
         }
     }
-    
+
     output {
         Array[IndexedVcf] haplotypecallerVcf = Germline.haplotypecallerVcf 
         Array[IndexedVcf] haplotypecallerFinalFiltered = Germline.haplotypecallerFinalFiltered 
