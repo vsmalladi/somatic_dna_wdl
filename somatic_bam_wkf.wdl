@@ -154,6 +154,7 @@ workflow SomaticBamWorkflow {
         Array[File] scatterIntervalsHcs
         
         IndexedVcf MillsAnd1000G
+        IndexedVcf omni
         IndexedVcf hapmap
         IndexedVcf onekG
         IndexedVcf dbsnp
@@ -186,17 +187,18 @@ workflow SomaticBamWorkflow {
                 listOfChroms = listOfChroms,
                 MillsAnd1000G = MillsAnd1000G,
                 hapmap = hapmap,
+                omni = omni,
                 onekG = onekG,
                 dbsnp = dbsnp,
                 nygcAf = nygcAf,
-                excludeIntervalList=excludeIntervalList,
-                scatterIntervalsHcs=scatterIntervalsHcs,
-                pgx=pgx,
-                rwgsPgxBed=rwgsPgxBed,
-                whitelist=whitelist,
-                chdWhitelistVcf=chdWhitelistVcf,
-                deepIntronicsVcf=deepIntronicsVcf,
-                clinvarIntronicsVcf=clinvarIntronicsVcf
+                excludeIntervalList = excludeIntervalList,
+                scatterIntervalsHcs = scatterIntervalsHcs,
+                pgx = pgx,
+                rwgsPgxBed = rwgsPgxBed,
+                whitelist = whitelist,
+                chdWhitelistVcf = chdWhitelistVcf,
+                deepIntronicsVcf = deepIntronicsVcf,
+                clinvarIntronicsVcf = clinvarIntronicsVcf
         }
         
         call germlineAnnotate.GermlineAnnotate as filteredGermlineAnnotate {
@@ -328,13 +330,13 @@ workflow SomaticBamWorkflow {
 
         call msi.Msi {
             input:
-                normal=pairInfo.normal,
-                pairName=pairInfo.pairId,
-                mantisBed=mantisBed,
-                intervalListBed=intervalListBed,
-                referenceFa=referenceFa,
-                tumorFinalBam=pairInfo.tumorFinalBam,
-                normalFinalBam=pairInfo.normalFinalBam
+                normal = pairInfo.normal,
+                pairName = pairInfo.pairId,
+                mantisBed = mantisBed,
+                intervalListBed = intervalListBed,
+                referenceFa = referenceFa,
+                tumorFinalBam = pairInfo.tumorFinalBam,
+                normalFinalBam = pairInfo.normalFinalBam
         }
 
         PairRawVcfInfo pairRawVcfInfo = object {
@@ -421,27 +423,27 @@ workflow SomaticBamWorkflow {
         
         call annotate_cnv_sv.AnnotateCnvSv {
             input:
-                tumor=pairRawVcfInfo.tumor,
-                normal=pairRawVcfInfo.normal,
-                pairName=pairRawVcfInfo.pairId,
-                listOfChroms=listOfChroms,
-                bicseq2=pairRawVcfInfo.bicseq2,
-                cytoBand=cytoBand,
-                dgv=dgv,
-                thousandG=thousandG,
-                cosmicUniqueBed=cosmicUniqueBed,
-                cancerCensusBed=cancerCensusBed, 
-                ensemblUniqueBed=ensemblUniqueBed,
+                tumor = pairRawVcfInfo.tumor,
+                normal = pairRawVcfInfo.normal,
+                pairName = pairRawVcfInfo.pairId,
+                listOfChroms =listOfChroms,
+                bicseq2 = pairRawVcfInfo.bicseq2,
+                cytoBand = cytoBand,
+                dgv = dgv,
+                thousandG = thousandG,
+                cosmicUniqueBed = cosmicUniqueBed,
+                cancerCensusBed = cancerCensusBed, 
+                ensemblUniqueBed = ensemblUniqueBed,
                 
-                filteredMantaSV=pairRawVcfInfo.filteredMantaSV,
-                svabaSv=pairRawVcfInfo.svabaSv,
-                gridssVcf=pairRawVcfInfo.gridssVcf,
-                vepGenomeBuild=vepGenomeBuild,
-                gap=gap,
-                dgvBedpe=dgvBedpe,
-                thousandGVcf=thousandGVcf,
-                svPon=svPon,
-                cosmicBedPe=cosmicBedPe
+                filteredMantaSV = pairRawVcfInfo.filteredMantaSV,
+                svabaSv = pairRawVcfInfo.svabaSv,
+                gridssVcf = pairRawVcfInfo.gridssVcf,
+                vepGenomeBuild = vepGenomeBuild,
+                gap = gap,
+                dgvBedpe = dgvBedpe,
+                thousandGVcf = thousandGVcf,
+                svPon = svPon,
+                cosmicBedPe = cosmicBedPe
             
     }
       

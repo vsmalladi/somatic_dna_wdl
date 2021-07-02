@@ -14,11 +14,7 @@ task haplotypeCallerGatk4 {
         Int memoryGb = 7
         Int diskSize
 
-
         ## Inputs for haplotypecaller
-        IndexedVcf hapmap
-        IndexedVcf onekG
-        IndexedVcf dbsnp
         File excludeIntervalList
         File scatterIntervalsHc
 
@@ -68,6 +64,7 @@ task GentotypeGvcfsGatk4 {
 
         ## Inputs for haplotypecaller
         IndexedVcf hapmap
+        IndexedVcf omni
         IndexedVcf onekG
         IndexedVcf dbsnp
 
@@ -104,6 +101,7 @@ task GentotypeGvcfsGatk4 {
         --snp-tranche 99.9 --snp-tranche 99.95 \
         --indel-tranche 99.0 --indel-tranche 99.4 \
         --resource ~{hapmap.vcf} \
+        --resource ~{omni.vcf} \
         --resource ~{onekG.vcf} \
         --resource ~{dbsnp.vcf} \
         --info-key CNN_1D \

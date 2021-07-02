@@ -244,6 +244,7 @@ workflow SomaticWorkflow {
                     listOfChroms = listOfChroms,
                     MillsAnd1000G = MillsAnd1000G,
                     hapmap = hapmap,
+                    omni = omni,
                     onekG = onekG,
                     dbsnp = dbsnp,
                     nygcAf = nygcAf,

@@ -19,6 +19,7 @@ workflow GermlineAll {
 
         IndexedVcf MillsAnd1000G
         IndexedVcf hapmap
+        IndexedVcf omni
         IndexedVcf onekG
         IndexedVcf dbsnp
 
@@ -73,17 +74,18 @@ workflow GermlineAll {
                 listOfChroms = listOfChroms,
                 MillsAnd1000G = MillsAnd1000G,
                 hapmap = hapmap,
+                omni = omni,
                 onekG = onekG,
                 dbsnp = dbsnp,
                 nygcAf = nygcAf,
-                excludeIntervalList=excludeIntervalList,
-                scatterIntervalsHcs=scatterIntervalsHcs,
-                pgx=pgx,
-                rwgsPgxBed=rwgsPgxBed,
-                whitelist=whitelist,
-                chdWhitelistVcf=chdWhitelistVcf,
-                deepIntronicsVcf=deepIntronicsVcf,
-                clinvarIntronicsVcf=clinvarIntronicsVcf
+                excludeIntervalList = excludeIntervalList,
+                scatterIntervalsHcs = scatterIntervalsHcs,
+                pgx = pgx,
+                rwgsPgxBed = rwgsPgxBed,
+                whitelist = whitelist,
+                chdWhitelistVcf = chdWhitelistVcf,
+                deepIntronicsVcf = deepIntronicsVcf,
+                clinvarIntronicsVcf = clinvarIntronicsVcf
         }
         
         call germlineAnnotate.GermlineAnnotate as filteredGermlineAnnotate {

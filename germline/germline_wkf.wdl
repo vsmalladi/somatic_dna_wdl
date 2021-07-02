@@ -18,6 +18,7 @@ workflow Germline {
         Array[File] scatterIntervalsHcs
 
         IndexedVcf MillsAnd1000G
+        IndexedVcf omni
         IndexedVcf hapmap
         IndexedReference referenceFa
         IndexedVcf onekG
@@ -39,12 +40,9 @@ workflow Germline {
                 referenceFa = referenceFa,
                 finalBam = finalBam,
                 index = i,
-                sampleId=normal,
-                hapmap=hapmap,
-                onekG=onekG,
-                dbsnp=dbsnp,
-                excludeIntervalList=excludeIntervalList,
-                scatterIntervalsHc=scatterIntervalsHcs[i],
+                sampleId = normal,
+                excludeIntervalList = excludeIntervalList,
+                scatterIntervalsHc = scatterIntervalsHcs[i],
                 diskSize = hcDiskSize
         }
     }
@@ -77,10 +75,11 @@ workflow Germline {
         call germline.GentotypeGvcfsGatk4 {
             input:
                 referenceFa = referenceFa,
-                sampleId=normal,
-                index=i,
+                sampleId = normal,
+                index = i,
                 sortedVcf = haplotypecallerIndexVcf.vcfCompressedIndexed,
                 scatterIntervalsHc=scatterIntervalsHcs[i],
+                omni = omni,
                 hapmap = hapmap,
                 onekG = onekG,
                 dbsnp = dbsnp
@@ -113,22 +112,22 @@ workflow Germline {
 
     call germline.genotypeRefinementWorkflow {
         input:
-            genotypedGatk4=genotypedFilteredIndexVcf.vcfCompressedIndexed,
-            sampleId=normal,
-            referenceFa=referenceFa
+            genotypedGatk4 = genotypedFilteredIndexVcf.vcfCompressedIndexed,
+            sampleId = normal,
+            referenceFa = referenceFa
     }
 
     call germline.filterHO as filterHO {
         input:
-            sampleId=normal,
+            sampleId = normal,
             nygcAf = nygcAf,
             haplotypecallerAfVcf = genotypeRefinementWorkflow.haplotypecallerAfVcf,
-            pgx=pgx,
-            rwgsPgxBed=rwgsPgxBed,
-            whitelist=whitelist,
-            chdWhitelistVcf=chdWhitelistVcf,
-            deepIntronicsVcf=deepIntronicsVcf,
-            clinvarIntronicsVcf=clinvarIntronicsVcf
+            pgx = pgx,
+            rwgsPgxBed = rwgsPgxBed,
+            whitelist = whitelist,
+            chdWhitelistVcf = chdWhitelistVcf,
+            deepIntronicsVcf = deepIntronicsVcf,
+            clinvarIntronicsVcf = clinvarIntronicsVcf
     }
 
     output {
