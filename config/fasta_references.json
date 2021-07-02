@@ -149,8 +149,8 @@
         },
         "cancerCensusBed" :{
             "type": "File",
-            "description" : "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/cancer_gene_census.GRCh38-v92.README.txt",
-            "object" : "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/cancer_gene_census.GRCh38-v92.bed"
+            "description" : "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/cancer_gene_census.GRCh38-v92.README.txt",
+            "object" : "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/cancer_gene_census.GRCh38-v92.bed"
         },
         "ensemblUniqueBed" :{
             "type": "File",
