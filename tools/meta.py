@@ -174,6 +174,7 @@ def verify_required(key, args, project_info):
 
 def fill_in_pair_info(project_info):
     pair_infos = []
+    normal_sample_infos = []
     for info in project_info['listOfPairRelationships']:
         pair_infos.append({'normal' : info['normal'],
                            'tumor' : info['tumor'],
