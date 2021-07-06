@@ -54,7 +54,7 @@ workflow SomaticWorkflow {
         Array[sampleInfo]+ normalSampleInfos
         Array[sampleInfo]+ sampleInfos
         Array[PairRelationship]+ listOfPairRelationships
-        
+
         Boolean trim = true
         Boolean production = true
         Boolean bypassQcCheck = false
@@ -92,6 +92,7 @@ workflow SomaticWorkflow {
         # Gridss
         String bsGenome
         File ponTarGz
+        BwaReference gridssReferenceFa
         Array[File] gridssAdditionalReference
 
         # merge callers
@@ -210,7 +211,7 @@ workflow SomaticWorkflow {
 
     scatter (sampleInfoObj in normalSampleInfos) {
         String normalSampleIds = sampleInfoObj.sampleId
-    
+
         call GetIndex as germlineRunGetIndex {
             input:
                 sampleIds = sampleIds,
@@ -224,9 +225,9 @@ workflow SomaticWorkflow {
                     expectedCoverage = sampleInfoObj.expectedCoverage
             }
         }
-        
+
         Boolean coveragePass = select_first([BamQcCheck.coveragePass, false])
-        
+
         if (bypassQcCheck || coveragePass ) {
             call kourami.Kourami {
                 input:
@@ -257,7 +258,7 @@ workflow SomaticWorkflow {
                     deepIntronicsVcf=deepIntronicsVcf,
                     clinvarIntronicsVcf=clinvarIntronicsVcf
             }
-            
+
             call germlineAnnotate.GermlineAnnotate as filteredGermlineAnnotate {
                 input:
                     unannotatedVcf = Germline.haplotypecallerFinalFiltered,
@@ -289,9 +290,9 @@ workflow SomaticWorkflow {
                     # post annotation
                     cosmicCensus = cosmicCensus,
                     ensemblEntrez = ensemblEntrez,
-                    library = library  
+                    library = library
             }
-            
+
             call germlineAnnotate.GermlineAnnotate as unFilteredGermlineAnnotate {
                 input:
                     unannotatedVcf = Germline.haplotypecallerVcf,
@@ -324,7 +325,7 @@ workflow SomaticWorkflow {
                     # post annotation
                     cosmicCensus = cosmicCensus,
                     ensemblEntrez = ensemblEntrez,
-                    library = library  
+                    library = library
             }
         }
     }
@@ -346,7 +347,7 @@ workflow SomaticWorkflow {
                 sampleIds = sampleIds,
                 sampleId = pairRelationship.normal
         }
-        
+
         call GetIndex as germlineGetIndex {
             input:
                 sampleIds = normalSampleIds,
@@ -414,6 +415,7 @@ workflow SomaticWorkflow {
                     referenceFa = referenceFa,
                     callRegions = callRegions,
                     bwaReference = bwaReference,
+                    gridssBwaReference = gridssReferenceFa,
                     dbsnpIndels = dbsnpIndels,
                     chromBedsWgs = chromBedsWgs,
                     readLength = readLength,
@@ -603,7 +605,7 @@ workflow SomaticWorkflow {
 
         # Germline
         Array[File?] kouramiResult = Kourami.result
-        Array[IndexedVcf?] haplotypecallerVcf = Germline.haplotypecallerVcf 
+        Array[IndexedVcf?] haplotypecallerVcf = Germline.haplotypecallerVcf
         Array[IndexedVcf?] haplotypecallerFinalFiltered = Germline.haplotypecallerFinalFiltered
         Array[File?] filteredHaplotypecallerAnnotatedVcf = filteredGermlineAnnotate.haplotypecallerAnnotatedVcf
         Array[File?] haplotypecallerAnnotatedVcf = unFilteredGermlineAnnotate.haplotypecallerAnnotatedVcf

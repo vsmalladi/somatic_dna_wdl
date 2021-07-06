@@ -28,7 +28,7 @@ workflow Calling {
         BwaReference bwaReference
         #   Lancet
         Map[String, File] chromBedsWgs
-        
+
         #   BicSeq2
         Int readLength
         Int coordReadLength
@@ -42,6 +42,7 @@ workflow Calling {
         # Gridss
         String bsGenome
         File ponTarGz
+        BwaReference gridssBwaReference
         Array[File] gridssAdditionalReference
 
         File lancetJsonLog
@@ -116,19 +117,19 @@ workflow Calling {
             normalFinalBam = pairInfo.normalFinalBam,
             tumorFinalBam = pairInfo.tumorFinalBam
     }
-    
+
     call gridss.Gridss {
         input:
             tumor = pairInfo.tumor,
             normal = pairInfo.normal,
             pairName = pairInfo.pairId,
-            bwaReference = bwaReference,
+            bwaReference = gridssBwaReference,
             gridssAdditionalReference = gridssAdditionalReference,
             normalFinalBam = pairInfo.normalFinalBam,
             tumorFinalBam = pairInfo.tumorFinalBam,
             bsGenome = bsGenome,
             ponTarGz = ponTarGz
-    }    
+    }
 
     call bicseq2.BicSeq2 {
         input:

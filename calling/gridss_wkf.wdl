@@ -4,46 +4,48 @@ import "calling.wdl" as calling
 import "../wdl_structs.wdl"
 
 workflow Gridss {
-    # command 
+    # command
     #   run Gridss caller
     input {
         String tumor
         String normal
         String pairName
-        
+
         BwaReference bwaReference
         Array[File] gridssAdditionalReference
-                
+
         Bam normalFinalBam
         Bam tumorFinalBam
-        
+
         Int assembleChunks = 5
-        
+
         String bsGenome
         File ponTarGz
-        
+
         Int threads = 8
         Int memory_gb = 32
     }
-    
+
     call calling.GridssPreprocess as tumorGridssPreprocess {
         input:
             threads = threads,
             memory_gb = memory_gb,
             bwaReference = bwaReference,
             gridssAdditionalReference = gridssAdditionalReference,
-            finalBam = tumorFinalBam  
+            finalBam = tumorFinalBam,
+            diskSize = ceil( size(tumorFinalBam.bam, "GB") * 2 ) + 20
     }
-    
+
     call calling.GridssPreprocess as normalGridssPreprocess {
         input:
             threads = threads,
             memory_gb = memory_gb,
             bwaReference= bwaReference,
             gridssAdditionalReference = gridssAdditionalReference,
-            finalBam = normalFinalBam  
+            finalBam = normalFinalBam,
+            diskSize = ceil( size(normalFinalBam.bam, "GB") * 2 ) + 20
     }
-    
+
     scatter(i in range(assembleChunks)) {
         call calling.GridssAssembleChunk {
             input:
@@ -67,10 +69,11 @@ workflow Gridss {
                 tumorIdsvMetrics = tumorGridssPreprocess.idsvMetrics,
                 tumorTagMetrics = tumorGridssPreprocess.tagMetrics,
                 tumorMapqMetrics = tumorGridssPreprocess.mapqMetrics,
-                tumorInsertSizeMetrics = tumorGridssPreprocess.insertSizeMetrics   
+                tumorInsertSizeMetrics = tumorGridssPreprocess.insertSizeMetrics,
+                diskSize = ceil( size(tumorFinalBam.bam, "GB") * 2 ) + ceil( size(normalFinalBam.bam, "GB")  * 2) + 20
         }
     }
-    
+
     call calling.GridssAssemble {
         input:
             threads = threads,
@@ -83,7 +86,7 @@ workflow Gridss {
             downsampled = GridssAssembleChunk.downsampled,
             excluded = GridssAssembleChunk.excluded,
             subsetCalled = GridssAssembleChunk.subsetCalled,
-            
+
             normalSvBam = normalGridssPreprocess.svBam,
             normalCigarMetrics = normalGridssPreprocess.cigarMetrics,
             normalIdsvMetrics = normalGridssPreprocess.idsvMetrics,
@@ -95,10 +98,11 @@ workflow Gridss {
             tumorIdsvMetrics = tumorGridssPreprocess.idsvMetrics,
             tumorTagMetrics = tumorGridssPreprocess.tagMetrics,
             tumorMapqMetrics = tumorGridssPreprocess.mapqMetrics,
-            tumorInsertSizeMetrics = tumorGridssPreprocess.insertSizeMetrics
-            
+            tumorInsertSizeMetrics = tumorGridssPreprocess.insertSizeMetrics,
+            diskSize = ceil( size(tumorFinalBam.bam, "GB") * 2) + ceil( size(normalFinalBam.bam, "GB") * 2) + 20
+
     }
-    
+
     call calling.GridssCalling {
         input:
             threads = threads,
@@ -113,7 +117,7 @@ workflow Gridss {
             subsetCalled = GridssAssembleChunk.subsetCalled,
             gridssassemblyBam = GridssAssemble.gridssassemblyBam,
             gridssassemblySvBam = GridssAssemble.gridssassemblySvBam,
-            
+
             normalSvBam = normalGridssPreprocess.svBam,
             normalCigarMetrics = normalGridssPreprocess.cigarMetrics,
             normalIdsvMetrics = normalGridssPreprocess.idsvMetrics,
@@ -125,10 +129,11 @@ workflow Gridss {
             tumorIdsvMetrics = tumorGridssPreprocess.idsvMetrics,
             tumorTagMetrics = tumorGridssPreprocess.tagMetrics,
             tumorMapqMetrics = tumorGridssPreprocess.mapqMetrics,
-            tumorInsertSizeMetrics = tumorGridssPreprocess.insertSizeMetrics
-            
+            tumorInsertSizeMetrics = tumorGridssPreprocess.insertSizeMetrics,
+            diskSize = ceil( size(tumorFinalBam.bam, "GB") * 2) + ceil( size(normalFinalBam.bam, "GB") *2) + 20
+
     }
-    
+
     call calling.GridssFilter {
         input:
             threads = threads,
@@ -137,9 +142,9 @@ workflow Gridss {
             bsGenome = bsGenome,
             ponTarGz = ponTarGz,
             gridssUnfilteredVcf = GridssCalling.gridssUnfilteredVcf
-            
+
     }
-    
+
     output {
         IndexedVcf gridssVcf = GridssFilter.gridssVcf
     }
