@@ -2,10 +2,12 @@ version 1.0
 
 import "./wdl_structs.wdl"
 import "calling/calling_wkf.wdl" as calling
+import "calling/calling.wdl" as callingTasks
 import "merge_vcf/merge_vcf_wkf.wdl" as mergeVcf
 import "alignment_analysis/kourami_wfk.wdl" as kourami
 import "alignment_analysis/msi_wkf.wdl" as msi
 import "pre_process/conpair_wkf.wdl" as conpair
+import "pre_process/qc.wdl" as qc
 import "annotate/annotate_wkf.wdl" as annotate
 import "annotate/annotate_cnv_sv_wkf.wdl" as annotate_cnv_sv
 import "germline/germline_wkf.wdl" as germline
@@ -278,6 +280,38 @@ workflow SomaticBamWorkflow {
                 sampleId = pairInfo.normal
         }
         
+        # tumor insert size
+        Int tumorDiskSize = ceil(size(pairInfo.tumorFinalBam.bam, "GB")) + 30
+                      
+        call qc.MultipleMetrics as tumorMultipleMetrics {
+            input:
+                referenceFa = referenceFa,
+                finalBam = pairInfo.tumorFinalBam,
+                sampleId = pairInfo.tumor,
+                diskSize = tumorDiskSize
+        }
+        
+        call callingTasks.GetInsertSize as tumorGetInsertSize {
+            input:
+                insertSizeMetrics = tumorMultipleMetrics.insertSizeMetrics
+        }
+        
+        # normal insert size
+        Int normalDiskSize = ceil(size(pairInfo.normalFinalBam.bam, "GB")) + 30
+                      
+        call qc.MultipleMetrics as normalMultipleMetrics {
+            input:
+                referenceFa = referenceFa,
+                finalBam = pairInfo.normalFinalBam,
+                sampleId = pairInfo.normal,
+                diskSize = normalDiskSize
+        }
+        
+        call callingTasks.GetInsertSize as normalGetInsertSize {
+            input:
+                insertSizeMetrics = normalMultipleMetrics.insertSizeMetrics
+        }
+        
         call baf.Baf {
             input:
                 referenceFa = referenceFa,
@@ -322,6 +356,8 @@ workflow SomaticBamWorkflow {
                 uniqCoords = uniqCoords,
                 bicseq2ConfigFile = bicseq2ConfigFile,
                 bicseq2SegConfigFile = bicseq2SegConfigFile,
+                tumorMedianInsertSize = tumorGetInsertSize.insertSize,
+                normalMedianInsertSize = normalGetInsertSize.insertSize,
                 chromFastas = chromFastas,
                 bsGenome = bsGenome,
                 ponTarGz = ponTarGz,

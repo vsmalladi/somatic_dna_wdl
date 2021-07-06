@@ -4,6 +4,28 @@ import "../wdl_structs.wdl"
 
 # General tasks
 
+task GetInsertSize {
+    input {
+        File insertSizeMetrics
+    }
+
+    command {
+        grep -A 1 \
+        "MEDIAN_INSERT_SIZE" \
+        ~{insertSizeMetrics} \
+        | tail -n 1 \
+        | cut -f 1
+    }
+
+    output {
+        Int insertSize = read_int(stdout())
+    }
+
+    runtime {
+        docker: "ubuntu:latest"
+    }
+}
+
 task Gatk4MergeSortCompressVcf {
     input {
         Int diskSize = 10

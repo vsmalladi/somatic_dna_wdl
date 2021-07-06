@@ -4,6 +4,7 @@ import "./wdl_structs.wdl"
 import "pre_process/pre_process_wkf.wdl" as preProcess
 import "pre_process/qc_wkf.wdl" as qc
 import "calling/calling_wkf.wdl" as calling
+import "calling/calling.wdl" as callingTasks
 import "merge_vcf/merge_vcf_wkf.wdl" as mergeVcf
 import "alignment_analysis/kourami_wfk.wdl" as kourami
 import "alignment_analysis/msi_wkf.wdl" as msi
@@ -85,8 +86,6 @@ workflow SomaticWorkflow {
         File bicseq2ConfigFile
         File bicseq2SegConfigFile
         Map[String, File] chromFastas
-        Int tumorMedianInsertSize = 400
-        Int normalMedianInsertSize = 400
         Int lambda = 4
 
         # Gridss
@@ -399,6 +398,16 @@ workflow SomaticWorkflow {
         }
 
         if (bypassQcCheck || select_first([SomaticQcCheck.qcPass, false])) {
+            call callingTasks.GetInsertSize as tumorGetInsertSize {
+                input:
+                    insertSizeMetrics = Preprocess.insertSizeMetrics[tumorGetIndex.index]
+            }
+            
+            call callingTasks.GetInsertSize as normalGetInsertSize {
+                input:
+                    insertSizeMetrics = Preprocess.insertSizeMetrics[normalGetIndex.index]
+            }
+
             call calling.Calling {
                 input:
                     mantaJsonLog = mantaJsonLog,
@@ -421,6 +430,8 @@ workflow SomaticWorkflow {
                     uniqCoords = uniqCoords,
                     bicseq2ConfigFile = bicseq2ConfigFile,
                     bicseq2SegConfigFile = bicseq2SegConfigFile,
+                    tumorMedianInsertSize = tumorGetInsertSize.insertSize,
+                    normalMedianInsertSize = normalGetInsertSize.insertSize,
                     chromFastas = chromFastas,
                     bsGenome = bsGenome,
                     ponTarGz = ponTarGz,
