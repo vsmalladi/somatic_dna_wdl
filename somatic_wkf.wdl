@@ -92,7 +92,6 @@ workflow SomaticWorkflow {
         # Gridss
         String bsGenome
         File ponTarGz
-        BwaReference gridssReferenceFa
         Array[File] gridssAdditionalReference
 
         # merge callers
@@ -415,7 +414,6 @@ workflow SomaticWorkflow {
                     referenceFa = referenceFa,
                     callRegions = callRegions,
                     bwaReference = bwaReference,
-                    gridssBwaReference = gridssReferenceFa,
                     dbsnpIndels = dbsnpIndels,
                     chromBedsWgs = chromBedsWgs,
                     readLength = readLength,
