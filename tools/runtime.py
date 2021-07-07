@@ -354,7 +354,8 @@ class Runtime():
                 data = pd.DataFrame({'sub_workflow_uuid' : output_info['sub_workflow_uuids'][id]})
                 data['id'] = id
                 sub_workflow_uuids_list.append(data)
-            sub_workflow_uuids = pd.concat(sub_workflow_uuids_list)
+            sub_workflow_uuids = pd.concat(sub_workflow_uuids_list, 
+                                           ignore_index=False)
             return sub_workflow_uuids
            
 
