@@ -658,7 +658,7 @@ task GridssPreprocess {
 
         # mv gridss fasta refs into position in the fasta dir
         fasta_dir=$( dirname ~{bwaReference.fasta} )
-        #mv ~{sep=" " gridssAdditionalReference} $fasta_dir
+        mv ~{sep=" " gridssAdditionalReference} $fasta_dir
 
         mkdir -p /scratch/
         working=$( pwd )
@@ -734,7 +734,7 @@ task GridssAssembleChunk {
 
         # mv gridss fasta refs into position in the fasta dir
         fasta_dir=$( dirname ~{bwaReference.fasta} )
-        #mv ~{sep=" " gridssAdditionalReference} $fasta_dir
+        mv ~{sep=" " gridssAdditionalReference} $fasta_dir
 
 
         # reposition unnamed input
@@ -823,7 +823,7 @@ task GridssAssemble {
 
         # mv gridss fasta refs into position in the fasta dir
         fasta_dir=$( dirname ~{bwaReference.fasta} )
-        #mv ~{sep=" " gridssAdditionalReference} $fasta_dir
+        mv ~{sep=" " gridssAdditionalReference} $fasta_dir
 
         # link preprocess results
         # reposition unnamed input
@@ -920,7 +920,7 @@ task GridssCalling {
 
         # mv gridss fasta refs into position in the fasta dir
         fasta_dir=$( dirname ~{bwaReference.fasta} )
-        #mv ~{sep=" " gridssAdditionalReference} $fasta_dir
+        mv ~{sep=" " gridssAdditionalReference} $fasta_dir
 
         # link assembly results
         sub_dir=~{gridssassemblyBamBase}.gridss.working/
