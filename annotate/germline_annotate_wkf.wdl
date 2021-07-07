@@ -59,17 +59,18 @@ workflow GermlineAnnotate {
                 splitVcfPath = sub(basename(unannotatedVcf.vcf), ".vcf.gz$", ".split.vcf"),
                 referenceFa = referenceFa
         }
-        
+
+
     call mergeVcf.CompressVcf {
         input:
             vcf = SplitMultiAllelicRegions.sortedVcf
     }
-    
+
     call mergeVcf.IndexVcf {
         input:
             vcfCompressed = CompressVcf.vcfCompressed
     }
-    
+
     if (production) {
         call variantEffectPredictor.vepPublicSvnIndel as productionVepSvnIndel {
             input:
@@ -96,7 +97,7 @@ workflow GermlineAnnotate {
                 diskSize = vepDiskSize
         }
     }
-    
+
     if (!production) {
         if ( size(omimVcf.vcf) > 0 ) {
             call variantEffectPredictor.vepSvnIndel as notProductionVepSvnIndel {
@@ -126,40 +127,45 @@ workflow GermlineAnnotate {
             }
         }
     }
-    
+
     File vcfAnnotatedVep = select_first([notProductionVepSvnIndel.vcfAnnotatedVep, productionVepSvnIndel.vcfAnnotatedVep])
-    
+
     call annotate.RemoveSpanning {
         input:
             sampleId = sampleId,
-            vcfAnnotatedVep = vcfAnnotatedVep
+            vcfAnnotatedVep = vcfAnnotatedVep,
+            diskSize = ceil( size(vcfAnnotatedVep, "GB") * 2) + 20
     }
 
     call annotate.AddCosmic {
         input:
             pairName = sampleId,
             cosmicCensus = cosmicCensus,
-            vcfAnnotatedVep = RemoveSpanning.noSpanningVcf
+            vcfAnnotatedVep = RemoveSpanning.noSpanningVcf,
+            diskSize = ceil( size(RemoveSpanning.noSpanningVcf, "GB") * 2) + 5
     }
 
     call annotate.AddCancerResistanceMutations {
         input:
             pairName = sampleId,
             cancerResistanceMutations = cancerResistanceMutations,
-            vcfAnnotatedCancerGeneCensus = AddCosmic.vcfAnnotatedCancerGeneCensus
+            vcfAnnotatedCancerGeneCensus = AddCosmic.vcfAnnotatedCancerGeneCensus,
+            diskSize = ceil( size(AddCosmic.vcfAnnotatedCancerGeneCensus, "GB") * 2) + ceil( size(cancerResistanceMutations, "GB")) + 5
     }
 
     call annotate.AnnotateId {
         input:
             pairName = sampleId,
-            vcfAnnotatedResistance = AddCancerResistanceMutations.vcfAnnotatedResistance
+            vcfAnnotatedResistance = AddCancerResistanceMutations.vcfAnnotatedResistance,
+            diskSize = ceil( size(AddCancerResistanceMutations.vcfAnnotatedResistance, "GB") * 2) + 5
     }
 
     call annotate.RenameCsqVcf {
         input:
             pairName = sampleId,
             vcfAnnotatedId = AnnotateId.vcfAnnotatedId,
-            vcfCsqRenamedPath = "~{haplotypecallerAnnotatedVcfPath}"
+            vcfCsqRenamedPath = "~{haplotypecallerAnnotatedVcfPath}",
+            diskSize = ceil( size(AnnotateId.vcfAnnotatedId, "GB") * 2) + 5
     }
 
 

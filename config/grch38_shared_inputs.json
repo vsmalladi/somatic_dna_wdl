@@ -1,12 +1,14 @@
 {
     "SomaticWorkflow.bwaReference": {
-      "fasta": "gs://nygc-comp-s-82ed-resources/GRCh38_1000genomes/GRCh38_full_analysis_set_plus_decoy_hla.fa",
-      "bwt": "gs://nygc-comp-s-82ed-resources/GRCh38_1000genomes/GRCh38_full_analysis_set_plus_decoy_hla.fa.bwt",
-      "alt": "gs://nygc-comp-s-82ed-resources/GRCh38_1000genomes/GRCh38_full_analysis_set_plus_decoy_hla.fa.alt",
-      "pac": "gs://nygc-comp-s-82ed-resources/GRCh38_1000genomes/GRCh38_full_analysis_set_plus_decoy_hla.fa.pac",
-      "ann": "gs://nygc-comp-s-82ed-resources/GRCh38_1000genomes/GRCh38_full_analysis_set_plus_decoy_hla.fa.ann",
-      "amb": "gs://nygc-comp-s-82ed-resources/GRCh38_1000genomes/GRCh38_full_analysis_set_plus_decoy_hla.fa.amb",
-      "sa": "gs://nygc-comp-s-82ed-resources/GRCh38_1000genomes/GRCh38_full_analysis_set_plus_decoy_hla.fa.sa"
+	"fasta": "gs://nygc-comp-s-82ed-resources/GRCh38_1000genomes/GRCh38_full_analysis_set_plus_decoy_hla.fa",
+	"bwt": "gs://nygc-comp-s-82ed-resources/GRCh38_1000genomes/GRCh38_full_analysis_set_plus_decoy_hla.fa.bwt",
+	"alt": "gs://nygc-comp-s-82ed-resources/GRCh38_1000genomes/GRCh38_full_analysis_set_plus_decoy_hla.fa.alt",
+	"pac": "gs://nygc-comp-s-82ed-resources/GRCh38_1000genomes/GRCh38_full_analysis_set_plus_decoy_hla.fa.pac",
+	"ann": "gs://nygc-comp-s-82ed-resources/GRCh38_1000genomes/GRCh38_full_analysis_set_plus_decoy_hla.fa.ann",
+	"amb": "gs://nygc-comp-s-82ed-resources/GRCh38_1000genomes/GRCh38_full_analysis_set_plus_decoy_hla.fa.amb",
+	"sa": "gs://nygc-comp-s-82ed-resources/GRCh38_1000genomes/GRCh38_full_analysis_set_plus_decoy_hla.fa.sa",
+	"index": "gs://nygc-comp-s-82ed-resources/GRCh38_1000genomes/GRCh38_full_analysis_set_plus_decoy_hla.fa.fai",
+	"dict": "gs://nygc-comp-s-82ed-resources/GRCh38_1000genomes/GRCh38_full_analysis_set_plus_decoy_hla.dict"
     },
   "SomaticWorkflow.referenceFa": {
     "fasta": "gs://nygc-comp-s-82ed-resources/GRCh38_1000genomes/GRCh38_full_analysis_set_plus_decoy_hla.fa",

@@ -50,18 +50,18 @@ task Gatk4MergeSortCompressVcf {
                 index : "~{sortedVcfPath}.tbi"
             }
     }
-    
+
     parameter_meta {
         sortedVcfPath: {
             description: "Output VCF filename for file in compressed format. Must end in .gz. Corresponding index file will end in .tbi",
             category: "other"
         }
-        
+
         tempChromVcfs: {
             description: "Input VCF filenames",
             category: "required"
         }
-        
+
         referenceFa: {
             description: "Fasta object (the dictionary will be used to order the final VCF)",
             category: "required"
@@ -99,18 +99,18 @@ task Gatk4MergeSortVcf {
                 index : "~{sortedVcfPath}.idx"
             }
     }
-    
+
     parameter_meta {
         sortedVcfPath: {
             description: "Output VCF filename for uncompressed output file. Must not end in .gz. Corresponding index file will end in .idx",
             category: "other"
         }
-        
+
         tempChromVcfs: {
             description: "Input VCF filenames",
             category: "required"
         }
-        
+
         referenceFa: {
             description: "Fasta object (the dictionary will be used to order the final VCF)",
             category: "required"
@@ -530,7 +530,7 @@ task UniqReads {
         String tempPrefix = "~{sampleId}_"
         Array[String] tempSeqsPaths
         Bam finalBam
-        Int diskSize = ceil( size(finalBam.bam, "GB") ) + 100
+        Int diskSize
     }
 
     command {
@@ -538,7 +538,7 @@ task UniqReads {
         view \
         -U "BWA,~{tempPrefix},N,N" \
         ~{finalBam.bam}
-        
+
     }
 
     output {
@@ -561,10 +561,10 @@ task Bicseq2Norm {
         String GCvsRDPath = "~{sampleId}.GCvsRD.pdf"
         String paramsPath = "~{sampleId}.params.out"
         String sampleId
-        
+
         Array[File] tempSeqs
         Array[String] tempNormPaths
-        
+
         File bicseq2ConfigFile
         String configFilePath = "~{sampleId}.bicseq2.config"
 
@@ -575,7 +575,7 @@ task Bicseq2Norm {
 
     command {
         set -e -o pipefail
-        
+
         python3 \
         /bicseq2_config_writer.py \
         --fa-files ~{sep=" " chromFastasFiles} \
@@ -585,9 +585,9 @@ task Bicseq2Norm {
         --norm-bicseq2-config ~{bicseq2ConfigFile} \
         --sample-id ~{sampleId} \
         --out-file ~{configFilePath}
-        
+
         mkdir -p ~{sampleId}
-        
+
         /NBICseq-norm_v0.2.4/NBICseq-norm.pl \
         -l=~{readLength} \
         -s=~{medianInsertSize} \
@@ -626,7 +626,7 @@ task Bicseq2Wgs {
 
     command {
         set -e -o pipefail
-        
+
         python3 \
         /bicseq2_seg_config_writer.py \
         --tumor-norms ~{sep=" " tempTumorNorms} \
@@ -634,7 +634,7 @@ task Bicseq2Wgs {
         --seg-bicseq2-config ~{bicseq2SegConfigFile} \
         --out-file ~{segConfigFilePath} \
         --pair-id ~{pairName}
-        
+
         perl /NBICseq-seg_v0.7.2/NBICseq-seg.pl \
         --control \
         --fig=~{bicseq2PngPath} \
@@ -661,12 +661,12 @@ task GridssPreprocess {
         Int threads
         Int memory_gb
         Bam finalBam
-        
+
         BwaReference bwaReference
         Array[File] gridssAdditionalReference
-        Int diskSize = ceil( size(finalBam.bam, "GB") * 2 ) + 20
+        Int diskSize
     }
-    
+
     String bamBase = basename(finalBam.bam)
     String svBamPath = bamBase + ".gridss.working/" + bamBase + ".sv.bam"
     String cigarMetricsPath = bamBase + ".gridss.working/" + bamBase + ".cigar_metrics"
@@ -677,14 +677,14 @@ task GridssPreprocess {
 
     command {
         set -e -o pipefail
-        
+
         # mv gridss fasta refs into position in the fasta dir
         fasta_dir=$( dirname ~{bwaReference.fasta} )
         mv ~{sep=" " gridssAdditionalReference} $fasta_dir
-        
+
         mkdir -p /scratch/
         working=$( pwd )
-        
+
         gridss.sh \
         --steps preprocess \
         --reference ~{bwaReference.fasta} \
@@ -721,7 +721,7 @@ task GridssAssembleChunk {
         Int threads
         Int memory_gb
         String pairName
-        
+
         String gridssassemblyBamPath = "~{pairName}.gridssassembly.bam"
         Int jobIndex
         Int assembleChunks
@@ -736,44 +736,43 @@ task GridssAssembleChunk {
         File normalTagMetrics
         File normalMapqMetrics
         File normalInsertSizeMetrics
-        
+
         Bam tumorSvBam
         File tumorCigarMetrics
         File tumorIdsvMetrics
         File tumorTagMetrics
         File tumorMapqMetrics
         File tumorInsertSizeMetrics
-        
-        Int diskSize = ceil( size(tumorFinalBam.bam, "GB") * 2 ) + ceil( size(normalFinalBam.bam, "GB")  * 2) + 20
+        Int diskSize
     }
 
     String normalSvbamBase = basename(normalSvBam.bam)
     String tumorSvbamBase = basename(tumorSvBam.bam)
     String normalFinalBamBase = basename(normalFinalBam.bam)
     String tumorFinalBamBase = basename(tumorFinalBam.bam)
-        
+
     command {
         set -e -o pipefail
-        
+
         # mv gridss fasta refs into position in the fasta dir
         fasta_dir=$( dirname ~{bwaReference.fasta} )
         mv ~{sep=" " gridssAdditionalReference} $fasta_dir
-        
-        
+
+
         # reposition unnamed input
         sub_dir=~{normalFinalBamBase}.gridss.working/
         mkdir -p $sub_dir
         copied_sub_dir=$( dirname ~{normalSvBam.bam} )
         ln -s $copied_sub_dir/* $sub_dir
-        
+
         # reposition unnamed input
         sub_dir=~{tumorFinalBamBase}.gridss.working/
         mkdir -p $sub_dir
         copied_sub_dir=$( dirname ~{tumorSvBam.bam} )
         ln -s $copied_sub_dir/* $sub_dir
-        
+
         working=$( pwd )
-        
+
         bash gridss.sh \
         --steps assemble \
         --reference ~{bwaReference.fasta} \
@@ -817,7 +816,7 @@ task GridssAssemble {
         Array[File] downsampled
         Array[File] excluded
         Array[File] subsetCalled
-        
+
         # from earlier
         Bam normalSvBam
         File normalCigarMetrics
@@ -831,10 +830,10 @@ task GridssAssemble {
         File tumorTagMetrics
         File tumorMapqMetrics
         File tumorInsertSizeMetrics
-        
-        Int diskSize = ceil( size(tumorFinalBam.bam, "GB") * 2) + ceil( size(normalFinalBam.bam, "GB") * 2) + 20
+
+        Int diskSize
     }
-    
+
     String normalSvbamBase = basename(normalSvBam.bam)
     String tumorSvbamBase = basename(tumorSvBam.bam)
     String normalFinalBamBase = basename(normalFinalBam.bam)
@@ -843,32 +842,32 @@ task GridssAssemble {
 
     command {
         set -e -o pipefail
-        
+
         # mv gridss fasta refs into position in the fasta dir
         fasta_dir=$( dirname ~{bwaReference.fasta} )
         mv ~{sep=" " gridssAdditionalReference} $fasta_dir
-        
+
         # link preprocess results
         # reposition unnamed input
         sub_dir=~{normalFinalBamBase}.gridss.working/
         mkdir -p $sub_dir
         copied_sub_dir=$( dirname ~{normalSvBam.bam} )
         ln -s $copied_sub_dir/* $sub_dir
-        
+
         # reposition unnamed input
         sub_dir=~{tumorFinalBamBase}.gridss.working/
         mkdir -p $sub_dir
         copied_sub_dir=$( dirname ~{tumorSvBam.bam} )
         ln -s $copied_sub_dir/* $sub_dir
-        
+
         # link chunk assembly results
         sub_dir=~{gridssassemblyBamPath}.gridss.working/
         mkdir -p $sub_dir
         copied_sub_dir=$( dirname ~{downsampled[0]} )
         ln -s $copied_sub_dir/* $sub_dir
-        
+
         working=$( pwd )
-        
+
         bash gridss.sh \
         --steps assemble \
         --reference ~{bwaReference.fasta} \
@@ -912,7 +911,7 @@ task GridssCalling {
         Bam gridssassemblySvBam
         Bam tumorFinalBam
         Bam normalFinalBam
-        
+
         # required from Preprocessing
         Bam normalSvBam
         File normalCigarMetrics
@@ -920,62 +919,62 @@ task GridssCalling {
         File normalTagMetrics
         File normalMapqMetrics
         File normalInsertSizeMetrics
-        
+
         Bam tumorSvBam
         File tumorCigarMetrics
         File tumorIdsvMetrics
         File tumorTagMetrics
         File tumorMapqMetrics
         File tumorInsertSizeMetrics
-        Int diskSize = ceil( size(tumorFinalBam.bam, "GB") * 2) + ceil( size(normalFinalBam.bam, "GB") *2) + 20
+        Int diskSize
     }
-    
+
     String normalSvbamBase = basename(normalSvBam.bam)
     String tumorSvbamBase = basename(tumorSvBam.bam)
     String normalFinalBamBase = basename(normalFinalBam.bam)
     String tumorFinalBamBase = basename(tumorFinalBam.bam)
-    
-    
+
+
     String gridssassemblyBamBase = basename(gridssassemblyBam)
 
     command {
         set -e -o pipefail
-        
+
         # mv gridss fasta refs into position in the fasta dir
         fasta_dir=$( dirname ~{bwaReference.fasta} )
         mv ~{sep=" " gridssAdditionalReference} $fasta_dir
-        
+
         # link assembly results
         sub_dir=~{gridssassemblyBamBase}.gridss.working/
         mkdir -p $sub_dir
         copied_sub_dir=$( dirname ~{gridssassemblySvBam.bam} )
         ln -s $copied_sub_dir/* $sub_dir
-        
+
         ln -s \
         ~{gridssassemblyBam} \
         ~{gridssassemblyBamBase}
-        
+
         # link chunk assembly results
         sub_dir=~{gridssassemblyBamBase}.gridss.working/
         mkdir -p $sub_dir
         copied_sub_dir=$( dirname ~{downsampled[0]} )
         ln -s $copied_sub_dir/* $sub_dir
-        
+
         # link preprocess results
         # reposition unnamed input
         sub_dir=~{normalFinalBamBase}.gridss.working/
         mkdir -p $sub_dir
         copied_sub_dir=$( dirname ~{normalSvBam.bam} )
         ln -s $copied_sub_dir/* $sub_dir
-        
+
         # reposition unnamed input
         sub_dir=~{tumorFinalBamBase}.gridss.working/
         mkdir -p $sub_dir
         copied_sub_dir=$( dirname ~{tumorSvBam.bam} )
         ln -s $copied_sub_dir/* $sub_dir
-        
+
         working=$( pwd )
-        
+
         bash gridss.sh \
         --steps call \
         --reference ~{bwaReference.fasta} \
@@ -1017,11 +1016,11 @@ task GridssFilter {
 
     command {
         set -e -o pipefail
-        
+
         tar -zxvf ~{ponTarGz}
-        
+
         working=$( pwd )
-        
+
         Rscript /opt/gridss/gridss_somatic_filter.R \
         --ref ~{bsGenome} \
         --input ~{gridssUnfilteredVcf} \
@@ -1047,6 +1046,3 @@ task GridssFilter {
         docker : "gcr.io/nygc-public/gridss:2.11.1-1"
     }
 }
-
-
-

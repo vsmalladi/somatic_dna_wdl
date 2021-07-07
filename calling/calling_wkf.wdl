@@ -28,7 +28,7 @@ workflow Calling {
         BwaReference bwaReference
         #   Lancet
         Map[String, File] chromBedsWgs
-        
+
         #   BicSeq2
         Int readLength
         Int coordReadLength
@@ -116,7 +116,7 @@ workflow Calling {
             normalFinalBam = pairInfo.normalFinalBam,
             tumorFinalBam = pairInfo.tumorFinalBam
     }
-    
+
     call gridss.Gridss {
         input:
             tumor = pairInfo.tumor,
@@ -128,7 +128,7 @@ workflow Calling {
             tumorFinalBam = pairInfo.tumorFinalBam,
             bsGenome = bsGenome,
             ponTarGz = ponTarGz
-    }    
+    }
 
     call bicseq2.BicSeq2 {
         input:
