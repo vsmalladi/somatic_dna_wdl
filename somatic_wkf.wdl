@@ -48,6 +48,7 @@ import "variant_analysis/deconstruct_sigs_wkf.wdl" as deconstructSigs
 #
 # ================== /COPYRIGHT ===============================================
 
+import "middleware/tasks/label_qc_array.wdl" as labelQc
 
 # for wdl version 1.0
 
@@ -73,7 +74,7 @@ task GetIndex {
 }
 
 
-workflow SomaticWorkflow {
+workflow SomaticDNA {
     input {
         BwaReference bwaReference
         IndexedReference referenceFa
@@ -210,10 +211,10 @@ workflow SomaticWorkflow {
         IndexedVcf deepIntronicsVcf
         IndexedVcf clinvarIntronicsVcf
         IndexedVcf chdWhitelistVcf
-        
+
         # signatures
         File cosmicSigs
-        
+
         Boolean highMem = false
 
     }
@@ -388,7 +389,7 @@ workflow SomaticWorkflow {
                 sampleIds = normalSampleIds,
                 sampleId = pairRelationship.normal
         }
-        
+
         if ( size(unFilteredGermlineAnnotate.haplotypecallerAnnotatedVcf[germlineBafGetIndex.index]) > 0 ) {
             call baf.Baf {
                 input:
@@ -455,7 +456,7 @@ workflow SomaticWorkflow {
                 input:
                     insertSizeMetrics = Preprocess.insertSizeMetrics[tumorGetIndex.index]
             }
-            
+
             call callingTasks.GetInsertSize as normalGetInsertSize {
                 input:
                     insertSizeMetrics = Preprocess.insertSizeMetrics[normalGetIndex.index]
@@ -610,15 +611,15 @@ workflow SomaticWorkflow {
                     cosmicBedPe=cosmicBedPe
 
           }
-          
+
           call deconstructSigs.DeconstructSig {
-              input: 
+              input:
                     pairId = pairRelationship.pairId,
                     mainVcf = mergedVcf,
                     cosmicSigs = cosmicSigs,
                     vepGenomeBuild = vepGenomeBuild
           }
-          
+
           FinalPairInfo finalPairInfos = object {
                 pairId : pairRelationship.pairId,
                 tumor : pairRelationship.tumor,
@@ -646,16 +647,22 @@ workflow SomaticWorkflow {
                 tumorFinalBam : Preprocess.finalBam[tumorGetIndex.index],
                 normalFinalBam : Preprocess.finalBam[normalGetIndex.index]
         }
-          
+
       }
 
-   }
+      Array[Boolean] allQcPass = select_first([SomaticQcCheck.qcPass, [false]])
+      call labelQc.QcStatusArrayLabel {
+          input:
+              bypassQcCheck = bypassQcCheck,
+              allQcPass = allQcPass
+      }
+    }
 
     output {
         # alignment and calling results (calling results may not exist if qc failed)
         # SNV INDELs CNV SV and BAM output
         Array[FinalPairInfo?] finalPairInfo = finalPairInfos
-        
+
         # MSI
         Array[File?] mantisWxsKmerCountsFinal = Msi.mantisWxsKmerCountsFinal
         Array[File?] mantisWxsKmerCountsFiltered = Msi.mantisWxsKmerCountsFiltered
@@ -667,7 +674,7 @@ workflow SomaticWorkflow {
         Array[File?] sig_input = DeconstructSig.sigInput
         Array[File?] reconstructed = DeconstructSig.reconstructed
         Array[File?] diff = DeconstructSig.diff
-        
+
         # QC
         Array[File] alignmentSummaryMetrics = Preprocess.alignmentSummaryMetrics
         Array[File] qualityByCyclePdf = Preprocess.qualityByCyclePdf
