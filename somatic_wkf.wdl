@@ -48,6 +48,7 @@ import "variant_analysis/deconstruct_sigs_wkf.wdl" as deconstructSigs
 #
 # ================== /COPYRIGHT ===============================================
 
+import "middleware/tasks/label_qc_array.wdl" as labelQc
 
 # for wdl version 1.0
 
@@ -76,7 +77,7 @@ task GetIndex {
 workflow SomaticDNA {
     input {
         Boolean external = false
-        
+
         BwaReference bwaReference
         IndexedReference referenceFa
         File adaptersFa
@@ -505,7 +506,7 @@ workflow SomaticDNA {
                     tumorFinalBam=Preprocess.finalBam[tumorGetIndex.index],
                     normalFinalBam=Preprocess.finalBam[normalGetIndex.index]
             }
-            
+
             PreMergedPairVcfInfo preMergedPairVcfInfo = object {
                 pairId : pairRelationship.pairId,
                 filteredMantaSV : Calling.filteredMantaSV,
@@ -519,7 +520,7 @@ workflow SomaticDNA {
                 normal : pairRelationship.normal,
                 tumorFinalBam : pairRelationship.tumorFinalBam,
                 normalFinalBam : pairRelationship.normalFinalBam
-    
+
             }
 
             PairRawVcfInfo pairRawVcfInfo = object {
@@ -640,6 +641,7 @@ workflow SomaticDNA {
                     vepGenomeBuild = vepGenomeBuild
           }
 
+
           FinalVcfPairInfo finalPairInfos = object {
                 pairId : pairRelationship.pairId,
                 tumor : pairRelationship.tumor,
@@ -667,13 +669,24 @@ workflow SomaticDNA {
 
         }
 
+
+
+
+      }
+
+      Array[Boolean] allQcPass = select_first([SomaticQcCheck.qcPass, [false]])
+      call labelQc.QcStatusArrayLabel {
+          input:
+              bypassQcCheck = bypassQcCheck,
+              allQcPass = allQcPass
       }
     }
 
     FinalWorkflowOutput workflowOutput = object {
         # alignment and calling results (calling results may not exist if qc failed)
         # SNV INDELs CNV SV and BAM output
-        finalPairInfo: finalPairInfos,
+
+        Array[FinalPairInfo?] finalPairInfo = finalPairInfos
 
         # MSI
         mantisWxsKmerCountsFinal: Msi.mantisWxsKmerCountsFinal,
@@ -681,14 +694,15 @@ workflow SomaticDNA {
         mantisExomeTxt: Msi.mantisExomeTxt,
         mantisStatusFinal: Msi.mantisStatusFinal,
         # SIGs
-        sigs: DeconstructSig.sigs,
-        counts: DeconstructSig.counts,
-        sig_input: DeconstructSig.sigInput,
-        reconstructed: DeconstructSig.reconstructed,
-        diff: DeconstructSig.diff,
+        Array[File?] sigs = DeconstructSig.sigs
+        Array[File?] counts = DeconstructSig.counts
+        Array[File?] sig_input = DeconstructSig.sigInput
+        Array[File?] reconstructed = DeconstructSig.reconstructed
+        Array[File?] diff = DeconstructSig.diff
 
         # Bams
         finalBams: Preprocess.finalBam,
+
         # QC
         alignmentSummaryMetrics: Preprocess.alignmentSummaryMetrics,
         qualityByCyclePdf: Preprocess.qualityByCyclePdf,
