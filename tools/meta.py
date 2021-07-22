@@ -172,7 +172,7 @@ def verify_required(key, args, project_info):
         sys.exit(1)
     return True
 
-def fill_in_pair_info(project_info, full_pairs, suffix='.bam.bai'):
+def fill_in_pair_info(project_info, full_pairs, suffix='.bai'):
     pair_infos = []
     normal_sample_infos = []
     if 'tumor_bam' in full_pairs and 'normal_bam' in full_pairs:
