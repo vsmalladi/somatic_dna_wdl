@@ -764,12 +764,61 @@
         "excludeIntervalList" : {
             "type": "File",
             "description" : "",
-            "object" : "gs://nygc-comp-s-82ed-resources/haplotypecaller/hg38_haplotypeCaller_skip.interval_list"
+            "object" : "gs://nygc-comp-s-fd4e-resources/hg38_haplotypeCaller_skip.tcga.interval_list"
         },
         "scatterIntervalsHcs" : {
             "type": "Array[File]",
             "description" : "50 intervals to divide the genome into for parallel calling",
-            "object" : ["gs://nygc-comp-s-82ed-resources/haplotypecaller/hg38_calling_intervals/temp_0001_of_50/scattered.interval_list", "gs://nygc-comp-s-82ed-resources/haplotypecaller/hg38_calling_intervals/temp_0002_of_50/scattered.interval_list", "gs://nygc-comp-s-82ed-resources/haplotypecaller/hg38_calling_intervals/temp_0003_of_50/scattered.interval_list", "gs://nygc-comp-s-82ed-resources/haplotypecaller/hg38_calling_intervals/temp_0004_of_50/scattered.interval_list", "gs://nygc-comp-s-82ed-resources/haplotypecaller/hg38_calling_intervals/temp_0005_of_50/scattered.interval_list", "gs://nygc-comp-s-82ed-resources/haplotypecaller/hg38_calling_intervals/temp_0006_of_50/scattered.interval_list", "gs://nygc-comp-s-82ed-resources/haplotypecaller/hg38_calling_intervals/temp_0007_of_50/scattered.interval_list", "gs://nygc-comp-s-82ed-resources/haplotypecaller/hg38_calling_intervals/temp_0008_of_50/scattered.interval_list", "gs://nygc-comp-s-82ed-resources/haplotypecaller/hg38_calling_intervals/temp_0009_of_50/scattered.interval_list", "gs://nygc-comp-s-82ed-resources/haplotypecaller/hg38_calling_intervals/temp_0010_of_50/scattered.interval_list", "gs://nygc-comp-s-82ed-resources/haplotypecaller/hg38_calling_intervals/temp_0011_of_50/scattered.interval_list", "gs://nygc-comp-s-82ed-resources/haplotypecaller/hg38_calling_intervals/temp_0012_of_50/scattered.interval_list", "gs://nygc-comp-s-82ed-resources/haplotypecaller/hg38_calling_intervals/temp_0013_of_50/scattered.interval_list", "gs://nygc-comp-s-82ed-resources/haplotypecaller/hg38_calling_intervals/temp_0014_of_50/scattered.interval_list", "gs://nygc-comp-s-82ed-resources/haplotypecaller/hg38_calling_intervals/temp_0015_of_50/scattered.interval_list", "gs://nygc-comp-s-82ed-resources/haplotypecaller/hg38_calling_intervals/temp_0016_of_50/scattered.interval_list", "gs://nygc-comp-s-82ed-resources/haplotypecaller/hg38_calling_intervals/temp_0017_of_50/scattered.interval_list", "gs://nygc-comp-s-82ed-resources/haplotypecaller/hg38_calling_intervals/temp_0018_of_50/scattered.interval_list", "gs://nygc-comp-s-82ed-resources/haplotypecaller/hg38_calling_intervals/temp_0019_of_50/scattered.interval_list", "gs://nygc-comp-s-82ed-resources/haplotypecaller/hg38_calling_intervals/temp_0020_of_50/scattered.interval_list", "gs://nygc-comp-s-82ed-resources/haplotypecaller/hg38_calling_intervals/temp_0021_of_50/scattered.interval_list", "gs://nygc-comp-s-82ed-resources/haplotypecaller/hg38_calling_intervals/temp_0022_of_50/scattered.interval_list", "gs://nygc-comp-s-82ed-resources/haplotypecaller/hg38_calling_intervals/temp_0023_of_50/scattered.interval_list", "gs://nygc-comp-s-82ed-resources/haplotypecaller/hg38_calling_intervals/temp_0024_of_50/scattered.interval_list", "gs://nygc-comp-s-82ed-resources/haplotypecaller/hg38_calling_intervals/temp_0025_of_50/scattered.interval_list", "gs://nygc-comp-s-82ed-resources/haplotypecaller/hg38_calling_intervals/temp_0026_of_50/scattered.interval_list", "gs://nygc-comp-s-82ed-resources/haplotypecaller/hg38_calling_intervals/temp_0027_of_50/scattered.interval_list", "gs://nygc-comp-s-82ed-resources/haplotypecaller/hg38_calling_intervals/temp_0028_of_50/scattered.interval_list", "gs://nygc-comp-s-82ed-resources/haplotypecaller/hg38_calling_intervals/temp_0029_of_50/scattered.interval_list", "gs://nygc-comp-s-82ed-resources/haplotypecaller/hg38_calling_intervals/temp_0030_of_50/scattered.interval_list", "gs://nygc-comp-s-82ed-resources/haplotypecaller/hg38_calling_intervals/temp_0031_of_50/scattered.interval_list", "gs://nygc-comp-s-82ed-resources/haplotypecaller/hg38_calling_intervals/temp_0032_of_50/scattered.interval_list", "gs://nygc-comp-s-82ed-resources/haplotypecaller/hg38_calling_intervals/temp_0033_of_50/scattered.interval_list", "gs://nygc-comp-s-82ed-resources/haplotypecaller/hg38_calling_intervals/temp_0034_of_50/scattered.interval_list", "gs://nygc-comp-s-82ed-resources/haplotypecaller/hg38_calling_intervals/temp_0035_of_50/scattered.interval_list", "gs://nygc-comp-s-82ed-resources/haplotypecaller/hg38_calling_intervals/temp_0036_of_50/scattered.interval_list", "gs://nygc-comp-s-82ed-resources/haplotypecaller/hg38_calling_intervals/temp_0037_of_50/scattered.interval_list", "gs://nygc-comp-s-82ed-resources/haplotypecaller/hg38_calling_intervals/temp_0038_of_50/scattered.interval_list", "gs://nygc-comp-s-82ed-resources/haplotypecaller/hg38_calling_intervals/temp_0039_of_50/scattered.interval_list", "gs://nygc-comp-s-82ed-resources/haplotypecaller/hg38_calling_intervals/temp_0040_of_50/scattered.interval_list", "gs://nygc-comp-s-82ed-resources/haplotypecaller/hg38_calling_intervals/temp_0041_of_50/scattered.interval_list", "gs://nygc-comp-s-82ed-resources/haplotypecaller/hg38_calling_intervals/temp_0042_of_50/scattered.interval_list", "gs://nygc-comp-s-82ed-resources/haplotypecaller/hg38_calling_intervals/temp_0043_of_50/scattered.interval_list", "gs://nygc-comp-s-82ed-resources/haplotypecaller/hg38_calling_intervals/temp_0044_of_50/scattered.interval_list", "gs://nygc-comp-s-82ed-resources/haplotypecaller/hg38_calling_intervals/temp_0045_of_50/scattered.interval_list", "gs://nygc-comp-s-82ed-resources/haplotypecaller/hg38_calling_intervals/temp_0046_of_50/scattered.interval_list", "gs://nygc-comp-s-82ed-resources/haplotypecaller/hg38_calling_intervals/temp_0047_of_50/scattered.interval_list", "gs://nygc-comp-s-82ed-resources/haplotypecaller/hg38_calling_intervals/temp_0048_of_50/scattered.interval_list", "gs://nygc-comp-s-82ed-resources/haplotypecaller/hg38_calling_intervals/temp_0049_of_50/scattered.interval_list", "gs://nygc-comp-s-82ed-resources/haplotypecaller/hg38_calling_intervals/temp_0050_of_50/scattered.interval_list"]
+            "object" : ["gs://nygc-comp-s-fd4e-resources/scattered.tcga.10.interval_list",
+                "gs://nygc-comp-s-fd4e-resources/scattered.tcga.11.interval_list",
+                "gs://nygc-comp-s-fd4e-resources/scattered.tcga.12.interval_list",
+                "gs://nygc-comp-s-fd4e-resources/scattered.tcga.13.interval_list",
+                "gs://nygc-comp-s-fd4e-resources/scattered.tcga.14.interval_list",
+                "gs://nygc-comp-s-fd4e-resources/scattered.tcga.15.interval_list",
+                "gs://nygc-comp-s-fd4e-resources/scattered.tcga.16.interval_list",
+                "gs://nygc-comp-s-fd4e-resources/scattered.tcga.17.interval_list",
+                "gs://nygc-comp-s-fd4e-resources/scattered.tcga.18.interval_list",
+                "gs://nygc-comp-s-fd4e-resources/scattered.tcga.19.interval_list",
+                "gs://nygc-comp-s-fd4e-resources/scattered.tcga.20.interval_list",
+                "gs://nygc-comp-s-fd4e-resources/scattered.tcga.21.interval_list",
+                "gs://nygc-comp-s-fd4e-resources/scattered.tcga.22.interval_list",
+                "gs://nygc-comp-s-fd4e-resources/scattered.tcga.23.interval_list",
+                "gs://nygc-comp-s-fd4e-resources/scattered.tcga.24.interval_list",
+                "gs://nygc-comp-s-fd4e-resources/scattered.tcga.25.interval_list",
+                "gs://nygc-comp-s-fd4e-resources/scattered.tcga.26.interval_list",
+                "gs://nygc-comp-s-fd4e-resources/scattered.tcga.27.interval_list",
+                "gs://nygc-comp-s-fd4e-resources/scattered.tcga.28.interval_list",
+                "gs://nygc-comp-s-fd4e-resources/scattered.tcga.29.interval_list",
+                "gs://nygc-comp-s-fd4e-resources/scattered.tcga.3.interval_list",
+                "gs://nygc-comp-s-fd4e-resources/scattered.tcga.30.interval_list",
+                "gs://nygc-comp-s-fd4e-resources/scattered.tcga.31.interval_list",
+                "gs://nygc-comp-s-fd4e-resources/scattered.tcga.32.interval_list",
+                "gs://nygc-comp-s-fd4e-resources/scattered.tcga.33.interval_list",
+                "gs://nygc-comp-s-fd4e-resources/scattered.tcga.34.interval_list",
+                "gs://nygc-comp-s-fd4e-resources/scattered.tcga.35.interval_list",
+                "gs://nygc-comp-s-fd4e-resources/scattered.tcga.36.interval_list",
+                "gs://nygc-comp-s-fd4e-resources/scattered.tcga.37.interval_list",
+                "gs://nygc-comp-s-fd4e-resources/scattered.tcga.38.interval_list",
+                "gs://nygc-comp-s-fd4e-resources/scattered.tcga.39.interval_list",
+                "gs://nygc-comp-s-fd4e-resources/scattered.tcga.4.interval_list",
+                "gs://nygc-comp-s-fd4e-resources/scattered.tcga.40.interval_list",
+                "gs://nygc-comp-s-fd4e-resources/scattered.tcga.41.interval_list",
+                "gs://nygc-comp-s-fd4e-resources/scattered.tcga.42.interval_list",
+                "gs://nygc-comp-s-fd4e-resources/scattered.tcga.43.interval_list",
+                "gs://nygc-comp-s-fd4e-resources/scattered.tcga.44.interval_list",
+                "gs://nygc-comp-s-fd4e-resources/scattered.tcga.45.interval_list",
+                "gs://nygc-comp-s-fd4e-resources/scattered.tcga.46.interval_list",
+                "gs://nygc-comp-s-fd4e-resources/scattered.tcga.47.interval_list",
+                "gs://nygc-comp-s-fd4e-resources/scattered.tcga.48.interval_list",
+                "gs://nygc-comp-s-fd4e-resources/scattered.tcga.49.interval_list",
+                "gs://nygc-comp-s-fd4e-resources/scattered.tcga.5.interval_list",
+                "gs://nygc-comp-s-fd4e-resources/scattered.tcga.50.interval_list",
+                "gs://nygc-comp-s-fd4e-resources/scattered.tcga.51.interval_list",
+                "gs://nygc-comp-s-fd4e-resources/scattered.tcga.52.interval_list",
+                "gs://nygc-comp-s-fd4e-resources/scattered.tcga.6.interval_list",
+                "gs://nygc-comp-s-fd4e-resources/scattered.tcga.7.interval_list",
+                "gs://nygc-comp-s-fd4e-resources/scattered.tcga.8.interval_list",
+                "gs://nygc-comp-s-fd4e-resources/scattered.tcga.9.interval_list"]
         },
         "dgvBedpe" :{
             "type": "File",
@@ -856,7 +905,7 @@
         "hsMetricsIntervals": {
             "type": "File",
             "description": "",
-            "object": "gs://nygc-comp-s-82ed-resources/Annotation/wgs_capture_intervals/window1kb_step10kb.GRCh38.v2.interval_list"
+            "object": "gs://nygc-comp-s-fd4e-resources/window1kb_step10kb.GRCh38.v2.tcga.interval_list"
         },
         "kouramiFastaGem3Index": {
             "type": "File",
@@ -1194,7 +1243,7 @@
         "randomIntervals": {
             "type": "File",
             "description": "",
-            "object": "gs://nygc-comp-s-82ed-resources/Annotation/wgs_capture_intervals/GRCh38.autosomes.random.interval_list"
+            "object": "gs://nygc-comp-s-fd4e-resources/GRCh38.autosomes.random.tcga.interval_list"
         },
         "bsGenome": {
             "type": "String",
