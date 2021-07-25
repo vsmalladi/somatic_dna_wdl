@@ -451,6 +451,7 @@ workflow SomaticDNA {
                     concordanceFile = Conpair.concordanceAll,
                     contaminationFile = Conpair.contamination
             }
+
         }
 
         Boolean SomaticQcCheck = select_first([SomaticQcCheck.qcPass, bypassQcCheck])
@@ -673,13 +674,12 @@ workflow SomaticDNA {
 
 
       }
+    }
 
-      Array[Boolean] allQcPass = select_first([SomaticQcCheck.qcPass, [false]])
-      call labelQc.QcStatusArrayLabel {
+    call labelQc.QcStatusArrayLabel {
           input:
               bypassQcCheck = bypassQcCheck,
-              allQcPass = allQcPass
-      }
+              allQcPass = SomaticQcCheck
     }
 
     FinalWorkflowOutput workflowOutput = object {
