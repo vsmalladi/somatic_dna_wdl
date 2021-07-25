@@ -448,10 +448,11 @@ workflow SomaticDNA {
                     concordanceFile = Conpair.concordanceAll,
                     contaminationFile = Conpair.contamination
             }
-            Boolean qcPass = SomaticQcCheck.qcPass
+            #Boolean qcPass = SomaticQcCheck.qcPass
         }
 
-        if (bypassQcCheck || select_first([SomaticQcCheck.qcPass, false])) {
+        Boolean SomaticQcCheck = select_first([SomaticQcCheck.qcPass, bypassQcCheck])
+        if (SomaticQcCheck) {
             call callingTasks.GetInsertSize as tumorGetInsertSize {
                 input:
                     insertSizeMetrics = Preprocess.insertSizeMetrics[tumorGetIndex.index]
@@ -649,13 +650,12 @@ workflow SomaticDNA {
         }
 
       }
+    }
 
-      Array[Boolean] allQcPass = select_first([SomaticQcCheck.qcPass, [false]])
-      call labelQc.QcStatusArrayLabel {
+    call labelQc.QcStatusArrayLabel {
           input:
               bypassQcCheck = bypassQcCheck,
-              allQcPass = allQcPass
-      }
+              allQcPass = SomaticQcCheck
     }
 
     output {
