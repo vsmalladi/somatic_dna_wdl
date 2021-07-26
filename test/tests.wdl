@@ -278,7 +278,7 @@ task DraftComparison {
     runtime {
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker: "gcr.io/nygc-public/bokeh_plotly:1.0.0"
+        docker: "gcr.io/nygc-public/bokeh_plotly:1.0.1"
     }
 
 }
