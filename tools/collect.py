@@ -49,29 +49,36 @@ class JsonModify():
             self.final_json_obj = copy.deepcopy(inputs)
         self.dir = dir
         self.files = []
-        self.other_file_pair_ids = []
         self.sub_workflow_uuids = []
+        # create list of all other pair/sample ids in project
+        # that could also match current
+        self.other_file_pair_ids = []
         if all_pair_ids:
-            
-            self.other_file_pair_ids = [pair_id + '.' for pair_id in all_pair_ids if 
-                                        (not pair_id == self.pair_id)]
-            self.other_file_pair_ids += [pair_id + '_' for pair_id in all_pair_ids if 
-                                        (not pair_id == self.pair_id)]
-            self.other_file_pair_ids += [pair_id + '/' for pair_id in all_pair_ids if 
-                                        (not pair_id == self.pair_id)]
             if self.pair_id:
-                self.other_file_pair_ids = [pair_id for pair_id in self.other_file_pair_ids if len(pair_id) > len(self.pair_id)]
+                other_file_pair_ids = [pair_id for pair_id in all_pair_ids if
+                                       (not pair_id == self.pair_id)]
+                other_file_pair_ids = [pair_id for pair_id in other_file_pair_ids
+                                       if len(pair_id) > len(self.pair_id)]
+                other_file_pair_ids = [pair_id for pair_id in other_file_pair_ids
+                                       if self.pair_id in pair_id]
+            else:
+                other_file_pair_ids = all_pair_ids
+            self.other_file_pair_ids = [pair_id + '.' for pair_id in other_file_pair_ids]
+            self.other_file_pair_ids += [pair_id + '_' for pair_id in other_file_pair_ids]
+            self.other_file_pair_ids += [pair_id + '/' for pair_id in other_file_pair_ids]
         self.other_file_sample_ids = []
         if all_sample_ids:
-            self.other_file_sample_ids = [sample_id + '.' for sample_id in all_sample_ids if 
-                                          (not sample_id == self.sample_id) 
-                                          and (len(sample_id) > len(self.sample_id))]
-            self.other_file_sample_ids += [sample_id + '_' for sample_id in all_sample_ids if 
-                                          (not sample_id == self.sample_id) 
-                                          and (len(sample_id) > len(self.sample_id))]
-            self.other_file_sample_ids += [sample_id + '/' for sample_id in all_sample_ids if 
-                                          (not sample_id == self.sample_id) 
-                                           and (len(sample_id) > len(self.sample_id))]
+            other_file_sample_ids = [sample_id for sample_id in all_sample_ids if
+                                   (not sample_id == self.sample_id)]
+            other_file_sample_ids = [sample_id for sample_id in other_file_sample_ids
+                                   if len(sample_id) > len(self.sample_id)]
+            other_file_sample_ids = [sample_id for sample_id in other_file_sample_ids
+                                   if self.sample_id in sample_id]
+            
+            self.other_file_sample_ids = [sample_id + '.' for sample_id in other_file_sample_ids]
+            self.other_file_sample_ids += [sample_id + '_' for sample_id in other_file_sample_ids]
+            self.other_file_sample_ids += [sample_id + '/' for sample_id in other_file_sample_ids]
+        # sanity checks
         if self.tool == 'convert_path':
             assert self.dir, 'dir is required when tool is convert_path'
         elif self.tool in ['match']:
@@ -80,19 +87,21 @@ class JsonModify():
             pass
         else:
             log.error('tool options are match, skip, sub_workflow_uuid, and convert_path: ' + tool)
+        # gather all uris in the json_obj
+        # or process the json object with choosen tool
         if not self.uri_list:
             self.hlpr_fnc(self.json_obj, self.final_json_obj)
         else:
+            # filter uris set to false
             self.results = [self.run_tool(uri) for uri in self.uri_list if uri]
+        # skip objects in output with no "true" files (because they 
+        # were filtered based on sample or pair)
         if self.tool == 'skip':
             self.skip_obj = len(self.files) == 0
     
     def skip(self, string):
         '''skip objects that have no relevant files'''
-        if string.endswith('...'):
-            # LongObject'
-            return True, string
-        elif not string.startswith('gs://'):
+        if not string.startswith('gs://'):
             return False, string
         else:
             uri = string
@@ -135,10 +144,7 @@ class JsonModify():
         
     def convert_path(self, string):
         '''Convert from intermediate file URI to final URI of the final output'''
-        if string.endswith('...'):
-            # LongObject'
-            return False
-        elif not string.startswith('gs://'):
+        if not string.startswith('gs://'):
             return string
         else:
             uri = string
@@ -151,17 +157,14 @@ class JsonModify():
 
     def get_sub_workflow_uuid(self, string):
         '''find task uuid for geting metrics from big query'''
-        if string.endswith('...'):
-            # LongObject'
-            pass
-        elif not string.startswith('gs://'):
+        if not string.startswith('gs://'):
             pass
         else:
             uri = string
             sub_workflow_uuid = uri.replace('/cacheCopy', '').split('/call-')[-2].split('/')[-1]
             self.sub_workflow_uuids.append(sub_workflow_uuid)
         return string
-
+    
     def run_tool(self, subnode):
         '''run the correct tool for the string (subnode)'''
         if self.tool == 'convert_path':
@@ -235,12 +238,24 @@ class CloudOutput():
         self.run_data = run_data
         self.options = run_data.options
         self.workflow_uuid = self.run_data.workflow_uuid
+        # fast get calls from API to search for uuids
+        self.uri_list = self.list_uris()
+        if len(self.uri_list) == 0:
+            # slow get uris from bucket directory
+            log.warning('Slow uri lookup beginning')
+            self.uri_list = self.list_project()
+        # get API outputs section
         self.raw_outputs = self.read_api()
+        # get root dir
         self.root_dir = self.read_api(goal='get_root')
-        self.uri_list = self.list_project()
+        # get files (named and unnamed) from API outputs section
         self.parse_block()
         self.unnamed_files = self.gather_unnamed()
+        # Find only files with the pair or the sample in the 
+        # filename with . or _ after the name
         self.divide_by_id()
+        # Find only task uuids for files with the pair or the sample in the 
+        # filename with . or _ after the name
         self.divide_uuid_by_id()
         self.run_data.run_info['pair_association'] = self.pair_association
         self.run_data.run_info['sample_association'] = self.sample_association
@@ -344,10 +359,11 @@ class CloudOutput():
             sys.exit(1)
         
     def parse_block(self):
+        '''get files (named and unnamed) from API outputs section'''
         self.out_dir =  self.out_path()
         outputs = JsonModify(inputs=self.raw_outputs, 
-                              dir=self.out_dir,
-                              tool='convert_path')
+                             dir=self.out_dir,
+                             tool='convert_path')
         self.named_outputs = outputs.final_json_obj
         self.named_files = outputs.files
         
@@ -358,8 +374,25 @@ class CloudOutput():
         unnamed_files = list(set(all_files).difference(set(self.named_files)))
         return unnamed_files
     
+    def list_uris(self):
+        '''
+        Get all top level sub workflow uuids
+        '''
+        calls = self.read_api(goal='get_uuids')
+        self.uri_list = []
+        for line in str(calls).split('\n'):
+            for strings in line.split(' '):
+                for string in strings.strip().split("'"):
+                    if string.startswith("gs://") and 'call-' in string:
+                        uri = string
+                        self.uri_list.append(uri)
+                    elif string.startswith("gs://"):
+                        log.warning('potential skipped uri : ' + string)
+        self.uri_list = list(set(self.uri_list))
+        return list(set(self.uri_list))
+    
     def list_project(self):
-        '''get all sub workflow uuids
+        '''slow way to get all uris
             
         '''
         skip = [':', '/',
@@ -406,6 +439,8 @@ class CloudOutput():
             script = self.parent_dir + '/get_outputs.sh'
         if goal == 'get_root':
             script = self.parent_dir + '/get_root.sh'
+        if goal == 'get_uuids':
+            script = self.parent_dir + '/get_uuids.sh'
         try:
             result = subprocess.run(['bash', script,
                                      '-u', self.url,
