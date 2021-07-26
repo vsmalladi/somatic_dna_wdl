@@ -894,8 +894,8 @@
         "gridssAdditionalReference": {
             "type": "Array[File]",
             "description": "",
-            "object": ["gs://nygc-comp-s-fd4e-resources/GRCh38.d1.vd1.fa.img",
-            "gs://nygc-comp-s-fd4e-resources/GRCh38.d1.vd1.fa.gridsscache"]
+            "object": ["gs://nygc-comp-s-fd4e-resources/gridss/GRCh38.d1.vd1.fa.img",
+            "gs://nygc-comp-s-fd4e-resources/gridss/GRCh38.d1.vd1.fa.gridsscache"]
         },
         "bqsrCallRegions": {
             "type": "File",
