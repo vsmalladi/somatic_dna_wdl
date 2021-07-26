@@ -191,6 +191,7 @@ task SummarizeVcf {
     command {
        python \
         ~{compareVcfs} \
+        --pair-id ~{pairId} \
         --old-only-vcf ~{oldOnlyVcf} \
         --new-only-vcf ~{newOnlyVcf} \
         --concordant-vcf ~{concordantVcf} \
@@ -214,6 +215,72 @@ task SummarizeVcf {
         Callsets : ["Old unique", "New unique", "Concordant"]
         internalOnly : "False, produces output for external or internal VCF files"
     }
+}
+
+task DraftComparison {
+    input {
+        String name
+        File chromLengths
+        File cosmicCensus
+        Array[String] listOfChroms
+        Array[File] cnvBeds
+        Array[File] svBedPes
+        Array[File] vcfDetails
+        Array[File] oldBafs
+        Array[File] newBafs
+        File bedCounts
+        File bedPeCounts
+        File bedPeGenes
+        File bedGenes
+        File vcfCounts
+        File flagstatSummary
+        File msiSummary
+        
+        String mdPath = "~{name}.v7.comparison.report.md"
+        String headerPath = "~{name}.v7.comparison.report.header.txt"
+        
+        Int diskSize = 10
+        Int memoryGb = 20
+        File draftComparison = "gs://nygc-comp-s-fd4e-input/draft_comparison.py"
+        File plotComparison = "gs://nygc-comp-s-fd4e-input/plot_comparison.py"
+        File prep = "gs://nygc-comp-s-fd4e-input/prep.py"
+        File compose = "gs://nygc-comp-s-fd4e-input/compose.py"
+        File ploter = "gs://nygc-comp-s-fd4e-input/ploter.py"
+        File colorer = "gs://nygc-comp-s-fd4e-input/Colorer.py" 
+    }
+    
+    command {
+       python \
+        ~{draftComparison} \
+        --chrom-lengths ~{chromLengths} \
+        --cosmic-census ~{cosmicCensus} \
+        --chroms ~{sep=" " listOfChroms} \
+        --name ~{name} \
+        --cnv-summary ~{bedCounts} \
+        --cnv-beds ~{sep=" " cnvBeds}  \
+        --sv-summary ~{bedPeCounts} \
+        --sv-bedpes ~{sep=" " svBedPes} \
+        --sv-table ~{bedPeGenes} \
+        --cnv-table ~{bedGenes} \
+        --vcf-gene-tables ~{sep=" " vcfDetails} \
+        --snv-summary ~{vcfCounts} \
+        --old-bafs ~{sep=" " oldBafs} \
+        --new-bafs ~{sep=" " newBafs} \
+        --flagstat-summary ~{flagstatSummary} \
+        --msi-summary ~{msiSummary}
+    }
+    
+    output {
+        File md = "~{mdPath}"
+        File header = "~{headerPath}"
+    }
+    
+    runtime {
+        memory : memoryGb + "GB"
+        disks: "local-disk " + diskSize + " HDD"
+        docker: "gcr.io/nygc-public/bokeh_plotly:1.0.0"
+    }
+
 }
 
 task SomPy {
@@ -288,7 +355,8 @@ task CompareBedPe {
         --slop=~{slop} \
         --size_margin=~{sizeMargin} \
         --out_file_bedpe=~{outFileBedpePath} \
-        --out_file_summary=~{outFileSummaryPath}
+        --out_file_summary=~{outFileSummaryPath} \
+        --pair_id=~{pairId}
     }
     
     output {
@@ -328,7 +396,8 @@ task CompareBed {
         --new_bed=~{newBed} \
         --overlap_fraction=~{overlapFraction} \
         --out_file_bed=~{outFileBedPath} \
-        --out_file_summary=~{outFileSummaryPath}
+        --out_file_summary=~{outFileSummaryPath} \
+        --pair_id=~{pairId}
     }
     
     output {

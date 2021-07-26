@@ -6,6 +6,9 @@ import "wdl_structs.wdl"
 
 workflow PipelineTests {
     input {
+        File chromLengths
+        File cosmicCensus
+        Array[String] listOfChroms
         # BAMs
         Array[File] newflagStat
         Array[File] oldflagStat
@@ -20,6 +23,8 @@ workflow PipelineTests {
         # MSI
         Array[File] oldmantisStatusFinal
         Array[File] newmantisStatusFinal
+        Array[File] oldalleleCountsTxt
+        Array[File] newalleleCountsTxt
         IndexedReference referenceFa
     }
     
@@ -29,6 +34,12 @@ workflow PipelineTests {
     
     call tests.Tests {
         input:
+            chromLengths = chromLengths,
+            cosmicCensus = cosmicCensus,
+            listOfChroms = listOfChroms,
+            oldBafs = oldalleleCountsTxt,
+            newBafs = newalleleCountsTxt,
+            
             newflagStat = newflagStat,
             oldflagStat = oldflagStat,
             
@@ -57,6 +68,8 @@ workflow PipelineTests {
         Array[File] finalBedpeJoined = Tests.finalBedpeJoined
         Array[File] finalBedJoined = Tests.finalBedJoined
         Array[File] detailedOutputVcfTable = Tests.detailedOutputVcfTable
+        File md = Tests.md
+        File header = Tests.header
     }
     
     meta {

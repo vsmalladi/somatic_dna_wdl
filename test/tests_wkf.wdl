@@ -27,6 +27,9 @@ task GetIndex {
 workflow Tests {
     input {
         String name = "comparison"
+        File chromLengths
+        File cosmicCensus
+        Array[String] listOfChroms
         # BAM
         Array[File] newflagStat
         Array[File] oldflagStat
@@ -39,6 +42,8 @@ workflow Tests {
         Array[File] newcnvAnnotatedFinalBed
         Array[File] oldsvFinalBedPe
         Array[File] newsvFinalBedPe
+        Array[File] oldBafs
+        Array[File] newBafs
         # MSI
         Array[File] oldmantisStatusFinal
         Array[File] newmantisStatusFinal
@@ -145,19 +150,39 @@ workflow Tests {
     call tests.ConcateTables as finalBedConcateTables {
         input:
             tables = finalCompareBed.outFileSummary,
-            outputTablePath = "~{name}.finalBed.csv"
+            outputTablePath = "~{name}.finalBed.tsv"
     }
     
     call tests.ConcateTables as finalBedPeConcateTables {
         input:
             tables = finalCompareBedPe.outFileSummary,
-            outputTablePath = "~{name}.finalBedPe.csv"
+            outputTablePath = "~{name}.finalBedPe.tsv"
     }
     
     call tests.ConcateTables as finalVcfConcateTables {
         input:
             tables = finalSummarizeVcf.summaryOutputTable,
             outputTablePath = "~{name}.finalVcf.csv"
+    }
+    
+    call tests.DraftComparison as finalDraftComparison {
+        input:
+            name = name,
+            chromLengths = chromLengths,
+            cosmicCensus = cosmicCensus,
+            listOfChroms = listOfChroms,
+            oldBafs = oldBafs,
+            newBafs = newBafs,
+            cnvBeds = finalCompareBed.outFileBed,
+            svBedPes = finalCompareBedPe.outFileBedpe,
+            vcfDetails = finalSummarizeVcf.detailedOutputTable,
+            bedCounts = finalBedConcateTables.outputTable,
+            bedPeCounts = finalBedPeConcateTables.outputTable,
+            bedPeGenes = finalSvGenesConcateTables.outputTable,
+            bedGenes = finalCnvGenesConcateTables.outputTable,
+            vcfCounts = finalVcfConcateTables.outputTable,
+            flagstatSummary = flagstatConcateTables.outputTable,
+            msiSummary = msiConcateTables.outputTable
     }
     
     output {
@@ -171,6 +196,8 @@ workflow Tests {
         Array[File] finalBedpeJoined = finalCompareBedPe.outFileBedpe
         Array[File] finalBedJoined = finalCompareBed.outFileBed
         Array[File] detailedOutputVcfTable = finalSummarizeVcf.detailedOutputTable
+        File md = finalDraftComparison.md
+        File header = finalDraftComparison.header
 
     }
 }
