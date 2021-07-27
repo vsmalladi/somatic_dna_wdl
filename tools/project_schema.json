@@ -80,7 +80,8 @@
             "enum": ["WGS", "Exome"]
         },
         "genome": { "type": "string",
-            "enum": ["Human_GRCh38_full_analysis_set_plus_decoy_hla"]
+            "enum": ["Human_GRCh38_full_analysis_set_plus_decoy_hla",
+                "Human_GRCh38_tcga"]
         },
         "intervalList": { "type": "string"}
     },

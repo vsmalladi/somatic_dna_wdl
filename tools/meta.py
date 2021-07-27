@@ -63,7 +63,7 @@ def load_pairs(file):
     pairs = pd.read_csv(file)
     assert 'tumor' in pairs.columns and 'normal' in pairs.columns, 'Error: can not find tumor and normal columns in pairs file: ' + ' '.join(pairs.columns)
     pairs['pairId'] = pairs.apply(lambda row: row.tumor + '--' + row.normal, axis=1)
-    return pairs[['tumor', 'normal', 'pairId']]
+    return pairs[['tumor', 'normal', 'pairId']], pairs
 
 def load_sample_ids(file):
     '''Return a deduplicated list of sample ids'''
@@ -172,14 +172,31 @@ def verify_required(key, args, project_info):
         sys.exit(1)
     return True
 
-def fill_in_pair_info(project_info):
+def fill_in_pair_info(project_info, full_pairs, suffix='.bai'):
     pair_infos = []
     normal_sample_infos = []
-    for info in project_info['listOfPairRelationships']:
-        pair_infos.append({'normal' : info['normal'],
-                           'tumor' : info['tumor'],
-                           'pairId' : info['pairId']})
-        normal_sample_infos.append({'sampleId' : info['normal']})
+    if 'tumor_bam' in full_pairs and 'normal_bam' in full_pairs:
+        for info in project_info['listOfPairRelationships']:
+            match = full_pairs[(full_pairs.tumor == info['tumor']) &
+                               (full_pairs.normal == info['normal'])]
+            pair_infos.append({'normal' : info['normal'],
+                               'tumor' : info['tumor'],
+                               'pairId' : info['pairId'],
+                               'tumorFinalBam' : {'bam': match.tumor_bam.tolist()[0],
+                                                  'bamIndex' : match.tumor_bam.tolist()[0].replace('.bam', suffix)},
+                               'normalFinalBam' : {'bam': match.normal_bam.tolist()[0],
+                                                   'bamIndex' : match.normal_bam.tolist()[0].replace('.bam', suffix)}
+                               })
+            normal_sample_infos.append({'sampleId' : info['normal'],
+                                        'finalBam' : {'bam': match.normal_bam.tolist()[0],
+                                                      'bamIndex' : match.normal_bam.tolist()[0].replace('.bam', suffix)}
+                               })
+    else:
+        for info in project_info['listOfPairRelationships']:
+            pair_infos.append({'normal' : info['normal'],
+                               'tumor' : info['tumor'],
+                               'pairId' : info['pairId']})
+            normal_sample_infos.append({'sampleId' : info['normal']})
     project_info = note_updates(key='pairInfos', args_key=pair_infos, project_info=project_info)
     project_info = note_updates(key='normalSampleBamInfos', args_key=normal_sample_infos, project_info=project_info)
     return project_info
@@ -223,7 +240,7 @@ def repopulate(args):
         verify_required(key='intervalList', args=args, project_info=project_info)
         project_info = note_updates(key='intervalList', args_key=args['intervalList'], project_info=project_info)
     if args['pairs_file'] and not args['project_data']:
-        pairs = load_pairs(args['pairs_file'])
+        pairs, full_pairs = load_pairs(args['pairs_file'])
         pair_info = []
         pair_info_relationships = []
         for index, row in pairs.iterrows():
@@ -246,7 +263,7 @@ def repopulate(args):
                     project_info = note_custom_updates(key='pairInfos', alt_project_info=alt_project_info, project_info=project_info)
                     project_info = note_custom_updates(key='normalSampleBamInfos', alt_project_info=alt_project_info, project_info=project_info)
             if not 'pairInfos' in project_info:
-                project_info = fill_in_pair_info(project_info)
+                project_info = fill_in_pair_info(project_info, full_pairs)
             assert 'pairInfos' in project_info, 'pairInfos needed but no entry found for key in --custom-inputs file\n'
         pair_ids = list(set([info['pairId'] for info in project_info['listOfPairRelationships']]))
         project_info = note_updates(key='pairId', args_key=pair_ids, project_info=project_info)
@@ -319,7 +336,8 @@ def test_schema(json_data):
         validate(instance=json_data, schema=schema)
     except jsonschema.exceptions.ValidationError as err:
         log.error(' JSON data is invalid: ')
-        log.error(err)
+        help(err)
+        log.error(err.message)
         return False
     return True
                 
@@ -353,7 +371,8 @@ def get_args():
     parser.add_argument('--genome',
                         help='Genome key to use for pipeline. If not supplied '
                         'define genome using --project-data',
-                        choices=['Human_GRCh38_full_analysis_set_plus_decoy_hla'],
+                        choices=['Human_GRCh38_full_analysis_set_plus_decoy_hla',
+                                 'Human_GRCh38_tcga'],
                         required=False
                         )
     parser.add_argument('--project',
