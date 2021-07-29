@@ -452,6 +452,8 @@ workflow SomaticDNA {
                     contaminationFile = Conpair.contamination
             }
 
+
+
         }
 
         Boolean SomaticQcCheck = select_first([SomaticQcCheck.qcPass, bypassQcCheck])
