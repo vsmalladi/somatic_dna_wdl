@@ -119,8 +119,8 @@
         },
         "svPon" :{
             "type": "File",
-            "description" : "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/README_PON",
-            "object" : "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/PON_lumpy_allsamples_merge.01_16_19.annotated.filter_variants.bedpe"
+            "description" : "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/1000G-SV-PON.GRCh38.README.txt",
+            "object" : "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/1000G-SV-PON.survivor-merged.GRCh38.filtered.bedpe"
         },
         "cosmicBedPe" :{
             "type": "File",
@@ -837,8 +837,8 @@
         },
         "svPon" :{
             "type": "File",
-            "description" : "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/README_PON",
-            "object" : "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/PON_lumpy_allsamples_merge.01_16_19.annotated.filter_variants.bedpe"
+            "description" : "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/1000G-SV-PON.GRCh38.README.txt",
+            "object" : "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/1000G-SV-PON.survivor-merged.GRCh38.filtered.bedpe"
         },
         "cosmicBedPe" :{
             "type": "File",
