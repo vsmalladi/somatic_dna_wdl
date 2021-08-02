@@ -14,6 +14,7 @@ import "annotate/annotate_cnv_sv_wkf.wdl" as annotate_cnv_sv
 import "germline/germline_wkf.wdl" as germline
 import "annotate/germline_annotate_wkf.wdl" as germlineAnnotate
 import "baf/baf_wkf.wdl" as baf
+import "variant_analysis/deconstruct_sigs_wkf.wdl" as deconstructSigs
 
 
 # for wdl version 1.0
@@ -555,7 +556,17 @@ workflow SomaticWorkflow {
                     svPon=svPon,
                     cosmicBedPe=cosmicBedPe
 
-        }
+          }
+          
+          call deconstructSigs.DeconstructSig {
+              input: 
+                    pairId = pairRelationship.pairId,
+                    mainVcf = mergedVcf,
+                    vepGenomeBuild = vepGenomeBuild,
+                    deconstructSigs = "gs://nygc-comp-s-fd4e-input/run_deconstructSigs.R"
+        
+          }
+          
       }
 
    }
@@ -578,6 +589,12 @@ workflow SomaticWorkflow {
         Array[File?] mantisWxsKmerCountsFiltered = Msi.mantisWxsKmerCountsFiltered
         Array[File?] mantisExomeTxt = Msi.mantisExomeTxt
         Array[File?] mantisStatusFinal = Msi.mantisStatusFinal
+        Array[File?] sigs = DeconstructSig.sigs
+        Array[File?] counts = DeconstructSig.counts
+        Array[File?] sig_input = DeconstructSig.sigInput
+        Array[File?] reconstructed = DeconstructSig.reconstructed
+        Array[File?] diff = DeconstructSig.diff
+        
         # QC
         Array[File] alignmentSummaryMetrics = Preprocess.alignmentSummaryMetrics
         Array[File] qualityByCyclePdf = Preprocess.qualityByCyclePdf

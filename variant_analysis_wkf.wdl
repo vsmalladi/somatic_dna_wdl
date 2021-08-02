@@ -5,28 +5,27 @@ import "wdl_structs.wdl"
 
 workflow VariantAnalysis {
     input {
-        Array[PairVcfInfo]+ pairVcfInfos
-        String bsGenome
-        File deconstructsigsFasta
+        Array[MergedPairVcfInfo]+ mergedPairVcfInfos
+        String vepGenomeBuild
+        File deconstructSigs
     }
     
-    scatter(pairVcfInfo in pairVcfInfos) {
+    scatter(mergedPairVcfInfo in mergedPairVcfInfos) {
         call deconstructSigs.DeconstructSig {
             input:
-                mainVcf = pairVcfInfo.mainVcf,
-                pairId = pairVcfInfo.pairId,
-                bsGenome = bsGenome,
-                deconstructsigsFasta = deconstructsigsFasta
+                mainVcf = mergedPairVcfInfo.unannotatedVcf,
+                pairId = mergedPairVcfInfo.pairId,
+                vepGenomeBuild = vepGenomeBuild,
+                deconstructSigs = deconstructSigs
         }
         
     }
 
     output {
-        Array[File] diff = DeconstructSig.diff
-        Array[File] trinuc = DeconstructSig.trinuc
-        Array[File] input_file = DeconstructSig.input_file
-        # Array[File] highconfidencePng = DeconstructSig.highconfidencePng
-        Array[File] highconfidenceTxt = DeconstructSig.highconfidenceTxt
-        Array[File] reconstructed = DeconstructSig.reconstructed
+         Array[File] sigs = DeconstructSig.sigs
+         Array[File] counts = DeconstructSig.counts
+         Array[File] sig_input = DeconstructSig.sigInput
+         Array[File] reconstructed = DeconstructSig.reconstructed
+         Array[File] diff = DeconstructSig.diff
     }
 }
