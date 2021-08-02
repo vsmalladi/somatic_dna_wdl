@@ -43,7 +43,7 @@ task MantisExome {
         
         File mantisBedByIntervalList
         IndexedReference referenceFa
-        Int threads = 16
+        Int threads = 8
         Int memoryGb = 4
         Int diskSize = ceil( size(tumorFinalBam.bam, "GB") + size(normalFinalBam.bam, "GB")) + 30
         
@@ -159,9 +159,9 @@ task GetChr6Contigs {
 
 task GemSelect {
     input {
-        Int threads = 48
-        Int samtoolsThreads = 16
-        Int gemThreads = 16
+        Int threads = 8
+        Int samtoolsThreads = 8
+        Int gemThreads = 8
         Int memoryGb = 12
         Int diskSize
         String sampleId

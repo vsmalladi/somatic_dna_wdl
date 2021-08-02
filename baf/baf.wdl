@@ -72,11 +72,12 @@ task FilterBaf {
 task AlleleCounts {
     input {
         String pairName
-        String alleleCountsTxtPath = "~{pairName}.haplotypecaller.gatk.v4.1.8.0.alleles.txt"
+        String alleleCountsChromTxtPath = "~{pairName}.~{chrom}.haplotypecaller.gatk.v4.1.8.0.alleles.txt"
         IndexedReference referenceFa
         Bam normalFinalBam
         File knownHetVcf
         Bam tumorFinalBam
+        String chrom
         
         Int memoryGb = 24
         Int diskSize = (ceil( size(knownHetVcf, "GB") )  * 2 ) + ceil( size(tumorFinalBam.bam, "GB")) + ceil( size(normalFinalBam.bam, "GB")) + 10
@@ -88,12 +89,13 @@ task AlleleCounts {
         --tumor_bam ~{tumorFinalBam.bam} \
         --normal_bam ~{normalFinalBam.bam} \
         --vcf ~{knownHetVcf} \
-        --output ~{alleleCountsTxtPath} \
-        --reference ~{referenceFa.fasta}
+        --output ~{alleleCountsChromTxtPath} \
+        --reference ~{referenceFa.fasta} \
+        --chrom ~{chrom}
     }
 
     output {
-        File alleleCountsTxt = "~{alleleCountsTxtPath}"
+        File alleleCountsTxt = "~{alleleCountsChromTxtPath}"
     }
 
     runtime {

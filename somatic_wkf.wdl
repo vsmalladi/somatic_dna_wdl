@@ -331,6 +331,38 @@ workflow SomaticWorkflow {
     # for wdl version 1.1
     # Map[String, Bam] bamMaps = as_map(bamPairs)
 
+    scatter (pairRelationship in listOfPairRelationships) {
+        # for wdl version 1.0
+        call GetIndex as tumorBafGetIndex {
+            input:
+                sampleIds = sampleIds,
+                sampleId = pairRelationship.tumor
+        }
+
+        call GetIndex as normalBafGetIndex {
+            input:
+                sampleIds = sampleIds,
+                sampleId = pairRelationship.normal
+        }
+        call GetIndex as germlineBafGetIndex {
+            input:
+                sampleIds = normalSampleIds,
+                sampleId = pairRelationship.normal
+        }
+        
+        if ( size(unFilteredGermlineAnnotate.haplotypecallerAnnotatedVcf[germlineBafGetIndex.index]) > 0 ) {
+            call baf.Baf {
+                input:
+                    referenceFa = referenceFa,
+                    pairName = pairRelationship.pairId,
+                    sampleId = pairRelationship.normal,
+                    tumorFinalBam = Preprocess.finalBam[tumorBafGetIndex.index],
+                    normalFinalBam = Preprocess.finalBam[normalBafGetIndex.index],
+                    germlineVcf = unFilteredGermlineAnnotate.haplotypecallerAnnotatedVcf[germlineBafGetIndex.index],
+                    listOfChroms = listOfChroms
+                }
+        }
+    }
 
     scatter (pairRelationship in listOfPairRelationships) {
         # for wdl version 1.0
@@ -346,30 +378,12 @@ workflow SomaticWorkflow {
                 sampleId = pairRelationship.normal
         }
 
-        call GetIndex as germlineGetIndex {
-            input:
-                sampleIds = normalSampleIds,
-                sampleId = pairRelationship.normal
-        }
-
         pairInfo pairInfoObject = object {
             pairId : pairRelationship.pairId,
             tumorFinalBam : Preprocess.finalBam[tumorGetIndex.index],
             normalFinalBam : Preprocess.finalBam[normalGetIndex.index],
             tumor : pairRelationship.tumor,
             normal : pairRelationship.normal
-        }
-
-        if ( size(unFilteredGermlineAnnotate.haplotypecallerAnnotatedVcf[germlineGetIndex.index]) > 0 ) {
-            call baf.Baf {
-                input:
-                    referenceFa = referenceFa,
-                    pairName = pairRelationship.pairId,
-                    sampleId = pairRelationship.normal,
-                    tumorFinalBam = Preprocess.finalBam[tumorGetIndex.index],
-                    normalFinalBam = Preprocess.finalBam[normalGetIndex.index],
-                    germlineVcf = unFilteredGermlineAnnotate.haplotypecallerAnnotatedVcf[germlineGetIndex.index]
-                }
         }
 
         call conpair.Conpair {

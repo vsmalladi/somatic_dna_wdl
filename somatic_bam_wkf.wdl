@@ -280,6 +280,20 @@ workflow SomaticBamWorkflow {
                 sampleId = pairInfo.normal
         }
         
+        call baf.Baf {
+            input:
+                referenceFa = referenceFa,
+                pairName = pairInfo.pairId,
+                sampleId = pairInfo.normal,
+                tumorFinalBam = pairInfo.tumorFinalBam,
+                normalFinalBam = pairInfo.normalFinalBam,
+                germlineVcf = unFilteredGermlineAnnotate.haplotypecallerAnnotatedVcf[germlineGetIndex.index],
+                listOfChroms = listOfChroms
+        }
+    }
+    
+    scatter(pairInfo in pairInfos) {
+        
         # tumor insert size
         Int tumorDiskSize = ceil(size(pairInfo.tumorFinalBam.bam, "GB")) + 30
                       
@@ -310,16 +324,6 @@ workflow SomaticBamWorkflow {
         call callingTasks.GetInsertSize as normalGetInsertSize {
             input:
                 insertSizeMetrics = normalMultipleMetrics.insertSizeMetrics
-        }
-        
-        call baf.Baf {
-            input:
-                referenceFa = referenceFa,
-                pairName = pairInfo.pairId,
-                sampleId = pairInfo.normal,
-                tumorFinalBam = pairInfo.tumorFinalBam,
-                normalFinalBam = pairInfo.normalFinalBam,
-                germlineVcf = unFilteredGermlineAnnotate.haplotypecallerAnnotatedVcf[germlineGetIndex.index]
         }
         
         call conpair.Conpair {
@@ -482,7 +486,6 @@ workflow SomaticBamWorkflow {
                 cosmicBedPe = cosmicBedPe
             
     }
-      
    }
 
     output {

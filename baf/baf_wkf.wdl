@@ -2,11 +2,13 @@ version 1.0
 
 import "../wdl_structs.wdl"
 import "baf.wdl"
+import "../test/tests.wdl" as tests
 
 
 workflow Baf {
     # command 
     input {
+        Array[String]+ listOfChroms
         String sampleId
         String pairName
         Bam normalFinalBam
@@ -30,23 +32,32 @@ workflow Baf {
                 hetVcf = FilterForHetSnps.hetVcf
         }
         
-        call baf.AlleleCounts {
-            input:
-                pairName = pairName,
-                referenceFa = referenceFa,
-                normalFinalBam = normalFinalBam,
-                tumorFinalBam = tumorFinalBam,
-                knownHetVcf = FilterBaf.knownHetVcf
+        scatter(chrom in listOfChroms) {
+            call baf.AlleleCounts {
+                input:
+                    pairName = pairName,
+                    referenceFa = referenceFa,
+                    normalFinalBam = normalFinalBam,
+                    tumorFinalBam = tumorFinalBam,
+                    knownHetVcf = FilterBaf.knownHetVcf,
+                    chrom = chrom
+            }
+            
+            call baf.CalcBaf {
+                input:
+                    pairName = pairName,
+                    alleleCountsTxt = AlleleCounts.alleleCountsTxt
+            }
         }
         
-        call baf.CalcBaf {
+        call tests.ConcateTables {
             input:
-                pairName = pairName,
-                alleleCountsTxt = AlleleCounts.alleleCountsTxt
+                tables = CalcBaf.bafTxt,
+                outputTablePath = "~{pairName}.haplotypecaller.gatk.v4.1.8.0.alleles.txt"
         }
     }
     
     output {
-        File? alleleCountsTxt = CalcBaf.bafTxt
+        File? alleleCountsTxt = ConcateTables.outputTable
     }
 }
