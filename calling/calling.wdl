@@ -364,7 +364,7 @@ task LancetWGSRegional {
 
     runtime {
         cpu : threads
-        disks: "local-disk " + diskSize + " LOCAL"
+        disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/lancet:v1.0.7"
     }
@@ -406,7 +406,7 @@ task LancetExome {
 
     runtime {
         cpu : threads
-        disks: "local-disk " + diskSize + " LOCAL"
+        disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/lancet:v1.0.7"
     }
@@ -446,7 +446,7 @@ task Mutect2Wgs {
     runtime {
         memory : memoryGb + "GB"
         docker : "us.gcr.io/broad-gatk/gatk:4.0.5.1"
-        disks: "local-disk " + diskSize + " LOCAL"
+        disks: "local-disk " + diskSize + " HDD"
     }
 }
 
@@ -925,7 +925,7 @@ task GridssCalling {
         ln -s \
         ~{gridssassemblyBam} \
         ~{gridssassemblyBamPath}
-        
+
 
         # link chunk assembly results
         sub_dir=~{gridssassemblyBamPath}.gridss.working/
