@@ -139,13 +139,13 @@ task AddCommandReorderColumnsVcf {
     }
 
     command {
-    
+
         python \
         /add_command.py \
         ~{inVcf} \
         ~{outVcfPath} \
         ~{jsonLog}
-        
+
         python \
         /reorder_vcf.py \
         ~{outVcfPath} \
@@ -497,7 +497,7 @@ task LancetWGSRegional {
         mem: memoryGb + "G"
         cpus: threads
         cpu : threads
-        disks: "local-disk " + diskSize + " LOCAL"
+        disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/lancet@sha256:25169d34b41de9564e03f02ebcbfb4655cf536449592b0bd58773195f9376e61"
     }
@@ -541,7 +541,7 @@ task LancetExome {
         mem: memoryGb + "G"
         cpus: threads
         cpu : threads
-        disks: "local-disk " + diskSize + " LOCAL"
+        disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/lancet@sha256:25169d34b41de9564e03f02ebcbfb4655cf536449592b0bd58773195f9376e61"
     }
@@ -708,11 +708,11 @@ task PopulateCache {
 
     command {
         set -e -o pipefail
-        
+
         /samtools-1.4.1/misc/seq_cache_populate.pl \
         -root ~{refCacheDirPath} \
         ~{bwaReference.fasta}
-        
+
         tar -czvf \
         ~{refCachePath} \
         ~{refCacheDirPath}
@@ -740,10 +740,10 @@ task SvabaIndex {
 
     command {
         set -e -o pipefail
-        
+
         cp ~{bwaReference.fasta} \
         ~{svabaIndexedReferencePath}
-        
+
         /svaba/SeqLib/bwa/bwa \
         index \
         ~{svabaIndexedReferencePath}
@@ -786,13 +786,13 @@ task SvabaWgsPon {
 
     command {
         set -e -o pipefail
-        
+
         tar -xzf \
         ~{refCache}
-        
+
         export REF_PATH=./~{refCacheDirPath}/%2s/%2s/%s
         export REF_CACHE=./~{refCacheDirPath}/%2s/%2s/%s
-        
+
         svaba \
         run \
         --verbose ~{verbose} \
@@ -840,13 +840,13 @@ task SvabaWgsPonNoL {
 
     command {
         set -e -o pipefail
-        
+
         tar -xzf \
         ~{refCache}
-        
+
         export REF_PATH=./~{refCacheDirPath}/%2s/%2s/%s
         export REF_CACHE=./~{refCacheDirPath}/%2s/%2s/%s
-        
+
         svaba \
         run \
         --verbose ~{verbose} \
@@ -888,11 +888,11 @@ task ReheaderVcf {
 
     command {
         set -e -o pipefail
-    
-        for id in ~{sep=" " sampleIds} ; do 
+
+        for id in ~{sep=" " sampleIds} ; do
             echo $id >> sample_list.txt
         done
-        
+
         bcftools \
         reheader \
         --samples sample_list.txt \
@@ -1021,7 +1021,7 @@ task Bicseq2Wgs {
 
     command {
         set -e -o pipefail
-        
+
         mkdir -p ~{pairName}
 
         python3 \
@@ -1329,7 +1329,7 @@ task GridssCalling {
         ln -s \
         ~{gridssassemblyBam} \
         ~{gridssassemblyBamPath}
-        
+
 
         # link chunk assembly results
         sub_dir=~{gridssassemblyBamPath}.gridss.working/
