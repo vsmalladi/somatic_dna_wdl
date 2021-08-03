@@ -119,8 +119,8 @@
         },
         "svPon" :{
             "type": "File",
-            "description" : "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/README_PON",
-            "object" : "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/PON_lumpy_allsamples_merge.01_16_19.annotated.filter_variants.bedpe"
+            "description" : "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/1000G-SV-PON.GRCh38.README.txt",
+            "object" : "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/1000G-SV-PON.survivor-merged.GRCh38.filtered.bedpe"
         },
         "cosmicBedPe" :{
             "type": "File",
@@ -158,9 +158,9 @@
             "object" : "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/ensembl_genes_unique_sorted.final.v93.chr.sorted.bed"
         },
 
-        "deconstructSigs" :{
+        "cosmicSigs" :{
             "type": "File",
-            "description" : "",
+            "description" : "Mutational Signatures (v3.2 - March 2021) from https://cancer.sanger.ac.uk/signatures/downloads/",
             "object" : "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/signatures.genome.cosmic.v3.2.march2021.grch38.rda"
         },
         "chromLengths": {
@@ -837,8 +837,8 @@
         },
         "svPon" :{
             "type": "File",
-            "description" : "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/README_PON",
-            "object" : "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/PON_lumpy_allsamples_merge.01_16_19.annotated.filter_variants.bedpe"
+            "description" : "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/1000G-SV-PON.GRCh38.README.txt",
+            "object" : "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/1000G-SV-PON.survivor-merged.GRCh38.filtered.bedpe"
         },
         "cosmicBedPe" :{
             "type": "File",
@@ -876,9 +876,9 @@
             "object" : "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/ensembl_genes_unique_sorted.final.v93.chr.sorted.bed"
         },
 
-        "deconstructSigs" :{
+        "cosmicSigs" :{
             "type": "File",
-            "description" : "",
+            "description" : "Mutational Signatures (v3.2 - March 2021) from https://cancer.sanger.ac.uk/signatures/downloads/",
             "object" : "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/signatures.genome.cosmic.v3.2.march2021.grch38.rda"
         },
         "chromLengths": {

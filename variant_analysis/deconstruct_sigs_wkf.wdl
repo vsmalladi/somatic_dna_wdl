@@ -9,33 +9,24 @@ workflow DeconstructSig {
     input {
         String pairId
         File mainVcf
-        
-        File deconstructsigsFasta
-        String bsGenome
-    }
-    
-    call variant_analysis.DeconstructsigPrep38 {
-        input:
-            mainVcf = mainVcf,
-            pairId = pairId
-        
+        String vepGenomeBuild
+        File cosmicSigs
     }
     
     call variant_analysis.Deconstructsig {
         input:
-            highconfidence = DeconstructsigPrep38.highconfidence,
-            bsGenome = bsGenome,
-            deconstructsigsFasta = deconstructsigsFasta,
-            pairId = pairId
+            mainVcf = mainVcf,
+            pairId = pairId,
+            cosmicSigs = cosmicSigs,
+            vepGenomeBuild = vepGenomeBuild
     }
     
     output {
-        File diff = Deconstructsig.diff
-        File trinuc = Deconstructsig.trinuc
-        File input_file = Deconstructsig.input_file
-        # File highconfidencePng = Deconstructsig.highconfidencePng
-        File highconfidenceTxt = Deconstructsig.highconfidenceTxt
-        File reconstructed = Deconstructsig.reconstructed
+         File sigs = Deconstructsig.sigs
+         File counts = Deconstructsig.counts
+         File sigInput = Deconstructsig.sigInput
+         File reconstructed = Deconstructsig.reconstructed
+         File diff = Deconstructsig.diff
     }
 }
     
