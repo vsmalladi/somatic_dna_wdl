@@ -235,7 +235,7 @@ task MantaWgs {
 
     runtime {
         cpu : threads
-        disks: "local-disk " + diskSize + " SSD"
+        disks: "local-disk " + diskSize + " LOCAL"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/manta:1.4.0"
     }
@@ -322,7 +322,7 @@ task Strelka2 {
 
     runtime {
         cpu : threads
-        disks: "local-disk " + diskSize + " SSD"
+        disks: "local-disk " + diskSize + " LOCAL"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/strelka:v2.9.3"
     }
@@ -364,7 +364,7 @@ task LancetWGSRegional {
 
     runtime {
         cpu : threads
-        disks: "local-disk " + diskSize + " SSD"
+        disks: "local-disk " + diskSize + " LOCAL"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/lancet:v1.0.7"
     }
@@ -406,7 +406,7 @@ task LancetExome {
 
     runtime {
         cpu : threads
-        disks: "local-disk " + diskSize + " SSD"
+        disks: "local-disk " + diskSize + " LOCAL"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/lancet:v1.0.7"
     }
@@ -446,7 +446,7 @@ task Mutect2Wgs {
     runtime {
         memory : memoryGb + "GB"
         docker : "us.gcr.io/broad-gatk/gatk:4.0.5.1"
-        disks: "local-disk " + diskSize + " SSD"
+        disks: "local-disk " + diskSize + " LOCAL"
     }
 }
 
@@ -516,7 +516,7 @@ task SvabaWgs {
 
     runtime {
         cpu : threads
-        disks: "local-disk " + diskSize + " SSD"
+        disks: "local-disk " + diskSize + " LOCAL"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/svaba:1.1.3-c4d7b571"
         preemptible: 0
@@ -546,7 +546,7 @@ task UniqReads {
     }
 
     runtime {
-        disks: "local-disk " + diskSize + " HDD"
+        disks: "local-disk " + diskSize + " LOCAL"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/bicseq2:seg_v0.7.2"
     }
@@ -603,7 +603,7 @@ task Bicseq2Norm {
     }
 
     runtime {
-        disks: "local-disk " + diskSize + " HDD"
+        disks: "local-disk " + diskSize + " LOCAL"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/bicseq2:seg_v0.7.2"
     }
@@ -650,7 +650,7 @@ task Bicseq2Wgs {
     }
 
     runtime {
-        disks: "local-disk " + diskSize + " HDD"
+        disks: "local-disk " + diskSize + " LOCAL"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/bicseq2:seg_v0.7.2"
     }
@@ -709,7 +709,7 @@ task GridssPreprocess {
     }
 
     runtime {
-        disks: "local-disk " + diskSize + " HDD"
+        disks: "local-disk " + diskSize + " LOCAL"
         cpu : threads
         memory : memory_gb + "GB"
         docker : "gcr.io/nygc-public/gridss:2.11.1-1"
@@ -794,7 +794,7 @@ task GridssAssembleChunk {
     }
 
     runtime {
-        disks: "local-disk " + diskSize + " HDD"
+        disks: "local-disk " + diskSize + " LOCAL"
         cpu : threads
         memory : memory_gb + "GB"
         docker : "gcr.io/nygc-public/gridss:2.11.1-1"
@@ -889,7 +889,7 @@ task GridssAssemble {
     }
 
     runtime {
-        disks: "local-disk " + diskSize + " HDD"
+        disks: "local-disk " + diskSize + " LOCAL"
         cpu : threads
         memory : memory_gb + "GB"
         docker : "gcr.io/nygc-public/gridss:2.11.1-1"
@@ -993,7 +993,7 @@ task GridssCalling {
     }
 
     runtime {
-        disks: "local-disk " + diskSize + " HDD"
+        disks: "local-disk " + diskSize + " LOCAL"
         cpu : threads
         memory : memory_gb + "GB"
         docker : "gcr.io/nygc-public/gridss:2.11.1-1"
