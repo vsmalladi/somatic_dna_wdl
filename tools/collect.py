@@ -290,7 +290,7 @@ class CloudOutput():
         filename with . or _ after the name'''
         pair_association = {}
         sample_association = {}
-        pair_ids = list(set([pair_info["pairId"] for pair_info in self.run_data.project_info["pairInfos"]]))
+        pair_ids = list(set([pair_info["pairId"] for pair_info in self.run_data.project_info["listOfPairRelationships"]]))
         for pair_id in pair_ids:
             current_pair_association = JsonModify(inputs=self.named_outputs, 
                                                     all_pair_ids=list(pair_ids),
@@ -324,7 +324,7 @@ class CloudOutput():
         ''' Find only task uuids for files with the pair or the sample in the 
         filename with . or _ after the name'''
         self.sub_workflow_uuids = {}
-        pair_ids = list(set([pair_info["pairId"] for pair_info in self.run_data.project_info["pairInfos"]]))
+        pair_ids = list(set([pair_info["pairId"] for pair_info in self.run_data.project_info["listOfPairRelationships"]]))
         for pair_id in pair_ids:
             matches = JsonModify(inputs={},
                                  uri_list=self.uri_list,
@@ -381,8 +381,8 @@ class CloudOutput():
         calls = self.read_api(goal='get_uuids')
         self.uri_list = []
         for line in str(calls).split('\n'):
-            for strings in line.split(' '):
-                for string in strings.strip().split("'"):
+            for strings in line.split():
+                for string in strings.split("'"):
                     if string.startswith("gs://") and 'call-' in string:
                         uri = string
                         self.uri_list.append(uri)
