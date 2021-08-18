@@ -9,6 +9,7 @@ task Deconstructsig {
         String outputPrefix = "~{pairId}.cosmic.v3.2.deconstructSigs.v1.9.0.signatures.highconfidence"
         File mainVcf
         String vepGenomeBuild
+        String highConf = "TRUE"
         File cosmicSigs
         Int memoryGb = 8
         Int diskSize = 1
@@ -17,7 +18,7 @@ task Deconstructsig {
     command {
         Rscript \
         /run_deconstructSigs.R \
-        --highconf \
+        --highconf ~{highConf} \
         --file ~{mainVcf} \
         --ref ~{vepGenomeBuild} \
         --cosmic ~{cosmicSigs} \
