@@ -656,6 +656,7 @@ task Bicseq2Wgs {
     }
 }
 
+
 task GridssPreprocess {
     input {
         Int threads
@@ -746,11 +747,6 @@ task GridssAssembleChunk {
         Int diskSize
     }
 
-    String normalSvbamBase = basename(normalSvBam.bam)
-    String tumorSvbamBase = basename(tumorSvBam.bam)
-    String normalFinalBamBase = basename(normalFinalBam.bam)
-    String tumorFinalBamBase = basename(tumorFinalBam.bam)
-
     command {
         set -e -o pipefail
 
@@ -760,16 +756,11 @@ task GridssAssembleChunk {
 
 
         # reposition unnamed input
-        sub_dir=~{normalFinalBamBase}.gridss.working/
-        mkdir -p $sub_dir
-        copied_sub_dir=$( dirname ~{normalSvBam.bam} )
-        ln -s $copied_sub_dir/* $sub_dir
-
-        # reposition unnamed input
-        sub_dir=~{tumorFinalBamBase}.gridss.working/
-        mkdir -p $sub_dir
-        copied_sub_dir=$( dirname ~{tumorSvBam.bam} )
-        ln -s $copied_sub_dir/* $sub_dir
+        bash gridss_arrange.sh \
+        --tumorFinalBam ~{tumorFinalBam.bam} \
+        --normalFinalBam ~{normalFinalBam.bam} \
+        --tumorSvBam ~{tumorSvBam.bam} \
+        --normalSvBam ~{normalSvBam.bam}
 
         working=$( pwd )
 
@@ -834,12 +825,6 @@ task GridssAssemble {
         Int diskSize
     }
 
-    String normalSvbamBase = basename(normalSvBam.bam)
-    String tumorSvbamBase = basename(tumorSvBam.bam)
-    String normalFinalBamBase = basename(normalFinalBam.bam)
-    String tumorFinalBamBase = basename(tumorFinalBam.bam)
-    String downsampledBase = basename(downsampled[0])
-
     command {
         set -e -o pipefail
 
@@ -849,16 +834,11 @@ task GridssAssemble {
 
         # link preprocess results
         # reposition unnamed input
-        sub_dir=~{normalFinalBamBase}.gridss.working/
-        mkdir -p $sub_dir
-        copied_sub_dir=$( dirname ~{normalSvBam.bam} )
-        ln -s $copied_sub_dir/* $sub_dir
-
-        # reposition unnamed input
-        sub_dir=~{tumorFinalBamBase}.gridss.working/
-        mkdir -p $sub_dir
-        copied_sub_dir=$( dirname ~{tumorSvBam.bam} )
-        ln -s $copied_sub_dir/* $sub_dir
+        bash gridss_arrange.sh \
+        --tumorFinalBam ~{tumorFinalBam.bam} \
+        --normalFinalBam ~{normalFinalBam.bam} \
+        --tumorSvBam ~{tumorSvBam.bam} \
+        --normalSvBam ~{normalSvBam.bam}
 
         # link chunk assembly results
         sub_dir=~{gridssassemblyBamPath}.gridss.working/
@@ -901,6 +881,7 @@ task GridssCalling {
         Int threads
         Int memory_gb
         String pairName
+        String gridssassemblyBamPath = "~{pairName}.gridssassembly.bam"
         String gridssUnfilteredVcfPath = "~{pairName}.sv.gridss.v2.10.2.unfiltered.vcf"
         BwaReference bwaReference
         Array[File] gridssAdditionalReference
@@ -929,14 +910,6 @@ task GridssCalling {
         Int diskSize
     }
 
-    String normalSvbamBase = basename(normalSvBam.bam)
-    String tumorSvbamBase = basename(tumorSvBam.bam)
-    String normalFinalBamBase = basename(normalFinalBam.bam)
-    String tumorFinalBamBase = basename(tumorFinalBam.bam)
-
-
-    String gridssassemblyBamBase = basename(gridssassemblyBam)
-
     command {
         set -e -o pipefail
 
@@ -945,33 +918,29 @@ task GridssCalling {
         mv ~{sep=" " gridssAdditionalReference} $fasta_dir
 
         # link assembly results
-        sub_dir=~{gridssassemblyBamBase}.gridss.working/
+        sub_dir=~{gridssassemblyBamPath}.gridss.working/
         mkdir -p $sub_dir
         copied_sub_dir=$( dirname ~{gridssassemblySvBam.bam} )
         ln -s $copied_sub_dir/* $sub_dir
 
         ln -s \
         ~{gridssassemblyBam} \
-        ~{gridssassemblyBamBase}
+        ~{gridssassemblyBamPath}
+        
 
         # link chunk assembly results
-        sub_dir=~{gridssassemblyBamBase}.gridss.working/
+        sub_dir=~{gridssassemblyBamPath}.gridss.working/
         mkdir -p $sub_dir
         copied_sub_dir=$( dirname ~{downsampled[0]} )
         ln -s $copied_sub_dir/* $sub_dir
 
         # link preprocess results
         # reposition unnamed input
-        sub_dir=~{normalFinalBamBase}.gridss.working/
-        mkdir -p $sub_dir
-        copied_sub_dir=$( dirname ~{normalSvBam.bam} )
-        ln -s $copied_sub_dir/* $sub_dir
-
-        # reposition unnamed input
-        sub_dir=~{tumorFinalBamBase}.gridss.working/
-        mkdir -p $sub_dir
-        copied_sub_dir=$( dirname ~{tumorSvBam.bam} )
-        ln -s $copied_sub_dir/* $sub_dir
+        bash gridss_arrange.sh \
+        --tumorFinalBam ~{tumorFinalBam.bam} \
+        --normalFinalBam ~{normalFinalBam.bam} \
+        --tumorSvBam ~{tumorSvBam.bam} \
+        --normalSvBam ~{normalSvBam.bam}
 
         working=$( pwd )
 
@@ -981,7 +950,7 @@ task GridssCalling {
         --jar /opt/gridss/gridss-2.11.1-gridss-jar-with-dependencies.jar \
         --threads ~{threads} \
         --workingdir $working \
-        --assembly ~{gridssassemblyBamBase} \
+        --assembly ~{gridssassemblyBamPath} \
         --output ~{gridssUnfilteredVcfPath} \
         --picardoptions VALIDATION_STRINGENCY=LENIENT \
         ~{normalFinalBam.bam} ~{tumorFinalBam.bam} \
