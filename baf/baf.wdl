@@ -65,7 +65,7 @@ task FilterBaf {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.1"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
     }
 }
 
@@ -101,7 +101,7 @@ task AlleleCounts {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.1"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
     }
 }
 
@@ -128,7 +128,7 @@ task CalcBaf {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.1"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
     }
 }
 

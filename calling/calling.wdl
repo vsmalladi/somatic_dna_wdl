@@ -149,7 +149,7 @@ task ReorderVcfColumns {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.1"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
     }
 }
 
@@ -177,7 +177,7 @@ task AddVcfCommand {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.1"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
     }
 }
 
@@ -713,7 +713,7 @@ task GridssPreprocess {
         disks: "local-disk " + diskSize + " HDD"
         cpu : threads
         memory : memory_gb + "GB"
-        docker : "gcr.io/nygc-public/gridss:2.11.1-1"
+        docker : "gcr.io/nygc-public/gridss:2.11.1-2"
     }
 }
 
@@ -788,7 +788,7 @@ task GridssAssembleChunk {
         disks: "local-disk " + diskSize + " HDD"
         cpu : threads
         memory : memory_gb + "GB"
-        docker : "gcr.io/nygc-public/gridss:2.11.1-1"
+        docker : "gcr.io/nygc-public/gridss:2.11.1-2"
     }
 }
 
@@ -872,7 +872,7 @@ task GridssAssemble {
         disks: "local-disk " + diskSize + " HDD"
         cpu : threads
         memory : memory_gb + "GB"
-        docker : "gcr.io/nygc-public/gridss:2.11.1-1"
+        docker : "gcr.io/nygc-public/gridss:2.11.1-2"
     }
 }
 
@@ -965,7 +965,7 @@ task GridssCalling {
         disks: "local-disk " + diskSize + " HDD"
         cpu : threads
         memory : memory_gb + "GB"
-        docker : "gcr.io/nygc-public/gridss:2.11.1-1"
+        docker : "gcr.io/nygc-public/gridss:2.11.1-2"
     }
 }
 
@@ -1012,6 +1012,6 @@ task GridssFilter {
         disks: "local-disk " + diskSize + " HDD"
         cpu : threads
         memory : memory_gb + "GB"
-        docker : "gcr.io/nygc-public/gridss:2.11.1-1"
+        docker : "gcr.io/nygc-public/gridss:2.11.1-2"
     }
 }
