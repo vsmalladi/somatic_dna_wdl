@@ -24,12 +24,13 @@ workflow Gridss {
 
         Int threads = 8
         Int memory_gb = 32
+        Int pre_memory_gb = 16
     }
 
     call calling.GridssPreprocess as tumorGridssPreprocess {
         input:
             threads = threads,
-            memory_gb = memory_gb,
+            memory_gb = pre_memory_gb,
             bwaReference = bwaReference,
             gridssAdditionalReference = gridssAdditionalReference,
             finalBam = tumorFinalBam,
@@ -39,7 +40,7 @@ workflow Gridss {
     call calling.GridssPreprocess as normalGridssPreprocess {
         input:
             threads = threads,
-            memory_gb = memory_gb,
+            memory_gb = pre_memory_gb,
             bwaReference= bwaReference,
             gridssAdditionalReference = gridssAdditionalReference,
             finalBam = normalFinalBam,
