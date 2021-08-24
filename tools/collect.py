@@ -238,6 +238,8 @@ class CloudOutput():
         self.run_data = run_data
         self.options = run_data.options
         self.workflow_uuid = self.run_data.workflow_uuid
+        # get root dir
+        self.root_dir = self.read_api(goal='get_root')
         # fast get calls from API to search for uuids
         self.uri_list = self.list_uris()
         if len(self.uri_list) == 0:
@@ -246,8 +248,6 @@ class CloudOutput():
             self.uri_list = self.list_project()
         # get API outputs section
         self.raw_outputs = self.read_api()
-        # get root dir
-        self.root_dir = self.read_api(goal='get_root')
         # get files (named and unnamed) from API outputs section
         self.parse_block()
         self.unnamed_files = self.gather_unnamed()
@@ -256,6 +256,9 @@ class CloudOutput():
         self.divide_by_id()
         # Find only task uuids for files with the pair or the sample in the 
         # filename with . or _ after the name
+        if self.uri_list == False:
+            log.warning('No output files created')
+            sys.exit(0)
         self.divide_uuid_by_id()
         self.run_data.run_info['pair_association'] = self.pair_association
         self.run_data.run_info['sample_association'] = self.sample_association

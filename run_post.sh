@@ -90,6 +90,11 @@ time python ${wdl_dir}/tools/collect.py \
 --run-data ${run_info_json} \
 --url ${url}
 
+if [[ ! -s $output_info_file ]]; then
+    echo 'No output files were created by workflow so no outputInfo.json exists for further steps' >&2
+    exit 0
+fi
+
 echo "Gather usage metrics..."
 time python ${wdl_dir}/tools/runtime.py \
     ${output_info_file}
