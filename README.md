@@ -13,6 +13,7 @@
   - [Cram incompatible steps](#cram-incompatible)
   - [Cram compatible steps](#cram-compatible)
 - [Contact us](#contact_us)
+- [Release notes](#release_notes)
 
 ![NYGC Somatic Pipeline overview](diagrams/WDL_Pipeline.png)
 
@@ -253,8 +254,26 @@ git commit -m "feat: my new workflow"
 - all samtools/pysam steps
 - kourami w/ custom prep
 
-
 ### Contact us 
 <a name="contact_us"></a>
 
 We are in the process of setting up a public issue tracker. In the mean time  please send suggestions, questions or issues to jshelton@nygenome.org
+
+
+# Release Notes
+<a name="release_notes"></a>
+
+[7.2.0](https://bitbucket.nygenome.org/rest/api/latest/projects/COMPBIO/repos/wdl_port/archive?at=refs%2Ftags%2F7.2.0&format=zip) GDC references:
+
+    - add Human_GRCh38_tcga
+    - populate BAMs from a table
+    - restrict to .bai index extensions
+    - add workflow to reheader interval lists for external reference files
+[7.3.1](https://bitbucket.nygenome.org/rest/api/latest/projects/COMPBIO/repos/wdl_port/archive?at=refs%2Ftags%2F7.3.1&format=zip) Refactor:
+
+    - add deconstructsigs
+    - get chr6 coordinates from smaller file
+    - adjust threads
+    - speed up allele counts (chrom splits)
+
+
