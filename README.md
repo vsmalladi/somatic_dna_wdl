@@ -2,7 +2,7 @@
 
 
 
-## WDL docs for v7 NYGC Somatic Pipeline
+## WDL docs for NYGC Somatic Pipeline v7
 
 - [Dependencies](#dependencies)
 - [On prem environment setup](#environment)
