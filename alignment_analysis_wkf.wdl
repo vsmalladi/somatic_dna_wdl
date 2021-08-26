@@ -20,7 +20,6 @@ import "wdl_structs.wdl"
 #
 # ================== /COPYRIGHT ===============================================
 
-
 workflow AlignmentAnalysis {
     # command
     #   Call variants in BAMs

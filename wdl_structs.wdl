@@ -16,7 +16,6 @@ version 1.0
 #
 # ================== /COPYRIGHT ===============================================
 
-
 struct IndexedVcf {
     File vcf
     File index

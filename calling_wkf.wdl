@@ -26,7 +26,6 @@ import "calling/bicseq2_wkf.wdl" as bicseq2
 #
 # ================== /COPYRIGHT ===============================================
 
-
 import "wdl_structs.wdl"
 
 workflow Calling {

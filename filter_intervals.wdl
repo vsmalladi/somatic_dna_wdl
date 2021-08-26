@@ -18,7 +18,6 @@ import "wdl_structs.wdl"
 #
 # ================== /COPYRIGHT ===============================================
 
-
 task BedToIntervalList {
     input {
         Int memoryGb = 7

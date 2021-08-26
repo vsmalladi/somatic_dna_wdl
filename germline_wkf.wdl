@@ -20,7 +20,6 @@ import "annotate/germline_annotate_wkf.wdl" as germlineAnnotate
 #
 # ================== /COPYRIGHT ===============================================
 
-
 workflow GermlineAll {
     # command 
     input {

@@ -19,7 +19,6 @@ import "wdl_structs.wdl"
 #
 # ================== /COPYRIGHT ===============================================
 
-
 workflow PipelineTests {
     input {
         File chromLengths
