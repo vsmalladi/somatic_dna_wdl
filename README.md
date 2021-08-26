@@ -1,5 +1,7 @@
 # wdl_port
 
+
+
 ## WDL docs for v6 pipeline
 
 - [Dependencies](#dependencies)
@@ -10,11 +12,12 @@
 - [Appendix](#appendix)
   - [Cram incompatible steps](#cram-incompatible)
   - [Cram compatible steps](#cram-compatible)
+- [Contact us](#contact_us)
 
 ![NYGC Somatic Pipeline overview](diagrams/WDL_Pipeline.png)
 
 ### Dependencies
-<a name="dependencies"/>
+<a name="dependencies"></a>
 
 - gcloud 
 - gsutil
@@ -29,7 +32,8 @@ Python
 
 
 ### On prem environment setup
-<a name="environment"/>
+<a name="environment"></a>
+
 
 Set up on prem:
 
@@ -41,7 +45,7 @@ conda activate wdl
 ```
 
 ### Write input and submit
-<a name="write_input"/>
+<a name="write_input"></a>
 
 
 Script `wdl_port/run.sh` will first quickly validate the WDL workflow. Next it will use the WDL 
@@ -135,7 +139,7 @@ Command
 
 
 ### Post run
-<a name="post_run"/>
+<a name="post_run"></a>
 
 Use the `cromwell-tools status` command printed to the screen when you submitted the workflow. Alternately, lookup the workflow UUID in the `lab-number_project.<DATE>.RunInfo.json` and run:
 
@@ -191,7 +195,7 @@ the file includes the following metrics calculated from the BigQuery cromwell mo
   
 
 ### Create new workflow
-<a name="create_new_workflow"/>
+<a name="create_new_workflow"></a>
 
 Use a [style guide](https://biowdl.github.io/styleGuidelines.html) to write you WDL files.
 
@@ -228,10 +232,10 @@ git commit -m "feat: my new workflow"
 5. [Run](#write_input) the new workflow as before
 
 ### Appendix
-<a name="appendix"/>
+<a name="appendix"></a>
 
 ##### Cram incompatible steps
-<a name="cram-incompatible"/>
+<a name="cram-incompatible"></a>
 
 - biqsec2 norm
 - svaba?
@@ -240,7 +244,7 @@ git commit -m "feat: my new workflow"
 
 
 ##### Cram compatible steps
-<a name="cram-compatible"/>
+<a name="cram-compatible"></a>
 
 - strelka2
 - mutect2
@@ -250,4 +254,7 @@ git commit -m "feat: my new workflow"
 - kourami w/ custom prep
 
 
+### Contact us 
+<a name="contact_us"></a>
 
+We are in the process of setting up a public issue tracker. In the mean time  please send suggestions, questions or issues to jshelton@nygenome.org
