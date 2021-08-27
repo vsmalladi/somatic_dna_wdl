@@ -34,7 +34,6 @@
 #
 # ================== /COPYRIGHT ===============================================
 
-
 help_top="run.sh [-h] --options OPTIONS --wdl-file WDL_FILE
                --url URL --log-dir LOG_DIR
                --project PROJECT 

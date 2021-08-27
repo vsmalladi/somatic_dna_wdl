@@ -6,6 +6,8 @@ import datetime
 import logging as log
 import pandas as pd
 import Colorer
+import make_auth
+import argparse
 
 pd.set_option('display.max_columns', 500)
 log.basicConfig(format='%(levelname)s:  %(message)s', level=log.INFO)
@@ -13,34 +15,28 @@ log.basicConfig(format='%(levelname)s:  %(message)s', level=log.INFO)
 
 class Runtime():
     def __init__(self,
+                 output_info,
                  limit=10000,
-                 gcp_project=False,
-                 output_info_file=False,
-                 metrics_file=False,
-                 sample_ids=False,
-                 pair_ids=False,
-                 run_date=False,
-                 sub_workflow_uuids=False):
-        assert sub_workflow_uuids or output_info_file, 'Define either output_info_file or sub_workflow_uuids'
-        if not output_info_file:
-            assert run_date, 'Run date must be defined if task uuids is defined'
-            assert pair_ids, 'pairIds must be defined if task uuids is defined'
-            assert sample_ids, 'sampleIds must be defined if task uuids is defined'
+                 metrics_file=False):
+        self.output_info = output_info
         if not metrics_file:
-            self.metrics_file = output_info_file.replace('_outputInfo.json', '_outputMetrics.csv')
+            print( output_info['workflow_uuid'])
+            print(output_info["project_data"]['project'])
+            self.metrics_file = output_info["project_data"]['project'].replace(' ', '_') + '.' +  output_info['workflow_uuid'] + '_outputMetrics.csv'
         else:
             self.metrics_file = metrics_file
         # find relevant project info
         self.limit = str(limit)
         self.metrics_limit = str(limit * 4)
-        self.gcp_project = self.get_gcp_project(gcp_project, output_info_file)
-        self.sub_workflow_uuids = self.load_sub_workflow_uuids(sub_workflow_uuids, output_info_file)
-        self.run_date = self.get_rundate(run_date, output_info_file)
-        self.get_sample_info(sample_ids, pair_ids,
-                             output_info_file)
+        # login
+        self.credentials, self.gcp_project = make_auth.login()
+        self.sub_workflow_uuids = self.load_sub_workflow_uuids()
+        self.run_date = self.get_rundate()
+        self.get_sample_info()
         # gather big cloud tables
-        self.bqclient = bigquery.Client()
-        self.bqstorageclient = bigquery_storage.BigQueryReadClient()
+        self.bqclient = bigquery.Client(project=self.gcp_project , 
+                                        credentials=self.credentials)
+        self.bqstorageclient = bigquery_storage.BigQueryReadClient(credentials=self.credentials)
         self.load_metadata()
         self.load_runtime()
         self.load_metrics()
@@ -63,7 +59,14 @@ class Runtime():
             self.non_retry_metadata = self.load_plot_metrics(self.non_retry_metadata,
                                                              instance_id_map=self.non_retry_instance_id_map)
             self.metadata.to_csv(self.metrics_file, index=False)
-            self.non_retry_metadata.to_csv(self.metrics_file.replace('.csv', '.non_retried.csv'), index=False)
+            self.non_retried_metrics_file = self.metrics_file.replace('.csv', '.non_retried.csv')
+            self.non_retry_metadata.to_csv(self.non_retried_metrics_file, index=False)
+        
+    @staticmethod
+    def read(file):
+        with open(file) as output_info_file:
+            output_info = json.load(output_info_file)
+            return output_info
         
     def get_task_core_h(self, grouped, row, ids=['id', 
                                                  'task_call_name', 
@@ -230,38 +233,27 @@ class Runtime():
                                                                 axis=1)
         metadata['workflow_max_mem_g'] = metadata.apply(lambda row: metadata[(metadata.id == row.id)].max_mem_g.max(),
                                                         axis=1) 
-        return metadata       
+        return metadata
+    
+    def load_end_date(self, date_record):
+        return date_record.strftime(format='%Y-%m-%d')      
 
     def modify_date(self, run_date):
         return '-'.join(run_date.split('-')[0:3])
     
-    def get_sample_info(self, sample_ids, pair_ids, 
-                        output_info_file):
-        if sample_ids:
-            self.sample_count = len(sample_ids)
-            self.pair_count = len(pair_ids)
-        else:
-            with open(output_info_file) as output_info_object:
-                output_info = json.load(output_info_object)
-            self.sample_count = len(output_info['project_data']['sampleIds'])
-            self.pair_count = len(output_info['project_data']['pairId'])
+    def get_sample_info(self):
+        self.sample_count = len(self.output_info['project_data']['sampleIds'])
+        self.pair_count = len(self.output_info['project_data']['pairId'])
         
-    def get_rundate(self, run_date, output_info_file):
-        if run_date:
-            return self.modify_date(run_date)
-        else:
-            with open(output_info_file) as output_info_object:
-                output_info = json.load(output_info_object)
-            return self.modify_date(output_info['project_data']['run_date']) 
+    def get_rundate(self):
+        return self.modify_date(self.output_info['project_data']['run_date']) 
         
-    def get_gcp_project(self, gcp_project, output_info_file):
-        if gcp_project:
-            return gcp_project
-        else:
-            with open(output_info_file) as output_info_object:
-                output_info = json.load(output_info_object)
-            return output_info['project_data']['options']['monitoring_image'].split('/')[1]
+    def get_gcp_project(self):
+        return self.output_info['project_data']['options']['monitoring_image'].split('/')[1]
 
+    def format_sub_workflow(self, sub_workflow_uuids):
+        sub_workflow_uuid_list = '("' + '", "'.join(sub_workflow_uuids) + '")'
+        return sub_workflow_uuid_list
     
     def load_metadata(self):
         '''convert big query metadata table into pandas dataframe
@@ -269,21 +261,26 @@ class Runtime():
             mem_total_gb, task_call_name, workflow_name
         '''
         log.info('Loading Metadata...')
+        
+        sub_workflow_uuid_list = self.format_sub_workflow(self.sub_workflow_uuids.sub_workflow_uuid.unique())
+        
         query_string = '''
         SELECT * FROM `''' + self.gcp_project + '''.cromwell_monitoring.metadata`
-            WHERE DATE(start_time) >= "''' + self.run_date + '"'
+            WHERE DATE(start_time) >= "''' + self.run_date + '''"
+            AND workflow_id IN ''' + sub_workflow_uuid_list
+            
 #             + '''"
 #             LIMIT ''' + self.limit + '''
 #         '''
-        meta = (
+        self.metadata =  (
             self.bqclient.query(query_string)
             .result()
             .to_dataframe(bqstorage_client=self.bqstorageclient)
         )
+        self.end_date = self.load_end_date(self.metadata.end_time.max())
         sub_workflow_uuid_sample_map = self.sub_workflow_uuids.copy()
         sub_workflow_uuid_sample_map.columns = ['workflow_id', 'id']
         sub_workflow_uuid_sample_map = sub_workflow_uuid_sample_map.drop_duplicates().copy()
-        self.metadata = meta[meta.workflow_id.isin(sub_workflow_uuid_sample_map.workflow_id.tolist())].copy()
         self.metadata['inputs'] = self.metadata.apply(lambda row: str(row.inputs).replace('\n', ' '), axis=1)
         unhashable = ['disk_mounts', 'disk_total_gb', 'disk_types', 'inputs']
         # hashable = [col for col in self.metadata.columns if not col in unhashable]
@@ -300,6 +297,7 @@ class Runtime():
         query_string = '''
         SELECT * FROM `''' + self.gcp_project + '''.cromwell_monitoring.runtime`
             WHERE DATE(start_time) >= "''' + self.run_date + '''"
+            AND DATE(start_time) <= "''' + self.end_date + '''"
             LIMIT ''' + self.limit + '''
         '''
         runtime = (
@@ -325,6 +323,10 @@ class Runtime():
             self.non_retry_instance_id_map[instance_id]['workflow_ids'] = self.runtime[(self.runtime.instance_id == instance_id)].workflow_id.unique().tolist()
             self.non_retry_instance_id_map[instance_id]['task_call_name'] = self.runtime[(self.runtime.instance_id == instance_id)].task_call_name.tolist()[0]
         
+    def format_instance_id(self):
+        instance_id_list = '(' + ', '.join([str(i) for i in self.instance_ids]) + ')'
+        return instance_id_list
+    
     def load_metrics(self):
         '''convert big query metrics table into pandas dataframe
         Includes instance_id, cpu_used_percent, mem_used_gb, disk_used_gb, 
@@ -332,41 +334,88 @@ class Runtime():
         Use to find max and plot resource usage over time.
         '''
         log.info('Loading Metrics...')
+        
+        instance_id_list = self.format_instance_id()
+        
         query_string = '''
         SELECT * FROM `''' + self.gcp_project + '''.cromwell_monitoring.metrics`
             WHERE DATE(timestamp) >= "''' + self.run_date + '''"
-        '''
-        metrics = (
+            AND DATE(timestamp) <= "''' + self.end_date + '''"
+            AND instance_id IN ''' + instance_id_list 
+        self.metrics = (
             self.bqclient.query(query_string)
             .result()
             .to_dataframe(bqstorage_client=self.bqstorageclient)
         )
-        self.metrics = metrics[metrics.instance_id.isin(self.instance_ids)].copy()
 
-    def load_sub_workflow_uuids(self, sub_workflow_uuids, output_info_file):
-        if sub_workflow_uuids:
-            return sub_workflow_uuids
-        else:
-            with open(output_info_file) as output_info_object:
-                output_info = json.load(output_info_object)
-            sub_workflow_uuids_list = []
-            for id in output_info['sub_workflow_uuids']:
-                data = pd.DataFrame({'sub_workflow_uuid' : output_info['sub_workflow_uuids'][id]})
-                data['id'] = id
-                sub_workflow_uuids_list.append(data)
-            sub_workflow_uuids = pd.concat(sub_workflow_uuids_list, 
-                                           ignore_index=False)
-            return sub_workflow_uuids
-           
+    def load_sub_workflow_uuids(self):
+        sub_workflow_uuids_list = []
+        for id in self.output_info['sub_workflow_uuids']:
+            data = pd.DataFrame({'sub_workflow_uuid' : self.output_info['sub_workflow_uuids'][id]})
+            data['id'] = id
+            sub_workflow_uuids_list.append(data)
+        sub_workflow_uuids = pd.concat(sub_workflow_uuids_list, 
+                                       ignore_index=False)
+        return sub_workflow_uuids
+
+    
+def get_args():
+    '''Parse input flags
+    '''
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--output-info-file',
+                        help='JSON file with outputInfo. Includes workflow uuid, '
+                        'options JSON dictionary submitted to cromwell, '
+                        'project pairing, sample, '
+                        'genome build, library, output files, '
+                        'subworkflow uuids, id sorted output files'
+                        'and interval list information',
+                        required=False
+                        )
+    parser.add_argument('--multi',
+                        help='Records for multiple runs are stored in the JSON file with outputInfo.',
+                        required=False,
+                        action='store_true'
+                        )
+    parser.add_argument('--name',
+                        default='nygc_pipeline',
+                        help='Use with the --multi flag to name the output.',
+                        required=False
+                        )
+    parser.add_argument('--manifest',
+                        help='Use with the --multi flag to list outputInfo JSON files.',
+                        required=False
+                        )
+    args_namespace = parser.parse_args()
+    return args_namespace.__dict__
+
 
 def main():
-    output_info_file = sys.argv[1]
-    Runtime(limit=10000,
-            output_info_file=output_info_file,
-            run_date=False,
-            sub_workflow_uuids=False)
+    args = get_args()
+    output_infos = []
+    manifest_files = []
+    if args['multi']:
+        with open(args['manifest']) as manifest:
+            for line in manifest:
+                output_infos.append(Runtime.read(line.strip()))
+                manifest_files.append(line.strip())
+    else:
+        output_info = Runtime.read(args['output_info_file'])
+        output_infos = [output_info]
+    non_retried_metrics = []
+    metrics = []
+    for output_info in output_infos:
+        runtime = Runtime(limit=10000,
+                          output_info=output_info)
+        non_retried_metrics.append(runtime.non_retried_metrics_file)
+        metrics.append(runtime.metrics_file)
+    if args['multi']:
+        manifest = pd.DataFrame({'non_retried_metrics' : non_retried_metrics,
+                                 'metrics' : metrics,
+                                 'output_info' : manifest_files})
+        manifest.to_csv(args['name'] + '_MetricsInfoManifest.csv', index=False)
     
-    
+
 if __name__ == "__main__":
-    main()
+    main()       
     

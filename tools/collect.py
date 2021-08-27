@@ -260,6 +260,7 @@ class CloudOutput():
             log.warning('No output files created')
             sys.exit(0)
         self.divide_uuid_by_id()
+        self.run_data.run_info['run_date'] = self.run_data.project_info['run_date']
         self.run_data.run_info['pair_association'] = self.pair_association
         self.run_data.run_info['sample_association'] = self.sample_association
         self.run_data.run_info['outputs'] = self.named_outputs
@@ -460,32 +461,24 @@ class CloudOutput():
         
 class RunData():
     '''Load rundata from file and confirm project data schema '''
-    def __init__(self, run_info_file):
-        self.run_info = self.read(run_info_file)
-        self.run_date = run_info_file.split('.')[-3:-2][0]
+    def __init__(self, run_info, run_info_file):
+        self.run_info = run_info
         self.options = self.run_info['project_data']['options']
         self.project_info = self.run_info['project_data']
-        self.project_info['run_date'] = self.run_date
+        if not 'run_date' in self.project_info:
+            # retire once old runs are described
+            run_date = run_info_file.split('.')[-3:-2][0]
+            self.project_info['run_date'] = run_date
         self.passed = meta.test_schema(self.project_info)
         self.workflow_uuid = self.run_info['workflow_uuid']
-        
-    def read(self, file):
+    
+    @staticmethod
+    def read(file):
         with open(file) as project_info_file:
             project_info = json.load(project_info_file)
             return project_info
-        
 
-def main():
-    args = get_args()
-    run_data = RunData(run_info_file=args['run_data'])
-    outputs = CloudOutput(run_data=run_data, url=args['url'])
-    file_out = outputs.run_data.run_info["project_data"]['project'].replace(' ', '_') + '.' +  outputs.run_data.run_info['workflow_uuid'] + '_outputInfo.json'
-    with open(file_out, 'w') as project_info_file:
-        json.dump(outputs.run_data.run_info, project_info_file, indent=4)
 
-        
-
-            
 def get_args():
     '''Parse input flags
     '''
@@ -497,12 +490,43 @@ def get_args():
                         'genome build, library and interval list information',
                         required=True
                         )
+    parser.add_argument('--multi',
+                        help='Records for multiple runs are stored in the JSON file with RunInfo.',
+                        required=False,
+                        action='store_true'
+                        )
+    parser.add_argument('--name',
+                        default='nygc_pipeline',
+                        help='Use with the --multi flag to name the output.',
+                        required=False
+                        )
     parser.add_argument('--url',
                         help='URL for cromwell server.',
                         required=True
                         )
     args_namespace = parser.parse_args()
     return args_namespace.__dict__
+
+
+def main():
+    args = get_args()
+    run_infos = RunData.read(args['run_data'])
+    if not args['multi']:
+        run_infos = [run_infos]
+    output_files = []
+    for run_info in run_infos:
+        run_data = RunData(run_info=run_info,
+                           run_info_file=args['run_data'])
+        outputs = CloudOutput(run_data=run_data, url=args['url'])
+        file_out = outputs.run_data.run_info["project_data"]['project'].replace(' ', '_') + '.' +  run_data.run_info['workflow_uuid'] + '_outputInfo.json'
+        output_files.append(file_out)
+        with open(file_out, 'w') as project_info_file:
+            json.dump(outputs.run_data.run_info, project_info_file, indent=4)
+    if args['multi']:
+        with open(args['name'] + '_outputInfoManifest.txt', 'w') as out:
+            for file in output_files:
+                out.write(file + '\n')
+
 
 if __name__ == "__main__":
     main()       

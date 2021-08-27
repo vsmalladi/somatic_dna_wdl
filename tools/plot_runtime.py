@@ -26,24 +26,47 @@ log.basicConfig(format='%(levelname)s:  %(message)s', level=log.INFO)
 class PlotRuntime():
     '''Plot results from outputMetrics.csv'''
     def __init__(self,
-                 project_id, 
-                 output_info_file,
-                 metrics_file,
-                 non_retry_metrics_file,
+                 project_id,
+                 manifest=False, 
+                 output_info_file=False,
+                 metrics_file=False,
+                 non_retry_metrics_file=False,
                  plot_file=False):
         self.set_colors()
         self.project_id = project_id
         if not plot_file:
-            self.out_md = metrics_file.replace('.csv', '.md')
-            self.header_file = metrics_file.replace('.csv', '.header.txt')
-            self.plot_file = metrics_file.replace('.csv', '.html')
+            if manifest:
+                basename = project_id.replace(' ', '_') + '_outputMetrics'
+                self.out_md = basename + '.md'
+                self.header_file = basename + '.header.txt'
+                self.plot_file = basename + '.html'
+            else:
+                self.out_md = metrics_file.replace('.csv', '.md')
+                self.header_file = metrics_file.replace('.csv', '.header.txt')
+                self.plot_file = metrics_file.replace('.csv', '.html')
         else:
             self.out_md = plot_file.replace('.html', '.md')
             self.header_file = plot_file.replace('.html', '.header.txt')
             self.plot_file = plot_file
-        self.output_info = self.load_input(output_info_file)
-        self.metadata = self.load_metadata(metrics_file)
-        self.non_retry_metadata = self.load_metadata(non_retry_metrics_file)
+        if manifest:
+            manifest_data = pd.read_csv(manifest)
+            output_infos = []
+            metadatas = []
+            non_retry_metadatas = []
+            for i, row in manifest_data.iterrows():
+                output_info = self.load_input(row.output_info)
+                metadata = self.load_metadata(row.metrics)
+                non_retry_metadata = self.load_metadata(row.non_retried_metrics)
+                non_retry_metadatas.append(non_retry_metadata)
+                output_infos.append(output_info)
+                metadatas.append(metadata)
+            self.output_info = output_infos
+            self.metadata = pd.concat(metadatas, ignore_index=True)
+            self.non_retry_metadata = pd.concat(non_retry_metadatas, ignore_index=True)
+        else:
+            self.output_info = self.load_input(output_info_file)
+            self.metadata = self.load_metadata(metrics_file)
+            self.non_retry_metadata = self.load_metadata(non_retry_metrics_file)
         # intro figs
         self.summary_table = self.get_table()
         self.gather_summary()
@@ -464,11 +487,7 @@ def get_args():
                         'genome build, library and interval list information. '
                         'Also includes output files and '
                         'the sub-workflow uuids',
-                        required=True
-                        )
-    parser.add_argument('--project-id',
-                        help='Working name of project.',
-                        required=True
+                        required=False
                         )
     parser.add_argument('--plot',
                         help='Output path for html file.',
@@ -478,24 +497,44 @@ def get_args():
                         help='CSV file with outputMetrics. '
                         'Includes sample id mem, wallclock time, core hours '
                         'for tasks with any exit status (including Failed)',
-                        required=True
+                        required=False
                         )
     parser.add_argument('--non-retry-metrics',
                         help='CSV file with outputMetrics.non_retried. '
                         'Includes sample id mem, wallclock time, core hours '
                         'for tasks with an exit status of zero',
-                        required=True
+                        required=False
+                        )
+    parser.add_argument('--multi',
+                        help='Records for multiple runs are stored in the JSON file with outputInfo.',
+                        required=False,
+                        action='store_true'
+                        )
+    parser.add_argument('--name',
+                        default='nygc_pipeline',
+                        help='Use with the --multi flag to name the output.',
+                        required=False
+                        )
+    parser.add_argument('--manifest',
+                        help='Use with the --multi flag to list outputInfo JSON files '
+                        'outputMetrics.non_retried files and outputMetrics files.',
+                        required=False
                         )
     args_namespace = parser.parse_args()
     return args_namespace.__dict__       
     
 def main():
     args = get_args()
-    results = PlotRuntime(project_id=args['project_id'],
-                          output_info_file=args['output_info'],
-                          metrics_file=args['metrics'],
-                          non_retry_metrics_file=args['non_retry_metrics'],
-                          plot_file=args['plot'],)
+    if args['multi']:
+        results = PlotRuntime(project_id=args['name'],
+                              manifest=args['manifest'],
+                              plot_file=args['plot'])
+    else:
+        results = PlotRuntime(project_id=args['name'],
+                              output_info_file=args['output_info'],
+                              metrics_file=args['metrics'],
+                              non_retry_metrics_file=args['non_retry_metrics'],
+                              plot_file=args['plot'])
     make_files(results, appendix=False)
     
     
