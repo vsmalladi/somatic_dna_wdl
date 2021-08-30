@@ -17,11 +17,10 @@ class Runtime():
     def __init__(self,
                  output_info,
                  limit=10000,
+                 gcp_project=False,
                  metrics_file=False):
         self.output_info = output_info
         if not metrics_file:
-            print( output_info['workflow_uuid'])
-            print(output_info["project_data"]['project'])
             self.metrics_file = output_info["project_data"]['project'].replace(' ', '_') + '.' +  output_info['workflow_uuid'] + '_outputMetrics.csv'
         else:
             self.metrics_file = metrics_file
@@ -30,6 +29,8 @@ class Runtime():
         self.metrics_limit = str(limit * 4)
         # login
         self.credentials, self.gcp_project = make_auth.login()
+        if gcp_project:
+            self.gcp_project = gcp_project
         self.sub_workflow_uuids = self.load_sub_workflow_uuids()
         self.run_date = self.get_rundate()
         self.get_sample_info()
@@ -386,6 +387,12 @@ def get_args():
                         help='Use with the --multi flag to list outputInfo JSON files.',
                         required=False
                         )
+    parser.add_argument('--gcp-project',
+                        help='GCP project id if this is not the set project '
+                        'assumes you have read only access',
+                        default=False,
+                        required=False
+                        )
     args_namespace = parser.parse_args()
     return args_namespace.__dict__
 
@@ -397,7 +404,8 @@ def main():
     if args['multi']:
         with open(args['manifest']) as manifest:
             for line in manifest:
-                output_infos.append(Runtime.read(line.strip()))
+                output_infos.append(Runtime.read(line.strip(),
+                                                 args['gcp_project']))
                 manifest_files.append(line.strip())
     else:
         output_info = Runtime.read(args['output_info_file'])

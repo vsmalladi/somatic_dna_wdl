@@ -42,12 +42,13 @@ print_usage() {
   exit 1
 }
 
-while getopts 'u:p:d:r:h' flag; do
+while getopts 'u:p:d:r:g:h' flag; do
   case "${flag}" in
     u) url="${OPTARG}" ;;
     p) project_id="${OPTARG}" ;;
     r) run_info_json="${OPTARG}" ;;
     d) log_dir="${OPTARG}" ;;
+    g) gcp_project="${OPTARG}" ;;
     h) print_help ;;
     \?) print_usage; echo "Unknown option: $OPTARG" >&2 ;;
     *) print_usage; echo "Unimplemented option: $OPTARG" >&2 ;;
@@ -91,27 +92,46 @@ md="${log_dir}/${project_id}_outputMetrics.md"
 html="${log_dir}/${project_id}_outputMetrics.html"
 header="${log_dir}/${project_id}_outputMetrics.header.txt"
 
+echo "TEST: $gcp_project"
 
+if [ -z "$gcp_project" ]; then
 echo "Collect subworkflow uuids..."
-time python ${wdl_dir}/tools/collect.py \
---multi \
---name ${project_id} \
---run-data ${run_info_json} \
---url ${url}
-
-
-echo "Gather usage metrics..."
-time python ${wdl_dir}/tools/runtime.py \
+    time python ${wdl_dir}/tools/collect.py \
     --multi \
     --name ${project_id} \
-    --manifest ${output_info_manifest}
+    --run-data ${run_info_json} \
+    --url ${url}
+else
+    time python ${wdl_dir}/tools/collect.py \
+    --multi \
+    --name ${project_id} \
+    --run-data ${run_info_json} \
+    --url ${url} \
+    --gcp-project ${gcp_project}
+fi
+
+
+if [ -z "$gcp_project" ]; then
+    echo "Gather usage metrics..."
+    time python ${wdl_dir}/tools/runtime.py \
+        --multi \
+        --name ${project_id} \
+        --manifest ${output_info_manifest}
+else
+    echo "Gather usage metrics..."
+    time python ${wdl_dir}/tools/runtime.py \
+        --multi \
+        --name ${project_id} \
+        --manifest ${output_info_manifest} \
+        --gcp-project ${gcp_project}
+fi
 
 echo "Plot usage metrics..." 
 python ${wdl_dir}/tools/plot_runtime.py \
     --name ${project_id} \
     --manifest ${metrics_info_manifest} \
     --multi \
-    --plot ${plot_file} 
+    --plot ${plot_file}
 
     
 time bash ${wdl_dir}/tools/html_printer.sh \

@@ -19,10 +19,11 @@ print_usage() {
 }
 
 
-while getopts 'u:w:h' flag; do
+while getopts 'u:w:g:h' flag; do
   case "${flag}" in
     u) url="${OPTARG}" ;;
     w) uuid="${OPTARG}" ;;
+    g) gcp_project="${OPTARG}" ;;
     h) print_help ;;
     \?) print_usage; echo "Unknown option: $OPTARG" >&2 ;;
     :) print_usage; echo "Missing option argument for option: $OPTARG" >&2 ;;
@@ -45,9 +46,16 @@ fi
 set -e
 set -o pipefail
 
-
-cromwell-tools metadata --url ${url} \
---username $(gcloud secrets versions access latest --secret="cromwell_username") \
---password $(gcloud secrets versions access latest --secret="cromwell_password") \
---uuid ${uuid} \
-| jq ".outputs"
+if [ -z "$gcp_project" ]; then
+    cromwell-tools metadata --url ${url} \
+    --username $(gcloud secrets versions access latest --secret="cromwell_username") \
+    --password $(gcloud secrets versions access latest --secret="cromwell_password") \
+    --uuid ${uuid} \
+    | jq ".outputs"
+else
+    cromwell-tools metadata --url ${url} \
+    --username $(gcloud secrets versions access latest --project=${gcp_project} --secret="readonly_cromwell_username") \
+    --password $(gcloud secrets versions access latest --project=${gcp_project} --secret="readonly_cromwell_password") \
+    --uuid ${uuid} \
+    | jq ".outputs"
+fi

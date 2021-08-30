@@ -179,7 +179,8 @@ for arg in "$@"; do
         print_help
         shift # Remove --initialize from processing
         ;;
-        
+        \?) print_usage; echo "Unknown option: $OPTARG" >&2 ;;
+        *) print_usage; echo "Unimplemented option: $OPTARG" >&2 ;;
     esac
 done
         

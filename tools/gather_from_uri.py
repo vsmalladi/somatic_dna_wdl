@@ -21,17 +21,16 @@ log.basicConfig(format='%(levelname)s:  %(message)s', level=log.INFO)
         
 class Gather():
     '''Load rundata from file and confirm project data schema '''
-    def __init__(self, uris_file, options_file, run_date,
+    def __init__(self, uris_file, options_file,
                  project_id,
                  library,
                  genome,
-                 run_days,
                  pairs_file=False, 
                  samples_file=False):
         self.library = library
         self.genome = genome
+        self.project_id = project_id
         self.uris = pd.read_csv(uris_file, header=None, names=['uri'])
-        self.run_date = run_date
         self.options = self.read(options_file)
         if pairs_file:
             self.pairs, self.full_pairs = meta.load_pairs(pairs_file)
@@ -56,29 +55,37 @@ class Gather():
         return id
     
     def get_from_id(self, id, field='pairId'):
+        '''Match probable id to id name options'''
         match = self.pairs[(self.pairs.tumor == id) | (self.pairs.normal == id) | (self.pairs.pairId == id)]
         return match[field].tolist()[0]
+    
+    def get_project_data(self, row):
+        project_data = {}
+        if self.sample_ids:
+            project_data['listOfPairRelationships'] = {}
+            project_data['sampleIds'] = [row.id]
+            project_data['options'] = self.options
+        else:
+            project_data['tumors'] = [self.get_from_id(row.id, field='tumor')]
+            project_data['normals'] = [self.get_from_id(row.id, field='normal')]
+            project_data['pairId'] = [self.get_from_id(row.id, field='pairId')]
+            project_data['listOfPairRelationships'] = [{'tumor': project_data['tumors'][0],
+                                                       'normal' : project_data['normals'][0],
+                                                       'pairId' : project_data['pairId'][0]}]
+            project_data['sampleIds'] = [project_data['tumors'][0],
+                                         project_data['normals'][0]]
+            project_data['options'] = self.options
+            project_data['library'] = self.library
+            project_data['genome'] = self.genome
+            project_data['project'] = self.project_id
+            return project_data
+        
         
     def compile(self):
         self.uris['workflow_uuid'] = self.uris.apply(lambda row: self.get_uuid(row.uri), axis=1)
         self.uris['id'] = self.uris.apply(lambda row: self.get_id(row.uri), axis=1)
-        if self.sample_ids:
-            self.uris['sample_id'] = self.uris['id'].copy()
-            self.uris['listOfPairRelationships'] = self.uris.apply(lambda row: {}, axis=1)
-            self.uris['sampleIds'] = self.uris.apply(lambda row: [row.id], axis=1)
-            self.uris['options'] = self.uris.apply(lambda row: self.options, axis=1)
-        else:
-            self.uris['tumor'] = self.uris.apply(lambda row: self.get_from_id(row.id, field='tumor'), axis=1)
-            self.uris['normal'] = self.uris.apply(lambda row: self.get_from_id(row.id, field='normal'), axis=1)
-            self.uris['pairId'] = self.uris.apply(lambda row: self.get_from_id(row.id, field='pairId'), axis=1)
-            self.uris['listOfPairRelationships'] = self.uris.apply(lambda row: {'tumor': row.tumor, 
-                                                                                'normal' : row.normal, 
-                                                                                'pairId' : row.pairId}, axis=1)
-            self.uris['sampleIds'] = self.uris.apply(lambda row: [row.tumor, row.normal], axis=1)
-            self.uris['options'] = self.uris.apply(lambda row: self.options, axis=1)
-        self.uris['library'] = self.library
-        self.uris['genome'] = self.genome
-        self.uris = self.uris[['workflow_uuid', 'listOfPairRelationships', 'sampleIds', 'options', 'library', 'genome']]
+        self.uris['project_data'] = self.uris.apply(lambda row: self.get_project_data(row), axis=1)
+        self.uris = self.uris[['workflow_uuid', 'project_data']]
         run_info_json = self.uris.to_json(orient='records')
         self.run_info_json = json.loads(run_info_json)
         
@@ -89,7 +96,6 @@ class Gather():
 def main():
     args = get_args()
     run_data = Gather(uris_file=args['uris'],
-                      run_date=args['run_date'],
                       project_id=args['project_id'],
                       options_file=args['options'],
                       pairs_file=args['pairs_file'],
@@ -113,11 +119,6 @@ def get_args():
                         )
     parser.add_argument('--project-id',
                         help='Overall project name (research project rather than GCP project).',
-                        required=True
-                        )
-    parser.add_argument('--run-date',
-                        help='Start of first run. '
-                        'YYYY-MM-DD-hh-mm-ss',
                         required=True
                         )
     parser.add_argument('--pairs-file',

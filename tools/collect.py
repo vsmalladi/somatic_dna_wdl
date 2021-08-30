@@ -232,20 +232,21 @@ class JsonModify():
                     
                     
 class CloudOutput():
-    def __init__(self, run_data, url):
+    def __init__(self, run_data, url, gcp_project):
         self.parent_dir = os.path.abspath(os.path.dirname(__file__))
         self.url = url
         self.run_data = run_data
         self.options = run_data.options
+        self.gcp_project = gcp_project
         self.workflow_uuid = self.run_data.workflow_uuid
         # get root dir
         self.root_dir = self.read_api(goal='get_root')
         # fast get calls from API to search for uuids
         self.uri_list = self.list_uris()
-        if len(self.uri_list) == 0:
-            # slow get uris from bucket directory
-            log.warning('Slow uri lookup beginning')
-            self.uri_list = self.list_project()
+#         if len(self.uri_list) == 0:
+#             # slow get uris from bucket directory
+#             log.warning('Slow uri lookup beginning')
+#             self.uri_list = self.list_project()
         # get API outputs section
         self.raw_outputs = self.read_api()
         # get files (named and unnamed) from API outputs section
@@ -260,6 +261,10 @@ class CloudOutput():
             log.warning('No output files created')
             sys.exit(0)
         self.divide_uuid_by_id()
+        # Add in if needed
+        if not 'run_date' in self.run_data.project_info:
+            run_date = self.get_run_date()
+            self.run_data.project_info['run_date'] = run_date
         self.run_data.run_info['run_date'] = self.run_data.project_info['run_date']
         self.run_data.run_info['pair_association'] = self.pair_association
         self.run_data.run_info['sample_association'] = self.sample_association
@@ -378,6 +383,15 @@ class CloudOutput():
         unnamed_files = list(set(all_files).difference(set(self.named_files)))
         return unnamed_files
     
+    def get_run_date(self):
+        '''
+        Get all top level sub workflow uuids
+        '''
+        run_date = self.read_api(goal='get_run_date')
+        run_date = run_date.replace('"', '').split('T')[0]
+        return run_date
+        
+    
     def list_uris(self):
         '''
         Get all top level sub workflow uuids
@@ -391,7 +405,8 @@ class CloudOutput():
                         uri = string
                         self.uri_list.append(uri)
                     elif string.startswith("gs://"):
-                        log.warning('potential skipped uri : ' + string)
+                        pass
+                        #log.warning('potential skipped uri : ' + string)
         self.uri_list = list(set(self.uri_list))
         return list(set(self.uri_list))
     
@@ -439,16 +454,28 @@ class CloudOutput():
                 and not file.endswith('/')]
                     
     def read_api(self, goal='get_outputs'):
-        if goal == 'get_outputs':
+        if goal == 'get_run_date':
+            script = self.parent_dir + '/get_run_date.sh'
+        elif goal == 'get_outputs':
             script = self.parent_dir + '/get_outputs.sh'
-        if goal == 'get_root':
+        elif goal == 'get_root':
             script = self.parent_dir + '/get_root.sh'
-        if goal == 'get_uuids':
+        elif goal == 'get_uuids':
             script = self.parent_dir + '/get_uuids.sh'
+        else:
+            log.error("unknown read_api task: " + str(goal))
+            sys.exit(1)
+        if not self.gcp_project:
+            args = ['bash', script,
+                    '-u', self.url,
+                    '-w', self.workflow_uuid]
+        else:
+            args = ['bash', script,
+                    '-u', self.url,
+                    '-w', self.workflow_uuid,
+                    '-g', self.gcp_project]
         try:
-            result = subprocess.run(['bash', script,
-                                     '-u', self.url,
-                                     '-w', self.workflow_uuid],
+            result = subprocess.run(args,
                                     check=True,
                                     stdout=subprocess.PIPE).stdout.decode('utf-8')
         except subprocess.CalledProcessError as err:
@@ -461,16 +488,13 @@ class CloudOutput():
         
 class RunData():
     '''Load rundata from file and confirm project data schema '''
-    def __init__(self, run_info, run_info_file):
+    def __init__(self, run_info):
         self.run_info = run_info
         self.options = self.run_info['project_data']['options']
         self.project_info = self.run_info['project_data']
-        if not 'run_date' in self.project_info:
-            # retire once old runs are described
-            run_date = run_info_file.split('.')[-3:-2][0]
-            self.project_info['run_date'] = run_date
         self.passed = meta.test_schema(self.project_info)
         self.workflow_uuid = self.run_info['workflow_uuid']
+        
     
     @staticmethod
     def read(file):
@@ -504,6 +528,12 @@ def get_args():
                         help='URL for cromwell server.',
                         required=True
                         )
+    parser.add_argument('--gcp-project',
+                        help='GCP project id if this is not the set project '
+                        'assumes you have read only access',
+                        default=False,
+                        required=False
+                        )
     args_namespace = parser.parse_args()
     return args_namespace.__dict__
 
@@ -515,9 +545,10 @@ def main():
         run_infos = [run_infos]
     output_files = []
     for run_info in run_infos:
-        run_data = RunData(run_info=run_info,
-                           run_info_file=args['run_data'])
-        outputs = CloudOutput(run_data=run_data, url=args['url'])
+        run_data = RunData(run_info=run_info)
+        outputs = CloudOutput(run_data=run_data, 
+                              url=args['url'],
+                              gcp_project=args['gcp_project'])
         file_out = outputs.run_data.run_info["project_data"]['project'].replace(' ', '_') + '.' +  run_data.run_info['workflow_uuid'] + '_outputInfo.json'
         output_files.append(file_out)
         with open(file_out, 'w') as project_info_file:
