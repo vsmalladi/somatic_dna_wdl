@@ -37,7 +37,7 @@ task NovosortMarkDup {
         memory : mem + " GB"
         docker :  "gcr.io/nygc-compbio/novosort:v1.03.01"
         # Per clinical team novosort runs significantly faster with SSD
-        disks: "local-disk " + diskSize + " SSD"
+        disks: "local-disk " + diskSize + " LOCAL"
     }
 }
 
