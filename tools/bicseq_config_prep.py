@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import os
 from google.cloud import storage
-
+import make_auth
 
 class Bicseq2Prep():
     ''''Prep the non-sample-specific and non-filesystem-specific 
@@ -20,6 +20,7 @@ class Bicseq2Prep():
         self.inputs = {}
         self.inputs['coordReadLength'] = self.read_length
         self.inputs['readLength'] = read_length
+        self.credentials, self.gcp_project = make_auth.login()
         self.write_sample_configs()
         self.write_pair_config()
         
@@ -48,7 +49,8 @@ class Bicseq2Prep():
     def upload(self, file, config):
         '''upload file content (as a string) with a given filename'''
         bucket_id, project_id, name = self.parse_url(self.upload_bucket_uri)
-        client = storage.Client()
+        client = storage.Client(credentials=self.credentials,
+                                project=self.gcp_project)
         bucket = client.get_bucket(bucket_id)
         blob = bucket.blob(file)
         blob.upload_from_string(config)
