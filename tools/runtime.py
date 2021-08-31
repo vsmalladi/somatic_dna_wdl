@@ -8,6 +8,7 @@ import pandas as pd
 import Colorer
 import make_auth
 import argparse
+import os 
 
 pd.set_option('display.max_columns', 500)
 log.basicConfig(format='%(levelname)s:  %(message)s', level=log.INFO)
@@ -24,44 +25,53 @@ class Runtime():
             self.metrics_file = output_info["project_data"]['project'].replace(' ', '_') + '.' +  output_info['workflow_uuid'] + '_outputMetrics.csv'
         else:
             self.metrics_file = metrics_file
-        # find relevant project info
-        self.limit = str(limit)
-        self.metrics_limit = str(limit * 4)
-        # login
-        self.credentials, self.gcp_project = make_auth.login()
-        if gcp_project:
-            self.gcp_project = gcp_project
-        self.sub_workflow_uuids = self.load_sub_workflow_uuids()
-        self.run_date = self.get_rundate()
-        self.get_sample_info()
-        # gather big cloud tables
-        self.bqclient = bigquery.Client(project=self.gcp_project , 
-                                        credentials=self.credentials)
-        self.bqstorageclient = bigquery_storage.BigQueryReadClient(credentials=self.credentials)
-        self.load_metadata()
-        self.load_runtime()
-        self.load_metrics()
-        hashable = ['instance_name', 'workflow_id', 'attempt']
-        self.metadata = self.metadata.drop_duplicates(subset=hashable)
-        self.instance_id_map = self.get_max_mems(self.metadata, 
-                                                 instance_id_map=self.instance_id_map, 
-                                                 execution_status=False,
-                                                 metrics_key='mem_used_gb')
-        self.non_retry_instance_id_map = self.get_max_mems(self.metadata, 
-                                                           instance_id_map=self.non_retry_instance_id_map, 
-                                                           execution_status='Done',
-                                                           metrics_key='mem_used_gb')
-        self.non_retry_metadata = self.metadata[self.metadata.execution_status == 'Done'].copy()
-        if self.metadata[self.metadata.execution_status != 'RUNNING'].empty:
-            self.metadata.to_csv(self.metrics_file, index=False)
+        self.non_retried_metrics_file = self.metrics_file.replace('.csv', '.non_retried.csv')
+        if os.path.isfile(self.metrics_file):
+            self.loaded = True
         else:
-            self.metadata = self.load_plot_metrics(self.metadata,
-                                                   instance_id_map=self.instance_id_map)
-            self.non_retry_metadata = self.load_plot_metrics(self.non_retry_metadata,
-                                                             instance_id_map=self.non_retry_instance_id_map)
-            self.metadata.to_csv(self.metrics_file, index=False)
-            self.non_retried_metrics_file = self.metrics_file.replace('.csv', '.non_retried.csv')
-            self.non_retry_metadata.to_csv(self.non_retried_metrics_file, index=False)
+            # find relevant project info
+            self.limit = str(limit)
+            self.metrics_limit = str(limit * 4)
+            # login
+            self.credentials, self.gcp_project = make_auth.login()
+            if gcp_project:
+                self.gcp_query_project = gcp_project
+            else:
+                self.gcp_query_project = self.gcp_project
+            self.sub_workflow_uuids = self.load_sub_workflow_uuids()
+            self.run_date = self.get_rundate()
+            self.get_sample_info()
+            # gather big cloud tables
+            self.bqclient = bigquery.Client(project=self.gcp_project , 
+                                            credentials=self.credentials)
+            self.bqstorageclient = bigquery_storage.BigQueryReadClient(credentials=self.credentials)
+            self.loaded = self.load_metadata()
+            if not self.loaded:
+                print(self.metadata.head())
+                log.warning('No endtime found for workflow: ' + output_info['workflow_uuid'])
+            else:
+                self.load_runtime()
+                self.load_metrics()
+                hashable = ['instance_name', 'workflow_id', 'attempt']
+                self.metadata = self.metadata.drop_duplicates(subset=hashable)
+                self.instance_id_map = self.get_max_mems(self.metadata, 
+                                                         instance_id_map=self.instance_id_map, 
+                                                         execution_status=False,
+                                                         metrics_key='mem_used_gb')
+                self.non_retry_instance_id_map = self.get_max_mems(self.metadata, 
+                                                                   instance_id_map=self.non_retry_instance_id_map, 
+                                                                   execution_status='Done',
+                                                                   metrics_key='mem_used_gb')
+                self.non_retry_metadata = self.metadata[self.metadata.execution_status == 'Done'].copy()
+                if self.metadata[self.metadata.execution_status != 'RUNNING'].empty:
+                    self.metadata.to_csv(self.metrics_file, index=False)
+                else:
+                    self.metadata = self.load_plot_metrics(self.metadata,
+                                                           instance_id_map=self.instance_id_map)
+                    self.non_retry_metadata = self.load_plot_metrics(self.non_retry_metadata,
+                                                                     instance_id_map=self.non_retry_instance_id_map)
+                    self.metadata.to_csv(self.metrics_file, index=False)
+                    self.non_retry_metadata.to_csv(self.non_retried_metrics_file, index=False)
         
     @staticmethod
     def read(file):
@@ -237,7 +247,10 @@ class Runtime():
         return metadata
     
     def load_end_date(self, date_record):
-        return date_record.strftime(format='%Y-%m-%d')      
+        try:
+            return date_record.strftime(format='%Y-%m-%d')
+        except ValueError:
+            return False     
 
     def modify_date(self, run_date):
         return '-'.join(run_date.split('-')[0:3])
@@ -266,7 +279,7 @@ class Runtime():
         sub_workflow_uuid_list = self.format_sub_workflow(self.sub_workflow_uuids.sub_workflow_uuid.unique())
         
         query_string = '''
-        SELECT * FROM `''' + self.gcp_project + '''.cromwell_monitoring.metadata`
+        SELECT * FROM `''' + self.gcp_query_project + '''.cromwell_monitoring.metadata`
             WHERE DATE(start_time) >= "''' + self.run_date + '''"
             AND workflow_id IN ''' + sub_workflow_uuid_list
             
@@ -279,6 +292,8 @@ class Runtime():
             .to_dataframe(bqstorage_client=self.bqstorageclient)
         )
         self.end_date = self.load_end_date(self.metadata.end_time.max())
+        if not self.end_date:
+            return False
         sub_workflow_uuid_sample_map = self.sub_workflow_uuids.copy()
         sub_workflow_uuid_sample_map.columns = ['workflow_id', 'id']
         sub_workflow_uuid_sample_map = sub_workflow_uuid_sample_map.drop_duplicates().copy()
@@ -288,6 +303,7 @@ class Runtime():
         hashable = ['instance_name', 'workflow_id', 'attempt']
         self.metadata = self.metadata.drop_duplicates(subset=hashable)
         self.metadata = self.metadata.merge(sub_workflow_uuid_sample_map, on='workflow_id')
+        return True
         
     def load_runtime(self):
         '''convert big query runtime table into pandas dataframe
@@ -296,7 +312,7 @@ class Runtime():
         '''
         log.info('Loading Runtime...')
         query_string = '''
-        SELECT * FROM `''' + self.gcp_project + '''.cromwell_monitoring.runtime`
+        SELECT * FROM `''' + self.gcp_query_project + '''.cromwell_monitoring.runtime`
             WHERE DATE(start_time) >= "''' + self.run_date + '''"
             AND DATE(start_time) <= "''' + self.end_date + '''"
             LIMIT ''' + self.limit + '''
@@ -339,7 +355,7 @@ class Runtime():
         instance_id_list = self.format_instance_id()
         
         query_string = '''
-        SELECT * FROM `''' + self.gcp_project + '''.cromwell_monitoring.metrics`
+        SELECT * FROM `''' + self.gcp_query_project + '''.cromwell_monitoring.metrics`
             WHERE DATE(timestamp) >= "''' + self.run_date + '''"
             AND DATE(timestamp) <= "''' + self.end_date + '''"
             AND instance_id IN ''' + instance_id_list 
@@ -404,8 +420,7 @@ def main():
     if args['multi']:
         with open(args['manifest']) as manifest:
             for line in manifest:
-                output_infos.append(Runtime.read(line.strip(),
-                                                 args['gcp_project']))
+                output_infos.append(Runtime.read(line.strip()))
                 manifest_files.append(line.strip())
     else:
         output_info = Runtime.read(args['output_info_file'])
@@ -414,9 +429,11 @@ def main():
     metrics = []
     for output_info in output_infos:
         runtime = Runtime(limit=10000,
-                          output_info=output_info)
-        non_retried_metrics.append(runtime.non_retried_metrics_file)
-        metrics.append(runtime.metrics_file)
+                          output_info=output_info,
+                          gcp_project=args['gcp_project'])
+        if runtime.loaded:
+            non_retried_metrics.append(runtime.non_retried_metrics_file)
+            metrics.append(runtime.metrics_file)
     if args['multi']:
         manifest = pd.DataFrame({'non_retried_metrics' : non_retried_metrics,
                                  'metrics' : metrics,

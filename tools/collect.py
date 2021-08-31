@@ -20,7 +20,8 @@ log.basicConfig(format='%(levelname)s:  %(message)s', level=log.INFO)
 
 class JsonModify():
     
-    def __init__(self, inputs, 
+    def __init__(self, inputs,
+                 workflow_uuid, 
                  sample_id=False, 
                  pair_id=False,
                  dir=False,
@@ -41,6 +42,7 @@ class JsonModify():
             Sorts out which objects have names that refer to a pair or sample
         '''
         self.tool = tool
+        self.workflow_uuid = workflow_uuid
         self.sample_id = sample_id
         self.pair_id = pair_id
         self.uri_list = uri_list
@@ -162,8 +164,11 @@ class JsonModify():
         else:
             uri = string
             sub_workflow_uuid = uri.replace('/cacheCopy', '').split('/call-')[-2].split('/')[-1]
-            self.sub_workflow_uuids.append(sub_workflow_uuid)
-        return string
+            if sub_workflow_uuid == self.workflow_uuid:
+                pass
+            else:
+                self.sub_workflow_uuids.append(sub_workflow_uuid)
+                return string
     
     def run_tool(self, subnode):
         '''run the correct tool for the string (subnode)'''
@@ -284,10 +289,12 @@ class CloudOutput():
                 association_object = copy.deepcopy(association[id][object])
                 if pair:
                     skip = JsonModify(inputs={object: association_object},
+                                      workflow_uuid=self.workflow_uuid,
                                       pair_id=id,
                                       tool='skip')
                 if sample:
                     skip = JsonModify(inputs={object: association_object},
+                                      workflow_uuid=self.workflow_uuid,
                                       sample_id=id,
                                       tool='skip')
                 if not skip.skip_obj:
@@ -302,12 +309,14 @@ class CloudOutput():
         pair_ids = list(set([pair_info["pairId"] for pair_info in self.run_data.project_info["listOfPairRelationships"]]))
         for pair_id in pair_ids:
             current_pair_association = JsonModify(inputs=self.named_outputs, 
+                                                    workflow_uuid=self.workflow_uuid,
                                                     all_pair_ids=list(pair_ids),
                                                     pair_id=pair_id,
                                                     tool='match').final_json_obj
             pair_association[pair_id] = current_pair_association
         for sample_id in self.run_data.project_info["sampleIds"]:
             current_sample_association = JsonModify(inputs=self.named_outputs,
+                                                       workflow_uuid=self.workflow_uuid,
                                                        all_sample_ids=self.run_data.project_info["sampleIds"],
                                                        sample_id=sample_id,
                                                        all_pair_ids=list(pair_ids),
@@ -336,27 +345,31 @@ class CloudOutput():
         pair_ids = list(set([pair_info["pairId"] for pair_info in self.run_data.project_info["listOfPairRelationships"]]))
         for pair_id in pair_ids:
             matches = JsonModify(inputs={},
+                                 workflow_uuid=self.workflow_uuid,
                                  uri_list=self.uri_list,
                                  all_pair_ids=list(pair_ids),
                                  pair_id=pair_id,
                                  tool='match').results
             sub_workflow_uuids = JsonModify(inputs={},
-                                    uri_list=matches,
-                                    all_pair_ids=list(pair_ids),
-                                    pair_id=pair_id,
-                                    tool='sub_workflow_uuid').sub_workflow_uuids
+                                            workflow_uuid=self.workflow_uuid,
+                                            uri_list=matches,
+                                            all_pair_ids=list(pair_ids),
+                                            pair_id=pair_id,
+                                            tool='sub_workflow_uuid').sub_workflow_uuids
             self.sub_workflow_uuids[pair_id] = list(set([uuid for uuid in sub_workflow_uuids if uuid]))
         for sample_id in self.run_data.project_info["sampleIds"]:
             matches = JsonModify(inputs={},
+                                 workflow_uuid=self.workflow_uuid,
                                  uri_list=self.uri_list,
                                  all_pair_ids=list(pair_ids),
                                  sample_id=sample_id,
                                  tool='match').results
             sub_workflow_uuids = JsonModify(inputs={},
-                                    uri_list=matches,
-                                    all_pair_ids=list(pair_ids),
-                                    sample_id=sample_id,
-                                    tool='sub_workflow_uuid').sub_workflow_uuids
+                                            workflow_uuid=self.workflow_uuid,
+                                            uri_list=matches,
+                                            all_pair_ids=list(pair_ids),
+                                            sample_id=sample_id,
+                                            tool='sub_workflow_uuid').sub_workflow_uuids
             self.sub_workflow_uuids[sample_id] = list(set([uuid for uuid in sub_workflow_uuids if uuid]))
 
     def out_path(self):
@@ -370,7 +383,8 @@ class CloudOutput():
     def parse_block(self):
         '''get files (named and unnamed) from API outputs section'''
         self.out_dir =  self.out_path()
-        outputs = JsonModify(inputs=self.raw_outputs, 
+        outputs = JsonModify(inputs=self.raw_outputs,
+                             workflow_uuid=self.workflow_uuid,
                              dir=self.out_dir,
                              tool='convert_path')
         self.named_outputs = outputs.final_json_obj
@@ -546,13 +560,14 @@ def main():
     output_files = []
     for run_info in run_infos:
         run_data = RunData(run_info=run_info)
-        outputs = CloudOutput(run_data=run_data, 
-                              url=args['url'],
-                              gcp_project=args['gcp_project'])
-        file_out = outputs.run_data.run_info["project_data"]['project'].replace(' ', '_') + '.' +  run_data.run_info['workflow_uuid'] + '_outputInfo.json'
+        file_out = run_data.run_info["project_data"]['project'].replace(' ', '_') + '.' +  run_data.run_info['workflow_uuid'] + '_outputInfo.json'
         output_files.append(file_out)
-        with open(file_out, 'w') as project_info_file:
-            json.dump(outputs.run_data.run_info, project_info_file, indent=4)
+        if not os.path.isfile(file_out):
+            outputs = CloudOutput(run_data=run_data, 
+                                  url=args['url'],
+                                  gcp_project=args['gcp_project'])
+            with open(file_out, 'w') as project_info_file:
+                json.dump(outputs.run_data.run_info, project_info_file, indent=4)
     if args['multi']:
         with open(args['name'] + '_outputInfoManifest.txt', 'w') as out:
             for file in output_files:

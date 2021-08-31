@@ -92,7 +92,6 @@ md="${log_dir}/${project_id}_outputMetrics.md"
 html="${log_dir}/${project_id}_outputMetrics.html"
 header="${log_dir}/${project_id}_outputMetrics.header.txt"
 
-echo "TEST: $gcp_project"
 
 if [ -z "$gcp_project" ]; then
 echo "Collect subworkflow uuids..."
@@ -125,6 +124,7 @@ else
         --manifest ${output_info_manifest} \
         --gcp-project ${gcp_project}
 fi
+
 
 echo "Plot usage metrics..." 
 python ${wdl_dir}/tools/plot_runtime.py \
