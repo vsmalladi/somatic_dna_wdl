@@ -427,17 +427,19 @@ def main():
         output_infos = [output_info]
     non_retried_metrics = []
     metrics = []
-    for output_info in output_infos:
+    final_manifest_files = []
+    for i, output_info in enumerate(output_infos):
         runtime = Runtime(limit=10000,
                           output_info=output_info,
                           gcp_project=args['gcp_project'])
         if runtime.loaded:
             non_retried_metrics.append(runtime.non_retried_metrics_file)
             metrics.append(runtime.metrics_file)
+            final_manifest_files.append(manifest_files[i])
     if args['multi']:
         manifest = pd.DataFrame({'non_retried_metrics' : non_retried_metrics,
                                  'metrics' : metrics,
-                                 'output_info' : manifest_files})
+                                 'output_info' : final_manifest_files})
         manifest.to_csv(args['name'] + '_MetricsInfoManifest.csv', index=False)
     
 
