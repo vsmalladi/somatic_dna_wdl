@@ -64,19 +64,20 @@ In addition to submitting the command, this will create an output file that you 
 wdl_port/run.sh -h
 USAGE: run.sh [-h] --options OPTIONS --wdl-file WDL_FILE
                --url URL --log-dir LOG_DIR
-               --project PROJECT 
+               --project PROJECT
                [--library {WGS,Exome}]
-               [--genome {Human_GRCh38_full_analysis_set_plus_decoy_hla}]
+               [--genome {Human_GRCh38_full_analysis_set_plus_decoy_hla, Human_GRCh38_tcga}]
+               [--read-length READ_LENGTH]
                [--pairs-file PAIRS_FILE]
                [--samples-file SAMPLES_FILE]
                [--interval-list {SureSelect_V6plusCOSMIC.target.GRCh38_full_analysis_set_plus_decoy_hla}]
                [--custom-inputs [CUSTOM_INPUTS [CUSTOM_INPUTS ...]]]
                [--skip-validate]
+               [--dry-run]
 DESCRIPTION: validate workflow, create input json and submit workflow to cromwell.
 Script requires jq, cromwell-tools, gcloud to be in the path.
 Script shows submission command and command to check status
 in the STDERR stream.
-
 -h, --help            show this help message and exit
   --url URL             Cromwell server URL (required)
   --log-dir LOG_DIR     Output directory for all logs and reports
@@ -89,14 +90,16 @@ in the STDERR stream.
   --genome {Human_GRCh38_full_analysis_set_plus_decoy_hla}
                         Genome key to use for pipeline.
   --project PROJECT     Project name associated with account.
+  --read-length READ_LENGTH     Required only for steps like BiqSeq2 that
+                        use read_length as input.
   --pairs-file PAIRS_FILE
                         JSON file with items that are required to have
-                        \"tumor\", \"normal\" sample_ids defined.
+                        "tumor", "normal" sample_ids defined.
   --samples-file [SAMPLES_FILE]
                         Not generally required. If steps run only require
                         sample_id and do not use pairing information sample
                         info can be populated with a CSV file. The CSV file
-                        requires a columns named [\"sampleId\"].
+                        requires a columns named ["sampleId"].
   --interval-list {SureSelect_V6plusCOSMIC.target.GRCh38_full_analysis_set_plus_decoy_hla}
                         File basename for interval list.If not supplied the
                         default (the SureSelect interval list for your genome)
@@ -114,6 +117,7 @@ in the STDERR stream.
                         instances and run without checking. Test a small pairs
                         file to ensure all references exist and at least some
                         sample input files can be read by the current user.
+  --dry-run             Skip the step where the job is submitted to cromwell-tools.
 ```
 
 Command
@@ -192,6 +196,9 @@ the file includes the following metrics calculated from the BigQuery cromwell mo
     'sample_subworkflow_core_h', 'sample_subworkflow_run_time_h', 
     'subworkflow_max_mem_g', 'sample_workflow_core_h', 
     'sample_workflow_run_time_h', 'workflow_max_mem_g'
+    
+`${lab_quote_number}<WORKFLOW_UUID>_outputMetrics.html`
+This file includes plots of runtime metrics.
   
   
 
@@ -211,11 +218,11 @@ Use a [style guide](https://biowdl.github.io/styleGuidelines.html) to write you 
 # modified or in-house files
 gsutil cp \
 ${file} \
-gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/
+gs://${resources_project}/GRCh38_full_analysis_set_plus_decoy_hla/internal/
 # external reference files
 gsutil cp \
 ${file} \
-gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/external/
+gs://${resources_project}/GRCh38_full_analysis_set_plus_decoy_hla/external/
 ```
 4. Confirm all workflows are still valid and commit changes
 
@@ -263,17 +270,28 @@ We are in the process of setting up a public issue tracker. In the mean time  pl
 # Release Notes
 <a name="release_notes"></a>
 
-[7.2.0](https://bitbucket.nygenome.org/rest/api/latest/projects/COMPBIO/repos/wdl_port/archive?at=refs%2Ftags%2F7.2.0&format=zip) GDC references:
+[7.3.2](https://bitbucket.nygenome.org/rest/api/latest/projects/COMPBIO/repos/wdl_port/archive?at=refs%2Ftags%2F7.3.2&format=zip) Refactor:
 
-    - add Human_GRCh38_tcga
-    - populate BAMs from a table
-    - restrict to .bai index extensions
-    - add workflow to reheader interval lists for external reference files
+    - allow gridss to run from cache
+    - explicity define boolean for deconstructsigs
+    - split BAF step
+    - decrease grids preprocess mem
+    - update docs
+    - update resource usage scripts
+    
 [7.3.1](https://bitbucket.nygenome.org/rest/api/latest/projects/COMPBIO/repos/wdl_port/archive?at=refs%2Ftags%2F7.3.1&format=zip) Refactor:
 
     - add deconstructsigs
     - get chr6 coordinates from smaller file
     - adjust threads
     - speed up allele counts (chrom splits)
+    
+
+[7.2.0](https://bitbucket.nygenome.org/rest/api/latest/projects/COMPBIO/repos/wdl_port/archive?at=refs%2Ftags%2F7.2.0&format=zip) GDC references:
+
+    - add Human_GRCh38_tcga
+    - populate BAMs from a table
+    - restrict to .bai index extensions
+    - add workflow to reheader interval lists for external reference files
 
 
