@@ -9,6 +9,7 @@ import Colorer
 import make_auth
 import argparse
 import os 
+import numpy as np
 
 pd.set_option('display.max_columns', 500)
 log.basicConfig(format='%(levelname)s:  %(message)s', level=log.INFO)
@@ -47,11 +48,12 @@ class Runtime():
             self.bqstorageclient = bigquery_storage.BigQueryReadClient(credentials=self.credentials)
             self.loaded = self.load_metadata()
             if not self.loaded:
-                print(self.metadata.head())
                 log.warning('No endtime found for workflow: ' + output_info['workflow_uuid'])
             else:
                 self.load_runtime()
+                self.start_instance_maps()
                 self.load_metrics()
+                self.add_to_instance_maps()
                 hashable = ['instance_name', 'workflow_id', 'attempt']
                 self.metadata = self.metadata.drop_duplicates(subset=hashable)
                 self.instance_id_map = self.get_max_mems(self.metadata, 
@@ -157,9 +159,36 @@ class Runtime():
             start_time = start_time_results['min'].tolist()[0]
             runtime = end_time - start_time
         return runtime.total_seconds() / 60.0 / 60.0
+    
+    def get_from_map(self, instance_id_map, row, query):
+        try:
+            instance_id = [instance_id for instance_id in instance_id_map 
+                           if instance_id_map[instance_id]['instance_name'] == row.instance_name][0]
+        except IndexError:
+            return None
+        return instance_id_map[instance_id][query]
         
     def load_plot_metrics(self, metadata, instance_id_map):
-        '''add cpu_time, max_mem, wall_clock, cpu_used_percent, mem_efficiency, mem_used_gb'''
+        '''add cpu_time, max_mem, wall_clock, cpu_used_percent, mem_efficiency, mem_used_gb
+        also add cpu_used_percent", "disk_total_gb",  "disk_used_gb",  "cpu_count",   "cpu_platform", "preemptible"
+        
+        '''
+        metadata['max_cpu_used_percent'] = metadata.apply(lambda row: self.get_from_map(instance_id_map, 
+                                                                                    row, 
+                                                                                    query='max_cpu_used_percent'), axis=1)
+        metadata['disk_total_gb'] = metadata.apply(lambda row: self.get_from_map(instance_id_map, 
+                                                                                    row, 
+                                                                                    query='disk_total_gb'), axis=1)
+        metadata['cpu_count'] = metadata.apply(lambda row: self.get_from_map(instance_id_map, 
+                                                                                    row, 
+                                                                                    query='cpu_count'), axis=1)
+        metadata['cpu_platform'] = metadata.apply(lambda row: self.get_from_map(instance_id_map, 
+                                                                                    row, 
+                                                                                    query='cpu_platform') , axis=1)
+        metadata['preemptible'] = metadata.apply(lambda row: self.get_from_map(instance_id_map, 
+                                                                                    row, 
+                                                                                    query='preemptible'), axis=1)
+   
         # get wallclock
         metadata['start_time'] = pd.to_datetime(metadata.start_time, infer_datetime_format=True)
         metadata['end_time'] = pd.to_datetime(metadata.end_time, infer_datetime_format=True)
@@ -276,12 +305,12 @@ class Runtime():
         '''
         log.info('Loading Metadata...')
         
-        sub_workflow_uuid_list = self.format_sub_workflow(self.sub_workflow_uuids.sub_workflow_uuid.unique())
+        self.sub_workflow_uuid_list = self.format_sub_workflow(self.sub_workflow_uuids.sub_workflow_uuid.unique())
         
         query_string = '''
         SELECT * FROM `''' + self.gcp_query_project + '''.cromwell_monitoring.metadata`
             WHERE DATE(start_time) >= "''' + self.run_date + '''"
-            AND workflow_id IN ''' + sub_workflow_uuid_list
+            AND workflow_id IN ''' + self.sub_workflow_uuid_list
             
 #             + '''"
 #             LIMIT ''' + self.limit + '''
@@ -315,6 +344,7 @@ class Runtime():
         SELECT * FROM `''' + self.gcp_query_project + '''.cromwell_monitoring.runtime`
             WHERE DATE(start_time) >= "''' + self.run_date + '''"
             AND DATE(start_time) <= "''' + self.end_date + '''"
+            AND workflow_id IN ''' + self.sub_workflow_uuid_list + '''
             LIMIT ''' + self.limit + '''
         '''
         runtime = (
@@ -324,25 +354,59 @@ class Runtime():
         )
         sub_workflow_uuids = self.sub_workflow_uuids.sub_workflow_uuid.tolist()
         self.runtime = runtime[runtime.workflow_id.isin(sub_workflow_uuids)].copy()
+        
+    def start_instance_maps(self):
         self.instance_ids = self.runtime.instance_id.unique().tolist()
         self.instance_id_map = {}
         for instance_id in self.instance_ids:
             self.instance_id_map[instance_id] = {}
-            self.instance_id_map[instance_id]['workflow_ids'] = self.runtime[self.runtime.instance_id == instance_id].workflow_id.unique().tolist()
+            self.instance_id_map[instance_id]['workflow_ids'] = self.runtime[self.runtime.instance_id == instance_id].workflow_id.unique().tolist()[0]
             self.instance_id_map[instance_id]['task_call_name'] = self.runtime[self.runtime.instance_id == instance_id].task_call_name.tolist()[0]
+            self.instance_id_map[instance_id]['instance_name'] = self.runtime[(self.runtime.instance_id == instance_id)].instance_name.tolist()[0]
         self.non_retry_instance_id_map = {}
         map = {row.instance_name: row.execution_status for index, row in self.metadata[['instance_name', 'execution_status']].drop_duplicates().iterrows()}
         execution_status_map = {row.instance_id : map[row.instance_name] for index, row in 
                                 self.runtime[['instance_name', 'instance_id']].drop_duplicates().iterrows()}
-        non_retry_instance_ids = [inst for inst in execution_status_map]
-        for instance_id in non_retry_instance_ids:
+        self.non_retry_instance_ids = [inst for inst in execution_status_map]
+        for instance_id in self.non_retry_instance_ids:
             self.non_retry_instance_id_map[instance_id] = {}
-            self.non_retry_instance_id_map[instance_id]['workflow_ids'] = self.runtime[(self.runtime.instance_id == instance_id)].workflow_id.unique().tolist()
+            self.non_retry_instance_id_map[instance_id]['workflow_ids'] = self.runtime[(self.runtime.instance_id == instance_id)].workflow_id.unique().tolist()[0]
             self.non_retry_instance_id_map[instance_id]['task_call_name'] = self.runtime[(self.runtime.instance_id == instance_id)].task_call_name.tolist()[0]
+            self.non_retry_instance_id_map[instance_id]['instance_name'] = self.runtime[(self.runtime.instance_id == instance_id)].instance_name.tolist()[0]
         
     def format_instance_id(self):
         instance_id_list = '(' + ', '.join([str(i) for i in self.instance_ids]) + ')'
         return instance_id_list
+    
+    def get_cpu_used(self, instance_id):
+        metrics_instance = self.metrics[self.metrics.instance_id == instance_id].copy()
+        cpu_used_percents = []
+        for cpu_used_percent_list in metrics_instance.cpu_used_percent.tolist():
+            for cpu_used_percent in cpu_used_percent_list:
+                cpu_used_percents.append(cpu_used_percent)
+        if len(cpu_used_percents) > 0:
+            return max(cpu_used_percents)
+        return np.nan
+    
+    def get_disk_used_gb(self, instance_id):
+        metrics_instance = self.metrics[self.metrics.instance_id == instance_id].copy()
+        disk_used_gbs = []
+        for disk_used_gb_list in metrics_instance.disk_used_gb.tolist():
+            for disk_used_gb in disk_used_gb_list:
+                disk_used_gbs.append(disk_used_gb)
+        if len(disk_used_gbs) > 0:
+            return max(disk_used_gbs)
+        return np.nan
+    
+    def get_disk_total_gb(self, instance_id):
+        runtime_instance = self.runtime[self.runtime.instance_id == instance_id].copy()
+        disk_total_gbs = []
+        for disk_total_gb_list in runtime_instance.disk_total_gb.tolist():
+            for disk_total_gb in disk_total_gb_list:
+                disk_total_gbs.append(disk_total_gb)
+        if len(disk_total_gbs) > 0:
+            return max(disk_total_gbs)
+        return np.nan
     
     def load_metrics(self):
         '''convert big query metrics table into pandas dataframe
@@ -364,6 +428,32 @@ class Runtime():
             .result()
             .to_dataframe(bqstorage_client=self.bqstorageclient)
         )
+        
+    def add_to_instance_maps(self):
+        for instance_id in self.instance_ids:
+            max_cpu_used_percent = self.get_cpu_used(instance_id)
+            disk_used_gb = self.get_disk_used_gb(instance_id)
+            disk_total_gb = self.get_disk_total_gb(instance_id)
+            match = self.runtime[self.runtime.instance_id == instance_id].copy()
+            cpu_count = match.cpu_count.tolist()[0]
+            cpu_platform = match.cpu_platform.tolist()[0]
+            preemptible = match.preemptible.tolist()[0]
+
+            self.instance_id_map[instance_id]['max_cpu_used_percent'] = max_cpu_used_percent
+            self.instance_id_map[instance_id]['disk_used_gb'] = disk_used_gb
+            self.instance_id_map[instance_id]['disk_total_gb'] = disk_total_gb
+            self.instance_id_map[instance_id]['cpu_count'] = cpu_count
+            self.instance_id_map[instance_id]['cpu_platform'] = cpu_platform
+            self.instance_id_map[instance_id]['preemptible'] = preemptible
+            self.instance_id_map[instance_id]['disk_total_gb'] = disk_total_gb
+            if instance_id in self.non_retry_instance_ids:
+                self.non_retry_instance_id_map[instance_id]['max_cpu_used_percent'] = max_cpu_used_percent
+                self.non_retry_instance_id_map[instance_id]['disk_used_gb'] = disk_used_gb
+                self.non_retry_instance_id_map[instance_id]['disk_total_gb'] = disk_total_gb
+                self.non_retry_instance_id_map[instance_id]['cpu_count'] = cpu_count
+                self.non_retry_instance_id_map[instance_id]['cpu_platform'] = cpu_platform
+                self.non_retry_instance_id_map[instance_id]['preemptible'] = preemptible
+                self.non_retry_instance_id_map[instance_id]['disk_total_gb'] = disk_total_gb
 
     def load_sub_workflow_uuids(self):
         sub_workflow_uuids_list = []
@@ -425,11 +515,12 @@ def main():
     else:
         output_info = Runtime.read(args['output_info_file'])
         output_infos = [output_info]
+        manifest_files.append(args['output_info_file'])
     non_retried_metrics = []
     metrics = []
     final_manifest_files = []
     for i, output_info in enumerate(output_infos):
-        runtime = Runtime(limit=10000,
+        runtime = Runtime(limit=100000,
                           output_info=output_info,
                           gcp_project=args['gcp_project'])
         if runtime.loaded:

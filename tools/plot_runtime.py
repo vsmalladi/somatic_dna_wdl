@@ -142,6 +142,7 @@ class PlotRuntime():
     
     def gather_summary(self):
         '''Add details about percent of instances that are preemptible'''
+        self.metadata = self.metadata.dropna(subset=['preemptible'])
         # exit status of non-zero exits
         exit_status = self.metadata[['task_call_name', 
                                      'execution_status']].value_counts().to_frame().reset_index()
