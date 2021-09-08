@@ -15,7 +15,7 @@ task FilterForHetSnps {
         File? germlineVcf
         
         Int memoryGb = 24
-        Int diskSize = (ceil( size(germlineVcf, "GB") )  * 2 ) + 20
+        Int diskSize = (ceil( size(germlineVcf, "GB") )  * 2 )
     }
 
     command {
@@ -47,8 +47,8 @@ task FilterBaf {
         String sampleId
         String knownHetVcfPath = "~{sampleId}.haplotypecaller.gatk.v4.1.8.0.known.het.vcf"
         File hetVcf
-        Int memoryGb = 24
-        Int diskSize = (ceil( size(hetVcf, "GB") )  * 2 ) + 10
+        Int memoryGb = 4
+        Int diskSize = (ceil( size(hetVcf, "GB") )  * 2 )
     }
 
     command {
@@ -79,7 +79,7 @@ task AlleleCounts {
         Bam tumorFinalBam
         String chrom
         
-        Int memoryGb = 24
+        Int memoryGb = 4
         Int diskSize = (ceil( size(knownHetVcf, "GB") )  * 2 ) + ceil( size(tumorFinalBam.bam, "GB")) + ceil( size(normalFinalBam.bam, "GB")) + 10
     }
 
@@ -110,8 +110,8 @@ task CalcBaf {
         String pairName
         String bafTxtPath = "~{pairName}.haplotypecaller.gatk.v4.1.8.0.baf.txt"
         File alleleCountsTxt
-        Int memoryGb = 24
-        Int diskSize = (ceil( size(alleleCountsTxt, "GB") )  * 2 ) + 10
+        Int memoryGb = 4
+        Int diskSize = (ceil( size(alleleCountsTxt, "GB") )  * 2 ) + 1
     }
 
     command {
