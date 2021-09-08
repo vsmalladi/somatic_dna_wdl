@@ -36,8 +36,8 @@ task IndexVcf {
         String vcfCompressedPath = basename(vcfCompressed)
         String vcfIndexedPath = sub(basename(vcfCompressed), "$", ".tbi")
         Int threads = 4
-        Int memoryGb = 24
-        Int diskSize = (ceil( size(vcfCompressed, "GB") )  * 2 ) + 20
+        Int memoryGb = 8
+        Int diskSize = (ceil( size(vcfCompressed, "GB") )  * 2 ) + 4
     }
 
     command {
