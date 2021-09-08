@@ -79,6 +79,8 @@ workflow GermlineAll {
         
         File ensemblEntrez
         String library
+        
+        Boolean highMem = false
     }
 
     scatter (normalSampleBamInfo in normalSampleBamInfos) {
@@ -101,7 +103,8 @@ workflow GermlineAll {
                 whitelist = whitelist,
                 chdWhitelistVcf = chdWhitelistVcf,
                 deepIntronicsVcf = deepIntronicsVcf,
-                clinvarIntronicsVcf = clinvarIntronicsVcf
+                clinvarIntronicsVcf = clinvarIntronicsVcf,
+                highMem = highMem
         }
         
         call germlineAnnotate.GermlineAnnotate as filteredGermlineAnnotate {
