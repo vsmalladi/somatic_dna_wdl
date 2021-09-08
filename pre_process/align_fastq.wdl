@@ -141,10 +141,12 @@ task Fixmate {
         Int diskSize
     }
 
+    Int jvmHeap = mem * 750  # Heap size in Megabytes. mem is in GB. (75% of mem)
+
     command {
         gatk \
         FixMateInformation \
-        --java-options "-Xmx4G -XX:ParallelGCThreads=1" \
+        --java-options "-Xmx~{jvmHeap}m -XX:ParallelGCThreads=1" \
         --MAX_RECORDS_IN_RAM 2000000 \
         --VALIDATION_STRINGENCY SILENT \
         --ADD_MATE_CIGAR true \

@@ -42,11 +42,11 @@ task IndexVcf {
 
     command {
         set -e -o pipefail
-        
+
         cp \
         ~{vcfCompressed} \
         ~{vcfCompressedPath}
-        
+
         gatk \
         IndexFeatureFile \
         --java-options "-XX:ParallelGCThreads=4" \
@@ -56,7 +56,7 @@ task IndexVcf {
 
     output {
         IndexedVcf vcfCompressedIndexed = object {
-                vcf : "~{vcfCompressedPath}", 
+                vcf : "~{vcfCompressedPath}",
                 index : "~{vcfIndexedPath}"
             }
     }
@@ -105,7 +105,7 @@ task MergePrepSupport {
     input {
         String pairName
         File renameMetaVcf
-        String prepCallerVcfPath =  sub(basename(renameMetaVcf), ".rename_metadata.vcf$", ".merge_prep.vcf") 
+        String prepCallerVcfPath =  sub(basename(renameMetaVcf), ".rename_metadata.vcf$", ".merge_prep.vcf")
         String tool
         Int memoryGb = 16
         Int diskSize = (ceil( size(renameMetaVcf, "GB") )  * 2 ) + 4
@@ -325,17 +325,19 @@ task Gatk4MergeSortVcf {
         String sortedVcfPath
         Array[File] tempVcfs
         IndexedReference referenceFa
-        Boolean gzipped = false 
+        Boolean gzipped = false
         String suffix = if gzipped then ".tbi" else ".idx"
         Int threads = 4
         Int memoryGb = 8
         Int diskSize = 10
     }
 
-    command {        
+    Int jvmHeap = memoryGb * 750  # Heap size in Megabytes. mem is in GB. (75% of mem)
+
+    command {
         gatk \
         SortVcf \
-        --java-options "-Xmx8g -XX:ParallelGCThreads=4" \
+        --java-options "-Xmx~{jvmHeap}m -XX:ParallelGCThreads=4" \
         -SD ~{referenceFa.dict} \
         -I ~{sep=" -I " tempVcfs} \
         -O ~{sortedVcfPath}
@@ -343,7 +345,7 @@ task Gatk4MergeSortVcf {
 
     output {
         IndexedVcf sortedVcf = object {
-            vcf : "~{sortedVcfPath}", 
+            vcf : "~{sortedVcfPath}",
             index : "~{sortedVcfPath}~{suffix}"
         }
     }
@@ -470,7 +472,7 @@ task VcfToBed {
 
     command {
         set -e -o pipefail
-        
+
         python \
         /vcf_to_bed.py \
         ~{candidateChromVcf} \
@@ -506,9 +508,9 @@ task LancetConfirm {
 
     command {
         set -e -o pipefail
-        
+
         mkdir ~{chrom}
-        
+
         cd ~{chrom}
 
         lancet \
@@ -757,12 +759,3 @@ task SnvstomnvsCountsbasedfilterAnnotatehighconf {
         docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
     }
 }
-
-
-
-
-
-
-
-
-

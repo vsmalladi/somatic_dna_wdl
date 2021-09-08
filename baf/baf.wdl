@@ -9,19 +9,21 @@ task FilterForHetSnps {
         String sellectionString = "'vc.getGenotype(\"~{sampleId}\").isHet()'"
         IndexedReference referenceFa
         # require file!
-        # marked as optional so that pipeline can be dependent on input that may not 
+        # marked as optional so that pipeline can be dependent on input that may not
         # pass QC
         # do not run with out input file!
         File? germlineVcf
-        
+
         Int memoryGb = 24
         Int diskSize = (ceil( size(germlineVcf, "GB") )  * 2 )
     }
 
+    Int jvmHeap = memoryGb * 750  # Heap size in Megabytes. mem is in GB. (75% of mem)
+
     command {
         gatk \
         SelectVariants \
-        --java-options "-Xmx20g" \
+        --java-options "-Xmx~{jvmHeap}m" \
         -restrict-alleles-to BIALLELIC \
         -select-type SNP \
         -select ~{sellectionString} \
@@ -78,8 +80,8 @@ task AlleleCounts {
         File knownHetVcf
         Bam tumorFinalBam
         String chrom
-        
         Int memoryGb = 4
+
         Int diskSize = (ceil( size(knownHetVcf, "GB") )  * 2 ) + ceil( size(tumorFinalBam.bam, "GB")) + ceil( size(normalFinalBam.bam, "GB")) + 10
     }
 
@@ -131,5 +133,3 @@ task CalcBaf {
         docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
     }
 }
-
-
