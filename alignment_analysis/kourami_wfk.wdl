@@ -8,15 +8,17 @@ workflow Kourami {
         String sampleId
         # mergedHlaPanel
         BwaReference kouramiReference
+        IndexedReference referenceFa
         File kouramiFastaGem1Index
         Bam finalBam
         Int diskSize = ceil( size(finalBam.bam, "GB")) + 20
+        Int refDiskSize = ceil( size(referenceFa.fasta, "GB")) + 1
     }
     
     call alignmentAnalysis.GetChr6Contigs {
         input:
-            finalBam = finalBam,
-            diskSize = diskSize
+            referenceFa = referenceFa,
+            diskSize = refDiskSize
     }
     
     call alignmentAnalysis.GemSelect {
