@@ -10,9 +10,9 @@ task RemoveSpanning {
         String sampleId
         String noSpanningVcfPath = "~{sampleId}.v7.remove_spanning.vep.annotated.vcf"
         File vcfAnnotatedVep
-        Int threads = 16
+        Int threads = 4
         Int memoryGb = 16
-        Int diskSize = ceil( size(vcfAnnotatedVep, "GB") * 2) + 20
+        Int diskSize = ceil( size(vcfAnnotatedVep, "GB") * 2) + 10
     }
 
     command {
@@ -42,7 +42,7 @@ task AddCosmic {
         String vcfAnnotatedCancerGeneCensusPath = "~{pairName}.v7.cosmic_census.vep.annotated.vcf"
         File vcfAnnotatedVep
         File cosmicCensus
-        Int memoryGb = 48
+        Int memoryGb = 2
         Int diskSize = ceil( size(vcfAnnotatedVep, "GB") * 2) + 5
     }
 
@@ -71,7 +71,7 @@ task AddCancerResistanceMutations {
         String vcfAnnotatedResistancePath = "~{pairName}.v7.resistance.vep.annotated.vcf"
         File vcfAnnotatedCancerGeneCensus
         File cancerResistanceMutations
-        Int memoryGb = 48
+        Int memoryGb = 2
         Int diskSize = ceil( size(vcfAnnotatedCancerGeneCensus, "GB") * 2) + ceil( size(cancerResistanceMutations, "GB")) + 5
     }
 
@@ -100,7 +100,7 @@ task AddCancerResistanceMutationsFinal {
         String vcfAnnotatedResistancePath = "~{pairName}.v7.resistance.vep.annotated.vcf"
         File vcfAnnotatedCancerGeneCensus
         File cancerResistanceMutations
-        Int memoryGb = 48
+        Int memoryGb = 2
         Int diskSize = ceil( size(vcfAnnotatedCancerGeneCensus, "GB") * 2) + ceil( size(cancerResistanceMutations, "GB")) + 5
     }
 
@@ -125,7 +125,7 @@ task AddCancerResistanceMutationsFinal {
 
 task AnnotateId {
     input {
-        Int memoryGb = 48
+        Int memoryGb = 2
         String pairName
         String vcfAnnotatedIdPath = "~{pairName}.v7.id.vep.annotated.vcf"
         File vcfAnnotatedResistance
@@ -152,7 +152,7 @@ task AnnotateId {
 
 task RenameCsqVcf {
     input {
-        Int memoryGb = 48
+        Int memoryGb = 2
         String pairName
         String vcfCsqRenamedPath = "~{pairName}.snv.indel.supplemental.v7.annotated.vcf"
         File vcfAnnotatedId
@@ -179,7 +179,7 @@ task RenameCsqVcf {
 
 task MainVcf {
     input {
-        Int memoryGb = 48
+        Int memoryGb = 2
         String pairName
         String mainVcfPath = "~{pairName}.snv.indel.final.v7.annotated.vcf"
         File vcfAnnotated
@@ -206,7 +206,7 @@ task MainVcf {
 
 task TableVcf {
     input {
-        Int memoryGb = 8
+        Int memoryGb = 2
         String pairName
         String vcfAnnotatedTxtPath = "~{pairName}.snv.indel.final.v7.annotated.txt"
         String tumor
@@ -236,7 +236,7 @@ task TableVcf {
 
 task VcfToMaf {
     input {
-        Int memoryGb = 48
+        Int memoryGb = 2
         String pairName
         String mafPath = "~{pairName}.snv.indel.final.v7.annotated.maf"
         String library
@@ -273,7 +273,7 @@ task VcfToMaf {
 
 task annotateBicSeq2Cnv {
     input {
-        Int memoryGb = 80
+        Int memoryGb = 24
         String pairName
         Array[String] listOfChroms
         String tumor
@@ -288,7 +288,7 @@ task annotateBicSeq2Cnv {
         
         String cnvAnnotatedFinalBedPath  = "~{pairName}.cnv.annotated.v7.final.bed"
         String cnvAnnotatedSupplementalBedPath  = "~{pairName}.cnv.annotated.v7.supplemental.bed"
-        Int diskSize = 20
+        Int diskSize = 4
     }
 
     command {
@@ -323,7 +323,7 @@ task annotateBicSeq2Cnv {
 
 task mergeSv {
     input {
-        Int memoryGb = 40
+        Int memoryGb = 4
         String pairName
         Array[String] listOfChroms
         String tumor
@@ -335,7 +335,7 @@ task mergeSv {
         Int slop = 300
         String svMergedFinalBedPePath  = "~{pairName}.sv.merged.v7.final.bedpe"
         String svMergedSupplementalBedPePath  = "~{pairName}.sv.merged.v7.supplemental.bedpe"
-        Int diskSize = 20
+        Int diskSize = 4
         Int minSvLength = 500
 
     }
@@ -369,7 +369,7 @@ task mergeSv {
 
 task annotateSv {
     input {
-        Int memoryGb = 40
+        Int memoryGb = 4
         String pairName
         String tumor
         String normal
@@ -385,7 +385,7 @@ task annotateSv {
         
         File svMergedBedPe
         String svMergedAnnotatedBedPePath  = "~{pairName}.sv.merged.annotated.v7.bedpe"
-        Int diskSize = 20
+        Int diskSize = 4
 
     }
 
@@ -413,7 +413,7 @@ task annotateSv {
 
 task annotateGenesSv {
     input {
-        Int memoryGb = 40
+        Int memoryGb = 4
         String pairName
         String tumor
         String normal
@@ -423,7 +423,7 @@ task annotateGenesSv {
         
         File svMergedAnnotatedFinalBedPe
         String svGeneAnnotatedFinalBedPePath  = "~{pairName}.sv.merged.gene.annotated.v7.bedpe"
-        Int diskSize = 20
+        Int diskSize = 4
 
     }
 
@@ -449,7 +449,7 @@ task annotateGenesSv {
 
 task annotateGenesSvSupplemental {
     input {
-        Int memoryGb = 40
+        Int memoryGb = 4
         String pairName
         String tumor
         String normal
@@ -459,7 +459,7 @@ task annotateGenesSvSupplemental {
         
         File svMergedAnnotatedSupplementalBedPe
         String svGeneAnnotatedSupplementalBedPePath  = "~{pairName}.sv.merged.gene.annotated.v7.supplemental.bedpe"
-        Int diskSize = 20
+        Int diskSize = 4
     }
 
     command {        
@@ -485,7 +485,7 @@ task annotateGenesSvSupplemental {
 
 task annotateWithCnvSv {
     input {
-        Int memoryGb = 40
+        Int memoryGb = 4
         String pairName
         String tumor
         String normal
@@ -494,7 +494,7 @@ task annotateWithCnvSv {
         
         File svGeneAnnotatedBedPe
         String svCnvAnnotatedBedPePath = "~{pairName}.sv.merged.gene.cnv.annotated.v7.bedpe"
-        Int diskSize = 20
+        Int diskSize = 4
     }
 
     command {
@@ -518,13 +518,13 @@ task annotateWithCnvSv {
 
 task filterBedPe {
     input {
-        Int memoryGb = 40
+        Int memoryGb = 4
         String pairName
         
         File svCnvAnnotatedBedPe
         String svBedPePath
         String svHighConfidenceBedPePath
-        Int diskSize = 20
+        Int diskSize = 4
 
     }
 
