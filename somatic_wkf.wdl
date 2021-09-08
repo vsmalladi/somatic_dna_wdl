@@ -198,6 +198,8 @@ workflow SomaticWorkflow {
         
         # signatures
         File cosmicSigs
+        
+        Boolean highMem = false
 
     }
 
@@ -274,7 +276,8 @@ workflow SomaticWorkflow {
                     whitelist=whitelist,
                     chdWhitelistVcf=chdWhitelistVcf,
                     deepIntronicsVcf=deepIntronicsVcf,
-                    clinvarIntronicsVcf=clinvarIntronicsVcf
+                    clinvarIntronicsVcf=clinvarIntronicsVcf,
+                    highMem=highMem
             }
 
             call germlineAnnotate.GermlineAnnotate as filteredGermlineAnnotate {
@@ -469,7 +472,8 @@ workflow SomaticWorkflow {
                     chromFastas = chromFastas,
                     bsGenome = bsGenome,
                     ponTarGz = ponTarGz,
-                    gridssAdditionalReference = gridssAdditionalReference
+                    gridssAdditionalReference = gridssAdditionalReference,
+                    highMem = highMem
             }
 
             call msi.Msi {
@@ -599,28 +603,49 @@ workflow SomaticWorkflow {
                     vepGenomeBuild = vepGenomeBuild
           }
           
+          FinalPairInfo finalPairInfos = object {
+                pairId : pairRelationship.pairId,
+                tumor : pairRelationship.tumor,
+                normal : pairRelationship.normal,
+                mainVcf : Annotate.pairVcfInfo.mainVcf,
+                supplementalVcf : Annotate.pairVcfInfo.supplementalVcf,
+                vcfAnnotatedTxt : Annotate.pairVcfInfo.vcfAnnotatedTxt,
+                maf : Annotate.pairVcfInfo.maf,
+                filteredMantaSV : Calling.filteredMantaSV,
+                strelka2Snv : Calling.strelka2Snv,
+                strelka2Indel : Calling.strelka2Indel,
+                mutect2 : Calling.mutect2,
+                lancet : Calling.lancet,
+                svabaSv : Calling.svabaSv,
+                svabaIndel : Calling.svabaIndel,
+                gridssVcf : Calling.gridssVcf,
+                bicseq2Png : Calling.bicseq2Png,
+                bicseq2 : Calling.bicseq2,
+                cnvAnnotatedFinalBed : AnnotateCnvSv.cnvAnnotatedFinalBed,
+                cnvAnnotatedSupplementalBed : AnnotateCnvSv.cnvAnnotatedSupplementalBed,
+                svFinalBedPe : AnnotateCnvSv.svFinalBedPe,
+                svHighConfidenceFinalBedPe : AnnotateCnvSv.svHighConfidenceFinalBedPe,
+                svSupplementalBedPe : AnnotateCnvSv.svSupplementalBedPe,
+                svHighConfidenceSupplementalBedPe : AnnotateCnvSv.svHighConfidenceSupplementalBedPe,
+                tumorFinalBam : Preprocess.finalBam[tumorGetIndex.index],
+                normalFinalBam : Preprocess.finalBam[normalGetIndex.index]
+        }
+          
       }
 
    }
 
     output {
         # alignment and calling results (calling results may not exist if qc failed)
-        # CNV SV output
-        Array[File?] cnvAnnotatedFinalBed  = AnnotateCnvSv.cnvAnnotatedFinalBed
-        Array[File?] cnvAnnotatedSupplementalBed  = AnnotateCnvSv.cnvAnnotatedSupplementalBed
-        Array[File?] svFinalBedPe = AnnotateCnvSv.svFinalBedPe
-        Array[File?] svHighConfidenceFinalBedPe = AnnotateCnvSv.svHighConfidenceFinalBedPe
-        Array[File?] svSupplementalBedPe = AnnotateCnvSv.svSupplementalBedPe
-        Array[File?] svHighConfidenceSupplementalBedPe = AnnotateCnvSv.svHighConfidenceSupplementalBedPe
-        # SNV INDELs
-        Array[PairVcfInfo?] pairVcfInfos = Annotate.pairVcfInfo
-        Array[File?] mergedVcfs = mergedVcf
-        Array[Bam] finalBams = Preprocess.finalBam
-        Array[PairRawVcfInfo?] pairRawVcfInfos = pairRawVcfInfo
+        # SNV INDELs CNV SV and BAM output
+        Array[FinalPairInfo?] finalPairInfo = finalPairInfos
+        
+        # MSI
         Array[File?] mantisWxsKmerCountsFinal = Msi.mantisWxsKmerCountsFinal
         Array[File?] mantisWxsKmerCountsFiltered = Msi.mantisWxsKmerCountsFiltered
         Array[File?] mantisExomeTxt = Msi.mantisExomeTxt
         Array[File?] mantisStatusFinal = Msi.mantisStatusFinal
+        # SIGs
         Array[File?] sigs = DeconstructSig.sigs
         Array[File?] counts = DeconstructSig.counts
         Array[File?] sig_input = DeconstructSig.sigInput

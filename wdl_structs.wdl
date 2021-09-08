@@ -109,6 +109,30 @@ struct PairVcfInfo {
     File maf
 }
 
+struct FinalVcfPairInfo {
+    String pairId
+    String tumor
+    String normal
+    File mainVcf
+    File supplementalVcf
+    File filteredMantaSV
+    File strelka2Snv
+    File strelka2Indel
+    File mutect2
+    File lancet
+    File svabaSv
+    File svabaIndel
+    File gridssVcf
+    File bicseq2Png
+    File bicseq2
+    File cnvAnnotatedFinalBed
+    File cnvAnnotatedSupplementalBed
+    File svFinalBedPe
+    File svHighConfidenceFinalBedPe
+    File svSupplementalBedPe
+    File svHighConfidenceSupplementalBedPe
+}
+
 struct FinalPairInfo {
     String pairId
     String tumor
@@ -125,6 +149,12 @@ struct FinalPairInfo {
     File gridssVcf
     File bicseq2Png
     File bicseq2
+    File cnvAnnotatedFinalBed
+    File cnvAnnotatedSupplementalBed
+    File svFinalBedPe
+    File svHighConfidenceFinalBedPe
+    File svSupplementalBedPe
+    File svHighConfidenceSupplementalBedPe
     Bam tumorFinalBam
     Bam normalFinalBam
 }
