@@ -5,7 +5,7 @@ import "../wdl_structs.wdl"
 task MultipleMetrics {
     input {
         Int threads = 2
-        Int memoryGb = 40
+        Int memoryGb = 24
         Int diskSize
         IndexedReference referenceFa
         Bam finalBam
@@ -18,7 +18,7 @@ task MultipleMetrics {
         mkdir -p $(dirname ~{MultipleMetricsBase})
 
         gatk CollectMultipleMetrics \
-        --java-options "-Xmx32G -XX:ParallelGCThreads=1" \
+        --java-options "-Xmx16G -XX:ParallelGCThreads=1" \
         --PROGRAM CollectAlignmentSummaryMetrics \
         --PROGRAM CollectInsertSizeMetrics \
         --PROGRAM QualityScoreDistribution \
@@ -53,7 +53,7 @@ task MultipleMetrics {
 task MultipleMetricsPreBqsr {
     input {
         Int threads = 2
-        Int memoryGb = 40
+        Int memoryGb = 16
         Int diskSize
         String outputDir = "."
         String MultipleMetricsBasePreBqsrBasename = "~{outputDir}/~{sampleId}.MultipleMetrics.dedup"
@@ -66,7 +66,7 @@ task MultipleMetricsPreBqsr {
         mkdir -p $(dirname ~{MultipleMetricsBasePreBqsrBasename})
 
         gatk CollectMultipleMetrics \
-        --java-options "-Xmx32G -XX:ParallelGCThreads=1" \
+        --java-options "-Xmx8G -XX:ParallelGCThreads=1" \
         --PROGRAM QualityScoreDistribution \
         --PROGRAM MeanQualityByCycle \
         --PROGRAM CollectGcBiasMetrics \
@@ -95,7 +95,7 @@ task MultipleMetricsPreBqsr {
 task CollectGcBiasMetrics {
     input {
         Int threads = 2
-        Int memoryGb = 32
+        Int memoryGb = 16
         Int diskSize
         String sampleId
         String outputDir = "."
@@ -110,7 +110,7 @@ task CollectGcBiasMetrics {
         mkdir -p $(dirname ~{gcBiasPdfPath})
 
         gatk CollectGcBiasMetrics \
-        --java-options "-Xmx24G -XX:ParallelGCThreads=1" \
+        --java-options "-Xmx8G -XX:ParallelGCThreads=1" \
         --CHART_OUTPUT ~{gcBiasPdfPath} \
         -O ~{gcBiasMetricsPath} \
         -I ~{finalBam.bam} \
@@ -137,7 +137,7 @@ task CollectGcBiasMetrics {
 task Flagstat {
     input {
         Int threads = 2
-        Int memoryGb = 32
+        Int memoryGb = 8
         Int diskSize
         String sampleId
         String outputDir = "."
@@ -150,7 +150,7 @@ task Flagstat {
         mkdir -p $(dirname ~{flagStatPath})
 
         gatk FlagStat \
-        --java-options "-Xmx24G -XX:ParallelGCThreads=1" \
+        --java-options "-Xmx4G -XX:ParallelGCThreads=1" \
         --verbosity INFO \
         --reference ~{referenceFa.fasta} \
         -I ~{finalBam.bam} \
@@ -314,7 +314,7 @@ task CollectOxoGMetricsWgs {
 task CollectWgsMetrics {
     input {
         Int threads = 2
-        Int memoryGb = 32
+        Int memoryGb = 16
         Int diskSize
         String sampleId
         String outputDir = "."
@@ -328,7 +328,7 @@ task CollectWgsMetrics {
         mkdir -p $(dirname ~{collectWgsMetricsPath})
 
         gatk CollectWgsMetrics \
-        --java-options "-Xmx24G -XX:ParallelGCThreads=1" \
+        --java-options "-Xmx14G -XX:ParallelGCThreads=1" \
         --VALIDATION_STRINGENCY SILENT \
         -I ~{inputBam.bam} \
         -O ~{collectWgsMetricsPath} \

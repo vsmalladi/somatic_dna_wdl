@@ -17,8 +17,8 @@ workflow QcMetrics {
         String outputDir = "."
     }
 
-    Int additionalDiskSize = 100
-    Int diskSize = ceil((size(finalBam.bam, "GB") + size(finalBam.bamIndex, "GB")) * 2) +
+    Int additionalDiskSize = 10
+    Int diskSize = ceil((size(finalBam.bam, "GB") + size(finalBam.bamIndex, "GB"))) +
                       additionalDiskSize
 
     call qc.MultipleMetrics {
