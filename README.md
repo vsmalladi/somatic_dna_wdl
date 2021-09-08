@@ -294,4 +294,7 @@ We are in the process of setting up a public issue tracker. In the mean time  pl
     - restrict to .bai index extensions
     - add workflow to reheader interval lists for external reference files
 
+### Contact us 
+<a name="contact_us"></a>
 
+We are in the process of setting up a public issue tracker. In the mean time  please send suggestions, questions or issues to jshelton@nygenome.org

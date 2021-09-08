@@ -89,7 +89,7 @@ task AlignBwaMem {
     runtime {
         cpu : totalThreads
         memory : mem + " GB"
-        disks: "local-disk " + diskSize + " HDD"
+        disks: "local-disk " + diskSize + " LOCAL"
         docker : "gcr.io/nygc-public/bwa-kit:0.7.15"
     }
 }

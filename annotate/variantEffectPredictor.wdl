@@ -116,7 +116,7 @@ task vepSvnIndel {
     runtime {
         cpu : threads
         memory : memoryGb + "GB"
-        disks: "local-disk " + diskSize + " SSD"
+        disks: "local-disk " + diskSize + " LOCAL"
         docker: "ensemblorg/ensembl-vep:release_97.4"
     }
 
@@ -237,7 +237,7 @@ task vepPublicSvnIndel {
     runtime {
         cpu : threads
         memory : memoryGb + "GB"
-        disks: "local-disk " + diskSize + " SSD"
+        disks: "local-disk " + diskSize + " LOCAL"
         docker: "ensemblorg/ensembl-vep:release_97.4"
     }
 
