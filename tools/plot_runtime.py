@@ -17,6 +17,7 @@ from collections import OrderedDict
 #custom
 import compose
 import ploter
+import plotly.graph_objects as go
 
 
 pd.set_option('display.max_columns', 500)
@@ -124,6 +125,26 @@ class PlotRuntime():
                                               'task_call_name' : 'Task'},
                                        title='Workflows: resource usage summary plot',
                                        x_title="Full pipeline")
+        self.fig4, self.fig5, self.fig6 = self.custom_by_steps(data_steps=self.metadata,
+                                                              non_retry_data_steps=self.non_retry_metadata,
+                                                              button=True,                                      
+                                                              x="workflow_name",
+                                                              top_ys=["mem_total_gb", "disk_total_gb", ""],
+                                                              central_ys=["max_mem_g", "disk_used_gb", "sample_task_run_time_h"],
+                                                              color="task_call_name",
+                                                              hover_data=['id'],
+                                                              color_discrete_sequence=self.colors,
+                                                              title='Tasks: resources used vs available',
+                                                              labels={'disk_used_gb' : 'Disk used (G)',
+                                                                      'disk_total_gb' : 'Available disk (G)',
+                                                                      'mem_total_gb' : 'Available mem (G)',
+                                                                      'sample_task_run_time_h' : 'Max Task runtime(h)',
+                                                                      'max_mem_g' : 'Mem (G)',
+                                                                      'sample_task_core_h' : 'Task core hours',
+                                                                      'workflow_name' : 'Sub-workflow',
+                                                                      'task_call_name' : 'Task'},
+                                                              x_title="Pipeline subworkflow")
+    
         
     def set_colors(self):
         self.colors = px.colors.qualitative.Dark24
@@ -223,6 +244,71 @@ class PlotRuntime():
                                                searching=True,
                                                scroll=True)
         return summary_table
+    
+    def custom_by_steps(self, 
+                          data_steps,
+                          non_retry_data_steps,
+                          button=False,
+                          x="workflow_name",
+                          top_ys=["mem_total_gb", "disk_total_gb", ""],
+                          central_ys=["max_mem_g", "disk_used_gb", "sample_task_run_time_h"],
+                          color="task_call_name",
+                          hover_data=['id'],
+                          color_discrete_sequence=False,
+                          title='',
+                          labels={},
+                          x_title="Pipeline subworkflow"):
+        ''' Plot Task disk used vs total dis, Mem vs max mem and stacked barplot of total time taken'''
+        category_orders = {}
+        color_cols = [col for col in [x, color] + top_ys + central_ys if not col == '']
+        data_steps = data_steps.drop_duplicates(subset=color_cols).copy()
+        data_steps['task per id'] = data_steps.apply(lambda row: ' '.join([row[x], row['id']]), axis=1)
+        non_retry_data_steps['task per id'] = non_retry_data_steps.apply(lambda row: ' '.join([row[x], row['id']]), axis=1)
+        for y in central_ys:
+            if y == 'sample_task_run_time_h':
+                grouped = data_steps.groupby(['task per id'])
+                category_orders[y] = grouped[y].agg(['sum']).reset_index().sort_values('sum')['task per id'].unique().tolist()
+            else:
+                grouped = data_steps.groupby(x)
+                category_orders[y] = grouped[y].agg(['max']).reset_index().sort_values('max')[x].unique().tolist()
+        # plot total vs max mem
+        max_color = '#C0FF02'
+        print(data_steps.shape[0])
+        max_colors = [max_color] * data_steps.shape[0]
+        fig1 = px.box(data_steps, x=x, y=central_ys[0], points="all",
+                      hover_data=['id', top_ys[0], central_ys[0]],
+                      color_discrete_sequence=color_discrete_sequence,
+                      labels=labels,
+                      color=color, category_orders=category_orders)
+        fig1.add_trace(go.Scatter(
+            x=data_steps[x], y=data_steps[top_ys[0]],
+            text=data_steps['task_call_name'],
+            mode='markers',
+            marker_color=max_color
+            ))
+        # plot total vs max disk used
+        fig2 = px.box(data_steps, x=x, y=central_ys[1], points="all",
+                      hover_data=['id', top_ys[1], central_ys[1]],
+                      labels=labels,
+                      color_discrete_sequence=color_discrete_sequence,
+                      color=color, category_orders=category_orders)
+        fig2.add_trace(go.Scatter(
+            x=data_steps[x], y=data_steps[top_ys[1]],
+            text=data_steps['task_call_name'],
+            mode='markers',
+            marker_color=max_color
+            ))
+        # plot stacked bar of task persample summed runtime [x, 'id']
+        fig3 = px.bar(data_steps, x='task per id', y=central_ys[2],
+                      hover_data=['id', 'task per id', central_ys[2], 'preemptible'],
+                      labels=labels,
+                      color_discrete_sequence=color_discrete_sequence,
+                      color=color, category_orders=category_orders)
+        fig3.update_traces(marker=dict(line=dict(width=0)))
+        fig3.update_xaxes(tickangle=45)
+        if x.lower() in ['task per id', 'id']:
+            fig.update_xaxes(tickfont={'size' : 5})
+        return ploter.Fig(fig1), ploter.Fig(fig2), ploter.Fig(fig3)
     
     def plot_by_steps(self, 
                       data_steps,
@@ -356,7 +442,7 @@ class PlotRuntime():
             fig.update_xaxes(tickfont={'size' : 5})
         if button:
             fig = self.add_button(fig)
-        return ploter.Fig(fig)
+        return ploter.Fig(fig)  
         
     
 def make_files(results, appendix=False):
@@ -435,7 +521,13 @@ def make_files(results, appendix=False):
         md_content.update_doc(section_header='Task metrics',
                               center_content=all_section_content,
                               figures=[(results.fig.script,
-                                        results.fig.div)])
+                                        results.fig.div),
+                                        (results.fig4.script,
+                                        results.fig4.div),
+                                        (results.fig5.script,
+                                        results.fig5.div),
+                                        (results.fig6.script,
+                                        results.fig6.div)])
         #  =======================
         #  Subworkflow
         #  =======================

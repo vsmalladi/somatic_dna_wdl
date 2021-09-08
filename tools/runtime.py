@@ -179,6 +179,9 @@ class Runtime():
         metadata['disk_total_gb'] = metadata.apply(lambda row: self.get_from_map(instance_id_map, 
                                                                                     row, 
                                                                                     query='disk_total_gb'), axis=1)
+        metadata['disk_used_gb'] = metadata.apply(lambda row: self.get_from_map(instance_id_map, 
+                                                                                    row, 
+                                                                                    query='disk_used_gb'), axis=1)
         metadata['cpu_count'] = metadata.apply(lambda row: self.get_from_map(instance_id_map, 
                                                                                     row, 
                                                                                     query='cpu_count'), axis=1)
@@ -327,7 +330,7 @@ class Runtime():
         sub_workflow_uuid_sample_map.columns = ['workflow_id', 'id']
         sub_workflow_uuid_sample_map = sub_workflow_uuid_sample_map.drop_duplicates().copy()
         self.metadata['inputs'] = self.metadata.apply(lambda row: str(row.inputs).replace('\n', ' '), axis=1)
-        unhashable = ['disk_mounts', 'disk_total_gb', 'disk_types', 'inputs']
+        unhashable = ['disk_mounts', 'disk_total_gb', 'disk_used_gb', 'disk_types', 'inputs']
         # hashable = [col for col in self.metadata.columns if not col in unhashable]
         hashable = ['instance_name', 'workflow_id', 'attempt']
         self.metadata = self.metadata.drop_duplicates(subset=hashable)
@@ -446,6 +449,7 @@ class Runtime():
             self.instance_id_map[instance_id]['cpu_platform'] = cpu_platform
             self.instance_id_map[instance_id]['preemptible'] = preemptible
             self.instance_id_map[instance_id]['disk_total_gb'] = disk_total_gb
+            self.instance_id_map[instance_id]['disk_used_gb'] = disk_used_gb
             if instance_id in self.non_retry_instance_ids:
                 self.non_retry_instance_id_map[instance_id]['max_cpu_used_percent'] = max_cpu_used_percent
                 self.non_retry_instance_id_map[instance_id]['disk_used_gb'] = disk_used_gb
@@ -454,6 +458,7 @@ class Runtime():
                 self.non_retry_instance_id_map[instance_id]['cpu_platform'] = cpu_platform
                 self.non_retry_instance_id_map[instance_id]['preemptible'] = preemptible
                 self.non_retry_instance_id_map[instance_id]['disk_total_gb'] = disk_total_gb
+                self.non_retry_instance_id_map[instance_id]['disk_used_gb'] = disk_used_gb
 
     def load_sub_workflow_uuids(self):
         sub_workflow_uuids_list = []

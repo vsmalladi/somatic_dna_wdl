@@ -41,6 +41,7 @@ class JsonModify():
         match: Assumes that the sample name followed by "." or "_" are in the basename
             Sorts out which objects have names that refer to a pair or sample
         '''
+        self.results = []
         self.tool = tool
         self.workflow_uuid = workflow_uuid
         self.sample_id = sample_id
