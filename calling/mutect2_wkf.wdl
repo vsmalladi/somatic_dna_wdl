@@ -20,7 +20,19 @@ workflow Mutect2 {
         Int memoryGb = 8
         File mutectJsonLog
         File mutectJsonLogFilter
+        
+        Boolean highMem = false
 
+    }
+    
+    Int callMemoryGb = 4
+    Int filterMemoryGb = 4
+    Int filterDiskSize = 5
+    
+    if (highMem) {
+        Int callMemoryGb = 8
+        Int filterMemoryGb = 4
+        Int filterDiskSize = 10
     }
 
     scatter(chrom in listOfChroms) {
@@ -33,7 +45,7 @@ workflow Mutect2 {
                 referenceFa = referenceFa,
                 normalFinalBam = normalFinalBam,
                 tumorFinalBam = tumorFinalBam,
-                memoryGb = memoryGb,
+                memoryGb = callMemoryGb,
                 diskSize = diskSize
         }
 
@@ -44,8 +56,8 @@ workflow Mutect2 {
                 referenceFa = referenceFa,
                 # mutect2ChromRawVcf = select_first([Mutect2Wgs.mutect2ChromRawVcf, Mutect2Exome.mutect2ChromRawVcf])
                 mutect2ChromRawVcf = Mutect2Wgs.mutect2ChromRawVcf,
-                memoryGb = 8,
-                diskSize = 10
+                memoryGb = callMemoryGb,
+                diskSize = filterDiskSize
         }
     }
 
@@ -83,7 +95,7 @@ workflow Mutect2 {
             sortedVcfPath = "~{pairName}.mutect2.v4.0.5.1.unfiltered.sorted.vcf",
             tempChromVcfs = Mutect2Wgs.mutect2ChromRawVcf,
             referenceFa = referenceFa,
-            memoryGb = 32,
+            memoryGb = 8,
             diskSize = 10
     }
 

@@ -23,35 +23,53 @@ workflow Gridss {
         File ponTarGz
 
         Int threads = 8
-        Int memory_gb = 32
-        Int pre_memory_gb = 16
+        
+        Boolean highMem = false
     }
-
+    
+    Int preMemoryGb = 16
+    Int tumorDiskSize = ceil( size(tumorFinalBam.bam, "GB") * 1.5 )
+    Int normalDiskSize = ceil( size(normalFinalBam.bam, "GB") * 1.5 )
+    
+    if (highMem) {
+        Int preMemoryGb = 32
+        Int tumorDiskSize = ceil( size(tumorFinalBam.bam, "GB") * 2 ) + 20
+        Int normalDiskSize = ceil( size(normalFinalBam.bam, "GB") * 2 ) + 20
+    }
+    
     call calling.GridssPreprocess as tumorGridssPreprocess {
         input:
             threads = threads,
-            memory_gb = pre_memory_gb,
+            memoryGb = preMemoryGb,
             bwaReference = bwaReference,
             gridssAdditionalReference = gridssAdditionalReference,
             finalBam = tumorFinalBam,
-            diskSize = ceil( size(tumorFinalBam.bam, "GB") * 2 ) + 20
+            diskSize = tumorDiskSize
     }
 
     call calling.GridssPreprocess as normalGridssPreprocess {
         input:
             threads = threads,
-            memory_gb = pre_memory_gb,
+            memoryGb = preMemoryGb,
             bwaReference= bwaReference,
             gridssAdditionalReference = gridssAdditionalReference,
             finalBam = normalFinalBam,
-            diskSize = ceil( size(normalFinalBam.bam, "GB") * 2 ) + 20
+            diskSize = normalDiskSize
     }
 
+    Int assembleMemoryGb = 48
+    Int assemblediskSize = ceil( size(tumorFinalBam.bam, "GB") * 1.4 ) + ceil( size(normalFinalBam.bam, "GB")  * 1.4)
+    
+    if (highMem) {
+        Int assembleMemoryGb = 100
+        Int assemblediskSize = ceil( size(tumorFinalBam.bam, "GB") * 2 ) + ceil( size(normalFinalBam.bam, "GB")  * 2) + 20
+    }
+    
     scatter(i in range(assembleChunks)) {
         call calling.GridssAssembleChunk {
             input:
                 threads = threads,
-                memory_gb = 100,
+                memoryGb = assembleMemoryGb,
                 pairName = pairName,
                 bwaReference = bwaReference,
                 gridssAdditionalReference = gridssAdditionalReference,
@@ -71,14 +89,14 @@ workflow Gridss {
                 tumorTagMetrics = tumorGridssPreprocess.tagMetrics,
                 tumorMapqMetrics = tumorGridssPreprocess.mapqMetrics,
                 tumorInsertSizeMetrics = tumorGridssPreprocess.insertSizeMetrics,
-                diskSize = ceil( size(tumorFinalBam.bam, "GB") * 2 ) + ceil( size(normalFinalBam.bam, "GB")  * 2) + 20
+                diskSize = assemblediskSize
         }
     }
 
     call calling.GridssAssemble {
         input:
             threads = threads,
-            memory_gb = 100,
+            memoryGb = assembleMemoryGb,
             pairName = pairName,
             bwaReference = bwaReference,
             gridssAdditionalReference = gridssAdditionalReference,
@@ -100,14 +118,14 @@ workflow Gridss {
             tumorTagMetrics = tumorGridssPreprocess.tagMetrics,
             tumorMapqMetrics = tumorGridssPreprocess.mapqMetrics,
             tumorInsertSizeMetrics = tumorGridssPreprocess.insertSizeMetrics,
-            diskSize = ceil( size(tumorFinalBam.bam, "GB") * 2) + ceil( size(normalFinalBam.bam, "GB") * 2) + 20
+            diskSize = assemblediskSize
 
     }
 
     call calling.GridssCalling {
         input:
             threads = threads,
-            memory_gb = 100,
+            memoryGb = assembleMemoryGb,
             pairName = pairName,
             bwaReference = bwaReference,
             gridssAdditionalReference = gridssAdditionalReference,
@@ -131,18 +149,25 @@ workflow Gridss {
             tumorTagMetrics = tumorGridssPreprocess.tagMetrics,
             tumorMapqMetrics = tumorGridssPreprocess.mapqMetrics,
             tumorInsertSizeMetrics = tumorGridssPreprocess.insertSizeMetrics,
-            diskSize = ceil( size(tumorFinalBam.bam, "GB") * 2) + ceil( size(normalFinalBam.bam, "GB") *2) + 20
+            diskSize = assemblediskSize
 
+    }
+    
+    Int filterDiskSize = 4
+    
+    if (highMem) {
+        Int filterDiskSize = 30
     }
 
     call calling.GridssFilter {
         input:
             threads = threads,
-            memory_gb = memory_gb,
+            memoryGb = preMemoryGb,
             pairName = pairName,
             bsGenome = bsGenome,
             ponTarGz = ponTarGz,
-            gridssUnfilteredVcf = GridssCalling.gridssUnfilteredVcf
+            gridssUnfilteredVcf = GridssCalling.gridssUnfilteredVcf,
+            diskSize = filterDiskSize
 
     }
 

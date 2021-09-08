@@ -186,7 +186,7 @@ task AddVcfCommand {
 task MantaWgs {
     input {
         Int threads = 8
-        Int memoryGb
+        Int memoryGb = 4
         Int diskSize
         String pairName
         String intHVmem = "unlimited"
@@ -414,7 +414,7 @@ task LancetExome {
 
 task Mutect2Wgs {
     input {
-        Int memoryGb
+        Int memoryGb = 4
         Int diskSize
         String chrom
         String tumor
@@ -452,8 +452,8 @@ task Mutect2Wgs {
 
 task Mutect2Filter {
     input {
-        Int memoryGb
-        Int diskSize
+        Int memoryGb = 4
+        Int diskSize = 5
         String pairName
         String chrom
         String mutect2ChromVcfPath = "~{pairName}_~{chrom}.mutect2.v4.0.5.1.vcf"
@@ -484,7 +484,7 @@ task Mutect2Filter {
 task SvabaWgs {
     input {
         Int threads
-        Int memoryGb
+        Int memoryGb = 16
         String pairName
         IndexedTable callRegions
         BwaReference bwaReference
@@ -570,7 +570,7 @@ task Bicseq2Norm {
 
         Array[File] uniqCoordsFiles
         Array[File] chromFastasFiles
-        Int diskSize = 100
+        Int diskSize = 70
     }
 
     command {
@@ -621,7 +621,7 @@ task Bicseq2Wgs {
         File bicseq2SegConfigFile
         String segConfigFilePath = "~{pairName}.bicseq2.seg.config"
         Int lambda = 4
-        Int diskSize = 100
+        Int diskSize = 10
     }
 
     command {
@@ -660,12 +660,12 @@ task Bicseq2Wgs {
 task GridssPreprocess {
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb = 16
+        Int diskSize = 700
         Bam finalBam
 
         BwaReference bwaReference
         Array[File] gridssAdditionalReference
-        Int diskSize
     }
 
     String bamBase = basename(finalBam.bam)
@@ -712,7 +712,7 @@ task GridssPreprocess {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         cpu : threads
-        memory : memory_gb + "GB"
+        memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/gridss:2.11.1-2"
     }
 }
@@ -720,7 +720,8 @@ task GridssPreprocess {
 task GridssAssembleChunk {
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb = 48
+        Int diskSize = 700
         String pairName
 
         String gridssassemblyBamPath = "~{pairName}.gridssassembly.bam"
@@ -744,7 +745,6 @@ task GridssAssembleChunk {
         File tumorTagMetrics
         File tumorMapqMetrics
         File tumorInsertSizeMetrics
-        Int diskSize
     }
 
     command {
@@ -787,7 +787,7 @@ task GridssAssembleChunk {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         cpu : threads
-        memory : memory_gb + "GB"
+        memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/gridss:2.11.1-2"
     }
 }
@@ -796,7 +796,8 @@ task GridssAssembleChunk {
 task GridssAssemble {
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb = 48
+        Int diskSize = 700
         String pairName
         String gridssassemblyBamPath = "~{pairName}.gridssassembly.bam"
         String gridssassemblySvBamPath = "~{pairName}.gridssassembly.bam.gridss.working/~{pairName}.gridssassembly.bam.sv.bam"
@@ -821,8 +822,6 @@ task GridssAssemble {
         File tumorTagMetrics
         File tumorMapqMetrics
         File tumorInsertSizeMetrics
-
-        Int diskSize
     }
 
     command {
@@ -871,7 +870,7 @@ task GridssAssemble {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         cpu : threads
-        memory : memory_gb + "GB"
+        memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/gridss:2.11.1-2"
     }
 }
@@ -879,7 +878,8 @@ task GridssAssemble {
 task GridssCalling {
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb = 48
+        Int diskSize = 700
         String pairName
         String gridssassemblyBamPath = "~{pairName}.gridssassembly.bam"
         String gridssUnfilteredVcfPath = "~{pairName}.sv.gridss.v2.10.2.unfiltered.vcf"
@@ -907,7 +907,6 @@ task GridssCalling {
         File tumorTagMetrics
         File tumorMapqMetrics
         File tumorInsertSizeMetrics
-        Int diskSize
     }
 
     command {
@@ -964,7 +963,7 @@ task GridssCalling {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         cpu : threads
-        memory : memory_gb + "GB"
+        memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/gridss:2.11.1-2"
     }
 }
@@ -972,7 +971,8 @@ task GridssCalling {
 task GridssFilter {
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb = 16
+        Int diskSize = 4
         String bsGenome
         String pairName
         File ponTarGz
@@ -980,7 +980,6 @@ task GridssFilter {
         String gridssVcfPathOut = "~{pairName}.sv.gridss.v2.10.2.vcf.bgz"
         String tumourordinal = 2
         File gridssUnfilteredVcf
-        Int diskSize = 30
     }
 
     command {
@@ -1011,7 +1010,7 @@ task GridssFilter {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         cpu : threads
-        memory : memory_gb + "GB"
+        memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/gridss:2.11.1-2"
     }
 }

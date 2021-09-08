@@ -24,7 +24,15 @@ workflow Manta {
         Int threads = 8
         # remove definition after replacing the command step for gcp
         File mantaJsonLog
+        
+        Boolean highMem = false
 
+    }
+    
+    Int callMemoryGb = 4
+    
+    if (highMem) {
+        Int callMemoryGb = 64
     }
 
     call calling.MantaWgs {
@@ -35,7 +43,7 @@ workflow Manta {
             callRegions = callRegions,
             normalFinalBam = normalFinalBam,
             tumorFinalBam = tumorFinalBam,
-            memoryGb = memoryGb,
+            memoryGb = callMemoryGb,
             diskSize = diskSize,
             threads = threads
     }

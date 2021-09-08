@@ -20,6 +20,14 @@ workflow Svaba {
         Int diskSize = ceil( size(tumorFinalBam.bam, "GB") + size(normalFinalBam.bam, "GB")) + 40
         Int memoryGb = 32
         File svabaJsonLog
+        
+        Boolean highMem = false
+    }
+    
+    Int callMemoryGb = 16
+    
+    if (highMem) {
+        Int callMemoryGb = 32
     }
 
     call calling.SvabaWgs {
@@ -30,7 +38,7 @@ workflow Svaba {
             normalFinalBam = normalFinalBam,
             tumorFinalBam = tumorFinalBam,
             dbsnpIndels = dbsnpIndels,
-            memoryGb = memoryGb,
+            memoryGb = callMemoryGb,
             threads = threads,
             diskSize = diskSize
 
