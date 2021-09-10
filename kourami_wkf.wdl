@@ -30,6 +30,7 @@ workflow AlignmentAnalysis {
         # kourami
         BwaReference kouramiReference
         File kouramiFastaGem1Index
+        IndexedReference referenceFa
 
     }
     

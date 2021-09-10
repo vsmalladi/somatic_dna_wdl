@@ -254,7 +254,8 @@ workflow SomaticWorkflow {
                     sampleId = sampleInfoObj.sampleId,
                     kouramiReference = kouramiReference,
                     finalBam = Preprocess.finalBam[germlineRunGetIndex.index],
-                    kouramiFastaGem1Index = kouramiFastaGem1Index
+                    kouramiFastaGem1Index = kouramiFastaGem1Index,
+                    referenceFa = referenceFa
             }
 
             call germline.Germline {
