@@ -134,7 +134,6 @@ workflow SomaticBamWorkflow {
         # mantis
         File mantisBed
         File intervalListBed
-        IndexedReference referenceFa
         
         # annotation:
         String vepGenomeBuild
@@ -218,7 +217,8 @@ workflow SomaticBamWorkflow {
                 sampleId = normalSampleBamInfo.sampleId,
                 kouramiReference = kouramiReference,
                 finalBam = normalSampleBamInfo.finalBam,
-                kouramiFastaGem1Index = kouramiFastaGem1Index
+                kouramiFastaGem1Index = kouramiFastaGem1Index,
+                referenceFa = referenceFa
         }
         
         call germline.Germline {
