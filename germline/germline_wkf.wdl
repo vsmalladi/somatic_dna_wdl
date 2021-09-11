@@ -54,11 +54,13 @@ workflow Germline {
     }
     Array[File] haplotypecallerIntervalVcfs = haplotypecallerIntervalVcf
 
-    Int mergeSortDiskSize = 50
+    Int lowMergeSortDiskSize = 50
     
     if (highMem) {
-        Int mergeSortDiskSize = 200
+        Int highMergeSortDiskSize = 200
     }
+    
+    Int mergeSortDiskSize = select_first([highMergeSortDiskSize, lowMergeSortDiskSize])
     
     call calling.Gatk4MergeSortVcf as haplotypecallerGatk4MergeSortVcf {
         input:
@@ -125,10 +127,11 @@ workflow Germline {
             referenceFa = referenceFa
     }
 
-    Int hoDiskSize = 100
+    Int lowHoDiskSize = 100
     if (highMem) {
-        Int hoDiskSize = 16
+        Int highHoDiskSize = 16
     }
+    Int hoDiskSize = select_first([highHoDiskSize, lowHoDiskSize])
     
     call germline.filterHO as filterHO {
         input:

@@ -24,11 +24,12 @@ workflow Svaba {
         Boolean highMem = false
     }
     
-    Int callMemoryGb = 16
+    Int lowCallMemoryGb = 16
     
     if (highMem) {
-        Int callMemoryGb = 32
+        Int highCallMemoryGb = 32
     }
+    Int callMemoryGb = select_first([highCallMemoryGb, lowCallMemoryGb])
 
     call calling.SvabaWgs {
         input:
