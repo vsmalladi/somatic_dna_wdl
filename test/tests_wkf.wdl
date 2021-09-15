@@ -47,6 +47,9 @@ workflow Tests {
         # MSI
         Array[File] oldmantisStatusFinal
         Array[File] newmantisStatusFinal
+        # Hla
+        Array[File] oldkouramiResult
+        Array[File] newkouramiResult
         IndexedReference referenceFa
     }
     
@@ -61,12 +64,22 @@ workflow Tests {
     }
     
     scatter (mantisStatusFinal in zip(newmantisStatusFinal, oldmantisStatusFinal)) {
-        String sampleId = basename(mantisStatusFinal.left, ".mantis.v1.0.4.WGS-targeted.status.final.tsv") 
+        String sampleIdMantis = basename(mantisStatusFinal.left, ".mantis.v1.0.4.WGS-targeted.status.final.tsv") 
         call tests.SummarizeMsi {
             input:
-                sampleId = sampleId,
+                sampleId = sampleIdMantis,
                 newmantisStatusFinal = mantisStatusFinal.left,
                 oldmantisStatusFinal = mantisStatusFinal.right
+        }
+    }
+    
+    scatter (kouramiResult in zip(newkouramiResult, oldkouramiResult)) {
+        String sampleIdKourami = basename(kouramiResult.left, ".result") 
+        call tests.SummarizeHla {
+            input:
+                sampleId = sampleIdKourami,
+                newkouramiResult = kouramiResult.left,
+                oldkouramiResult = kouramiResult.right
         }
     }
     
@@ -147,6 +160,18 @@ workflow Tests {
             outputTablePath = "~{name}.msi.csv"
     }
     
+    call tests.ConcateTables as hlaConcateTables {
+        input:
+            tables = SummarizeHla.outputTable,
+            outputTablePath = "~{name}.hla.csv"
+    }
+    
+    call tests.ConcateTables as hlaConcordanceConcateTables {
+        input:
+            tables = SummarizeHla.outputConcordance,
+            outputTablePath = "~{name}.hla.concordance.csv"
+    }
+    
     call tests.ConcateTables as finalBedConcateTables {
         input:
             tables = finalCompareBed.outFileSummary,
@@ -190,6 +215,8 @@ workflow Tests {
         File finalSvGenesTable = finalSvGenesConcateTables.outputTable
         File flagstatOutputTable = flagstatConcateTables.outputTable
         File msiOutputTable = msiConcateTables.outputTable
+        File hlaOutputTable = hlaConcateTables.outputTable
+        File hlaOutputConcordance = hlaConcordanceConcateTables.outputTable
         File finalBedTable = finalBedConcateTables.outputTable
         File finalBedPeTable = finalBedPeConcateTables.outputTable
         File finalVcfTable = finalVcfConcateTables.outputTable
