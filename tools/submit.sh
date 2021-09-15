@@ -63,10 +63,18 @@ response=$( eval $cmd )
 uuid=$( echo ${response}  | jq -r ".id")
 
 # display submission status check command...
+echo "To print the current status of the run: " >&2
 echo "cromwell-tools status --url ${url} \
 --username $(gcloud secrets versions access latest --secret="cromwell_username") \
 --password $(gcloud secrets versions access latest --secret="cromwell_password") \
 --uuid ${uuid}" >&2
+
+echo "To print a detailed description of the run: " >&2
+echo "cromwell-tools metadata --url ${url} \
+--username $(gcloud secrets versions access latest --secret="cromwell_username") \
+--password $(gcloud secrets versions access latest --secret="cromwell_password") \
+--uuid ${uuid} \
+| jq '.'" >&2
 
 # return uuid
 echo ${uuid}
