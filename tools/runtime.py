@@ -54,7 +54,7 @@ class Runtime():
                 self.start_instance_maps()
                 self.load_metrics()
                 self.add_to_instance_maps()
-                hashable = ['instance_name', 'workflow_id', 'attempt']
+                hashable = ['instance_name', 'workflow_id', 'attempt', 'shard']
                 self.metadata = self.metadata.drop_duplicates(subset=hashable)
                 self.instance_id_map = self.get_max_mems(self.metadata, 
                                                          instance_id_map=self.instance_id_map, 
@@ -102,7 +102,7 @@ class Runtime():
                      execution_status='Done',
                      job_id_col='task_call_name', metrics_key='mem_used_gb'):
         '''Get max mem for a runs with the same sub-workflow_id and task_call_name'''
-        runtime_results = metadata.drop_duplicates(['task_call_name', 'workflow_id', 'instance_name'])
+        runtime_results = metadata.drop_duplicates(['task_call_name', 'workflow_id', 'instance_name', 'shard', 'attempt'])
         max_values = {}
         for index, row in runtime_results.iterrows():
             instance_ids = []
@@ -332,7 +332,7 @@ class Runtime():
         self.metadata['inputs'] = self.metadata.apply(lambda row: str(row.inputs).replace('\n', ' '), axis=1)
         unhashable = ['disk_mounts', 'disk_total_gb', 'disk_used_gb', 'disk_types', 'inputs']
         # hashable = [col for col in self.metadata.columns if not col in unhashable]
-        hashable = ['instance_name', 'workflow_id', 'attempt']
+        hashable = ['instance_name', 'workflow_id', 'attempt', 'shard']
         self.metadata = self.metadata.drop_duplicates(subset=hashable)
         self.metadata = self.metadata.merge(sub_workflow_uuid_sample_map, on='workflow_id')
         return True
