@@ -27,17 +27,15 @@ workflow Gridss {
         Boolean highMem = false
     }
     
-    Int lowPreMemoryGb = 16
+    Int preMemoryGb = 32
     Int lowTumorDiskSize = ceil( size(tumorFinalBam.bam, "GB") * 1.5 )
     Int lowNormalDiskSize = ceil( size(normalFinalBam.bam, "GB") * 1.5 )
     
     if (highMem) {
-        Int highPreMemoryGb = 32
         Int highTumorDiskSize = ceil( size(tumorFinalBam.bam, "GB") * 2 ) + 20
         Int highNormalDiskSize = ceil( size(normalFinalBam.bam, "GB") * 2 ) + 20
     }
     
-    Int preMemoryGb = select_first([highPreMemoryGb, lowPreMemoryGb])
     Int tumorDiskSize = select_first([highTumorDiskSize, lowTumorDiskSize])
     Int normalDiskSize = select_first([highNormalDiskSize, lowNormalDiskSize])
     
