@@ -283,11 +283,13 @@ We are in the process of setting up a public issue tracker. In the mean time  pl
 
 [7.3.2](https://bitbucket.nygenome.org/rest/api/latest/projects/COMPBIO/repos/wdl_port/archive?at=refs%2Ftags%2F7.3.2&format=zip) Refactor:
 
-    - allow gridss to run from cache
-    - explicity define boolean for deconstructsigs
-    - split BAF step
-    - decrease grids preprocess mem
-    - update docs
+    - adjust mem and disk size
+    - finalize DeconstructSigs workflow
+    - add highMem flag
+    - calculate jvmHeap from mem
+    - decrease mem and disk sizes
+    - switch from local-disk SSD/HDD to local-disk LOCAL for steps that run on bams
+    - add gridss arrange steps that works with cache
     - update resource usage scripts
     
 [7.3.1](https://bitbucket.nygenome.org/rest/api/latest/projects/COMPBIO/repos/wdl_port/archive?at=refs%2Ftags%2F7.3.1&format=zip) Refactor:
