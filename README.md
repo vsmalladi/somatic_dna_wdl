@@ -10,6 +10,7 @@
 - [Post run reports](#post_run)
 - [Create new workflow](#create_new_workflow) 
 - [Appendix](#appendix)
+  - [Credentials](#credentials)
   - [Cram incompatible steps](#cram-incompatible)
   - [Cram compatible steps](#cram-compatible)
 - [Contact us](#contact_us)
@@ -233,6 +234,16 @@ git commit -m "feat: my new workflow"
 
 ### Appendix
 <a name="appendix"></a>
+
+##### Credentials
+<a name="credentials"></a>
+Run the following once to generate a default credentials file
+
+```
+    $ gcloud auth application-default login
+```
+
+See for more details: https://google-auth.readthedocs.io/en/latest/reference/google.auth.html#google.auth.default.
 
 ##### Cram incompatible steps
 <a name="cram-incompatible"></a>
