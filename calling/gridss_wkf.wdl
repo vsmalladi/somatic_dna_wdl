@@ -25,19 +25,11 @@ workflow Gridss {
         Int threads = 8
         
         Boolean highMem = false
+        
+        Int preMemoryGb = 32
+        Int tumorDiskSize = 740
+        Int normalDiskSize = 740
     }
-    
-    Int preMemoryGb = 32
-    Int lowTumorDiskSize = ceil( size(tumorFinalBam.bam, "GB") * 1.5 )
-    Int lowNormalDiskSize = ceil( size(normalFinalBam.bam, "GB") * 1.5 )
-    
-    if (highMem) {
-        Int highTumorDiskSize = ceil( size(tumorFinalBam.bam, "GB") * 2 ) + 20
-        Int highNormalDiskSize = ceil( size(normalFinalBam.bam, "GB") * 2 ) + 20
-    }
-    
-    Int tumorDiskSize = select_first([highTumorDiskSize, lowTumorDiskSize])
-    Int normalDiskSize = select_first([highNormalDiskSize, lowNormalDiskSize])
     
     call calling.GridssPreprocess as tumorGridssPreprocess {
         input:
