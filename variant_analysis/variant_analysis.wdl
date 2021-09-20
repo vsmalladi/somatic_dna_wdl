@@ -2,78 +2,41 @@ version 1.0
 
 import "../wdl_structs.wdl"
 
-task DeconstructsigPrep38 {
+
+task Deconstructsig {
     input {
         String pairId
-        String highconfidencePath = "~{pairId}.annotated.highconfidence.txt"
+        String outputPrefix = "~{pairId}.cosmic.v3.2.deconstructSigs.v1.9.0.signatures.highconfidence"
         File mainVcf
+        String vepGenomeBuild
+        String highConf = "TRUE"
+        File cosmicSigs
         Int memoryGb = 8
         Int diskSize = 1
     }
 
     command {
-        set -e -o pipefail
-         
-        echo -e "Sample\tchr\tpos\tref\talt" > header.txt
-        
-        bcftools query \
-        -i "TYPE=\"snp\" && HighConfidence=1" \
-        -f "~{pairId}\\t%CHROM\\t%POS\\t%REF\\t%ALT\\n" \
-        -f "~{pairId}\\t%CHROM\\t%POS\\t%REF\\t%ALT\\n" \
-        ~{mainVcf} \
-        | grep -P "\\tchrX\\t" -v \
-        | grep -P "\\tchrY\\t" -v \
-        | cat header.txt - \
-        > ~{highconfidencePath} 
-    }
-
-    output {
-        File highconfidence = "~{highconfidencePath}"
-    }
-
-    runtime {
-        disks: "local-disk " + diskSize + " HDD"
-        memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/bcftools:1.5"
-    }
-}
-
-task Deconstructsig {
-    input {
-        # run as 8 on cluster
-        Int memoryGb = 64
-        Int diskSize = 10
-        String pairId
-        String suffix = "deconstructSigs.v1.8.0.signatures.highconfidence"
-        String bsGenome
-        File deconstructsigsFasta
-        File highconfidence
-        File plotting_r = "gs://nygc-comp-s-fd4e-resources/plotting.R"
-        File runDeconstructSigs = "gs://nygc-comp-s-fd4e-input/run_deconstructSigs.vX.R"
-    }
-
-    command {
         Rscript \
-        ~{runDeconstructSigs} \
-        ~{highconfidence} \
-        ~{suffix} \
-        ~{bsGenome} \
-        ~{deconstructsigsFasta} \
-        ~{plotting_r}
+        /run_deconstructSigs.R \
+        --highconf ~{highConf} \
+        --file ~{mainVcf} \
+        --ref ~{vepGenomeBuild} \
+        --cosmic ~{cosmicSigs} \
+        --output ~{outputPrefix} \
+        --samplename ~{pairId}
     }
 
     output {
-        File diff = "~{pairId}.deconstructSigs.v1.8.0.signatures.highconfidence.diff.txt"
-        File trinuc = "~{pairId}.deconstructSigs.v1.8.0.signatures.highconfidence.trinucleotidecounts.txt"
-        File input_file = "~{pairId}.deconstructSigs.v1.8.0.signatures.highconfidence.input.txt"
-        # File highconfidencePng = "~{pairId}.deconstructSigs.v1.8.0.signatures.highconfidence.png"
-        File highconfidenceTxt = "~{pairId}.deconstructSigs.v1.8.0.signatures.highconfidence.txt"
-        File reconstructed = "~{pairId}.deconstructSigs.v1.8.0.signatures.highconfidence.reconstructed.txt"
+       File sigs = "~{outputPrefix}.txt"
+       File counts = "~{outputPrefix}.counts.txt"
+       File sigInput = "~{outputPrefix}.input.txt"
+       File reconstructed = "~{outputPrefix}.reconstructed.txt"
+       File diff = "~{outputPrefix}.diff.txt"
     }
 
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/deconstructsigs:1.8.0.1--r40_3"
+        docker : "gcr.io/nygc-public/deconstructsigs:1.9.0.nygc.1"
     }
 }

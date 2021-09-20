@@ -9,7 +9,7 @@ task NovosortMarkDup {
        String sampleId
        String mergedDedupBamPath = "~{sampleId}.merged_dedup.bam"
        # resources
-       Int mem = 80
+       Int mem = 20
        Int threads = 8
        Int diskSize
    }
@@ -37,7 +37,7 @@ task NovosortMarkDup {
         memory : mem + " GB"
         docker :  "gcr.io/nygc-compbio/novosort:v1.03.01"
         # Per clinical team novosort runs significantly faster with SSD
-        disks: "local-disk " + diskSize + " SSD"
+        disks: "local-disk " + diskSize + " LOCAL"
     }
 }
 
@@ -81,15 +81,17 @@ task Bqsr38 {
         IndexedVcf Indels
         IndexedVcf dbsnp
         # resources
-        Int mem = 68
+        Int mem = 12
         Int cpu = 2
         Int diskSize
    }
 
+    Int jvmHeap = mem * 750  # Heap size in Megabytes. mem is in GB. (75% of mem)
+
     command {
         gatk \
         BaseRecalibrator \
-        --java-options "-Xmx54G -XX:ParallelGCThreads=4" \
+        --java-options "-Xmx~{jvmHeap}m -XX:ParallelGCThreads=4" \
         -L ~{callRegions} \
         -R ~{referenceFa.fasta} \
         -I ~{mergedDedupBam.bam} \
@@ -119,9 +121,10 @@ task Downsample{
         Int mem = 68  #GB
         Int diskSize
     }
+    Int jvmHeap = mem * 750  # Heap size in Megabytes. mem is in GB. (75% of mem)
     command {
         gatk DownsampleSam \
-        --java-options "-Xmx54G -XX:ParallelGCThreads=4" \
+        --java-options "-Xmx~{jvmHeap}m -XX:ParallelGCThreads=4" \
         --STRATEGY Chained \
         --RANDOM_SEED 1 \
         --CREATE_INDEX \
@@ -154,14 +157,15 @@ task PrintReads {
         String sampleId
         String finalBamPath = "~{sampleId}.final.bam"
         # resources
-        Int mem = 68
+        Int mem = 16
         Int cpu = 2
         Int diskSize
     }
 
+    Int jvmHeap = mem * 750  # Heap size in Megabytes. mem is in GB. (75% of mem)
     command {
         gatk ApplyBQSR \
-        --java-options "-Xmx54G -XX:ParallelGCThreads=4" \
+        --java-options "-Xmx~{jvmHeap}m -XX:ParallelGCThreads=4" \
         -R ~{referenceFa.fasta} \
         -I ~{mergedDedupBam.bam} \
         -O ~{finalBamPath} \

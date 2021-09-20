@@ -9,7 +9,7 @@ import logging as log
 import google
 import re 
 import bicseq_config_prep
-
+import make_auth
 
 class Json_leaves():
     
@@ -128,9 +128,11 @@ class Wdl():
         
     def validate_input(self, strings):
         '''validate that file exists in bucket'''
+        self.credentials, self.gcp_project = make_auth.login()
         if string.startswith('gs://'):
             bucket_id, project_id, name = self.parse_url(string)
-            storage_client = storage.Client(project=project_id)
+            storage_client = storage.Client(credentials=self.credentials,
+                                            project=self.gcp_project)
             try:
                 bucket = storage_client.get_bucket(bucket_id)
                 # no preceeding slash!!!
@@ -144,9 +146,11 @@ class Wdl():
         return True
             
     def check_gsutil(self, files):
+        self.credentials, self.gcp_project = make_auth.login()
         if string.startswith('gs://'):
             bucket_id, project_id, name = self.parse_url(string)
-            storage_client = storage.Client(project=project_id)
+            storage_client = storage.Client(credentials=self.credentials,
+                                            project=self.gcp_project)
             try:
                 bucket = storage_client.get_bucket(bucket_id)
                 # no preceeding slash!!!

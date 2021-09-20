@@ -17,6 +17,7 @@ from collections import OrderedDict
 #custom
 import compose
 import ploter
+import plotly.graph_objects as go
 
 
 pd.set_option('display.max_columns', 500)
@@ -26,24 +27,47 @@ log.basicConfig(format='%(levelname)s:  %(message)s', level=log.INFO)
 class PlotRuntime():
     '''Plot results from outputMetrics.csv'''
     def __init__(self,
-                 project_id, 
-                 output_info_file,
-                 metrics_file,
-                 non_retry_metrics_file,
+                 project_id,
+                 manifest=False, 
+                 output_info_file=False,
+                 metrics_file=False,
+                 non_retry_metrics_file=False,
                  plot_file=False):
         self.set_colors()
         self.project_id = project_id
         if not plot_file:
-            self.out_md = metrics_file.replace('.csv', '.md')
-            self.header_file = metrics_file.replace('.csv', '.header.txt')
-            self.plot_file = metrics_file.replace('.csv', '.html')
+            if manifest:
+                basename = project_id.replace(' ', '_') + '_outputMetrics'
+                self.out_md = basename + '.md'
+                self.header_file = basename + '.header.txt'
+                self.plot_file = basename + '.html'
+            else:
+                self.out_md = metrics_file.replace('.csv', '.md')
+                self.header_file = metrics_file.replace('.csv', '.header.txt')
+                self.plot_file = metrics_file.replace('.csv', '.html')
         else:
             self.out_md = plot_file.replace('.html', '.md')
             self.header_file = plot_file.replace('.html', '.header.txt')
             self.plot_file = plot_file
-        self.output_info = self.load_input(output_info_file)
-        self.metadata = self.load_metadata(metrics_file)
-        self.non_retry_metadata = self.load_metadata(non_retry_metrics_file)
+        if manifest:
+            manifest_data = pd.read_csv(manifest)
+            output_infos = []
+            metadatas = []
+            non_retry_metadatas = []
+            for i, row in manifest_data.iterrows():
+                output_info = self.load_input(row.output_info)
+                metadata = self.load_metadata(row.metrics)
+                non_retry_metadata = self.load_metadata(row.non_retried_metrics)
+                non_retry_metadatas.append(non_retry_metadata)
+                output_infos.append(output_info)
+                metadatas.append(metadata)
+            self.output_info = output_infos
+            self.metadata = pd.concat(metadatas, ignore_index=True)
+            self.non_retry_metadata = pd.concat(non_retry_metadatas, ignore_index=True)
+        else:
+            self.output_info = self.load_input(output_info_file)
+            self.metadata = self.load_metadata(metrics_file)
+            self.non_retry_metadata = self.load_metadata(non_retry_metrics_file)
         # intro figs
         self.summary_table = self.get_table()
         self.gather_summary()
@@ -101,6 +125,26 @@ class PlotRuntime():
                                               'task_call_name' : 'Task'},
                                        title='Workflows: resource usage summary plot',
                                        x_title="Full pipeline")
+        self.fig4, self.fig5, self.fig6 = self.custom_by_steps(data_steps=self.metadata,
+                                                              non_retry_data_steps=self.non_retry_metadata,
+                                                              button=True,                                      
+                                                              x="workflow_name",
+                                                              top_ys=["mem_total_gb", "disk_total_gb", ""],
+                                                              central_ys=["max_mem_g", "disk_used_gb", "sample_task_run_time_h"],
+                                                              color="task_call_name",
+                                                              hover_data=['id'],
+                                                              color_discrete_sequence=self.colors,
+                                                              title='Tasks: resources used vs available',
+                                                              labels={'disk_used_gb' : 'Disk used (G)',
+                                                                      'disk_total_gb' : 'Available disk (G)',
+                                                                      'mem_total_gb' : 'Available mem (G)',
+                                                                      'sample_task_run_time_h' : 'Max Task runtime(h)',
+                                                                      'max_mem_g' : 'Mem (G)',
+                                                                      'sample_task_core_h' : 'Task core hours',
+                                                                      'workflow_name' : 'Sub-workflow',
+                                                                      'task_call_name' : 'Task'},
+                                                              x_title="Pipeline subworkflow")
+    
         
     def set_colors(self):
         self.colors = px.colors.qualitative.Dark24
@@ -119,6 +163,7 @@ class PlotRuntime():
     
     def gather_summary(self):
         '''Add details about percent of instances that are preemptible'''
+        self.metadata = self.metadata.dropna(subset=['preemptible'])
         # exit status of non-zero exits
         exit_status = self.metadata[['task_call_name', 
                                      'execution_status']].value_counts().to_frame().reset_index()
@@ -199,6 +244,71 @@ class PlotRuntime():
                                                searching=True,
                                                scroll=True)
         return summary_table
+    
+    def custom_by_steps(self, 
+                          data_steps,
+                          non_retry_data_steps,
+                          button=False,
+                          x="workflow_name",
+                          top_ys=["mem_total_gb", "disk_total_gb", ""],
+                          central_ys=["max_mem_g", "disk_used_gb", "sample_task_run_time_h"],
+                          color="task_call_name",
+                          hover_data=['id'],
+                          color_discrete_sequence=False,
+                          title='',
+                          labels={},
+                          x_title="Pipeline subworkflow"):
+        ''' Plot Task disk used vs total dis, Mem vs max mem and stacked barplot of total time taken'''
+        category_orders = {}
+        color_cols = [col for col in [x, color] + top_ys + central_ys if not col == '']
+        data_steps = data_steps.drop_duplicates(subset=color_cols).copy()
+        data_steps['task per id'] = data_steps.apply(lambda row: ' '.join([row[x], row['id']]), axis=1)
+        non_retry_data_steps['task per id'] = non_retry_data_steps.apply(lambda row: ' '.join([row[x], row['id']]), axis=1)
+        for y in central_ys:
+            if y == 'sample_task_run_time_h':
+                grouped = data_steps.groupby(['task per id'])
+                category_orders[y] = grouped[y].agg(['sum']).reset_index().sort_values('sum')['task per id'].unique().tolist()
+            else:
+                grouped = data_steps.groupby(x)
+                category_orders[y] = grouped[y].agg(['max']).reset_index().sort_values('max')[x].unique().tolist()
+        # plot total vs max mem
+        max_color = '#C0FF02'
+        print(data_steps.shape[0])
+        max_colors = [max_color] * data_steps.shape[0]
+        fig1 = px.box(data_steps, x=x, y=central_ys[0], points="all",
+                      hover_data=['id', top_ys[0], central_ys[0]],
+                      color_discrete_sequence=color_discrete_sequence,
+                      labels=labels,
+                      color=color, category_orders=category_orders)
+        fig1.add_trace(go.Scatter(
+            x=data_steps[x], y=data_steps[top_ys[0]],
+            text=data_steps['task_call_name'],
+            mode='markers',
+            marker_color=max_color
+            ))
+        # plot total vs max disk used
+        fig2 = px.box(data_steps, x=x, y=central_ys[1], points="all",
+                      hover_data=['id', top_ys[1], central_ys[1]],
+                      labels=labels,
+                      color_discrete_sequence=color_discrete_sequence,
+                      color=color, category_orders=category_orders)
+        fig2.add_trace(go.Scatter(
+            x=data_steps[x], y=data_steps[top_ys[1]],
+            text=data_steps['task_call_name'],
+            mode='markers',
+            marker_color=max_color
+            ))
+        # plot stacked bar of task persample summed runtime [x, 'id']
+        fig3 = px.bar(data_steps, x='task per id', y=central_ys[2],
+                      hover_data=['id', 'task per id', central_ys[2], 'preemptible'],
+                      labels=labels,
+                      color_discrete_sequence=color_discrete_sequence,
+                      color=color, category_orders=category_orders)
+        fig3.update_traces(marker=dict(line=dict(width=0)))
+        fig3.update_xaxes(tickangle=45)
+        if x.lower() in ['task per id', 'id']:
+            fig.update_xaxes(tickfont={'size' : 5})
+        return ploter.Fig(fig1), ploter.Fig(fig2), ploter.Fig(fig3)
     
     def plot_by_steps(self, 
                       data_steps,
@@ -332,7 +442,7 @@ class PlotRuntime():
             fig.update_xaxes(tickfont={'size' : 5})
         if button:
             fig = self.add_button(fig)
-        return ploter.Fig(fig)
+        return ploter.Fig(fig)  
         
     
 def make_files(results, appendix=False):
@@ -411,7 +521,13 @@ def make_files(results, appendix=False):
         md_content.update_doc(section_header='Task metrics',
                               center_content=all_section_content,
                               figures=[(results.fig.script,
-                                        results.fig.div)])
+                                        results.fig.div),
+                                        (results.fig4.script,
+                                        results.fig4.div),
+                                        (results.fig5.script,
+                                        results.fig5.div),
+                                        (results.fig6.script,
+                                        results.fig6.div)])
         #  =======================
         #  Subworkflow
         #  =======================
@@ -464,11 +580,7 @@ def get_args():
                         'genome build, library and interval list information. '
                         'Also includes output files and '
                         'the sub-workflow uuids',
-                        required=True
-                        )
-    parser.add_argument('--project-id',
-                        help='Working name of project.',
-                        required=True
+                        required=False
                         )
     parser.add_argument('--plot',
                         help='Output path for html file.',
@@ -478,24 +590,44 @@ def get_args():
                         help='CSV file with outputMetrics. '
                         'Includes sample id mem, wallclock time, core hours '
                         'for tasks with any exit status (including Failed)',
-                        required=True
+                        required=False
                         )
     parser.add_argument('--non-retry-metrics',
                         help='CSV file with outputMetrics.non_retried. '
                         'Includes sample id mem, wallclock time, core hours '
                         'for tasks with an exit status of zero',
-                        required=True
+                        required=False
+                        )
+    parser.add_argument('--multi',
+                        help='Records for multiple runs are stored in the JSON file with outputInfo.',
+                        required=False,
+                        action='store_true'
+                        )
+    parser.add_argument('--name',
+                        default='nygc_pipeline',
+                        help='Use with the --multi flag to name the output.',
+                        required=False
+                        )
+    parser.add_argument('--manifest',
+                        help='Use with the --multi flag to list outputInfo JSON files '
+                        'outputMetrics.non_retried files and outputMetrics files.',
+                        required=False
                         )
     args_namespace = parser.parse_args()
     return args_namespace.__dict__       
     
 def main():
     args = get_args()
-    results = PlotRuntime(project_id=args['project_id'],
-                          output_info_file=args['output_info'],
-                          metrics_file=args['metrics'],
-                          non_retry_metrics_file=args['non_retry_metrics'],
-                          plot_file=args['plot'],)
+    if args['multi']:
+        results = PlotRuntime(project_id=args['name'],
+                              manifest=args['manifest'],
+                              plot_file=args['plot'])
+    else:
+        results = PlotRuntime(project_id=args['name'],
+                              output_info_file=args['output_info'],
+                              metrics_file=args['metrics'],
+                              non_retry_metrics_file=args['non_retry_metrics'],
+                              plot_file=args['plot'])
     make_files(results, appendix=False)
     
     

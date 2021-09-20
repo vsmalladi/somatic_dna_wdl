@@ -179,7 +179,6 @@ for arg in "$@"; do
         print_help
         shift # Remove --initialize from processing
         ;;
-        
     esac
 done
         
@@ -187,19 +186,19 @@ done
 # Required:
 if [ -z "$log_dir" ]; then
     echo "Error: Missing required value for -l log dir (for run logs)" >&2
-    print_usage
+    print_help
     exit 1
 fi
 
 if [ -z "$url" ]; then
     echo "Error: Missing required value for -u cromwell server URL" >&2
-    print_usage
+    print_help
     exit 1
 fi
 
 if [ -z "$project_id" ]; then
     echo "Error: Missing required value for -p project_id" >&2
-    print_usage
+    print_help
     exit 1
 fi
 

@@ -46,7 +46,7 @@ workflow Annotate {
         String library
 
         IndexedReference referenceFa
-        Int vepDiskSize = ceil(size(vepCache, "GB") + size(plugins, "GB") + size(annotations, "GB") + size(hgmdGene.vcf, "GB") + size(hgmdUd10.vcf, "GB") + size(hgmdPro.vcf, "GB") + size(chdGenesVcf.vcf, "GB") + size(chdEvolvingGenesVcf.vcf, "GB") + size(chdWhitelistVcf.vcf, "GB") + size(deepIntronicsVcf.vcf, "GB") + size(clinvarIntronicsVcf.vcf, "GB") + size(masterMind.vcf, "GB") + (size(unannotatedVcf, "GB") * 2)) + 500
+        Int vepDiskSize = ceil(size(vepCache, "GB") + size(plugins, "GB") + size(annotations, "GB") + size(hgmdGene.vcf, "GB") + size(hgmdUd10.vcf, "GB") + size(hgmdPro.vcf, "GB") + size(chdGenesVcf.vcf, "GB") + size(chdEvolvingGenesVcf.vcf, "GB") + size(chdWhitelistVcf.vcf, "GB") + size(deepIntronicsVcf.vcf, "GB") + size(clinvarIntronicsVcf.vcf, "GB") + size(masterMind.vcf, "GB") + (size(unannotatedVcf, "GB") * 2)) + 200
 
     }
 
@@ -83,7 +83,8 @@ workflow Annotate {
                 masterMind = masterMind,
                 cosmicCoding = cosmicCoding,
                 cosmicNoncoding = cosmicNoncoding,
-                diskSize = vepDiskSize
+                diskSize = vepDiskSize,
+                memoryGb = 8
         }
     }
     
@@ -112,7 +113,8 @@ workflow Annotate {
                     masterMind = masterMind,
                     cosmicCoding = cosmicCoding,
                     cosmicNoncoding = cosmicNoncoding,
-                    diskSize = vepDiskSize
+                    diskSize = vepDiskSize,
+                    memoryGb = 8
             }
         }
     }

@@ -14,6 +14,23 @@ import "annotate/annotate_cnv_sv_wkf.wdl" as annotate_cnv_sv
 import "germline/germline_wkf.wdl" as germline
 import "annotate/germline_annotate_wkf.wdl" as germlineAnnotate
 import "baf/baf_wkf.wdl" as baf
+import "variant_analysis/deconstruct_sigs_wkf.wdl" as deconstructSigs
+
+# ================== COPYRIGHT ================================================
+# New York Genome Center
+# SOFTWARE COPYRIGHT NOTICE AGREEMENT
+# This software and its documentation are copyright (2021) by the New York
+# Genome Center. All rights are reserved. This software is supplied without
+# any warranty or guaranteed support whatsoever. The New York Genome Center
+# cannot be responsible for its use, misuse, or functionality.
+#
+#    Jennifer M Shelton (jshelton@nygenome.org)
+#    Nico Robine (nrobine@nygenome.org)
+#    Minita Shah (mshah@nygenome.org)
+#    Timothy Chu (tchu@nygenome.org)
+#    Will Hooper (whooper@nygenome.org)
+#
+# ================== /COPYRIGHT ===============================================
 
 # ================== COPYRIGHT ================================================
 # New York Genome Center
@@ -126,7 +143,6 @@ workflow SomaticWorkflow {
         # mantis
         File mantisBed
         File intervalListBed
-        IndexedReference referenceFa
 
         # annotation:
         String vepGenomeBuild
@@ -194,6 +210,11 @@ workflow SomaticWorkflow {
         IndexedVcf deepIntronicsVcf
         IndexedVcf clinvarIntronicsVcf
         IndexedVcf chdWhitelistVcf
+        
+        # signatures
+        File cosmicSigs
+        
+        Boolean highMem = false
 
     }
 
@@ -248,7 +269,8 @@ workflow SomaticWorkflow {
                     sampleId = sampleInfoObj.sampleId,
                     kouramiReference = kouramiReference,
                     finalBam = Preprocess.finalBam[germlineRunGetIndex.index],
-                    kouramiFastaGem1Index = kouramiFastaGem1Index
+                    kouramiFastaGem1Index = kouramiFastaGem1Index,
+                    referenceFa = referenceFa
             }
 
             call germline.Germline {
@@ -270,7 +292,8 @@ workflow SomaticWorkflow {
                     whitelist=whitelist,
                     chdWhitelistVcf=chdWhitelistVcf,
                     deepIntronicsVcf=deepIntronicsVcf,
-                    clinvarIntronicsVcf=clinvarIntronicsVcf
+                    clinvarIntronicsVcf=clinvarIntronicsVcf,
+                    highMem=highMem
             }
 
             call germlineAnnotate.GermlineAnnotate as filteredGermlineAnnotate {
@@ -347,6 +370,38 @@ workflow SomaticWorkflow {
     # for wdl version 1.1
     # Map[String, Bam] bamMaps = as_map(bamPairs)
 
+    scatter (pairRelationship in listOfPairRelationships) {
+        # for wdl version 1.0
+        call GetIndex as tumorBafGetIndex {
+            input:
+                sampleIds = sampleIds,
+                sampleId = pairRelationship.tumor
+        }
+
+        call GetIndex as normalBafGetIndex {
+            input:
+                sampleIds = sampleIds,
+                sampleId = pairRelationship.normal
+        }
+        call GetIndex as germlineBafGetIndex {
+            input:
+                sampleIds = normalSampleIds,
+                sampleId = pairRelationship.normal
+        }
+        
+        if ( size(unFilteredGermlineAnnotate.haplotypecallerAnnotatedVcf[germlineBafGetIndex.index]) > 0 ) {
+            call baf.Baf {
+                input:
+                    referenceFa = referenceFa,
+                    pairName = pairRelationship.pairId,
+                    sampleId = pairRelationship.normal,
+                    tumorFinalBam = Preprocess.finalBam[tumorBafGetIndex.index],
+                    normalFinalBam = Preprocess.finalBam[normalBafGetIndex.index],
+                    germlineVcf = unFilteredGermlineAnnotate.haplotypecallerAnnotatedVcf[germlineBafGetIndex.index],
+                    listOfChroms = listOfChroms
+                }
+        }
+    }
 
     scatter (pairRelationship in listOfPairRelationships) {
         # for wdl version 1.0
@@ -362,30 +417,12 @@ workflow SomaticWorkflow {
                 sampleId = pairRelationship.normal
         }
 
-        call GetIndex as germlineGetIndex {
-            input:
-                sampleIds = normalSampleIds,
-                sampleId = pairRelationship.normal
-        }
-
         pairInfo pairInfoObject = object {
             pairId : pairRelationship.pairId,
             tumorFinalBam : Preprocess.finalBam[tumorGetIndex.index],
             normalFinalBam : Preprocess.finalBam[normalGetIndex.index],
             tumor : pairRelationship.tumor,
             normal : pairRelationship.normal
-        }
-
-        if ( size(unFilteredGermlineAnnotate.haplotypecallerAnnotatedVcf[germlineGetIndex.index]) > 0 ) {
-            call baf.Baf {
-                input:
-                    referenceFa = referenceFa,
-                    pairName = pairRelationship.pairId,
-                    sampleId = pairRelationship.normal,
-                    tumorFinalBam = Preprocess.finalBam[tumorGetIndex.index],
-                    normalFinalBam = Preprocess.finalBam[normalGetIndex.index],
-                    germlineVcf = unFilteredGermlineAnnotate.haplotypecallerAnnotatedVcf[germlineGetIndex.index]
-                }
         }
 
         call conpair.Conpair {
@@ -451,7 +488,8 @@ workflow SomaticWorkflow {
                     chromFastas = chromFastas,
                     bsGenome = bsGenome,
                     ponTarGz = ponTarGz,
-                    gridssAdditionalReference = gridssAdditionalReference
+                    gridssAdditionalReference = gridssAdditionalReference,
+                    highMem = highMem
             }
 
             call msi.Msi {
@@ -571,29 +609,65 @@ workflow SomaticWorkflow {
                     svPon=svPon,
                     cosmicBedPe=cosmicBedPe
 
+          }
+          
+          call deconstructSigs.DeconstructSig {
+              input: 
+                    pairId = pairRelationship.pairId,
+                    mainVcf = mergedVcf,
+                    cosmicSigs = cosmicSigs,
+                    vepGenomeBuild = vepGenomeBuild
+          }
+          
+          FinalPairInfo finalPairInfos = object {
+                pairId : pairRelationship.pairId,
+                tumor : pairRelationship.tumor,
+                normal : pairRelationship.normal,
+                mainVcf : Annotate.pairVcfInfo.mainVcf,
+                supplementalVcf : Annotate.pairVcfInfo.supplementalVcf,
+                vcfAnnotatedTxt : Annotate.pairVcfInfo.vcfAnnotatedTxt,
+                maf : Annotate.pairVcfInfo.maf,
+                filteredMantaSV : Calling.filteredMantaSV,
+                strelka2Snv : Calling.strelka2Snv,
+                strelka2Indel : Calling.strelka2Indel,
+                mutect2 : Calling.mutect2,
+                lancet : Calling.lancet,
+                svabaSv : Calling.svabaSv,
+                svabaIndel : Calling.svabaIndel,
+                gridssVcf : Calling.gridssVcf,
+                bicseq2Png : Calling.bicseq2Png,
+                bicseq2 : Calling.bicseq2,
+                cnvAnnotatedFinalBed : AnnotateCnvSv.cnvAnnotatedFinalBed,
+                cnvAnnotatedSupplementalBed : AnnotateCnvSv.cnvAnnotatedSupplementalBed,
+                svFinalBedPe : AnnotateCnvSv.svFinalBedPe,
+                svHighConfidenceFinalBedPe : AnnotateCnvSv.svHighConfidenceFinalBedPe,
+                svSupplementalBedPe : AnnotateCnvSv.svSupplementalBedPe,
+                svHighConfidenceSupplementalBedPe : AnnotateCnvSv.svHighConfidenceSupplementalBedPe,
+                tumorFinalBam : Preprocess.finalBam[tumorGetIndex.index],
+                normalFinalBam : Preprocess.finalBam[normalGetIndex.index]
         }
+          
       }
 
    }
 
     output {
         # alignment and calling results (calling results may not exist if qc failed)
-        # CNV SV output
-        Array[File?] cnvAnnotatedFinalBed  = AnnotateCnvSv.cnvAnnotatedFinalBed
-        Array[File?] cnvAnnotatedSupplementalBed  = AnnotateCnvSv.cnvAnnotatedSupplementalBed
-        Array[File?] svFinalBedPe = AnnotateCnvSv.svFinalBedPe
-        Array[File?] svHighConfidenceFinalBedPe = AnnotateCnvSv.svHighConfidenceFinalBedPe
-        Array[File?] svSupplementalBedPe = AnnotateCnvSv.svSupplementalBedPe
-        Array[File?] svHighConfidenceSupplementalBedPe = AnnotateCnvSv.svHighConfidenceSupplementalBedPe
-        # SNV INDELs
-        Array[PairVcfInfo?] pairVcfInfos = Annotate.pairVcfInfo
-        Array[File?] mergedVcfs = mergedVcf
-        Array[Bam] finalBams = Preprocess.finalBam
-        Array[PairRawVcfInfo?] pairRawVcfInfos = pairRawVcfInfo
+        # SNV INDELs CNV SV and BAM output
+        Array[FinalPairInfo?] finalPairInfo = finalPairInfos
+        
+        # MSI
         Array[File?] mantisWxsKmerCountsFinal = Msi.mantisWxsKmerCountsFinal
         Array[File?] mantisWxsKmerCountsFiltered = Msi.mantisWxsKmerCountsFiltered
         Array[File?] mantisExomeTxt = Msi.mantisExomeTxt
         Array[File?] mantisStatusFinal = Msi.mantisStatusFinal
+        # SIGs
+        Array[File?] sigs = DeconstructSig.sigs
+        Array[File?] counts = DeconstructSig.counts
+        Array[File?] sig_input = DeconstructSig.sigInput
+        Array[File?] reconstructed = DeconstructSig.reconstructed
+        Array[File?] diff = DeconstructSig.diff
+        
         # QC
         Array[File] alignmentSummaryMetrics = Preprocess.alignmentSummaryMetrics
         Array[File] qualityByCyclePdf = Preprocess.qualityByCyclePdf

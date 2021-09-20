@@ -31,6 +31,7 @@ class Log():
 
     def write(self):
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+        self.run_info['project_data']['run_date'] = timestamp
         file_out = os.path.basename(self.project_data_file).replace('Info.json', '') + '.' +  timestamp + '.RunInfo.json'
         with open(file_out, 'w') as input_info_file:
             json.dump(self.run_info, input_info_file, indent=4)

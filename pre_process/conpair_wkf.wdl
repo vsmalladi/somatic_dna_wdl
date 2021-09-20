@@ -17,10 +17,10 @@ workflow Conpair {
         File markerBedFile
 
         Int threads=1
-        Int memoryGb=16
+        Int memoryGb=4
     }
 
-    Int additionalDiskSize = 100
+    Int additionalDiskSize = 10
     Int tumorSize = ceil(size(finalTumorBam.bam, "GB") + size(finalTumorBam.bamIndex, "GB"))
     Int normalSize = ceil(size(finalNormalBam.bam, "GB") + size(finalNormalBam.bamIndex, "GB"))
 

@@ -5,7 +5,7 @@ import "../wdl_structs.wdl"
 task MultipleMetrics {
     input {
         Int threads = 2
-        Int memoryGb = 40
+        Int memoryGb = 24
         Int diskSize
         IndexedReference referenceFa
         Bam finalBam
@@ -14,11 +14,13 @@ task MultipleMetrics {
         String MultipleMetricsBase = "~{outputDir}/~{sampleId}.MultipleMetrics"
     }
 
+    Int jvmHeap = memoryGb * 750  # Heap size in Megabytes. mem is in GB. (75% of mem)
+
     command {
         mkdir -p $(dirname ~{MultipleMetricsBase})
 
         gatk CollectMultipleMetrics \
-        --java-options "-Xmx32G -XX:ParallelGCThreads=1" \
+        --java-options "-Xmx~{jvmHeap}m -XX:ParallelGCThreads=1" \
         --PROGRAM CollectAlignmentSummaryMetrics \
         --PROGRAM CollectInsertSizeMetrics \
         --PROGRAM QualityScoreDistribution \
@@ -53,7 +55,7 @@ task MultipleMetrics {
 task MultipleMetricsPreBqsr {
     input {
         Int threads = 2
-        Int memoryGb = 40
+        Int memoryGb = 16
         Int diskSize
         String outputDir = "."
         String MultipleMetricsBasePreBqsrBasename = "~{outputDir}/~{sampleId}.MultipleMetrics.dedup"
@@ -62,11 +64,12 @@ task MultipleMetricsPreBqsr {
         String sampleId
     }
 
+    Int jvmHeap = memoryGb * 750  # Heap size in Megabytes. mem is in GB. (75% of mem)
     command {
         mkdir -p $(dirname ~{MultipleMetricsBasePreBqsrBasename})
 
         gatk CollectMultipleMetrics \
-        --java-options "-Xmx32G -XX:ParallelGCThreads=1" \
+        --java-options "-Xmx~{jvmHeap}m -XX:ParallelGCThreads=1" \
         --PROGRAM QualityScoreDistribution \
         --PROGRAM MeanQualityByCycle \
         --PROGRAM CollectGcBiasMetrics \
@@ -95,7 +98,7 @@ task MultipleMetricsPreBqsr {
 task CollectGcBiasMetrics {
     input {
         Int threads = 2
-        Int memoryGb = 32
+        Int memoryGb = 16
         Int diskSize
         String sampleId
         String outputDir = "."
@@ -106,11 +109,12 @@ task CollectGcBiasMetrics {
         Bam finalBam
     }
 
+    Int jvmHeap = memoryGb * 750  # Heap size in Megabytes. mem is in GB. (75% of mem)
     command {
         mkdir -p $(dirname ~{gcBiasPdfPath})
 
         gatk CollectGcBiasMetrics \
-        --java-options "-Xmx24G -XX:ParallelGCThreads=1" \
+        --java-options "-Xmx~{jvmHeap}m -XX:ParallelGCThreads=1" \
         --CHART_OUTPUT ~{gcBiasPdfPath} \
         -O ~{gcBiasMetricsPath} \
         -I ~{finalBam.bam} \
@@ -137,7 +141,7 @@ task CollectGcBiasMetrics {
 task Flagstat {
     input {
         Int threads = 2
-        Int memoryGb = 32
+        Int memoryGb = 8
         Int diskSize
         String sampleId
         String outputDir = "."
@@ -146,11 +150,12 @@ task Flagstat {
         Bam finalBam
     }
 
+    Int jvmHeap = memoryGb * 750  # Heap size in Megabytes. mem is in GB. (75% of mem)
     command {
         mkdir -p $(dirname ~{flagStatPath})
 
         gatk FlagStat \
-        --java-options "-Xmx24G -XX:ParallelGCThreads=1" \
+        --java-options "-Xmx~{jvmHeap}m -XX:ParallelGCThreads=1" \
         --verbosity INFO \
         --reference ~{referenceFa.fasta} \
         -I ~{finalBam.bam} \
@@ -183,11 +188,12 @@ task HsMetrics {
         File hsMetricsIntervals
     }
 
+    Int jvmHeap = memoryGb * 750  # Heap size in Megabytes. mem is in GB. (75% of mem)
     command {
         mkdir -p $(dirname ~{hsMetricsPath})
 
         gatk CollectHsMetrics \
-        --java-options "-Xmx32G -XX:ParallelGCThreads=1" \
+        --java-options "-Xmx~{jvmHeap}m -XX:ParallelGCThreads=1" \
         --BAIT_INTERVALS ~{hsMetricsIntervals} \
         --TARGET_INTERVALS ~{hsMetricsIntervals} \
         --BAIT_SET_NAME ~{sampleId} \
@@ -288,11 +294,12 @@ task CollectOxoGMetricsWgs {
         Bam finalBam
     }
 
+    Int jvmHeap = memoryGb * 750  # Heap size in Megabytes. mem is in GB. (75% of mem)
     command {
         mkdir -p $(dirname ~{collectOxoGMetricsPath})
 
         gatk CollectOxoGMetrics \
-        --java-options "-Xmx4G -XX:ParallelGCThreads=1" \
+        --java-options "-Xmx~{jvmHeap}m -XX:ParallelGCThreads=1" \
         --VALIDATION_STRINGENCY SILENT \
         -I ~{finalBam.bam} \
         -O ~{collectOxoGMetricsPath} \
@@ -314,7 +321,7 @@ task CollectOxoGMetricsWgs {
 task CollectWgsMetrics {
     input {
         Int threads = 2
-        Int memoryGb = 32
+        Int memoryGb = 16
         Int diskSize
         String sampleId
         String outputDir = "."
@@ -324,11 +331,12 @@ task CollectWgsMetrics {
         File randomIntervals
     }
 
+    Int jvmHeap = memoryGb * 750  # Heap size in Megabytes. mem is in GB. (75% of mem)
     command {
         mkdir -p $(dirname ~{collectWgsMetricsPath})
 
         gatk CollectWgsMetrics \
-        --java-options "-Xmx24G -XX:ParallelGCThreads=1" \
+        --java-options "-Xmx~{jvmHeap}m -XX:ParallelGCThreads=1" \
         --VALIDATION_STRINGENCY SILENT \
         -I ~{inputBam.bam} \
         -O ~{collectWgsMetricsPath} \
@@ -425,11 +433,12 @@ task Pileup {
         IndexedVcf gnomadBiallelic
     }
 
+    Int jvmHeap = memoryGb * 750  # Heap size in Megabytes. mem is in GB. (75% of mem)
     command {
         mkdir -p $(dirname ~{pileupsTablePath})
 
         gatk GetPileupSummaries \
-        --java-options "-Xmx12G -XX:ParallelGCThreads=1" \
+        --java-options "-Xmx~{jvmHeap}m -XX:ParallelGCThreads=1" \
         -I ~{finalBam.bam} \
         -V ~{gnomadBiallelic.vcf} \
         -O ~{pileupsTablePath}
@@ -457,11 +466,12 @@ task CalculateContamination {
         Int diskSize
     }
 
+    Int jvmHeap = memoryGb * 750  # Heap size in Megabytes. mem is in GB. (75% of mem)
     command {
         mkdir -p $(dirname ~{contaminationTablePath})
 
         gatk CalculateContamination \
-        --java-options "-Xmx12G -XX:ParallelGCThreads=1" \
+        --java-options "-Xmx~{jvmHeap}m -XX:ParallelGCThreads=1" \
         -I ~{pileupsTable} \
         -O ~{contaminationTablePath}
     }
@@ -489,11 +499,12 @@ task CalculateContaminationPaired {
         File pileupsTumorTable
     }
 
+    Int jvmHeap = memoryGb * 750  # Heap size in Megabytes. mem is in GB. (75% of mem)
     command {
         mkdir -p $(dirname ~{contaminationTablePath})
 
         gatk CalculateContamination \
-        --java-options "-Xmx4G -XX:ParallelGCThreads=1" \
+        --java-options "-Xmx~{jvmHeap}m -XX:ParallelGCThreads=1" \
         -I ~{pileupsTumorTable} \
         -matched ~{pileupsNormalTable} \
         -O ~{contaminationTablePath}
@@ -522,11 +533,12 @@ task ConpairPileup {
         File markerBedFile
     }
 
+    Int jvmHeap = memoryGb * 750  # Heap size in Megabytes. mem is in GB. (75% of mem)
     command {
         mkdir -p $(dirname ~{pileupsConpairPath})
 
         java \
-        -Xmx4096m -XX:ParallelGCThreads=1 \
+        -Xmx~{jvmHeap}m -XX:ParallelGCThreads=1 \
         -jar /usr/GenomeAnalysisTK.jar \
         -T Pileup \
         -R ~{referenceFa.fasta} \

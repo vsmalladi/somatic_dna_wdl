@@ -32,16 +32,16 @@ workflow MergeBams {
             sizes = sample_bam_sizes
     }
 
-    Int diskSize = ceil(SumFloats.total_size * 2) + 100
+    Int diskSize = ceil(SumFloats.total_size * 2) 
 
     call mergeBams.NovosortMarkDup as novosort {
         input:
             laneBams = laneFixmateBams,
             sampleId = sampleId,
-            mem = mem,
+            mem = 20,
             threads = threads,
             # novosort uses a lot of memory and a lot of disk.
-            diskSize = ceil((SumFloats.total_size * 5)) + 100
+            diskSize = ceil((SumFloats.total_size * 3))
     }
 
     # This task runs in parallel with Bqsr38. We are missing coverage check
@@ -91,7 +91,7 @@ workflow MergeBams {
             mergedDedupBam = novosort.mergedDedupBam,
             recalGrp = Bqsr38.recalGrp,
             sampleId = sampleId,
-            diskSize = diskSize
+            diskSize = ceil((SumFloats.total_size * 3))
     }
 
     output {

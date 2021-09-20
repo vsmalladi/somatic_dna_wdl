@@ -417,7 +417,11 @@ def get_args():
                         'The name of the variable in the input file must match the '
                         'name of the variable in the WDL workflow. '
                         'It is not required that the input specify the workflow. '
-                        'By default the input will be added to the top-level workflow.',
+                        'By default the input will be added to the top-level workflow.'
+                        'If you upload a manifest for a command you will need to login to '
+                        'Script also requires a default_credentials_JSON to be created by the user '
+                        'Run the following to generate a default credentials file: '
+                        '     $ gcloud auth application-default login',
                         nargs='*',
                         required=False
                         )

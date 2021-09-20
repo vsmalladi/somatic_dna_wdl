@@ -45,8 +45,11 @@ class Fig():
 
     def fix_legend(self, fig):
         for i, data in enumerate(fig.data):
-            fig.data[i].legendgroup = fig.data[i].legendgroup.split('=')[-1] # legend name and clear hovername
-            fig.data[i].name = fig.data[i].name.split('=')[-1]
+            try:
+                fig.data[i].legendgroup = fig.data[i].legendgroup.split('=')[-1] # legend name and clear hovername
+                fig.data[i].name = fig.data[i].name.split('=')[-1]
+            except AttributeError:
+                pass
         return fig
     
     def clean_tag(self, tag):

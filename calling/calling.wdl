@@ -149,7 +149,7 @@ task ReorderVcfColumns {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.1"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
     }
 }
 
@@ -177,7 +177,7 @@ task AddVcfCommand {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.1"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
     }
 }
 
@@ -186,7 +186,7 @@ task AddVcfCommand {
 task MantaWgs {
     input {
         Int threads = 8
-        Int memoryGb
+        Int memoryGb = 4
         Int diskSize
         String pairName
         String intHVmem = "unlimited"
@@ -235,7 +235,7 @@ task MantaWgs {
 
     runtime {
         cpu : threads
-        disks: "local-disk " + diskSize + " SSD"
+        disks: "local-disk " + diskSize + " LOCAL"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/manta:1.4.0"
     }
@@ -322,7 +322,7 @@ task Strelka2 {
 
     runtime {
         cpu : threads
-        disks: "local-disk " + diskSize + " SSD"
+        disks: "local-disk " + diskSize + " LOCAL"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/strelka:v2.9.3"
     }
@@ -364,7 +364,7 @@ task LancetWGSRegional {
 
     runtime {
         cpu : threads
-        disks: "local-disk " + diskSize + " SSD"
+        disks: "local-disk " + diskSize + " LOCAL"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/lancet:v1.0.7"
     }
@@ -406,7 +406,7 @@ task LancetExome {
 
     runtime {
         cpu : threads
-        disks: "local-disk " + diskSize + " SSD"
+        disks: "local-disk " + diskSize + " LOCAL"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/lancet:v1.0.7"
     }
@@ -414,7 +414,7 @@ task LancetExome {
 
 task Mutect2Wgs {
     input {
-        Int memoryGb
+        Int memoryGb = 4
         Int diskSize
         String chrom
         String tumor
@@ -446,14 +446,14 @@ task Mutect2Wgs {
     runtime {
         memory : memoryGb + "GB"
         docker : "us.gcr.io/broad-gatk/gatk:4.0.5.1"
-        disks: "local-disk " + diskSize + " SSD"
+        disks: "local-disk " + diskSize + " LOCAL"
     }
 }
 
 task Mutect2Filter {
     input {
-        Int memoryGb
-        Int diskSize
+        Int memoryGb = 4
+        Int diskSize = 5
         String pairName
         String chrom
         String mutect2ChromVcfPath = "~{pairName}_~{chrom}.mutect2.v4.0.5.1.vcf"
@@ -484,7 +484,7 @@ task Mutect2Filter {
 task SvabaWgs {
     input {
         Int threads
-        Int memoryGb
+        Int memoryGb = 16
         String pairName
         IndexedTable callRegions
         BwaReference bwaReference
@@ -516,7 +516,7 @@ task SvabaWgs {
 
     runtime {
         cpu : threads
-        disks: "local-disk " + diskSize + " SSD"
+        disks: "local-disk " + diskSize + " LOCAL"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/svaba:1.1.3-c4d7b571"
         preemptible: 0
@@ -546,7 +546,7 @@ task UniqReads {
     }
 
     runtime {
-        disks: "local-disk " + diskSize + " HDD"
+        disks: "local-disk " + diskSize + " LOCAL"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/bicseq2:seg_v0.7.2"
     }
@@ -570,7 +570,7 @@ task Bicseq2Norm {
 
         Array[File] uniqCoordsFiles
         Array[File] chromFastasFiles
-        Int diskSize = 100
+        Int diskSize = 70
     }
 
     command {
@@ -603,7 +603,7 @@ task Bicseq2Norm {
     }
 
     runtime {
-        disks: "local-disk " + diskSize + " HDD"
+        disks: "local-disk " + diskSize + " LOCAL"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/bicseq2:seg_v0.7.2"
     }
@@ -621,7 +621,7 @@ task Bicseq2Wgs {
         File bicseq2SegConfigFile
         String segConfigFilePath = "~{pairName}.bicseq2.seg.config"
         Int lambda = 4
-        Int diskSize = 100
+        Int diskSize = 10
     }
 
     command {
@@ -650,21 +650,22 @@ task Bicseq2Wgs {
     }
 
     runtime {
-        disks: "local-disk " + diskSize + " HDD"
+        disks: "local-disk " + diskSize + " LOCAL"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/bicseq2:seg_v0.7.2"
     }
 }
 
+
 task GridssPreprocess {
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb = 16
+        Int diskSize = 700
         Bam finalBam
 
         BwaReference bwaReference
         Array[File] gridssAdditionalReference
-        Int diskSize
     }
 
     String bamBase = basename(finalBam.bam)
@@ -709,17 +710,18 @@ task GridssPreprocess {
     }
 
     runtime {
-        disks: "local-disk " + diskSize + " HDD"
+        disks: "local-disk " + diskSize + " LOCAL"
         cpu : threads
-        memory : memory_gb + "GB"
-        docker : "gcr.io/nygc-public/gridss:2.11.1-1"
+        memory : memoryGb + "GB"
+        docker : "gcr.io/nygc-public/gridss:2.11.1-2"
     }
 }
 
 task GridssAssembleChunk {
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb = 48
+        Int diskSize = 700
         String pairName
 
         String gridssassemblyBamPath = "~{pairName}.gridssassembly.bam"
@@ -743,13 +745,7 @@ task GridssAssembleChunk {
         File tumorTagMetrics
         File tumorMapqMetrics
         File tumorInsertSizeMetrics
-        Int diskSize
     }
-
-    String normalSvbamBase = basename(normalSvBam.bam)
-    String tumorSvbamBase = basename(tumorSvBam.bam)
-    String normalFinalBamBase = basename(normalFinalBam.bam)
-    String tumorFinalBamBase = basename(tumorFinalBam.bam)
 
     command {
         set -e -o pipefail
@@ -760,16 +756,11 @@ task GridssAssembleChunk {
 
 
         # reposition unnamed input
-        sub_dir=~{normalFinalBamBase}.gridss.working/
-        mkdir -p $sub_dir
-        copied_sub_dir=$( dirname ~{normalSvBam.bam} )
-        ln -s $copied_sub_dir/* $sub_dir
-
-        # reposition unnamed input
-        sub_dir=~{tumorFinalBamBase}.gridss.working/
-        mkdir -p $sub_dir
-        copied_sub_dir=$( dirname ~{tumorSvBam.bam} )
-        ln -s $copied_sub_dir/* $sub_dir
+        bash gridss_arrange.sh \
+        --tumorFinalBam ~{tumorFinalBam.bam} \
+        --normalFinalBam ~{normalFinalBam.bam} \
+        --tumorSvBam ~{tumorSvBam.bam} \
+        --normalSvBam ~{normalSvBam.bam}
 
         working=$( pwd )
 
@@ -794,10 +785,10 @@ task GridssAssembleChunk {
     }
 
     runtime {
-        disks: "local-disk " + diskSize + " HDD"
+        disks: "local-disk " + diskSize + " LOCAL"
         cpu : threads
-        memory : memory_gb + "GB"
-        docker : "gcr.io/nygc-public/gridss:2.11.1-1"
+        memory : memoryGb + "GB"
+        docker : "gcr.io/nygc-public/gridss:2.11.1-2"
     }
 }
 
@@ -805,7 +796,8 @@ task GridssAssembleChunk {
 task GridssAssemble {
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb = 48
+        Int diskSize = 700
         String pairName
         String gridssassemblyBamPath = "~{pairName}.gridssassembly.bam"
         String gridssassemblySvBamPath = "~{pairName}.gridssassembly.bam.gridss.working/~{pairName}.gridssassembly.bam.sv.bam"
@@ -830,15 +822,7 @@ task GridssAssemble {
         File tumorTagMetrics
         File tumorMapqMetrics
         File tumorInsertSizeMetrics
-
-        Int diskSize
     }
-
-    String normalSvbamBase = basename(normalSvBam.bam)
-    String tumorSvbamBase = basename(tumorSvBam.bam)
-    String normalFinalBamBase = basename(normalFinalBam.bam)
-    String tumorFinalBamBase = basename(tumorFinalBam.bam)
-    String downsampledBase = basename(downsampled[0])
 
     command {
         set -e -o pipefail
@@ -849,16 +833,11 @@ task GridssAssemble {
 
         # link preprocess results
         # reposition unnamed input
-        sub_dir=~{normalFinalBamBase}.gridss.working/
-        mkdir -p $sub_dir
-        copied_sub_dir=$( dirname ~{normalSvBam.bam} )
-        ln -s $copied_sub_dir/* $sub_dir
-
-        # reposition unnamed input
-        sub_dir=~{tumorFinalBamBase}.gridss.working/
-        mkdir -p $sub_dir
-        copied_sub_dir=$( dirname ~{tumorSvBam.bam} )
-        ln -s $copied_sub_dir/* $sub_dir
+        bash gridss_arrange.sh \
+        --tumorFinalBam ~{tumorFinalBam.bam} \
+        --normalFinalBam ~{normalFinalBam.bam} \
+        --tumorSvBam ~{tumorSvBam.bam} \
+        --normalSvBam ~{normalSvBam.bam}
 
         # link chunk assembly results
         sub_dir=~{gridssassemblyBamPath}.gridss.working/
@@ -889,18 +868,20 @@ task GridssAssemble {
     }
 
     runtime {
-        disks: "local-disk " + diskSize + " HDD"
+        disks: "local-disk " + diskSize + " LOCAL"
         cpu : threads
-        memory : memory_gb + "GB"
-        docker : "gcr.io/nygc-public/gridss:2.11.1-1"
+        memory : memoryGb + "GB"
+        docker : "gcr.io/nygc-public/gridss:2.11.1-2"
     }
 }
 
 task GridssCalling {
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb = 48
+        Int diskSize = 700
         String pairName
+        String gridssassemblyBamPath = "~{pairName}.gridssassembly.bam"
         String gridssUnfilteredVcfPath = "~{pairName}.sv.gridss.v2.10.2.unfiltered.vcf"
         BwaReference bwaReference
         Array[File] gridssAdditionalReference
@@ -926,16 +907,7 @@ task GridssCalling {
         File tumorTagMetrics
         File tumorMapqMetrics
         File tumorInsertSizeMetrics
-        Int diskSize
     }
-
-    String normalSvbamBase = basename(normalSvBam.bam)
-    String tumorSvbamBase = basename(tumorSvBam.bam)
-    String normalFinalBamBase = basename(normalFinalBam.bam)
-    String tumorFinalBamBase = basename(tumorFinalBam.bam)
-
-
-    String gridssassemblyBamBase = basename(gridssassemblyBam)
 
     command {
         set -e -o pipefail
@@ -945,33 +917,29 @@ task GridssCalling {
         mv ~{sep=" " gridssAdditionalReference} $fasta_dir
 
         # link assembly results
-        sub_dir=~{gridssassemblyBamBase}.gridss.working/
+        sub_dir=~{gridssassemblyBamPath}.gridss.working/
         mkdir -p $sub_dir
         copied_sub_dir=$( dirname ~{gridssassemblySvBam.bam} )
         ln -s $copied_sub_dir/* $sub_dir
 
         ln -s \
         ~{gridssassemblyBam} \
-        ~{gridssassemblyBamBase}
+        ~{gridssassemblyBamPath}
+        
 
         # link chunk assembly results
-        sub_dir=~{gridssassemblyBamBase}.gridss.working/
+        sub_dir=~{gridssassemblyBamPath}.gridss.working/
         mkdir -p $sub_dir
         copied_sub_dir=$( dirname ~{downsampled[0]} )
         ln -s $copied_sub_dir/* $sub_dir
 
         # link preprocess results
         # reposition unnamed input
-        sub_dir=~{normalFinalBamBase}.gridss.working/
-        mkdir -p $sub_dir
-        copied_sub_dir=$( dirname ~{normalSvBam.bam} )
-        ln -s $copied_sub_dir/* $sub_dir
-
-        # reposition unnamed input
-        sub_dir=~{tumorFinalBamBase}.gridss.working/
-        mkdir -p $sub_dir
-        copied_sub_dir=$( dirname ~{tumorSvBam.bam} )
-        ln -s $copied_sub_dir/* $sub_dir
+        bash gridss_arrange.sh \
+        --tumorFinalBam ~{tumorFinalBam.bam} \
+        --normalFinalBam ~{normalFinalBam.bam} \
+        --tumorSvBam ~{tumorSvBam.bam} \
+        --normalSvBam ~{normalSvBam.bam}
 
         working=$( pwd )
 
@@ -981,7 +949,7 @@ task GridssCalling {
         --jar /opt/gridss/gridss-2.11.1-gridss-jar-with-dependencies.jar \
         --threads ~{threads} \
         --workingdir $working \
-        --assembly ~{gridssassemblyBamBase} \
+        --assembly ~{gridssassemblyBamPath} \
         --output ~{gridssUnfilteredVcfPath} \
         --picardoptions VALIDATION_STRINGENCY=LENIENT \
         ~{normalFinalBam.bam} ~{tumorFinalBam.bam} \
@@ -993,17 +961,18 @@ task GridssCalling {
     }
 
     runtime {
-        disks: "local-disk " + diskSize + " HDD"
+        disks: "local-disk " + diskSize + " LOCAL"
         cpu : threads
-        memory : memory_gb + "GB"
-        docker : "gcr.io/nygc-public/gridss:2.11.1-1"
+        memory : memoryGb + "GB"
+        docker : "gcr.io/nygc-public/gridss:2.11.1-2"
     }
 }
 
 task GridssFilter {
     input {
         Int threads
-        Int memory_gb
+        Int memoryGb = 16
+        Int diskSize = 4
         String bsGenome
         String pairName
         File ponTarGz
@@ -1011,7 +980,6 @@ task GridssFilter {
         String gridssVcfPathOut = "~{pairName}.sv.gridss.v2.10.2.vcf.bgz"
         String tumourordinal = 2
         File gridssUnfilteredVcf
-        Int diskSize = 30
     }
 
     command {
@@ -1042,7 +1010,7 @@ task GridssFilter {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         cpu : threads
-        memory : memory_gb + "GB"
-        docker : "gcr.io/nygc-public/gridss:2.11.1-1"
+        memory : memoryGb + "GB"
+        docker : "gcr.io/nygc-public/gridss:2.11.1-2"
     }
 }

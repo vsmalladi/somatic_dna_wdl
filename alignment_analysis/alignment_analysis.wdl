@@ -43,7 +43,7 @@ task MantisExome {
         
         File mantisBedByIntervalList
         IndexedReference referenceFa
-        Int threads = 16
+        Int threads = 8
         Int memoryGb = 4
         Int diskSize = ceil( size(tumorFinalBam.bam, "GB") + size(normalFinalBam.bam, "GB")) + 30
         
@@ -131,19 +131,19 @@ task MantisRethreshold {
     }
 
     runtime {
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.1"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
     }
 }
 
 task GetChr6Contigs {
     input  {
-        Bam finalBam
+        IndexedReference referenceFa
         Int diskSize
         Int memoryGb = 2
     }
     
     command {
-        /lookup_contigs.py ~{finalBam.bam}
+        /lookup_contigs.py ~{referenceFa.fasta}
     }
     
     output {
@@ -153,16 +153,16 @@ task GetChr6Contigs {
     runtime {
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker : "gcr.io/nygc-internal-tools/hla_prep:3.3.0"
+        docker : "gcr.io/nygc-internal-tools/hla_prep:3.4.0"
     }
 }
 
 task GemSelect {
     input {
-        Int threads = 48
-        Int samtoolsThreads = 16
-        Int gemThreads = 16
-        Int memoryGb = 12
+        Int threads = 8
+        Int samtoolsThreads = 8
+        Int gemThreads = 8
+        Int memoryGb = 4
         Int diskSize
         String sampleId
         String chr6Contigs
@@ -225,8 +225,8 @@ task GemSelect {
 
 task LookUpMates {
     input {
-        Int memoryGb = 12
-        Int diskSize = 10
+        Int memoryGb = 2
+        Int diskSize = 4
         String sampleId
         String r1UnmappedFilePath = "~{sampleId}.first_pair_unmapped"
         String r2UnmappedFilePath = "~{sampleId}.second_pair_unmapped"
@@ -264,7 +264,7 @@ task GetMates {
     input {
         Int threads = 8
         Int samtoolsThreads = 4
-        Int memoryGb = 12
+        Int memoryGb = 2
         Int diskSize
         String sampleId
         String r1UnmappedFastqPath = "~{sampleId}.R1_unmapped.fastq"
@@ -307,8 +307,8 @@ task GetMates {
 
 task SortFastqs {
     input {
-        Int memoryGb = 12
-        Int diskSize = 10
+        Int memoryGb = 2
+        Int diskSize = 4
         String sampleId
         String fastqPairId
         String sortedFastqPath = "~{sampleId}.~{fastqPairId}_sorted.fastq"
@@ -349,8 +349,8 @@ task AlignToPanel {
         Int threads = 82
         Int bwaThreads = 80
         Int samtoolsSortThreads = 2
-        Int memoryGb = 48
-        Int diskSize = 10
+        Int memoryGb = 4
+        Int diskSize = 4
         String sampleId
         String kouramiBamPath = "~{sampleId}.kourami.bam"
         File r2SortedFastq
@@ -361,13 +361,6 @@ task AlignToPanel {
 
     command {
         set -e -o pipefail
-        
-        bwa mem \
-        -t ~{bwaThreads} \
-        ~{kouramiReference.fasta} \
-        ~{r1SortedFastq} \
-        ~{r2SortedFastq} \
-        > test.output.sam
         
         bwa mem \
         -t ~{bwaThreads} \

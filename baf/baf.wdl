@@ -9,19 +9,21 @@ task FilterForHetSnps {
         String sellectionString = "'vc.getGenotype(\"~{sampleId}\").isHet()'"
         IndexedReference referenceFa
         # require file!
-        # marked as optional so that pipeline can be dependent on input that may not 
+        # marked as optional so that pipeline can be dependent on input that may not
         # pass QC
         # do not run with out input file!
         File? germlineVcf
-        
+
         Int memoryGb = 24
-        Int diskSize = (ceil( size(germlineVcf, "GB") )  * 2 ) + 20
+        Int diskSize = (ceil( size(germlineVcf, "GB") )  * 2 )
     }
+
+    Int jvmHeap = memoryGb * 750  # Heap size in Megabytes. mem is in GB. (75% of mem)
 
     command {
         gatk \
         SelectVariants \
-        --java-options "-Xmx20g" \
+        --java-options "-Xmx~{jvmHeap}m" \
         -restrict-alleles-to BIALLELIC \
         -select-type SNP \
         -select ~{sellectionString} \
@@ -47,8 +49,8 @@ task FilterBaf {
         String sampleId
         String knownHetVcfPath = "~{sampleId}.haplotypecaller.gatk.v4.1.8.0.known.het.vcf"
         File hetVcf
-        Int memoryGb = 24
-        Int diskSize = (ceil( size(hetVcf, "GB") )  * 2 ) + 10
+        Int memoryGb = 4
+        Int diskSize = (ceil( size(hetVcf, "GB") )  * 2 )
     }
 
     command {
@@ -65,20 +67,21 @@ task FilterBaf {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.1"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
     }
 }
 
 task AlleleCounts {
     input {
         String pairName
-        String alleleCountsTxtPath = "~{pairName}.haplotypecaller.gatk.v4.1.8.0.alleles.txt"
+        String alleleCountsChromTxtPath = "~{pairName}.~{chrom}.haplotypecaller.gatk.v4.1.8.0.alleles.txt"
         IndexedReference referenceFa
         Bam normalFinalBam
         File knownHetVcf
         Bam tumorFinalBam
-        
-        Int memoryGb = 24
+        String chrom
+        Int memoryGb = 4
+
         Int diskSize = (ceil( size(knownHetVcf, "GB") )  * 2 ) + ceil( size(tumorFinalBam.bam, "GB")) + ceil( size(normalFinalBam.bam, "GB")) + 10
     }
 
@@ -88,18 +91,19 @@ task AlleleCounts {
         --tumor_bam ~{tumorFinalBam.bam} \
         --normal_bam ~{normalFinalBam.bam} \
         --vcf ~{knownHetVcf} \
-        --output ~{alleleCountsTxtPath} \
-        --reference ~{referenceFa.fasta}
+        --output ~{alleleCountsChromTxtPath} \
+        --reference ~{referenceFa.fasta} \
+        --chrom ~{chrom}
     }
 
     output {
-        File alleleCountsTxt = "~{alleleCountsTxtPath}"
+        File alleleCountsTxt = "~{alleleCountsChromTxtPath}"
     }
 
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.1"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
     }
 }
 
@@ -108,8 +112,8 @@ task CalcBaf {
         String pairName
         String bafTxtPath = "~{pairName}.haplotypecaller.gatk.v4.1.8.0.baf.txt"
         File alleleCountsTxt
-        Int memoryGb = 24
-        Int diskSize = (ceil( size(alleleCountsTxt, "GB") )  * 2 ) + 10
+        Int memoryGb = 4
+        Int diskSize = (ceil( size(alleleCountsTxt, "GB") )  * 2 ) + 1
     }
 
     command {
@@ -126,8 +130,6 @@ task CalcBaf {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.1"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
     }
 }
-
-

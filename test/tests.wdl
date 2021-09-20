@@ -27,7 +27,7 @@ task CompareCnvGenes {
     runtime {
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker: "gcr.io/nygc-internal-tools/somatic_tools:v1.1.1"
+        docker: "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
     }
     
     meta {
@@ -61,7 +61,7 @@ task CompareSvGenes {
     runtime {
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker: "gcr.io/nygc-internal-tools/somatic_tools:v1.1.1"
+        docker: "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
     }
     
     meta {
@@ -76,12 +76,11 @@ task ConcateTables {
         Array[File] tables
         Int diskSize = 1
         Int memoryGb = 1
-        File concateTables = "gs://nygc-comp-s-fd4e-input/concate_tables.py"
     }
     
     command {
        python \
-        ~{concateTables} \
+        /concate_tables.py \
         --tables ~{sep=" " tables} \
         --output ~{outputTablePath}
     }
@@ -93,7 +92,7 @@ task ConcateTables {
     runtime {
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker: "gcr.io/nygc-internal-tools/somatic_tools:v1.1.1"
+        docker: "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
     }
     
     meta {
@@ -128,7 +127,7 @@ task SummarizeFlagstat {
     runtime {
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker: "gcr.io/nygc-internal-tools/somatic_tools:v1.1.1"
+        docker: "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
     }
     
     meta {
@@ -164,7 +163,7 @@ task SummarizeMsi {
     runtime {
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker: "gcr.io/nygc-internal-tools/somatic_tools:v1.1.1"
+        docker: "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
     }
     
     meta {
@@ -207,7 +206,7 @@ task SummarizeVcf {
     runtime {
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker: "gcr.io/nygc-internal-tools/somatic_tools:v1.1.1"
+        docker: "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
     }
     
     meta {

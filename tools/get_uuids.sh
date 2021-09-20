@@ -19,10 +19,11 @@ print_usage() {
 }
 
 
-while getopts 'u:w:h' flag; do
+while getopts 'u:w:g:h' flag; do
   case "${flag}" in
     u) url="${OPTARG}" ;;
     w) uuid="${OPTARG}" ;;
+    g) gcp_project="${OPTARG}" ;;
     h) print_help ;;
     \?) print_usage; echo "Unknown option: $OPTARG" >&2 ;;
     :) print_usage; echo "Missing option argument for option: $OPTARG" >&2 ;;
@@ -45,9 +46,14 @@ fi
 set -e
 set -o pipefail
 
+if [ -z "$gcp_project" ]; then
+    username=$(gcloud secrets versions access latest --secret="cromwell_username")
+    password=$(gcloud secrets versions access latest --secret="cromwell_password")
+else
+    username=$(gcloud secrets versions access latest --project=${gcp_project} --secret="readonly_cromwell_username")
+    password=$(gcloud secrets versions access latest --project=${gcp_project} --secret="readonly_cromwell_password")
+fi
 
-username=$(gcloud secrets versions access latest --secret="cromwell_username")
-password=$(gcloud secrets versions access latest --secret="cromwell_password")
 curl -X GET "${url}/api/workflows/v1/${uuid}/metadata?expandSubWorkflows=true&includeKey=outputs" \
 -u ${username}:${password} \
 | jq .

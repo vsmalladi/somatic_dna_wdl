@@ -33,11 +33,8 @@ task vepSvnIndel {
         IndexedVcf masterMind
 
         String vcfAnnotatedVepPath = "~{pairName}.v7.vep.annotated.vcf"
-        Int threads = 16
-        #Int vepResourcesSize = ceil(size(vepCache, "GB") + size(plugins, "GB") + size(annotations, "GB"))
-        #Int vcfSize = ceil(size(hgmdGene.vcf, "GB") + size(hgmdUd10.vcf, "GB") + size(hgmdPro.vcf, "GB") + size(omimVcf.vcf, "GB") + size(chdGenesVcf.vcf, "GB") + size(chdEvolvingGenesVcf.vcf, "GB") + size(chdWhitelistVcf.vcf, "GB") + size(deepIntronicsVcf.vcf, "GB") + size(clinvarIntronicsVcf.vcf, "GB") + size(masterMind.vcf, "GB"))
-        #Int inputVcfSize = ceil(size(unannotatedVcf.vcf, "GB") * 2)
-        #Int diskSize = vepResourcesSize + vcfSize + inputVcfSize + 20
+        Int threads = 8
+        Int memoryGb = 16
         Int diskSize
 
     }
@@ -117,9 +114,9 @@ task vepSvnIndel {
     }
 
     runtime {
-        memory: "32 GB"
-        cpu: "16"
-        disks: "local-disk " + diskSize + " SSD"
+        cpu : threads
+        memory : memoryGb + "GB"
+        disks: "local-disk " + diskSize + " LOCAL"
         docker: "ensemblorg/ensembl-vep:release_97.4"
     }
 
@@ -158,11 +155,8 @@ task vepPublicSvnIndel {
         IndexedVcf masterMind
 
         String vcfAnnotatedVepPath = "~{pairName}.v7.vep.annotated.vcf"
-        Int threads = 16
-        #Int vepResourcesSize = ceil(size(vepCache, "GB") + size(plugins, "GB") + size(annotations, "GB"))
-        #Int vcfSize = ceil(size(hgmdGene.vcf, "GB") + size(hgmdUd10.vcf, "GB") + size(hgmdPro.vcf, "GB") + size(omimVcf.vcf, "GB") + size(chdGenesVcf.vcf, "GB") + size(chdEvolvingGenesVcf.vcf, "GB") + size(chdWhitelistVcf.vcf, "GB") + size(deepIntronicsVcf.vcf, "GB") + size(clinvarIntronicsVcf.vcf, "GB") + size(masterMind.vcf, "GB"))
-        #Int inputVcfSize = ceil(size(unannotatedVcf.vcf, "GB") * 2) 
-        #Int diskSize = vepResourcesSize + vcfSize + inputVcfSize + 20
+        Int threads = 8
+        Int memoryGb = 16
         Int diskSize
 
     }
@@ -241,9 +235,9 @@ task vepPublicSvnIndel {
     }
 
     runtime {
-        memory: "32 GB"
-        cpu: "16"
-        disks: "local-disk " + diskSize + " SSD"
+        cpu : threads
+        memory : memoryGb + "GB"
+        disks: "local-disk " + diskSize + " LOCAL"
         docker: "ensemblorg/ensembl-vep:release_97.4"
     }
 

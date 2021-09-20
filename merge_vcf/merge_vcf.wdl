@@ -36,17 +36,17 @@ task IndexVcf {
         String vcfCompressedPath = basename(vcfCompressed)
         String vcfIndexedPath = sub(basename(vcfCompressed), "$", ".tbi")
         Int threads = 4
-        Int memoryGb = 24
-        Int diskSize = (ceil( size(vcfCompressed, "GB") )  * 2 ) + 20
+        Int memoryGb = 8
+        Int diskSize = (ceil( size(vcfCompressed, "GB") )  * 2 ) + 4
     }
 
     command {
         set -e -o pipefail
-        
+
         cp \
         ~{vcfCompressed} \
         ~{vcfCompressedPath}
-        
+
         gatk \
         IndexFeatureFile \
         --java-options "-XX:ParallelGCThreads=4" \
@@ -56,7 +56,7 @@ task IndexVcf {
 
     output {
         IndexedVcf vcfCompressedIndexed = object {
-                vcf : "~{vcfCompressedPath}", 
+                vcf : "~{vcfCompressedPath}",
                 index : "~{vcfIndexedPath}"
             }
     }
@@ -97,7 +97,7 @@ task RenameMetadata {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.1"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
     }
 }
 
@@ -105,7 +105,7 @@ task MergePrepSupport {
     input {
         String pairName
         File renameMetaVcf
-        String prepCallerVcfPath =  sub(basename(renameMetaVcf), ".rename_metadata.vcf$", ".merge_prep.vcf") 
+        String prepCallerVcfPath =  sub(basename(renameMetaVcf), ".rename_metadata.vcf$", ".merge_prep.vcf")
         String tool
         Int memoryGb = 16
         Int diskSize = (ceil( size(renameMetaVcf, "GB") )  * 2 ) + 4
@@ -127,7 +127,7 @@ task MergePrepSupport {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.1"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
     }
 }
 
@@ -156,7 +156,7 @@ task MergePrep {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.1"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
     }
 }
 
@@ -189,7 +189,7 @@ task RenameVcf {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.1"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
     }
 }
 
@@ -289,7 +289,7 @@ task SplitMnv {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.1"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
     }
 }
 
@@ -316,7 +316,7 @@ task RemoveContig {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.1"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
     }
 }
 
@@ -325,17 +325,19 @@ task Gatk4MergeSortVcf {
         String sortedVcfPath
         Array[File] tempVcfs
         IndexedReference referenceFa
-        Boolean gzipped = false 
+        Boolean gzipped = false
         String suffix = if gzipped then ".tbi" else ".idx"
         Int threads = 4
         Int memoryGb = 8
         Int diskSize = 10
     }
 
-    command {        
+    Int jvmHeap = memoryGb * 750  # Heap size in Megabytes. mem is in GB. (75% of mem)
+
+    command {
         gatk \
         SortVcf \
-        --java-options "-Xmx8g -XX:ParallelGCThreads=4" \
+        --java-options "-Xmx~{jvmHeap}m -XX:ParallelGCThreads=4" \
         -SD ~{referenceFa.dict} \
         -I ~{sep=" -I " tempVcfs} \
         -O ~{sortedVcfPath}
@@ -343,7 +345,7 @@ task Gatk4MergeSortVcf {
 
     output {
         IndexedVcf sortedVcf = object {
-            vcf : "~{sortedVcfPath}", 
+            vcf : "~{sortedVcfPath}",
             index : "~{sortedVcfPath}~{suffix}"
         }
     }
@@ -454,7 +456,7 @@ task GetCandidates {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.1"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
     }
 }
 
@@ -470,7 +472,7 @@ task VcfToBed {
 
     command {
         set -e -o pipefail
-        
+
         python \
         /vcf_to_bed.py \
         ~{candidateChromVcf} \
@@ -486,7 +488,7 @@ task VcfToBed {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.1"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
     }
 }
 
@@ -506,9 +508,9 @@ task LancetConfirm {
 
     command {
         set -e -o pipefail
-        
+
         mkdir ~{chrom}
-        
+
         cd ~{chrom}
 
         lancet \
@@ -603,7 +605,7 @@ task MergeColumns {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.1"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
     }
 }
 
@@ -637,7 +639,7 @@ task AddNygcAlleleCountsToVcf {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.1"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
     }
 }
 
@@ -665,7 +667,7 @@ task AddFinalAlleleCountsToVcf {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.1"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
     }
 }
 
@@ -696,7 +698,7 @@ task FilterPon {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.1"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
     }
 }
 
@@ -726,7 +728,7 @@ task FilterVcf {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.1"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
     }
 }
 
@@ -754,15 +756,6 @@ task SnvstomnvsCountsbasedfilterAnnotatehighconf {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.1"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
     }
 }
-
-
-
-
-
-
-
-
-

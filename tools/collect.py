@@ -20,7 +20,8 @@ log.basicConfig(format='%(levelname)s:  %(message)s', level=log.INFO)
 
 class JsonModify():
     
-    def __init__(self, inputs, 
+    def __init__(self, inputs,
+                 workflow_uuid, 
                  sample_id=False, 
                  pair_id=False,
                  dir=False,
@@ -40,7 +41,9 @@ class JsonModify():
         match: Assumes that the sample name followed by "." or "_" are in the basename
             Sorts out which objects have names that refer to a pair or sample
         '''
+        self.results = []
         self.tool = tool
+        self.workflow_uuid = workflow_uuid
         self.sample_id = sample_id
         self.pair_id = pair_id
         self.uri_list = uri_list
@@ -162,8 +165,11 @@ class JsonModify():
         else:
             uri = string
             sub_workflow_uuid = uri.replace('/cacheCopy', '').split('/call-')[-2].split('/')[-1]
-            self.sub_workflow_uuids.append(sub_workflow_uuid)
-        return string
+            if sub_workflow_uuid == self.workflow_uuid:
+                pass
+            else:
+                self.sub_workflow_uuids.append(sub_workflow_uuid)
+                return string
     
     def run_tool(self, subnode):
         '''run the correct tool for the string (subnode)'''
@@ -232,22 +238,23 @@ class JsonModify():
                     
                     
 class CloudOutput():
-    def __init__(self, run_data, url):
+    def __init__(self, run_data, url, gcp_project):
         self.parent_dir = os.path.abspath(os.path.dirname(__file__))
         self.url = url
         self.run_data = run_data
         self.options = run_data.options
+        self.gcp_project = gcp_project
         self.workflow_uuid = self.run_data.workflow_uuid
-        # fast get calls from API to search for uuids
-        self.uri_list = self.list_uris()
-        if len(self.uri_list) == 0:
-            # slow get uris from bucket directory
-            log.warning('Slow uri lookup beginning')
-            self.uri_list = self.list_project()
-        # get API outputs section
-        self.raw_outputs = self.read_api()
         # get root dir
         self.root_dir = self.read_api(goal='get_root')
+        # fast get calls from API to search for uuids
+        self.uri_list = self.list_uris()
+#         if len(self.uri_list) == 0:
+#             # slow get uris from bucket directory
+#             log.warning('Slow uri lookup beginning')
+#             self.uri_list = self.list_project()
+        # get API outputs section
+        self.raw_outputs = self.read_api()
         # get files (named and unnamed) from API outputs section
         self.parse_block()
         self.unnamed_files = self.gather_unnamed()
@@ -256,7 +263,15 @@ class CloudOutput():
         self.divide_by_id()
         # Find only task uuids for files with the pair or the sample in the 
         # filename with . or _ after the name
+        if self.uri_list == False:
+            log.warning('No output files created')
+            sys.exit(0)
         self.divide_uuid_by_id()
+        # Add in if needed
+        if not 'run_date' in self.run_data.project_info:
+            run_date = self.get_run_date()
+            self.run_data.project_info['run_date'] = run_date
+        self.run_data.run_info['run_date'] = self.run_data.project_info['run_date']
         self.run_data.run_info['pair_association'] = self.pair_association
         self.run_data.run_info['sample_association'] = self.sample_association
         self.run_data.run_info['outputs'] = self.named_outputs
@@ -275,10 +290,12 @@ class CloudOutput():
                 association_object = copy.deepcopy(association[id][object])
                 if pair:
                     skip = JsonModify(inputs={object: association_object},
+                                      workflow_uuid=self.workflow_uuid,
                                       pair_id=id,
                                       tool='skip')
                 if sample:
                     skip = JsonModify(inputs={object: association_object},
+                                      workflow_uuid=self.workflow_uuid,
                                       sample_id=id,
                                       tool='skip')
                 if not skip.skip_obj:
@@ -290,15 +307,17 @@ class CloudOutput():
         filename with . or _ after the name'''
         pair_association = {}
         sample_association = {}
-        pair_ids = list(set([pair_info["pairId"] for pair_info in self.run_data.project_info["pairInfos"]]))
+        pair_ids = list(set([pair_info["pairId"] for pair_info in self.run_data.project_info["listOfPairRelationships"]]))
         for pair_id in pair_ids:
             current_pair_association = JsonModify(inputs=self.named_outputs, 
+                                                    workflow_uuid=self.workflow_uuid,
                                                     all_pair_ids=list(pair_ids),
                                                     pair_id=pair_id,
                                                     tool='match').final_json_obj
             pair_association[pair_id] = current_pair_association
         for sample_id in self.run_data.project_info["sampleIds"]:
             current_sample_association = JsonModify(inputs=self.named_outputs,
+                                                       workflow_uuid=self.workflow_uuid,
                                                        all_sample_ids=self.run_data.project_info["sampleIds"],
                                                        sample_id=sample_id,
                                                        all_pair_ids=list(pair_ids),
@@ -324,30 +343,34 @@ class CloudOutput():
         ''' Find only task uuids for files with the pair or the sample in the 
         filename with . or _ after the name'''
         self.sub_workflow_uuids = {}
-        pair_ids = list(set([pair_info["pairId"] for pair_info in self.run_data.project_info["pairInfos"]]))
+        pair_ids = list(set([pair_info["pairId"] for pair_info in self.run_data.project_info["listOfPairRelationships"]]))
         for pair_id in pair_ids:
             matches = JsonModify(inputs={},
+                                 workflow_uuid=self.workflow_uuid,
                                  uri_list=self.uri_list,
                                  all_pair_ids=list(pair_ids),
                                  pair_id=pair_id,
                                  tool='match').results
             sub_workflow_uuids = JsonModify(inputs={},
-                                    uri_list=matches,
-                                    all_pair_ids=list(pair_ids),
-                                    pair_id=pair_id,
-                                    tool='sub_workflow_uuid').sub_workflow_uuids
+                                            workflow_uuid=self.workflow_uuid,
+                                            uri_list=matches,
+                                            all_pair_ids=list(pair_ids),
+                                            pair_id=pair_id,
+                                            tool='sub_workflow_uuid').sub_workflow_uuids
             self.sub_workflow_uuids[pair_id] = list(set([uuid for uuid in sub_workflow_uuids if uuid]))
         for sample_id in self.run_data.project_info["sampleIds"]:
             matches = JsonModify(inputs={},
+                                 workflow_uuid=self.workflow_uuid,
                                  uri_list=self.uri_list,
                                  all_pair_ids=list(pair_ids),
                                  sample_id=sample_id,
                                  tool='match').results
             sub_workflow_uuids = JsonModify(inputs={},
-                                    uri_list=matches,
-                                    all_pair_ids=list(pair_ids),
-                                    sample_id=sample_id,
-                                    tool='sub_workflow_uuid').sub_workflow_uuids
+                                            workflow_uuid=self.workflow_uuid,
+                                            uri_list=matches,
+                                            all_pair_ids=list(pair_ids),
+                                            sample_id=sample_id,
+                                            tool='sub_workflow_uuid').sub_workflow_uuids
             self.sub_workflow_uuids[sample_id] = list(set([uuid for uuid in sub_workflow_uuids if uuid]))
 
     def out_path(self):
@@ -361,7 +384,8 @@ class CloudOutput():
     def parse_block(self):
         '''get files (named and unnamed) from API outputs section'''
         self.out_dir =  self.out_path()
-        outputs = JsonModify(inputs=self.raw_outputs, 
+        outputs = JsonModify(inputs=self.raw_outputs,
+                             workflow_uuid=self.workflow_uuid,
                              dir=self.out_dir,
                              tool='convert_path')
         self.named_outputs = outputs.final_json_obj
@@ -374,6 +398,15 @@ class CloudOutput():
         unnamed_files = list(set(all_files).difference(set(self.named_files)))
         return unnamed_files
     
+    def get_run_date(self):
+        '''
+        Get all top level sub workflow uuids
+        '''
+        run_date = self.read_api(goal='get_run_date')
+        run_date = run_date.replace('"', '').split('T')[0]
+        return run_date
+        
+    
     def list_uris(self):
         '''
         Get all top level sub workflow uuids
@@ -381,13 +414,14 @@ class CloudOutput():
         calls = self.read_api(goal='get_uuids')
         self.uri_list = []
         for line in str(calls).split('\n'):
-            for strings in line.split(' '):
-                for string in strings.strip().split("'"):
+            for strings in line.split():
+                for string in strings.split("'"):
                     if string.startswith("gs://") and 'call-' in string:
                         uri = string
                         self.uri_list.append(uri)
                     elif string.startswith("gs://"):
-                        log.warning('potential skipped uri : ' + string)
+                        pass
+                        #log.warning('potential skipped uri : ' + string)
         self.uri_list = list(set(self.uri_list))
         return list(set(self.uri_list))
     
@@ -435,16 +469,28 @@ class CloudOutput():
                 and not file.endswith('/')]
                     
     def read_api(self, goal='get_outputs'):
-        if goal == 'get_outputs':
+        if goal == 'get_run_date':
+            script = self.parent_dir + '/get_run_date.sh'
+        elif goal == 'get_outputs':
             script = self.parent_dir + '/get_outputs.sh'
-        if goal == 'get_root':
+        elif goal == 'get_root':
             script = self.parent_dir + '/get_root.sh'
-        if goal == 'get_uuids':
+        elif goal == 'get_uuids':
             script = self.parent_dir + '/get_uuids.sh'
+        else:
+            log.error("unknown read_api task: " + str(goal))
+            sys.exit(1)
+        if not self.gcp_project:
+            args = ['bash', script,
+                    '-u', self.url,
+                    '-w', self.workflow_uuid]
+        else:
+            args = ['bash', script,
+                    '-u', self.url,
+                    '-w', self.workflow_uuid,
+                    '-g', self.gcp_project]
         try:
-            result = subprocess.run(['bash', script,
-                                     '-u', self.url,
-                                     '-w', self.workflow_uuid],
+            result = subprocess.run(args,
                                     check=True,
                                     stdout=subprocess.PIPE).stdout.decode('utf-8')
         except subprocess.CalledProcessError as err:
@@ -457,32 +503,21 @@ class CloudOutput():
         
 class RunData():
     '''Load rundata from file and confirm project data schema '''
-    def __init__(self, run_info_file):
-        self.run_info = self.read(run_info_file)
-        self.run_date = run_info_file.split('.')[-3:-2][0]
+    def __init__(self, run_info):
+        self.run_info = run_info
         self.options = self.run_info['project_data']['options']
         self.project_info = self.run_info['project_data']
-        self.project_info['run_date'] = self.run_date
         self.passed = meta.test_schema(self.project_info)
         self.workflow_uuid = self.run_info['workflow_uuid']
         
-    def read(self, file):
+    
+    @staticmethod
+    def read(file):
         with open(file) as project_info_file:
             project_info = json.load(project_info_file)
             return project_info
-        
 
-def main():
-    args = get_args()
-    run_data = RunData(run_info_file=args['run_data'])
-    outputs = CloudOutput(run_data=run_data, url=args['url'])
-    file_out = outputs.run_data.run_info["project_data"]['project'].replace(' ', '_') + '.' +  outputs.run_data.run_info['workflow_uuid'] + '_outputInfo.json'
-    with open(file_out, 'w') as project_info_file:
-        json.dump(outputs.run_data.run_info, project_info_file, indent=4)
 
-        
-
-            
 def get_args():
     '''Parse input flags
     '''
@@ -494,12 +529,51 @@ def get_args():
                         'genome build, library and interval list information',
                         required=True
                         )
+    parser.add_argument('--multi',
+                        help='Records for multiple runs are stored in the JSON file with RunInfo.',
+                        required=False,
+                        action='store_true'
+                        )
+    parser.add_argument('--name',
+                        default='nygc_pipeline',
+                        help='Use with the --multi flag to name the output.',
+                        required=False
+                        )
     parser.add_argument('--url',
                         help='URL for cromwell server.',
                         required=True
                         )
+    parser.add_argument('--gcp-project',
+                        help='GCP project id if this is not the set project '
+                        'assumes you have read only access',
+                        default=False,
+                        required=False
+                        )
     args_namespace = parser.parse_args()
     return args_namespace.__dict__
+
+
+def main():
+    args = get_args()
+    run_infos = RunData.read(args['run_data'])
+    if not args['multi']:
+        run_infos = [run_infos]
+    output_files = []
+    for run_info in run_infos:
+        run_data = RunData(run_info=run_info)
+        file_out = run_data.run_info["project_data"]['project'].replace(' ', '_') + '.' +  run_data.run_info['workflow_uuid'] + '_outputInfo.json'
+        output_files.append(file_out)
+        if not os.path.isfile(file_out):
+            outputs = CloudOutput(run_data=run_data, 
+                                  url=args['url'],
+                                  gcp_project=args['gcp_project'])
+            with open(file_out, 'w') as project_info_file:
+                json.dump(outputs.run_data.run_info, project_info_file, indent=4)
+    if args['multi']:
+        with open(args['name'] + '_outputInfoManifest.txt', 'w') as out:
+            for file in output_files:
+                out.write(file + '\n')
+
 
 if __name__ == "__main__":
     main()       

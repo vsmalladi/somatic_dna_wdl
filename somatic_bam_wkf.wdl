@@ -13,6 +13,24 @@ import "annotate/annotate_cnv_sv_wkf.wdl" as annotate_cnv_sv
 import "germline/germline_wkf.wdl" as germline
 import "annotate/germline_annotate_wkf.wdl" as germlineAnnotate
 import "baf/baf_wkf.wdl" as baf
+import "variant_analysis/deconstruct_sigs_wkf.wdl" as deconstructSigs
+
+# ================== COPYRIGHT ================================================
+# New York Genome Center
+# SOFTWARE COPYRIGHT NOTICE AGREEMENT
+# This software and its documentation are copyright (2021) by the New York
+# Genome Center. All rights are reserved. This software is supplied without
+# any warranty or guaranteed support whatsoever. The New York Genome Center
+# cannot be responsible for its use, misuse, or functionality.
+#
+#    Jennifer M Shelton (jshelton@nygenome.org)
+#    Nico Robine (nrobine@nygenome.org)
+#    Minita Shah (mshah@nygenome.org)
+#    Timothy Chu (tchu@nygenome.org)
+#    Will Hooper (whooper@nygenome.org)
+#
+# ================== /COPYRIGHT ===============================================
+
 
 # ================== COPYRIGHT ================================================
 # New York Genome Center
@@ -116,7 +134,6 @@ workflow SomaticBamWorkflow {
         # mantis
         File mantisBed
         File intervalListBed
-        IndexedReference referenceFa
         
         # annotation:
         String vepGenomeBuild
@@ -185,6 +202,11 @@ workflow SomaticBamWorkflow {
         IndexedVcf deepIntronicsVcf
         IndexedVcf clinvarIntronicsVcf
         IndexedVcf chdWhitelistVcf
+        
+        # signatures
+        File cosmicSigs
+        
+        Boolean highMem = false
     }
     
     scatter (normalSampleBamInfo in normalSampleBamInfos) {
@@ -195,7 +217,8 @@ workflow SomaticBamWorkflow {
                 sampleId = normalSampleBamInfo.sampleId,
                 kouramiReference = kouramiReference,
                 finalBam = normalSampleBamInfo.finalBam,
-                kouramiFastaGem1Index = kouramiFastaGem1Index
+                kouramiFastaGem1Index = kouramiFastaGem1Index,
+                referenceFa = referenceFa
         }
         
         call germline.Germline {
@@ -217,7 +240,8 @@ workflow SomaticBamWorkflow {
                 whitelist = whitelist,
                 chdWhitelistVcf = chdWhitelistVcf,
                 deepIntronicsVcf = deepIntronicsVcf,
-                clinvarIntronicsVcf = clinvarIntronicsVcf
+                clinvarIntronicsVcf = clinvarIntronicsVcf,
+                highMem = highMem
         }
         
         call germlineAnnotate.GermlineAnnotate as filteredGermlineAnnotate {
@@ -297,6 +321,20 @@ workflow SomaticBamWorkflow {
                 sampleId = pairInfo.normal
         }
         
+        call baf.Baf {
+            input:
+                referenceFa = referenceFa,
+                pairName = pairInfo.pairId,
+                sampleId = pairInfo.normal,
+                tumorFinalBam = pairInfo.tumorFinalBam,
+                normalFinalBam = pairInfo.normalFinalBam,
+                germlineVcf = unFilteredGermlineAnnotate.haplotypecallerAnnotatedVcf[germlineGetIndex.index],
+                listOfChroms = listOfChroms
+        }
+    }
+    
+    scatter(pairInfo in pairInfos) {
+        
         # tumor insert size
         Int tumorDiskSize = ceil(size(pairInfo.tumorFinalBam.bam, "GB")) + 30
                       
@@ -327,16 +365,6 @@ workflow SomaticBamWorkflow {
         call callingTasks.GetInsertSize as normalGetInsertSize {
             input:
                 insertSizeMetrics = normalMultipleMetrics.insertSizeMetrics
-        }
-        
-        call baf.Baf {
-            input:
-                referenceFa = referenceFa,
-                pairName = pairInfo.pairId,
-                sampleId = pairInfo.normal,
-                tumorFinalBam = pairInfo.tumorFinalBam,
-                normalFinalBam = pairInfo.normalFinalBam,
-                germlineVcf = unFilteredGermlineAnnotate.haplotypecallerAnnotatedVcf[germlineGetIndex.index]
         }
         
         call conpair.Conpair {
@@ -378,7 +406,8 @@ workflow SomaticBamWorkflow {
                 chromFastas = chromFastas,
                 bsGenome = bsGenome,
                 ponTarGz = ponTarGz,
-                gridssAdditionalReference = gridssAdditionalReference
+                gridssAdditionalReference = gridssAdditionalReference,
+                highMem = highMem
         }
 
         call msi.Msi {
@@ -497,9 +526,41 @@ workflow SomaticBamWorkflow {
                 thousandGVcf = thousandGVcf,
                 svPon = svPon,
                 cosmicBedPe = cosmicBedPe
-            
-    }
-      
+        }
+        
+        call deconstructSigs.DeconstructSig {
+            input: 
+                pairId = pairInfo.pairId,
+                mainVcf = mergedVcf,
+                cosmicSigs = cosmicSigs,
+                vepGenomeBuild = vepGenomeBuild
+        }
+        
+        FinalVcfPairInfo finalVcfPairInfo = object {
+            pairId : pairInfo.pairId,
+            tumor : pairInfo.tumor,
+            normal : pairInfo.normal,
+            mainVcf : Annotate.pairVcfInfo.mainVcf,
+            supplementalVcf : Annotate.pairVcfInfo.supplementalVcf,
+            vcfAnnotatedTxt : Annotate.pairVcfInfo.vcfAnnotatedTxt,
+            maf : Annotate.pairVcfInfo.maf,
+            filteredMantaSV : Calling.filteredMantaSV,
+            strelka2Snv : Calling.strelka2Snv,
+            strelka2Indel : Calling.strelka2Indel,
+            mutect2 : Calling.mutect2,
+            lancet : Calling.lancet,
+            svabaSv : Calling.svabaSv,
+            svabaIndel : Calling.svabaIndel,
+            gridssVcf : Calling.gridssVcf,
+            bicseq2Png : Calling.bicseq2Png,
+            bicseq2 : Calling.bicseq2,
+            cnvAnnotatedFinalBed : AnnotateCnvSv.cnvAnnotatedFinalBed,
+            cnvAnnotatedSupplementalBed : AnnotateCnvSv.cnvAnnotatedSupplementalBed,
+            svFinalBedPe : AnnotateCnvSv.svFinalBedPe,
+            svHighConfidenceFinalBedPe : AnnotateCnvSv.svHighConfidenceFinalBedPe,
+            svSupplementalBedPe : AnnotateCnvSv.svSupplementalBedPe,
+            svHighConfidenceSupplementalBedPe : AnnotateCnvSv.svHighConfidenceSupplementalBedPe
+        }
    }
 
     output {
@@ -509,22 +570,20 @@ workflow SomaticBamWorkflow {
         Array[File] haplotypecallerAnnotatedVcf = unFilteredGermlineAnnotate.haplotypecallerAnnotatedVcf
         Array[File?] alleleCountsTxt = Baf.alleleCountsTxt
         Array[File] kouramiResult = Kourami.result
-        # CNV SV output
-        Array[File] cnvAnnotatedFinalBed  = AnnotateCnvSv.cnvAnnotatedFinalBed
-        Array[File] cnvAnnotatedSupplementalBed  = AnnotateCnvSv.cnvAnnotatedSupplementalBed
-        Array[File] svFinalBedPe = AnnotateCnvSv.svFinalBedPe
-        Array[File] svHighConfidenceFinalBedPe = AnnotateCnvSv.svHighConfidenceFinalBedPe
-        Array[File] svSupplementalBedPe = AnnotateCnvSv.svSupplementalBedPe
-        Array[File] svHighConfidenceSupplementalBedPe = AnnotateCnvSv.svHighConfidenceSupplementalBedPe
-        # SNV INDELs
-        Array[PairVcfInfo] pairVcfInfos = Annotate.pairVcfInfo
-        Array[File] mergedVcfs = mergedVcf
-        Array[PairRawVcfInfo] pairRawVcfInfos = pairRawVcfInfo
+        # CNV SV output and SNV INDELs
+        Array[FinalVcfPairInfo] finalVcfPairInfos = finalVcfPairInfo
+        # MSI
         Array[File] mantisWxsKmerCountsFinal = Msi.mantisWxsKmerCountsFinal
         Array[File] mantisWxsKmerCountsFiltered = Msi.mantisWxsKmerCountsFiltered
         Array[File] mantisExomeTxt = Msi.mantisExomeTxt
         Array[File] mantisStatusFinal = Msi.mantisStatusFinal
-
+        # sigs
+        Array[File] sigs = DeconstructSig.sigs
+        Array[File] counts = DeconstructSig.counts
+        Array[File] sig_input = DeconstructSig.sigInput
+        Array[File] reconstructed = DeconstructSig.reconstructed
+        Array[File] diff = DeconstructSig.diff
+        
         # Conpair
         Array[File] concordanceAll = Conpair.concordanceAll
         Array[File] concordanceHomoz = Conpair.concordanceHomoz
