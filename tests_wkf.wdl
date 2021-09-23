@@ -38,8 +38,12 @@ workflow PipelineTests {
         # MSI
         Array[File] oldmantisStatusFinal
         Array[File] newmantisStatusFinal
+        # baf
         Array[File] oldalleleCountsTxt
         Array[File] newalleleCountsTxt
+        # Hla
+        Array[File] oldkouramiResult
+        Array[File] newkouramiResult
         IndexedReference referenceFa
     }
     
@@ -61,6 +65,9 @@ workflow PipelineTests {
             oldmantisStatusFinal = oldmantisStatusFinal,
             newmantisStatusFinal = newmantisStatusFinal,
             
+            oldkouramiResult = oldkouramiResult,
+            newkouramiResult = newkouramiResult,
+            
             pairIds = pairIds,
             
             oldpairVcfInfos = oldpairVcfInfos,
@@ -77,6 +84,8 @@ workflow PipelineTests {
         File finalSvGenesTable = Tests.finalSvGenesTable
         File flagstatOutputTable = Tests.flagstatOutputTable
         File msiOutputTable = Tests.msiOutputTable
+        File hlaOutputTable = Tests.hlaOutputTable
+        File hlaOutputConcordance = Tests.hlaOutputConcordance
         File finalBedTable = Tests.finalBedTable
         File finalBedPeTable = Tests.finalBedPeTable
         File finalVcfTable = Tests.finalVcfTable
