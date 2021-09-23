@@ -25,7 +25,7 @@ task FilterHighConfidence {
     runtime {
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker: "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
+        docker: "gcr.io/nygc-internal-tools/somatic_tools@sha256:46ab81b8dc09d6f8cf90c81f7d5692f23d73c134df6dbcd5298abde7f414dce3"
     }
     
     meta {
@@ -59,7 +59,7 @@ task SummarizeMantis {
     runtime {
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker: "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
+        docker: "gcr.io/nygc-internal-tools/somatic_tools@sha256:46ab81b8dc09d6f8cf90c81f7d5692f23d73c134df6dbcd5298abde7f414dce3"
     }
     
     meta {
@@ -93,7 +93,7 @@ task SummarizeQualityByCycle {
     runtime {
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker: "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
+        docker: "gcr.io/nygc-internal-tools/somatic_tools@sha256:46ab81b8dc09d6f8cf90c81f7d5692f23d73c134df6dbcd5298abde7f414dce3"
     }
     
     meta {
@@ -129,7 +129,7 @@ task SummarizeInsertSizeMetrics {
     runtime {
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker: "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
+        docker: "gcr.io/nygc-internal-tools/somatic_tools@sha256:46ab81b8dc09d6f8cf90c81f7d5692f23d73c134df6dbcd5298abde7f414dce3"
     }
     
     meta {
@@ -164,7 +164,7 @@ task SummarizeCollectWgsMetrics {
     runtime {
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker: "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
+        docker: "gcr.io/nygc-internal-tools/somatic_tools@sha256:46ab81b8dc09d6f8cf90c81f7d5692f23d73c134df6dbcd5298abde7f414dce3"
     }
     
     meta {
@@ -200,7 +200,7 @@ task SummarizeSvs {
     runtime {
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker: "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
+        docker: "gcr.io/nygc-internal-tools/somatic_tools@sha256:46ab81b8dc09d6f8cf90c81f7d5692f23d73c134df6dbcd5298abde7f414dce3"
     }
     
     meta {
@@ -234,7 +234,7 @@ task SummarizeFlagStat {
     runtime {
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker: "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
+        docker: "gcr.io/nygc-internal-tools/somatic_tools@sha256:46ab81b8dc09d6f8cf90c81f7d5692f23d73c134df6dbcd5298abde7f414dce3"
     }
     
     meta {
@@ -290,7 +290,7 @@ task DraftSampleReport {
     runtime {
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker: "gcr.io/nygc-public/bokeh_plotly:1.0.1"
+        docker: "gcr.io/nygc-public/bokeh_plotly@sha256:0aa92141262559b1fb1cd27a0dd04d9a1f085bf2ecc5bffbb2fb726a7d9bd100"
     }
 
 }
@@ -326,7 +326,7 @@ task DescribeBaf {
     runtime {
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker: "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
+        docker: "gcr.io/nygc-internal-tools/somatic_tools@sha256:46ab81b8dc09d6f8cf90c81f7d5692f23d73c134df6dbcd5298abde7f414dce3"
     }
     
     meta {
@@ -374,7 +374,7 @@ task DescribeBedPe {
     runtime {
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker: "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
+        docker: "gcr.io/nygc-internal-tools/somatic_tools@sha256:46ab81b8dc09d6f8cf90c81f7d5692f23d73c134df6dbcd5298abde7f414dce3"
     }
     
     meta {
@@ -409,7 +409,7 @@ task DescribeBedPeGenes {
     runtime {
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker: "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
+        docker: "gcr.io/nygc-internal-tools/somatic_tools@sha256:46ab81b8dc09d6f8cf90c81f7d5692f23d73c134df6dbcd5298abde7f414dce3"
     }
     
     meta {
@@ -448,7 +448,7 @@ task SummarizeFinalVcf {
     runtime {
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker: "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
+        docker: "gcr.io/nygc-internal-tools/somatic_tools@sha256:46ab81b8dc09d6f8cf90c81f7d5692f23d73c134df6dbcd5298abde7f414dce3"
     }
     
     meta {
@@ -488,7 +488,7 @@ task DescribeBed {
     runtime {
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker: "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
+        docker: "gcr.io/nygc-internal-tools/somatic_tools@sha256:46ab81b8dc09d6f8cf90c81f7d5692f23d73c134df6dbcd5298abde7f414dce3"
     }
     
     meta {
@@ -523,7 +523,7 @@ task DescribeBedGenes {
     runtime {
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker: "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
+        docker: "gcr.io/nygc-internal-tools/somatic_tools@sha256:46ab81b8dc09d6f8cf90c81f7d5692f23d73c134df6dbcd5298abde7f414dce3"
     }
     
     meta {
@@ -562,7 +562,7 @@ task SummarizeHla {
     runtime {
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker: "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
+        docker: "gcr.io/nygc-internal-tools/somatic_tools@sha256:46ab81b8dc09d6f8cf90c81f7d5692f23d73c134df6dbcd5298abde7f414dce3"
     }
 
     meta {
@@ -846,7 +846,7 @@ task DraftComparison {
     runtime {
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker: "gcr.io/nygc-public/bokeh_plotly:1.0.1"
+        docker: "gcr.io/nygc-public/bokeh_plotly@sha256:0aa92141262559b1fb1cd27a0dd04d9a1f085bf2ecc5bffbb2fb726a7d9bd100"
     }
 
 }
@@ -888,7 +888,7 @@ task SomPy {
     runtime {
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker: "gcr.io/nygc-public/hap:v0.3.9"
+        docker: "gcr.io/nygc-public/hap@sha256:6fc9a90c944d4e8434977909d0a175bde9f0cbcdd8a8e6806a65d1aa24b4a683"
     }
     
     meta {
@@ -935,7 +935,7 @@ task CompareBedPe {
     runtime {
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker: "gcr.io/nygc-internal-tools/sv_cnv:1.0.0"
+        docker: "gcr.io/nygc-internal-tools/sv_cnv@sha256:bffe04515c387b2dba752819191308f537c2a3f034de9c3887cbb652041b3311"
     }
     
     meta {
@@ -976,7 +976,7 @@ task CompareBed {
     runtime {
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker: "gcr.io/nygc-internal-tools/sv_cnv:1.0.0"
+        docker: "gcr.io/nygc-internal-tools/sv_cnv@sha256:bffe04515c387b2dba752819191308f537c2a3f034de9c3887cbb652041b3311"
     }
     
     meta {
