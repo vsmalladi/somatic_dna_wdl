@@ -40,7 +40,8 @@ workflow AlignmentAnalysis {
                 sampleId=sampleBamInfo.sampleId,
                 kouramiReference=kouramiReference,
                 finalBam=sampleBamInfo.finalBam,
-                kouramiFastaGem1Index=kouramiFastaGem1Index
+                kouramiFastaGem1Index=kouramiFastaGem1Index,
+                referenceFa=referenceFa
         }
     }
     

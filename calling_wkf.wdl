@@ -68,6 +68,7 @@ workflow Calling {
         String bsGenome
         File ponTarGz
         Array[File] gridssAdditionalReference
+        Boolean highMem = false
     }
     scatter(pairInfo in pairInfos) {
         call gridss.Gridss {
@@ -80,7 +81,8 @@ workflow Calling {
                 normalFinalBam = pairInfo.normalFinalBam,
                 tumorFinalBam = pairInfo.tumorFinalBam,
                 bsGenome = bsGenome,
-                ponTarGz = ponTarGz
+                ponTarGz = ponTarGz,
+                highMem = highMem
         }    
     
         call bicseq2.BicSeq2 {
@@ -113,7 +115,8 @@ workflow Calling {
                 pairName = pairInfo.pairId,
                 referenceFa = referenceFa,
                 normalFinalBam = pairInfo.normalFinalBam,
-                tumorFinalBam = pairInfo.tumorFinalBam
+                tumorFinalBam = pairInfo.tumorFinalBam,
+                highMem = highMem
         }
         
         call manta.Manta {
@@ -125,7 +128,8 @@ workflow Calling {
                 referenceFa = referenceFa,
                 pairName = pairInfo.pairId,
                 normalFinalBam = pairInfo.normalFinalBam,
-                tumorFinalBam = pairInfo.tumorFinalBam
+                tumorFinalBam = pairInfo.tumorFinalBam,
+                highMem = highMem
         }
         
         call strelka2.Strelka2 {
@@ -151,7 +155,8 @@ workflow Calling {
                 bwaReference = bwaReference,
                 pairName = pairInfo.pairId,
                 normalFinalBam = pairInfo.normalFinalBam,
-                tumorFinalBam = pairInfo.tumorFinalBam
+                tumorFinalBam = pairInfo.tumorFinalBam,
+                highMem = highMem
         }
         
         call lancet.Lancet {

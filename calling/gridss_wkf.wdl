@@ -25,16 +25,10 @@ workflow Gridss {
         Int threads = 8
         
         Boolean highMem = false
-    }
-    
-    Int preMemoryGb = 16
-    Int tumorDiskSize = ceil( size(tumorFinalBam.bam, "GB") * 1.5 )
-    Int normalDiskSize = ceil( size(normalFinalBam.bam, "GB") * 1.5 )
-    
-    if (highMem) {
+        
         Int preMemoryGb = 32
-        Int tumorDiskSize = ceil( size(tumorFinalBam.bam, "GB") * 2 ) + 20
-        Int normalDiskSize = ceil( size(normalFinalBam.bam, "GB") * 2 ) + 20
+        Int tumorDiskSize = 740
+        Int normalDiskSize = 740
     }
     
     call calling.GridssPreprocess as tumorGridssPreprocess {
@@ -57,14 +51,18 @@ workflow Gridss {
             diskSize = normalDiskSize
     }
 
-    Int assembleMemoryGb = 48
-    Int assemblediskSize = ceil( size(tumorFinalBam.bam, "GB") * 1.4 ) + ceil( size(normalFinalBam.bam, "GB")  * 1.4)
+    Int lowAssembleMemoryGb = 48
+    Int lowAssembleDiskSize = ceil( size(tumorFinalBam.bam, "GB") * 1.4 ) + ceil( size(normalFinalBam.bam, "GB")  * 1.4)
     
     if (highMem) {
-        Int assembleMemoryGb = 100
-        Int assemblediskSize = ceil( size(tumorFinalBam.bam, "GB") * 2 ) + ceil( size(normalFinalBam.bam, "GB")  * 2) + 20
+        Int highAssembleMemoryGb = 100
+        Int highAssembleDiskSize = ceil( size(tumorFinalBam.bam, "GB") * 2 ) + ceil( size(normalFinalBam.bam, "GB")  * 2) + 20
     }
     
+    Int assembleMemoryGb = select_first([highAssembleMemoryGb, lowAssembleMemoryGb])
+    Int assembleDiskSize = select_first([highAssembleDiskSize, lowAssembleDiskSize])
+   
+   
     scatter(i in range(assembleChunks)) {
         call calling.GridssAssembleChunk {
             input:
@@ -89,7 +87,7 @@ workflow Gridss {
                 tumorTagMetrics = tumorGridssPreprocess.tagMetrics,
                 tumorMapqMetrics = tumorGridssPreprocess.mapqMetrics,
                 tumorInsertSizeMetrics = tumorGridssPreprocess.insertSizeMetrics,
-                diskSize = assemblediskSize
+                diskSize = assembleDiskSize
         }
     }
 
@@ -118,7 +116,7 @@ workflow Gridss {
             tumorTagMetrics = tumorGridssPreprocess.tagMetrics,
             tumorMapqMetrics = tumorGridssPreprocess.mapqMetrics,
             tumorInsertSizeMetrics = tumorGridssPreprocess.insertSizeMetrics,
-            diskSize = assemblediskSize
+            diskSize = assembleDiskSize
 
     }
 
@@ -149,15 +147,17 @@ workflow Gridss {
             tumorTagMetrics = tumorGridssPreprocess.tagMetrics,
             tumorMapqMetrics = tumorGridssPreprocess.mapqMetrics,
             tumorInsertSizeMetrics = tumorGridssPreprocess.insertSizeMetrics,
-            diskSize = assemblediskSize
+            diskSize = assembleDiskSize
 
     }
     
-    Int filterDiskSize = 4
+    Int lowFilterDiskSize = 4
     
     if (highMem) {
-        Int filterDiskSize = 30
+        Int highFilterDiskSize = 30
     }
+    
+    Int filterDiskSize = select_first([highFilterDiskSize, lowFilterDiskSize])
 
     call calling.GridssFilter {
         input:

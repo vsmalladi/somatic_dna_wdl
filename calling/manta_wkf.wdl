@@ -29,11 +29,12 @@ workflow Manta {
 
     }
     
-    Int callMemoryGb = 4
+    Int lowCallMemoryGb = 4
     
     if (highMem) {
-        Int callMemoryGb = 64
+        Int highCallMemoryGb = 64
     }
+    Int callMemoryGb = select_first([highCallMemoryGb, lowCallMemoryGb])
 
     call calling.MantaWgs {
         input:

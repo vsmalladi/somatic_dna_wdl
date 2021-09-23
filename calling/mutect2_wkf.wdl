@@ -25,15 +25,18 @@ workflow Mutect2 {
 
     }
     
-    Int callMemoryGb = 4
-    Int filterMemoryGb = 4
-    Int filterDiskSize = 5
+    Int lowCallMemoryGb = 4
+    Int lowFilterMemoryGb = 4
+    Int lowFilterDiskSize = 5
     
     if (highMem) {
-        Int callMemoryGb = 8
-        Int filterMemoryGb = 4
-        Int filterDiskSize = 10
+        Int highCallMemoryGb = 8
+        Int highFilterMemoryGb = 4
+        Int highFilterDiskSize = 10
     }
+    Int callMemoryGb = select_first([highCallMemoryGb, lowCallMemoryGb])
+    Int filterMemoryGb = select_first([highFilterMemoryGb, lowFilterMemoryGb])
+    Int filterDiskSize = select_first([highFilterDiskSize, lowFilterDiskSize])
 
     scatter(chrom in listOfChroms) {
         call calling.Mutect2Wgs {

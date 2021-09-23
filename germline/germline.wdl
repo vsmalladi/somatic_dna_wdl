@@ -20,9 +20,10 @@ task haplotypeCallerGatk4 {
 
     }
 
+    Int jvmHeap = memoryGb * 750  # Heap size in Megabytes. mem is in GB. (75% of mem)
     command {
             /gatk/gatk \
-            --java-options "-Xmx7G -XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10" \
+            --java-options "-Xmx~{jvmHeap}m -XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10" \
             HaplotypeCaller \
             -R ~{referenceFa.fasta} \
             -I ~{finalBam.bam} \
@@ -72,10 +73,12 @@ task GentotypeGvcfsGatk4 {
         Int diskSize = (ceil( size(sortedVcf.vcf, "GB") )  * 2 ) + 20
     }
 
+    Int jvmHeap = memoryGb * 750  # Heap size in Megabytes. mem is in GB. (75% of mem)
+
     command {
         ## GenotypeGvcfs
         /gatk/gatk \
-        --java-options "-Xmx12G -XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10" \
+        --java-options "-Xmx~{jvmHeap}m -XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10" \
         GenotypeGVCFs \
         -V ~{sortedVcf.vcf} \
         -R ~{referenceFa.fasta} \
@@ -84,7 +87,7 @@ task GentotypeGvcfsGatk4 {
 
         ## Score variants using CNN
         /gatk/gatk \
-        --java-options "-Xmx12G -XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10" \
+        --java-options "-Xmx~{jvmHeap}m -XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10" \
         CNNScoreVariants \
         -V ~{haplotypecallerGenoVcfPath} \
         -R ~{referenceFa.fasta} \
@@ -93,7 +96,7 @@ task GentotypeGvcfsGatk4 {
 
         ## Filter variant tranches
         /gatk/gatk \
-        --java-options "-Xmx12G -XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10" \
+        --java-options "-Xmx~{jvmHeap}m -XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10" \
         FilterVariantTranches \
         -L ~{scatterIntervalsHc} \
         -V ~{sampleId}.haplotypecaller.annotated.vcf \
@@ -139,12 +142,14 @@ task genotypeRefinementWorkflow {
         Int diskSize = (ceil( size(genotypedGatk4.vcf, "GB") ) * 4 ) + 20
     }
 
+    Int jvmHeap = memoryGb * 750  # Heap size in Megabytes. mem is in GB. (75% of mem)
+
     command {
         set -e -o pipefail
 
         ## Annotate FORMAT/AF (deliver)
         /gatk/gatk \
-        --java-options "-Xmx12G -XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10" \
+        --java-options "-Xmx~{jvmHeap}m -XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10" \
         VariantAnnotator \
         -R ~{referenceFa.fasta} \
         -V ~{genotypedGatk4.vcf} \
@@ -159,7 +164,7 @@ task genotypeRefinementWorkflow {
 
         ## Variant filtration
         /gatk/gatk \
-        --java-options "-Xmx12G -XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10" \
+        --java-options "-Xmx~{jvmHeap}m -XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10" \
         VariantFiltration \
         -R ~{referenceFa.fasta} \
         -V ~{sampleId}.biallellic.vcf \
