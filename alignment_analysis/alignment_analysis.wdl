@@ -23,7 +23,7 @@ task BedtoolsIntersect {
     }
 
     runtime {
-        docker : "gcr.io/nygc-public/bedtools:v2.26.0"
+        docker : "gcr.io/nygc-public/bedtools@sha256:9e737f5c96c00cf3b813d419d7a7b474c4013c9aa9dfe704eb36417570c6474e"
     }
 }
 
@@ -106,7 +106,7 @@ task MantisExome {
         cpu : threads
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/mantis:1.0.4"
+        docker : "gcr.io/nygc-public/mantis@sha256:9cf1311c5198b8fa5fecff387a50dfa9408707f7b914a99dc548c6eb14f42c19"
     }
 }
 
@@ -131,7 +131,7 @@ task MantisRethreshold {
     }
 
     runtime {
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools@sha256:46ab81b8dc09d6f8cf90c81f7d5692f23d73c134df6dbcd5298abde7f414dce3"
     }
 }
 
@@ -153,7 +153,7 @@ task GetChr6Contigs {
     runtime {
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker : "gcr.io/nygc-internal-tools/hla_prep:3.4.0"
+        docker : "gcr.io/nygc-internal-tools/hla_prep@sha256:a490cf449eeb98b997f0dd87ff1c23ff77d724c7c2072b6c44f75a713ecc2d36"
     }
 }
 
@@ -219,7 +219,7 @@ task GemSelect {
         cpu : threads
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker : "gcr.io/nygc-internal-tools/hla_prep:3.3.0"
+        docker : "gcr.io/nygc-internal-tools/hla_prep@sha256:a490cf449eeb98b997f0dd87ff1c23ff77d724c7c2072b6c44f75a713ecc2d36"
     }
 }
 
@@ -255,7 +255,7 @@ task LookUpMates {
     runtime {
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker : "gcr.io/nygc-internal-tools/hla_prep:3.3.0"
+        docker : "gcr.io/nygc-internal-tools/hla_prep@sha256:a490cf449eeb98b997f0dd87ff1c23ff77d724c7c2072b6c44f75a713ecc2d36"
     }
 }
 
@@ -301,7 +301,7 @@ task GetMates {
         cpu : threads
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/hla_prep:3.3.0"
+        docker : "gcr.io/nygc-internal-tools/hla_prep@sha256:a490cf449eeb98b997f0dd87ff1c23ff77d724c7c2072b6c44f75a713ecc2d36"
     }
 }
 
@@ -340,7 +340,7 @@ task SortFastqs {
     runtime {
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker : "gcr.io/nygc-internal-tools/hla_prep:3.3.0"
+        docker : "gcr.io/nygc-internal-tools/hla_prep@sha256:a490cf449eeb98b997f0dd87ff1c23ff77d724c7c2072b6c44f75a713ecc2d36"
     }
 }
 
@@ -381,7 +381,7 @@ task AlignToPanel {
         cpu : threads
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/bwa-kit:0.7.15"
+        docker : "gcr.io/nygc-public/bwa-kit@sha256:0642151a32fe8f90ece70cde3bd61a03c7421314c37c1de2c0ee5e368d2bfc7a"
     }
 }
 
@@ -408,7 +408,7 @@ task Kourami {
     runtime {
         cpu : threads
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/kourami:v0.9.6"
+        docker : "gcr.io/nygc-public/kourami@sha256:d4b906b979c24ee4669fdbf7ee1dfbdeb5c89d0e34b4b4aaf21ee070e988d74b"
     }
 }
 

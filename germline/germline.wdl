@@ -321,7 +321,7 @@ task filterHO {
       memory: "7.5 GB"
       cpu: "2"
       disks: "local-disk " + diskSize + " HDD"
-      docker: "gcr.io/nygc-public/genome-utils:v8"
+      docker: "gcr.io/nygc-public/genome-utils@sha256:59603ab0aeda571c38811d6d1820d1b546a69fc342120bef75597bfd7905ea1f"
     }
 
     output {
