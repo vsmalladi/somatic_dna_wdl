@@ -15,6 +15,7 @@ import "germline/germline_wkf.wdl" as germline
 import "annotate/germline_annotate_wkf.wdl" as germlineAnnotate
 import "baf/baf_wkf.wdl" as baf
 import "variant_analysis/deconstruct_sigs_wkf.wdl" as deconstructSigs
+import "widdleware/tasks/label_and_transfer.wdl" as dataTransfer
 
 # ================== COPYRIGHT ================================================
 # New York Genome Center
@@ -48,7 +49,6 @@ import "variant_analysis/deconstruct_sigs_wkf.wdl" as deconstructSigs
 #
 # ================== /COPYRIGHT ===============================================
 
-import "middleware/tasks/label_qc_array.wdl" as labelQc
 
 # for wdl version 1.0
 
@@ -620,7 +620,7 @@ workflow SomaticDNA {
                     vepGenomeBuild = vepGenomeBuild
           }
 
-          FinalPairInfo finalPairInfos = object {
+          FinalVcfPairInfo finalPairInfos = object {
                 pairId : pairRelationship.pairId,
                 tumor : pairRelationship.tumor,
                 normal : pairRelationship.normal,
@@ -644,78 +644,87 @@ workflow SomaticDNA {
                 svHighConfidenceFinalBedPe : AnnotateCnvSv.svHighConfidenceFinalBedPe,
                 svSupplementalBedPe : AnnotateCnvSv.svSupplementalBedPe,
                 svHighConfidenceSupplementalBedPe : AnnotateCnvSv.svHighConfidenceSupplementalBedPe,
-                tumorFinalBam : Preprocess.finalBam[tumorGetIndex.index],
-                normalFinalBam : Preprocess.finalBam[normalGetIndex.index]
+
         }
 
       }
     }
 
-    call labelQc.QcStatusArrayLabel {
-          input:
-              bypassQcCheck = bypassQcCheck,
-              allQcPass = SomaticQcCheck
+    FinalWorkflowOutput workflowOutput = object {
+        # alignment and calling results (calling results may not exist if qc failed)
+        # SNV INDELs CNV SV and BAM output
+        finalPairInfo: finalPairInfos,
+
+        # MSI
+        mantisWxsKmerCountsFinal: Msi.mantisWxsKmerCountsFinal,
+        mantisWxsKmerCountsFiltered: Msi.mantisWxsKmerCountsFiltered,
+        mantisExomeTxt: Msi.mantisExomeTxt,
+        mantisStatusFinal: Msi.mantisStatusFinal,
+        # SIGs
+        sigs: DeconstructSig.sigs,
+        counts: DeconstructSig.counts,
+        sig_input: DeconstructSig.sigInput,
+        reconstructed: DeconstructSig.reconstructed,
+        diff: DeconstructSig.diff,
+
+        # Bams
+        finalBams: Preprocess.finalBam,
+        # QC
+        alignmentSummaryMetrics: Preprocess.alignmentSummaryMetrics,
+        qualityByCyclePdf: Preprocess.qualityByCyclePdf,
+        baseDistributionByCycleMetrics: Preprocess.baseDistributionByCycleMetrics,
+        qualityByCycleMetrics: Preprocess.qualityByCycleMetrics,
+        baseDistributionByCyclePdf: Preprocess.baseDistributionByCyclePdf,
+        qualityDistributionPdf: Preprocess.qualityDistributionPdf,
+        qualityDistributionMetrics: Preprocess.qualityDistributionMetrics,
+        insertSizeHistogramPdf: Preprocess.insertSizeHistogramPdf,
+        insertSizeMetrics: Preprocess.insertSizeMetrics,
+        gcBiasMetrics: Preprocess.gcBiasMetrics,
+        gcBiasSummary: Preprocess.gcBiasSummary,
+        gcBiasPdf: Preprocess.gcBiasPdf,
+        flagStat: Preprocess.flagStat,
+        hsMetrics: Preprocess.hsMetrics,
+        hsMetricsPerTargetCoverage: Preprocess.hsMetricsPerTargetCoverage,
+        hsMetricsPerTargetCoverageAutocorr: Preprocess.hsMetricsPerTargetCoverageAutocorr,
+        autocorroutput1100: Preprocess.autocorroutput1100,
+        collectOxoGMetrics: Preprocess.collectOxoGMetrics,
+        collectWgsMetrics: Preprocess.collectWgsMetrics,
+        binestCov: Preprocess.binestCov,
+        normCoverageByChrPng: Preprocess.normCoverageByChrPng,
+        # Dedup metrics,
+        collectWgsMetricsPreBqsr: Preprocess.collectWgsMetricsPreBqsr,
+        qualityDistributionPdfPreBqsr: Preprocess.qualityDistributionPdfPreBqsr,
+        qualityByCycleMetricsPreBqsr: Preprocess.qualityByCycleMetricsPreBqsr,
+        qualityByCyclePdfPreBqsr: Preprocess.qualityByCyclePdfPreBqsr,
+        qualityDistributionMetricsPreBqsr: Preprocess.qualityDistributionMetricsPreBqsr,
+
+        # Conpair
+        concordanceAll: Conpair.concordanceAll,
+        concordanceHomoz: Conpair.concordanceHomoz,
+        contamination: Conpair.contamination,
+
+        # Germline
+        kouramiResult: Kourami.result,
+        haplotypecallerVcf: Germline.haplotypecallerVcf,
+        haplotypecallerFinalFiltered: Germline.haplotypecallerFinalFiltered,
+        filteredHaplotypecallerAnnotatedVcf: filteredGermlineAnnotate.haplotypecallerAnnotatedVcf,
+        haplotypecallerAnnotatedVcf: unFilteredGermlineAnnotate.haplotypecallerAnnotatedVcf,
+        alleleCountsTxt: Baf.alleleCountsTxt
+    }
+
+
+    File tmpFile = write_json(workflowOutput)
+    call dataTransfer.LabelAndTransfer {
+        input:
+            workflowOutput = read_string(tmpFile),
+            bypassQcCheck = bypassQcCheck,
+            allQcPass = SomaticQcCheck
     }
 
     output {
-        # alignment and calling results (calling results may not exist if qc failed)
-        # SNV INDELs CNV SV and BAM output
-        Array[FinalPairInfo?] finalPairInfo = finalPairInfos
-
-        # MSI
-        Array[File?] mantisWxsKmerCountsFinal = Msi.mantisWxsKmerCountsFinal
-        Array[File?] mantisWxsKmerCountsFiltered = Msi.mantisWxsKmerCountsFiltered
-        Array[File?] mantisExomeTxt = Msi.mantisExomeTxt
-        Array[File?] mantisStatusFinal = Msi.mantisStatusFinal
-        # SIGs
-        Array[File?] sigs = DeconstructSig.sigs
-        Array[File?] counts = DeconstructSig.counts
-        Array[File?] sig_input = DeconstructSig.sigInput
-        Array[File?] reconstructed = DeconstructSig.reconstructed
-        Array[File?] diff = DeconstructSig.diff
-
-        # QC
-        Array[File] alignmentSummaryMetrics = Preprocess.alignmentSummaryMetrics
-        Array[File] qualityByCyclePdf = Preprocess.qualityByCyclePdf
-        Array[File] baseDistributionByCycleMetrics = Preprocess.baseDistributionByCycleMetrics
-        Array[File] qualityByCycleMetrics = Preprocess.qualityByCycleMetrics
-        Array[File] baseDistributionByCyclePdf = Preprocess.baseDistributionByCyclePdf
-        Array[File] qualityDistributionPdf = Preprocess.qualityDistributionPdf
-        Array[File] qualityDistributionMetrics = Preprocess.qualityDistributionMetrics
-        Array[File] insertSizeHistogramPdf = Preprocess.insertSizeHistogramPdf
-        Array[File] insertSizeMetrics = Preprocess.insertSizeMetrics
-        Array[File] gcBiasMetrics = Preprocess.gcBiasMetrics
-        Array[File] gcBiasSummary = Preprocess.gcBiasSummary
-        Array[File] gcBiasPdf = Preprocess.gcBiasPdf
-        Array[File] flagStat = Preprocess.flagStat
-        Array[File] hsMetrics = Preprocess.hsMetrics
-        Array[File] hsMetricsPerTargetCoverage = Preprocess.hsMetricsPerTargetCoverage
-        Array[File] hsMetricsPerTargetCoverageAutocorr = Preprocess.hsMetricsPerTargetCoverageAutocorr
-        Array[File] autocorroutput1100 = Preprocess.autocorroutput1100
-        Array[File] collectOxoGMetrics = Preprocess.collectOxoGMetrics
-        Array[File] collectWgsMetrics = Preprocess.collectWgsMetrics
-        Array[File] binestCov = Preprocess.binestCov
-        Array[File] normCoverageByChrPng = Preprocess.normCoverageByChrPng
-        # Dedup metrics
-        Array[File] collectWgsMetricsPreBqsr = Preprocess.collectWgsMetricsPreBqsr
-        Array[File] qualityDistributionPdfPreBqsr = Preprocess.qualityDistributionPdfPreBqsr
-        Array[File] qualityByCycleMetricsPreBqsr = Preprocess.qualityByCycleMetricsPreBqsr
-        Array[File] qualityByCyclePdfPreBqsr = Preprocess.qualityByCyclePdfPreBqsr
-        Array[File] qualityDistributionMetricsPreBqsr = Preprocess.qualityDistributionMetricsPreBqsr
-
-        # Conpair
-        Array[File] concordanceAll = Conpair.concordanceAll
-        Array[File] concordanceHomoz = Conpair.concordanceHomoz
-        Array[File] contamination = Conpair.contamination
-
-        # Germline
-        Array[File?] kouramiResult = Kourami.result
-        Array[IndexedVcf?] haplotypecallerVcf = Germline.haplotypecallerVcf
-        Array[IndexedVcf?] haplotypecallerFinalFiltered = Germline.haplotypecallerFinalFiltered
-        Array[File?] filteredHaplotypecallerAnnotatedVcf = filteredGermlineAnnotate.haplotypecallerAnnotatedVcf
-        Array[File?] haplotypecallerAnnotatedVcf = unFilteredGermlineAnnotate.haplotypecallerAnnotatedVcf
-        Array[File?] alleleCountsTxt = Baf.alleleCountsTxt
+       FinalWorkflowOutput finalOutput = workflowOutput
     }
+
 }
 
 task BamQcCheck {

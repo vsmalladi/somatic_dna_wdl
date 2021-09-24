@@ -54,7 +54,7 @@ workflow Germline {
     }
     Array[File] haplotypecallerIntervalVcfs = haplotypecallerIntervalVcf
 
-    Int lowMergeSortDiskSize = 50
+    Int lowMergeSortDiskSize = 80
     
     if (highMem) {
         Int highMergeSortDiskSize = 200
