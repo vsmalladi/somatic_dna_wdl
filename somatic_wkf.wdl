@@ -15,6 +15,7 @@ import "germline/germline_wkf.wdl" as germline
 import "annotate/germline_annotate_wkf.wdl" as germlineAnnotate
 import "baf/baf_wkf.wdl" as baf
 import "variant_analysis/deconstruct_sigs_wkf.wdl" as deconstructSigs
+import "widdleware/tasks/label_and_transfer.wdl" as dataTransfer
 
 # ================== COPYRIGHT ================================================
 # New York Genome Center
@@ -48,7 +49,6 @@ import "variant_analysis/deconstruct_sigs_wkf.wdl" as deconstructSigs
 #
 # ================== /COPYRIGHT ===============================================
 
-import "middleware/tasks/label_qc_array.wdl" as labelQc
 
 # for wdl version 1.0
 
@@ -645,6 +645,8 @@ workflow SomaticDNA {
           }
 
 
+
+
           FinalVcfPairInfo finalPairInfos = object {
                 pairId : pairRelationship.pairId,
                 tumor : pairRelationship.tumor,
@@ -696,15 +698,14 @@ workflow SomaticDNA {
         mantisExomeTxt: Msi.mantisExomeTxt,
         mantisStatusFinal: Msi.mantisStatusFinal,
         # SIGs
-        Array[File?] sigs = DeconstructSig.sigs
-        Array[File?] counts = DeconstructSig.counts
-        Array[File?] sig_input = DeconstructSig.sigInput
-        Array[File?] reconstructed = DeconstructSig.reconstructed
-        Array[File?] diff = DeconstructSig.diff
+        sigs: DeconstructSig.sigs,
+        counts: DeconstructSig.counts,
+        sig_input: DeconstructSig.sigInput,
+        reconstructed: DeconstructSig.reconstructed,
+        diff: DeconstructSig.diff,
 
         # Bams
         finalBams: Preprocess.finalBam,
-
         # QC
         alignmentSummaryMetrics: Preprocess.alignmentSummaryMetrics,
         qualityByCyclePdf: Preprocess.qualityByCyclePdf,
@@ -747,6 +748,17 @@ workflow SomaticDNA {
         haplotypecallerAnnotatedVcf: unFilteredGermlineAnnotate.haplotypecallerAnnotatedVcf,
         alleleCountsTxt: Baf.alleleCountsTxt
     }
+
+
+
+    File tmpFile = write_json(workflowOutput)
+    call dataTransfer.LabelAndTransfer {
+        input:
+            workflowOutput = read_string(tmpFile),
+            bypassQcCheck = bypassQcCheck,
+            allQcPass = SomaticQcCheck
+    }
+
 
     output {
        FinalWorkflowOutput finalOutput = workflowOutput

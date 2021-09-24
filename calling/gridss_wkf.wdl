@@ -24,14 +24,22 @@ workflow Gridss {
         File ponTarGz
 
         Int threads = 8
-        
+
         Boolean highMem = false
-        
-        Int preMemoryGb = 32
-        Int tumorDiskSize = 740
-        Int normalDiskSize = 740
     }
-    
+
+    Int preMemoryGb = 32
+    Int lowTumorDiskSize = ceil( size(tumorFinalBam.bam, "GB") * 1.5 )
+    Int lowNormalDiskSize = ceil( size(normalFinalBam.bam, "GB") * 1.5 )
+
+    if (highMem) {
+        Int highTumorDiskSize = ceil( size(tumorFinalBam.bam, "GB") * 2 ) + 20
+        Int highNormalDiskSize = ceil( size(normalFinalBam.bam, "GB") * 2 ) + 20
+    }
+
+    Int tumorDiskSize = select_first([highTumorDiskSize, lowTumorDiskSize])
+    Int normalDiskSize = select_first([highNormalDiskSize, lowNormalDiskSize])
+
     call calling.GridssPreprocess as tumorGridssPreprocess {
         input:
             threads = threads,
@@ -54,16 +62,15 @@ workflow Gridss {
 
     Int lowAssembleMemoryGb = 48
     Int lowAssembleDiskSize = ceil( size(tumorFinalBam.bam, "GB") * 1.4 ) + ceil( size(normalFinalBam.bam, "GB")  * 1.4)
-    
+
     if (highMem) {
         Int highAssembleMemoryGb = 100
         Int highAssembleDiskSize = ceil( size(tumorFinalBam.bam, "GB") * 2 ) + ceil( size(normalFinalBam.bam, "GB")  * 2) + 20
     }
-    
+
     Int assembleMemoryGb = select_first([highAssembleMemoryGb, lowAssembleMemoryGb])
     Int assembleDiskSize = select_first([highAssembleDiskSize, lowAssembleDiskSize])
-   
-   
+
     scatter(i in range(assembleChunks)) {
         call calling.GridssAssembleChunk {
             input:
@@ -151,13 +158,13 @@ workflow Gridss {
             diskSize = assembleDiskSize
 
     }
-    
+
     Int lowFilterDiskSize = 4
-    
+
     if (highMem) {
         Int highFilterDiskSize = 30
     }
-    
+
     Int filterDiskSize = select_first([highFilterDiskSize, lowFilterDiskSize])
 
     call calling.FilterNonChroms {

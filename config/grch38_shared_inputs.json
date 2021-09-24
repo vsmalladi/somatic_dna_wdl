@@ -345,5 +345,6 @@
     "SomaticDNA.gap": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/GRCh38.gap.UCSC.annotated.chr.sorted.bed",
     "SomaticDNA.adaptersFa": "gs://nygc-comp-s-82ed-resources/SomaticWorkflowMisc/adapters.fa",
     "SomaticDNA.bicseq2SegConfigFile": "gs://nygc-comp-s-82ed-resources/SomaticWorkflowMisc/pairId.bicseq2.seg.config",
-    "SomaticDNA.bicseq2ConfigFile": "gs://nygc-comp-s-82ed-resources/SomaticWorkflowMisc/sampleId.bicseq2.config"
+    "SomaticDNA.bicseq2ConfigFile": "gs://nygc-comp-s-82ed-resources/SomaticWorkflowMisc/sampleId.bicseq2.config",
+    "SomaticDNA.cosmicSigs": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/signatures.genome.cosmic.v3.2.march2021.grch38.rda"
 }
