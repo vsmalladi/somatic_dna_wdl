@@ -273,7 +273,7 @@ task VcfToMaf {
 
 task annotateBicSeq2Cnv {
     input {
-        Int memoryGb = 24
+        Int memoryGb = 36
         String pairName
         Array[String] listOfChroms
         String tumor
@@ -285,7 +285,7 @@ task annotateBicSeq2Cnv {
         File cosmicUniqueBed
         File cancerCensusBed
         File ensemblUniqueBed
-        
+
         String cnvAnnotatedFinalBedPath  = "~{pairName}.cnv.annotated.v7.final.bed"
         String cnvAnnotatedSupplementalBedPath  = "~{pairName}.cnv.annotated.v7.supplemental.bed"
         Int diskSize = 4
@@ -323,7 +323,7 @@ task annotateBicSeq2Cnv {
 
 task mergeSv {
     input {
-        Int memoryGb = 4
+        Int memoryGb = 8
         String pairName
         Array[String] listOfChroms
         String tumor
@@ -369,27 +369,27 @@ task mergeSv {
 
 task annotateSv {
     input {
-        Int memoryGb = 4
+        Int memoryGb = 8
         String pairName
         String tumor
         String normal
-        
+
         Int slop = 500
-        
+
         # gap,DGV,1000G,PON,COSMIC
         File gap
         File dgvBedpe
         File thousandGVcf
         File svPon
         File cosmicBedPe
-        
+
         File svMergedBedPe
         String svMergedAnnotatedBedPePath  = "~{pairName}.sv.merged.annotated.v7.bedpe"
         Int diskSize = 4
 
     }
 
-    command {        
+    command {
         Rscript \
         /annotate-bedpe-with-databases.r \
         --db_names=gap,DGV,1000G,PON,COSMIC \
@@ -413,21 +413,21 @@ task annotateSv {
 
 task annotateGenesSv {
     input {
-        Int memoryGb = 4
+        Int memoryGb = 8
         String pairName
         String tumor
         String normal
-        
+
         File ensemblUniqueBed
         File cancerCensusBed
-        
+
         File svMergedAnnotatedFinalBedPe
         String svGeneAnnotatedFinalBedPePath  = "~{pairName}.sv.merged.gene.annotated.v7.bedpe"
         Int diskSize = 4
 
     }
 
-    command {        
+    command {
         Rscript \
         /annotate-bedpe-with-genes.r \
         --ensembl=~{ensemblUniqueBed} \
@@ -449,20 +449,20 @@ task annotateGenesSv {
 
 task annotateGenesSvSupplemental {
     input {
-        Int memoryGb = 4
+        Int memoryGb = 8
         String pairName
         String tumor
         String normal
-        
+
         File ensemblUniqueBed
         File cancerCensusBed
-        
+
         File svMergedAnnotatedSupplementalBedPe
         String svGeneAnnotatedSupplementalBedPePath  = "~{pairName}.sv.merged.gene.annotated.v7.supplemental.bedpe"
         Int diskSize = 4
     }
 
-    command {        
+    command {
         Rscript \
         /annotate-bedpe-with-genes.r \
         --ensembl=~{ensemblUniqueBed} \
@@ -485,13 +485,13 @@ task annotateGenesSvSupplemental {
 
 task annotateWithCnvSv {
     input {
-        Int memoryGb = 4
+        Int memoryGb = 8
         String pairName
         String tumor
         String normal
-        
+
         File cnvAnnotatedFinalBed
-        
+
         File svGeneAnnotatedBedPe
         String svCnvAnnotatedBedPePath = "~{pairName}.sv.merged.gene.cnv.annotated.v7.bedpe"
         Int diskSize = 4
@@ -518,9 +518,9 @@ task annotateWithCnvSv {
 
 task filterBedPe {
     input {
-        Int memoryGb = 4
+        Int memoryGb = 8
         String pairName
-        
+
         File svCnvAnnotatedBedPe
         String svBedPePath
         String svHighConfidenceBedPePath
@@ -549,10 +549,3 @@ task filterBedPe {
         docker : "gcr.io/nygc-internal-tools/sv_cnv:1.0.0"
     }
 }
-
-
-
-
-
-
-
