@@ -613,13 +613,24 @@ class Runtime():
         possible_indentifiers = []
         inputs = inputs.replace(" None}", " 'None'}").replace("'}  {'", "'},  {'").replace("'", '"')
         inputs = inputs.replace('["', '[').replace('"]', ']')
-        inputs_dicts = json.loads(inputs)
-        for inputs_dict in inputs_dicts:
-            if inputs_dict['type'] == 'string':
-                possible_indentifiers.append(inputs_dict['value'])
-        if len(possible_indentifiers) > 0:
-            top_match = self.search_ids(possible_indentifiers)
-            return top_match
+        cleaned_inputs = []
+        for input in inputs.split():
+            if '\\"' not in input:
+                cleaned_inputs.append(input)
+            else:
+                if input.endswith('"},'):
+                    cleaned_inputs.append('""},')
+                elif input.endswith('"],'):
+                    cleaned_inputs.append('""],')
+        inputs = ' '.join(cleaned_inputs)
+        if inputs != '':
+            inputs_dicts = json.loads(' '.join(cleaned_inputs))
+            for inputs_dict in inputs_dicts:
+                if inputs_dict['type'] == 'string':
+                    possible_indentifiers.append(inputs_dict['value'])
+            if len(possible_indentifiers) > 0:
+                top_match = self.search_ids(possible_indentifiers)
+                return top_match
         return 'No possible identifiers'
 
     
