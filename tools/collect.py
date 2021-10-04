@@ -332,7 +332,7 @@ class CloudOutput():
         for pair_id in self.pair_association:
             for object in self.pair_association[pair_id]:
                 if isinstance(self.pair_association[pair_id][object], dict):
-                    self.pair_association[pair_id][object] = {self.pair_association[pair_id][object][key] for key in self.pair_association[pair_id][object]
+                    self.pair_association[pair_id][object] = {key : self.pair_association[pair_id][object][key] for key in self.pair_association[pair_id][object]
                                                               if not len(self.pair_association[pair_id][object][key]) == 0}
                 elif not isinstance(self.pair_association[pair_id][object], str) \
                         and isinstance(self.pair_association[pair_id][object], Iterable):
