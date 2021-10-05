@@ -609,6 +609,36 @@ task MergeColumns {
     }
 }
 
+task MergeColumnsPon {
+    input {
+        String chrom
+        String tumor
+        String columnChromVcfPath = "~{tumor}.single_column.v7.~{chrom}.vcf"
+        File supportedChromVcf
+        Int memoryGb = 16
+        Int diskSize = 4
+        File MergeColumnsPon = "gs://nygc-comp-s-fd4e-input/scripts/merge_columns_pon.py"
+    }
+
+    command {
+        python \
+        ~{MergeColumnsPon} \
+        ~{supportedChromVcf} \
+        ~{columnChromVcfPath} \
+        ~{tumor}
+    }
+
+    output {
+        File columnChromVcf = "~{columnChromVcfPath}"
+    }
+
+    runtime {
+        disks: "local-disk " + diskSize + " HDD"
+        memory : memoryGb + "GB"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
+    }
+}
+
 task AddNygcAlleleCountsToVcf {
     input {
         String pairName

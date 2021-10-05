@@ -124,6 +124,44 @@ task Gatk4MergeSortVcf {
     }
 }
 
+task AddCommandReorderColumnsVcf {
+    input {
+        Int diskSize
+        Int memoryGb
+        String normal
+        String tumor
+        File inVcf
+        String orderedVcfPath
+        String outVcfPath = sub(sub(basename(inVcf), ".gz$", ""), ".vcf$", "_w_command.vcf")
+        File jsonLog
+    }
+
+    command {
+    
+        python \
+        /add_command.py \
+        ~{inVcf} \
+        ~{outVcfPath} \
+        ~{jsonLog}
+        
+        python \
+        /reorder_vcf.py \
+        ~{outVcfPath} \
+        ~{orderedVcfPath} \
+        ~{normal} ~{tumor}
+    }
+
+    output {
+        File orderedVcf = "~{orderedVcfPath}"
+    }
+
+    runtime {
+        disks: "local-disk " + diskSize + " HDD"
+        memory : memoryGb + "GB"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
+    }
+}
+
 task ReorderVcfColumns {
     input {
         Int diskSize
@@ -231,6 +269,51 @@ task MantaWgs {
                 vcf : "~{pairName}.MantaRaw/results/variants/candidateSV.vcf.gz",
                 index : "~{pairName}.MantaRaw/results/variants/candidateSV.vcf.gz.tbi"
             }
+    }
+
+    runtime {
+        cpu : threads
+        disks: "local-disk " + diskSize + " LOCAL"
+        memory : memoryGb + "GB"
+        docker : "gcr.io/nygc-public/manta:1.4.0"
+    }
+}
+
+task MantaWgsPon {
+    input {
+        Int threads = 8
+        Int memoryGb = 4
+        Int diskSize
+        String sampleId
+        String intHVmem = "unlimited"
+        IndexedReference referenceFa
+        IndexedTable callRegions
+        Bam tumorFinalBam
+    }
+
+    command {
+        set -e -o pipefail
+
+        mkdir ~{sampleId}.MantaRaw
+
+        configManta.py \
+        --tumorBam ~{tumorFinalBam.bam} \
+        --referenceFasta ~{referenceFa.fasta} \
+        --callRegions ~{callRegions.table} \
+        --runDir ~{sampleId}.MantaRaw
+
+        "~{sampleId}.MantaRaw/runWorkflow.py" \
+        --mode local \
+        --job ~{threads} \
+        --memGb ~{intHVmem}
+    }
+
+    output {
+        IndexedVcf somaticSV = object {
+                vcf : "~{sampleId}.MantaRaw/results/variants/somaticSV.vcf.gz",
+                index : "~{sampleId}.MantaRaw/results/variants/somaticSV.vcf.gz.tbi"
+            }
+
     }
 
     runtime {
@@ -450,6 +533,39 @@ task Mutect2Wgs {
     }
 }
 
+task Mutect2WgsPon {
+    input {
+        Int memoryGb = 4
+        Int diskSize
+        String chrom
+        String tumor
+        String mutect2ChromRawVcfPath = "~{tumor}_~{chrom}.mutect2.v4.0.5.1.raw.vcf"
+        IndexedReference referenceFa
+        Bam tumorFinalBam
+    }
+
+    command {
+        gatk \
+        Mutect2 \
+        --java-options "-XX:ParallelGCThreads=4" \
+        --reference ~{referenceFa.fasta} \
+        -L ~{chrom} \
+        -I ~{tumorFinalBam.bam} \
+        -tumor ~{tumor} \
+        -O ~{mutect2ChromRawVcfPath}
+    }
+
+    output {
+        File mutect2ChromRawVcf = "~{mutect2ChromRawVcfPath}"
+    }
+
+    runtime {
+        memory : memoryGb + "GB"
+        docker : "us.gcr.io/broad-gatk/gatk:4.0.5.1"
+        disks: "local-disk " + diskSize + " LOCAL"
+    }
+}
+
 task Mutect2Filter {
     input {
         Int memoryGb = 4
@@ -520,6 +636,73 @@ task SvabaWgs {
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/svaba:1.1.3-c4d7b571"
         preemptible: 0
+    }
+}
+
+task SvabaWgsPon {
+    input {
+        Int threads
+        Int memoryGb = 16
+        String sampleId
+        IndexedTable callRegions
+        BwaReference bwaReference
+        File dbsnpIndels
+        Bam tumorFinalBam
+        Int diskSize
+    }
+
+    command {
+        svaba \
+        run \
+        -t ~{tumorFinalBam.bam} \
+        -p ~{threads} \
+        --region ~{callRegions.table} \
+        -D ~{dbsnpIndels} \
+        -a ~{sampleId} \
+        -G ~{bwaReference.fasta} \
+        -z on
+    }
+
+    output {
+        File svabaIndelGz = "~{sampleId}.svaba.somatic.indel.vcf.gz"
+        File svabaGz = "~{sampleId}.svaba.somatic.sv.vcf.gz"
+    }
+
+    runtime {
+        cpu : threads
+        disks: "local-disk " + diskSize + " LOCAL"
+        memory : memoryGb + "GB"
+        docker : "gcr.io/nygc-public/svaba:1.1.3-c4d7b571"
+        preemptible: 1
+    }
+}
+
+task ReheaderVcf {
+    input {
+        Array[String] sampleIds
+        String outVcfPath
+        IndexedReference referenceFa
+        File inVcf
+        Int memoryGb = 16
+        Int diskSize = (ceil( size(inVcf, "GB") )  * 2 ) + 1
+    }
+
+    command {
+        bcftools \
+        reheader \
+        --samples ~{sep=" " sampleIds} \
+        --output ~{outVcfPath} \
+        ~{inVcf}
+    }
+
+    output {
+        File reheaderedVcf = "~{outVcfPath}"
+    }
+
+    runtime {
+        disks: "local-disk " + diskSize + " HDD"
+        memory : memoryGb + "GB"
+        docker : "gcr.io/nygc-public/bcftools:1.5"
     }
 }
 
