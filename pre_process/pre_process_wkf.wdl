@@ -12,7 +12,7 @@ workflow Preprocess {
     #   merge lane level BAMs
     input {
         Boolean external = false
-        
+
         Array[Fastqs] listOfFastqPairs
         Boolean trim = true
         BwaReference bwaReference
@@ -33,7 +33,7 @@ workflow Preprocess {
         # resources
         #    prep flowcell
         Int bwaMem = 86
-        Int novosortMem = 80
+        Int novosortMem = 20
         Int threads = 16
         Int bwaThreads = 96
     }
@@ -62,7 +62,7 @@ workflow Preprocess {
             referenceFa = referenceFa,
             randomIntervals = randomIntervals,
             qcDir = "Sample_~{sampleId}/qc",
-            memoryGb = novosortMem,
+            novosortMem = novosortMem,
             threads = threads
     }
 
