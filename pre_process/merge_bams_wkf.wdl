@@ -21,7 +21,7 @@ workflow MergeBams {
         File randomIntervals
         String qcDir = '.'       # To pass to the two QC tasks.
         # resources
-        Int mem
+        Int novosortMem
         Int threads
 
     }
@@ -32,13 +32,13 @@ workflow MergeBams {
             sizes = sample_bam_sizes
     }
 
-    Int diskSize = ceil(SumFloats.total_size * 2) 
+    Int diskSize = ceil(SumFloats.total_size * 2)
 
     call mergeBams.NovosortMarkDup as novosort {
         input:
             laneBams = laneFixmateBams,
             sampleId = sampleId,
-            mem = 20,
+            mem = novosortMem,
             threads = threads,
             # novosort uses a lot of memory and a lot of disk.
             diskSize = ceil((SumFloats.total_size * 3))
