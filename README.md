@@ -6,6 +6,7 @@
 
 - [Dependencies](#dependencies)
 - [On prem environment setup](#environment)
+- [Available workflows](#workflows)
 - [Write input and submit](#write_input)
 - [Post run reports](#post_run)
 - [Create new workflow](#create_new_workflow) 
@@ -13,8 +14,8 @@
   - [Credentials](#credentials)
   - [Cram incompatible steps](#cram-incompatible)
   - [Cram compatible steps](#cram-compatible)
-- [Contact us](#contact_us)
-- [Release notes](#release_notes)
+  - [Contact us](#contact_us)
+  - [Release notes](#release_notes)
 
 ![NYGC Somatic Pipeline overview](diagrams/WDL_Pipeline.png)
 
@@ -41,9 +42,41 @@ Set up on prem:
 
 ```
 # run in this order
-module load gcloud cromwell-tools jq
-. /gpfs/commons/groups/nygcfaculty/kancero/envs/miniconda3/etc/profile.d/conda.sh
-conda activate wdl
+module load wdl
+```
+
+### Available workflows
+<a name="workflows"></a>
+
+The pipeline is designed to be modular because there are times when we only run a segment 
+and not the entire v7 pipeline. Below are available workflows:
+
+```
+alignment_analysis_wkf.wdl             Run Kourami (HLA typing) and Mantis (MSI status) on BAMs
+annotate_cnv_sv_wkf.wdl                Merge SV calls, filter and annotation both SV and CNV calls
+calling_wkf.wdl                        Run SNV, INDEL, SV and CNV callers on BAMs                                  
+filter_intervals.wdl                   Prep reference files by filtering using a BED file of intervals
+gdc_wkf.wdl                            Compare VCF files
+germline_wkf.wdl                       Call germline SNVs and INDELs and output a filtered and unfiltered 
+                                        annotated VCF
+kourami_wkf.wdl                        Run Kourami (HLA typing)
+merge_vcf_wkf.wdl                      Merge, filter and annotate v7 pipeline calls
+report_mini_wkf.wdl                    In dev report writing workflow
+report_wkf.wdl                         In dev full report writing workflow
+somatic_bam_wkf.wdl                    Full v7 pipeline starting from BAMs: SNV, INDEL, SV and CNV calling 
+                                        filtering and annotating, germline calls and BAF (HaplotypeCaller),
+                                        DeconstructSigs (Mutational Signatures), contamination and concordance 
+                                        (Conpair), Kourami (HLA typing) and 
+                                        Mantis (MSI status)
+somatic_wkf.wdl                        Full v7 pipeline starting from FASTQs: Alignment, QC, SNV, INDEL, SV 
+                                        and CNV calling filtering and annotating, germline calls and BAF 
+                                        (HaplotypeCaller), DeconstructSigs (Mutational Signatures), 
+                                        contamination and concordance (Conpair), Kourami (HLA typing) and 
+                                        Mantis (MSI status)
+tests_wkf.wdl                          Automated comparison of prior pipeline run to current pipeline run output.
+variant_analysis_wkf.wdl               Run DeconstructSigs (Mutational Signatures)
+wdl_structs.wdl                        Custom Struct objects to reference primary and secondary files together 
+                                        or group ids and related files
 ```
 
 ### Write input and submit
