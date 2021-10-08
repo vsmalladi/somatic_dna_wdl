@@ -874,12 +874,11 @@ task CompareBedPe {
         Float sizeMargin = 0.8
         Int diskSize = 10
         Int memoryGb = 20
-        File bedpeConcordance = "gs://nygc-comp-s-fd4e-input/bedpe-concordance.r"
     }
     
     command {
         Rscript \
-        ~{bedpeConcordance} \
+        /bedpe-concordance.r \
         --old_bedpe=~{oldBedpe} \
         --new_bedpe=~{newBedpe} \
         --slop=~{slop} \
@@ -897,7 +896,7 @@ task CompareBedPe {
     runtime {
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker: "gcr.io/nygc-internal-tools/somatic_reports@sha256:ba18bd0fd7ce55af26e4d255f85529a728951bab02596e0528391b2b52d05045"
+        docker : "gcr.io/nygc-internal-tools/sv_cnv@sha256:1c14a50d131323a2a4bab323cf224879776af8de37f93df79292fd2e63269274"
     }
     
     meta {
@@ -915,13 +914,12 @@ task CompareBed {
         String outFileBedPath = "~{pairId}.cnv.concordance.bed"
         Float overlapFraction = 0.8
         Int diskSize = 10
-        Int memoryGb = 20
-        File bedConcordance = "gs://nygc-comp-s-fd4e-input/bed-concordance.r"
+        Int memoryGb = 20        
     }
     
     command {
         Rscript \
-        ~{bedConcordance} \
+        /bed-concordance.r \
         --old_bed=~{oldBed} \
         --new_bed=~{newBed} \
         --overlap_fraction=~{overlapFraction} \
@@ -938,7 +936,7 @@ task CompareBed {
     runtime {
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker: "gcr.io/nygc-internal-tools/somatic_reports@sha256:ba18bd0fd7ce55af26e4d255f85529a728951bab02596e0528391b2b52d05045"
+        docker : "gcr.io/nygc-internal-tools/sv_cnv@sha256:1c14a50d131323a2a4bab323cf224879776af8de37f93df79292fd2e63269274"
     }
     
     meta {
