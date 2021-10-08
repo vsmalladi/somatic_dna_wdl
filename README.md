@@ -6,6 +6,7 @@
 
 - [Dependencies](#dependencies)
 - [On prem environment setup](#environment)
+- [Environment setup](#external_environment)
 - [Available workflows](#workflows)
 - [Write input and submit](#write_input)
 - [Post run reports](#post_run)
@@ -41,9 +42,30 @@ Python
 Set up on prem:
 
 ```
-# run in this order
 module load wdl
 ```
+
+### Environment setup
+<a name="external_environment"></a>
+
+
+Set up:
+
+```
+# Install gcloud cromwell-tools and jq and have them in you path
+
+# Install conda (only need to do this install once)
+wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
+bash \
+Miniconda3-latest-Linux-x86_64.sh
+# Then follow install instructions and then instructions to add conda to your path
+# create wdl environment
+conda env create -f wdl_port/tools/environment.yml
+
+# activate the environment
+conda activate wdl
+```
+gcloud cromwell-tools jq
 
 ### Available workflows
 <a name="workflows"></a>
