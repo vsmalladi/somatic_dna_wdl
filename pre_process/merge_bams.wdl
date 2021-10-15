@@ -30,6 +30,7 @@ task NovosortMarkDupExternal {
             bam : mergedDedupBamPath,
             bamIndex : mergedDedupBamPath + ".bai"
         }
+        File dedupLog
     }
 
     runtime {
