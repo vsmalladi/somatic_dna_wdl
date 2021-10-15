@@ -30,6 +30,7 @@ task NovosortMarkDup {
             bam : mergedDedupBamPath,
             bamIndex : mergedDedupBamPath + ".bai"
         }
+        File dedupLog
     }
 
     runtime {

@@ -575,6 +575,7 @@ task VerifyConcordanceAll {
     }
 
     command {
+        mkdir -p $(dirname ~{concordanceAllPath})
         export CONPAIR_DIR=/Conpair-0.2
         export PYTHONPATH=/Conpair-0.2/modules
         python /Conpair-0.2/scripts/verify_concordance.py \
@@ -607,6 +608,8 @@ task VerifyConcordanceHomoz {
     }
 
     command {
+        mkdir -p $(dirname ~{concordanceHomozPath})
+
         export CONPAIR_DIR=/Conpair-0.2
         export PYTHONPATH=/Conpair-0.2/modules
         python /Conpair-0.2/scripts/verify_concordance.py \
@@ -640,6 +643,8 @@ task Contamination {
     }
 
     command {
+        mkdir -p $(dirname ~{contaminationPath})
+
         export CONPAIR_DIR=/Conpair-0.2
         export PYTHONPATH=/Conpair-0.2/modules
         python /Conpair-0.2/scripts/estimate_tumor_normal_contamination.py \
