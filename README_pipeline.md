@@ -1,7 +1,9 @@
 # NYGC Somatic Pipeline v7
 
-## Docs for NYGC Somatic Pipeline v7
+## WGS Human Somatic Pipeline v7
 - [Deliverables](#deliverables)
+- [Pre-processing](#pre_processing)
+- [References](#references)
 
 ![NYGC Somatic Pipeline overview](diagrams/pipeline_summary.png)
 
@@ -91,4 +93,29 @@ Mutational Signatures
   - TUMOR--NORMAL.cosmic.v3.2.deconstructSigs.v1.9.0.signatures.highconfidence.reconstructed.txt
 - Estimated proportion of each signature in the sample
   - TUMOR--NORMAL.cosmic.v3.2.deconstructSigs.v1.9.0.signatures.highconfidence.txt
+  
+### Pre-processing
+<a name="pre_processing"></a>
+
+Sequencing reads for the tumor and normal samples are aligned to the reference genome using BWA-MEM (v0.7.15) (1).
+Skewer (v0.2.2) (2) is run to trim remaining adapter contamination from reads. NYGC’s ShortAlignmentMarking (v2.1) 
+is used to mark short reads as unaligned. This tool is intended to remove spurious alignments resulting from 
+contamination (e.g. saliva sample bacterial content) or from too aggressive alignments of short reads the size of
+BWA-MEM’s 19bp minimum seed length. These spurious alignments result in pileups in certain locations of the genome
+and can lead to erroneous variant calling. 
+
+GATK (v4.1.0) (3) FixMateInformation is run to verify and fix mate-pair information, followed by Novosort 
+(v1.03.01) markDuplicates to merge individual lane BAM files into a single BAM file per sample. Duplicates are 
+then sorted and marked, and GATK’s base quality score recalibration (BQSR) is performed. The final result of the 
+pre-processing pipeline is a coordinate sorted BAM file for each sample.
+
+![Pre-processing](diagrams/WGS_preprocess.png)
+
+
+### References
+<a name="references"></a>
+
+1. Li,H. (2013) Aligning sequence reads, clone sequences and assembly contigs with BWA-MEM. arXiv [q-bio.GN].
+2. Jiang,H. et al.(2014) Skewer: a fast and accurate adapter trimmer for next-generation sequencing paired-end reads. BMC Bioinformatics., 15, 182.
+3. McKenna,A., Hanna,M., Banks,E., Sivachenko,A., Cibulskis,K., Kernytsky,A., Garimella,K., Altshuler,D., Gabriel,S., Daly,M., et al. (2010) The Genome Analysis Toolkit: a MapReduce framework for analyzing next-generation DNA sequencing data. Genome Res., 20, 1297–1303.
 
