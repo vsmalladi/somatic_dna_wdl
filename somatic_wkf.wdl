@@ -502,6 +502,22 @@ workflow SomaticWorkflow {
                     tumorFinalBam=Preprocess.finalBam[tumorGetIndex.index],
                     normalFinalBam=Preprocess.finalBam[normalGetIndex.index]
             }
+            
+            PreMergedPairVcfInfo preMergedPairVcfInfo = object {
+                pairId : pairRelationship.pairId,
+                filteredMantaSV : Calling.filteredMantaSV,
+                strelka2Snv : Calling.strelka2Snv,
+                strelka2Indel : Calling.strelka2Indel,
+                mutect2 : Calling.mutect2,
+                lancet : Calling.lancet,
+                svabaSv : Calling.svabaSv,
+                svabaIndel : Calling.svabaIndel,
+                tumor : pairRelationship.tumor,
+                normal : pairRelationship.normal,
+                tumorFinalBam : pairRelationship.tumorFinalBam,
+                normalFinalBam : pairRelationship.normalFinalBam
+    
+            }
 
             PairRawVcfInfo pairRawVcfInfo = object {
                 pairId : pairRelationship.pairId,
@@ -525,7 +541,7 @@ workflow SomaticWorkflow {
             if (library == 'WGS') {
                 call mergeVcf.MergeVcf as wgsMergeVcf {
                     input:
-                        pairRawVcfInfo = pairRawVcfInfo,
+                        preMergedPairVcfInfo = preMergedPairVcfInfo,
                         referenceFa = referenceFa,
                         listOfChroms = listOfChroms,
                         intervalListBed = intervalListBed,
@@ -538,7 +554,7 @@ workflow SomaticWorkflow {
             if (library == 'Exome') {
                 call mergeVcf.MergeVcf as exomeMergeVcf {
                     input:
-                        pairRawVcfInfo = pairRawVcfInfo,
+                        preMergedPairVcfInfo = preMergedPairVcfInfo,
                         referenceFa = referenceFa,
                         listOfChroms = listOfChroms,
                         intervalListBed = intervalListBed,
