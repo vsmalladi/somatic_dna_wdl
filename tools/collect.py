@@ -254,8 +254,10 @@ class CloudOutput():
         self.root_dir = self.read_api(goal='get_root')
         # fast get calls from API to search for uuids
         self.uri_list = self.list_uris()
-        self.all_sub_workflow_uuids = list(set([self.get_uuid_from_uri(uri) for uri in self.uri_list]))
+        self.all_sub_workflow_uuids = list(set([uri for uri in self.get_uuid_from_uri(self.uri_list)]))
+#         self.all_sub_workflow_uuids = list(set([self.get_uuid_from_uri(uri) for uri in self.uri_list]))
         self.run_data.run_info['sub_workflow_uuids'] = self.all_sub_workflow_uuids
+        self.uri_list = [uri for uri in self.uri_list if not uri.endswith('/rc')]
         # get API outputs section
         self.raw_outputs = self.read_api()
         # get files (named and unnamed) from API outputs section
@@ -372,9 +374,16 @@ class CloudOutput():
         run_date = run_date.replace('"', '').split('T')[0]
         return run_date
         
-    def get_uuid_from_uri(self, uri):
+    def fake_get_uuid_from_uri(self, uri):
         sub_workflow_uuid = uri.replace('/cacheCopy', '').split('/call-')[-2].split('/')[-1]
         return sub_workflow_uuid
+    
+    def get_uuid_from_uri(self, uris):
+        sub_workflow_uuids = []
+        for uri in uris:
+            for possible in uri.replace('/cacheCopy', '').split('/call-')[1::-1]:
+                sub_workflow_uuid = possible.split('/')[-1]
+                yield sub_workflow_uuid
     
     def list_uris(self):
         '''
