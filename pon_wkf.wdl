@@ -5,6 +5,9 @@ import "calling/mutect2_pon_wkf.wdl" as mutect2Pon
 import "calling/manta_pon_wkf.wdl" as mantaPon
 import "calling/svaba_pon_wkf.wdl" as svabaPon
 import "merge_vcf/merge_vcf_pon_wkf.wdl" as MergeVcfPon
+import "annotate/annotate.wdl" as annotate
+import "annotate/variantEffectPredictor.wdl" as variantEffectPredictor
+import "merge_vcf/merge_vcf.wdl" as mergeVcf
 
 # ================== COPYRIGHT ================================================
 # New York Genome Center
@@ -30,6 +33,7 @@ workflow CallingPon {
     #   merge and filter raw VCFs
     #   annotate
     input {
+        Boolean production = false
         Array[SampleBamInfo]+ tumorInfos
         # strelka2
         File strelkaJsonLog
@@ -47,6 +51,35 @@ workflow CallingPon {
         File mutectJsonLogFilter
         BwaReference bwaReference
         Boolean highMem = false
+        
+        # annotation:
+        IndexedVcf cosmicCoding
+        IndexedVcf cosmicNoncoding
+        
+        # Public
+        File cancerResistanceMutations
+        File vepCache
+        File annotations
+        File plugins
+        String vepGenomeBuild
+        IndexedReference vepFastaReference
+
+        # NYGC-only
+        IndexedVcf hgmdGene
+        IndexedVcf hgmdUd10
+        IndexedVcf hgmdPro
+        IndexedVcf omimVcf
+
+        # Public
+        IndexedVcf chdGenesVcf
+        IndexedVcf chdEvolvingGenesVcf
+        IndexedVcf chdWhitelistVcf
+        IndexedVcf deepIntronicsVcf
+        IndexedVcf clinvarIntronicsVcf
+        IndexedVcf masterMind
+        
+        Int vepDiskSize = ceil(size(vepCache, "GB") + size(plugins, "GB") + size(annotations, "GB") + size(hgmdGene.vcf, "GB") + size(hgmdUd10.vcf, "GB") + size(hgmdPro.vcf, "GB") + size(chdGenesVcf.vcf, "GB") + size(chdEvolvingGenesVcf.vcf, "GB") + size(chdWhitelistVcf.vcf, "GB") + size(deepIntronicsVcf.vcf, "GB") + size(clinvarIntronicsVcf.vcf, "GB") + size(masterMind.vcf, "GB")) + 200
+        
     }
     scatter(tumorInfo in tumorInfos) {
         
@@ -89,9 +122,85 @@ workflow CallingPon {
                         referenceFa = referenceFa,
                         listOfChroms = listOfChroms
         }
+        
+        call mergeVcf.CompressVcf as unannotatedCompressVcf {
+            input:
+                vcf = wgsMergeVcfPon.mergedVcf
+        }
+    
+        call mergeVcf.IndexVcf as unannotatedIndexVcf {
+            input:
+                vcfCompressed = unannotatedCompressVcf.vcfCompressed
+        }
+    
+        if (production) {
+            call variantEffectPredictor.vepPublicSvnIndel as productionVepSvnIndel {
+                input:
+                    pairName = tumorInfo.sampleId,
+                    unannotatedVcf = unannotatedIndexVcf.vcfCompressedIndexed,
+                    vepCache = vepCache,
+                    annotations = annotations,
+                    plugins = plugins,
+                    vepGenomeBuild = vepGenomeBuild,
+                    vepFastaReference = vepFastaReference,
+                    # NYGC-only
+                    hgmdGene = hgmdGene,
+                    hgmdUd10 = hgmdUd10,
+                    hgmdPro = hgmdPro,
+                    # Public
+                    chdGenesVcf = chdGenesVcf,
+                    chdEvolvingGenesVcf = chdEvolvingGenesVcf,
+                    chdWhitelistVcf = chdWhitelistVcf,
+                    deepIntronicsVcf = deepIntronicsVcf,
+                    clinvarIntronicsVcf = clinvarIntronicsVcf,
+                    masterMind = masterMind,
+                    cosmicCoding = cosmicCoding,
+                    cosmicNoncoding = cosmicNoncoding,
+                    diskSize = vepDiskSize,
+                    memoryGb = 8
+            }
+        }
+        
+        if (!production) {
+            if ( size(omimVcf.vcf) > 0 ) {
+                call variantEffectPredictor.vepSvnIndel as notProductionVepSvnIndel{
+                    input:
+                        pairName = tumorInfo.sampleId,
+                        unannotatedVcf = unannotatedIndexVcf.vcfCompressedIndexed,
+                        vepCache = vepCache,
+                        annotations = annotations,
+                        plugins = plugins,
+                        vepGenomeBuild = vepGenomeBuild,
+                        vepFastaReference = vepFastaReference,
+                        # NYGC-only
+                        hgmdGene = hgmdGene,
+                        hgmdUd10 = hgmdUd10,
+                        hgmdPro = hgmdPro,
+                        omimVcf = omimVcf,
+                        # Public
+                        chdGenesVcf = chdGenesVcf,
+                        chdEvolvingGenesVcf = chdEvolvingGenesVcf,
+                        chdWhitelistVcf = chdWhitelistVcf,
+                        deepIntronicsVcf = deepIntronicsVcf,
+                        clinvarIntronicsVcf = clinvarIntronicsVcf,
+                        masterMind = masterMind,
+                        cosmicCoding = cosmicCoding,
+                        cosmicNoncoding = cosmicNoncoding,
+                        diskSize = vepDiskSize,
+                        memoryGb = 8
+                }
+            }
+        }
+    
+        File finalVcfAnnotatedVep = select_first([notProductionVepSvnIndel.vcfAnnotatedVep, productionVepSvnIndel.vcfAnnotatedVep])
+        
     }
  
     output {
+        # General 
+
+        Array[File] vcfAnnotatedVep = finalVcfAnnotatedVep
+        
         # Mutect2
         Array[File] mutect2 = Mutect2Pon.mutect2
         # Manta 
@@ -100,7 +209,5 @@ workflow CallingPon {
 
         # Svaba
         Array[File] svabaIndel = SvabaPon.svabaIndel
-        
-        Array[File] mergedVcf = wgsMergeVcfPon.mergedVcf
     }
 }
