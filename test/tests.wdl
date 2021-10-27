@@ -2,6 +2,548 @@ version 1.0
 
 import "../wdl_structs.wdl"
 
+task FilterHighConfidence {
+    input {            
+        File vcf
+        String filteredVcfPath
+        Int diskSize = 1
+        Int memoryGb = 1
+    }
+    
+    command {
+        bash \
+        /filter_confidence.sh \
+        ~{vcf} \
+        ~{filteredVcfPath}
+    }
+    
+    output {
+        File filteredVcf = "~{filteredVcfPath}"
+    }
+    
+    runtime {
+        memory : memoryGb + "GB"
+        disks: "local-disk " + diskSize + " HDD"
+        docker: "gcr.io/nygc-internal-tools/somatic_reports@sha256:ba18bd0fd7ce55af26e4d255f85529a728951bab02596e0528391b2b52d05045"
+    }
+    
+    meta {
+        summaryTsvColumns : ["mean_cov", "sample_id"]
+        internalOnly : "False, but depends on filename to add sample_id"
+    }
+}
+
+task SummarizeMantis {
+    input {            
+        String pipeline = "v7"
+        String name
+        Array[File] mantisStatusFinal
+        String mantisStatusTablePath = "~{name}.~{pipeline}.msi.csv"
+        Int diskSize = 1
+        Int memoryGb = 1
+    }
+    
+    command {
+        python \
+        /prep_Mantis.py \
+        --output ~{mantisStatusTablePath} \
+        --mantis-files ~{sep=" " mantisStatusFinal}
+    }
+    
+    output {
+        File mantisStatusTable = "~{mantisStatusTablePath}"
+    }
+    
+    runtime {
+        memory : memoryGb + "GB"
+        disks: "local-disk " + diskSize + " HDD"
+        docker: "gcr.io/nygc-internal-tools/somatic_reports@sha256:ba18bd0fd7ce55af26e4d255f85529a728951bab02596e0528391b2b52d05045"
+    }
+    
+    meta {
+        summaryTsvColumns : ["mean_cov", "sample_id"]
+        internalOnly : "False, but depends on filename to add sample_id"
+    }
+}
+
+task SummarizeQualityByCycle {
+    input {            
+        String pipeline = "v7"
+        String name
+        Array[File] qualityByCycleMetrics
+        String qualityByCycleTablePath = "~{name}.~{pipeline}.quality_by_cycle_metrics.csv"
+        Int diskSize = 1
+        Int memoryGb = 1
+    }
+    
+    command {
+        python \
+        /prep_QualityByCycle.py \
+        --output ~{qualityByCycleTablePath} \
+        --quality-files ~{sep=" " qualityByCycleMetrics}
+    }
+    
+    output {
+        File qualityByCycleTable = "~{qualityByCycleTablePath}"
+    }
+    
+    runtime {
+        memory : memoryGb + "GB"
+        disks: "local-disk " + diskSize + " HDD"
+        docker: "gcr.io/nygc-internal-tools/somatic_reports@sha256:ba18bd0fd7ce55af26e4d255f85529a728951bab02596e0528391b2b52d05045"
+    }
+    
+    meta {
+        summaryTsvColumns : ["mean_cov", "sample_id"]
+        internalOnly : "False, but depends on filename to add sample_id"
+    }
+}
+
+
+
+task SummarizeInsertSizeMetrics {
+    input {            
+        String pipeline = "v7"
+        String name
+        Array[File] insertSizeMetrics
+        String insertSizeTablePath = "~{name}.~{pipeline}.insert_size.csv"
+        Int diskSize = 1
+        Int memoryGb = 1
+    }
+    
+    command {
+        python \
+        /prep_InsertSizeMetrics.py \
+        --output ~{insertSizeTablePath} \
+        --insert-sizes ~{sep=" " insertSizeMetrics}
+    }
+    
+    output {
+        File insertSizeTable = "~{insertSizeTablePath}"
+    }
+    
+    runtime {
+        memory : memoryGb + "GB"
+        disks: "local-disk " + diskSize + " HDD"
+        docker: "gcr.io/nygc-internal-tools/somatic_reports@sha256:ba18bd0fd7ce55af26e4d255f85529a728951bab02596e0528391b2b52d05045"
+    }
+    
+    meta {
+        summaryTsvColumns : ["mean_cov", "sample_id"]
+        internalOnly : "False, but depends on filename to add sample_id"
+    }
+}
+
+
+task SummarizeCollectWgsMetrics {
+    input {            
+        String pipeline = "v7"
+        String name
+        Array[File] collectWgsMetrics
+        String coverageTablePath = "~{name}.~{pipeline}.cov.csv"
+        Int diskSize = 1
+        Int memoryGb = 1
+    }
+    
+    command {
+        python \
+        /prep_CollectWgsMetrics.py \
+        --output ~{coverageTablePath} \
+        --coverage-files ~{sep=" " collectWgsMetrics}
+    }
+    
+    output {
+        File coverageTable = "~{coverageTablePath}"
+    }
+    
+    runtime {
+        memory : memoryGb + "GB"
+        disks: "local-disk " + diskSize + " HDD"
+        docker: "gcr.io/nygc-internal-tools/somatic_reports@sha256:ba18bd0fd7ce55af26e4d255f85529a728951bab02596e0528391b2b52d05045"
+    }
+    
+    meta {
+        summaryTsvColumns : ["mean_cov", "sample_id"]
+        internalOnly : "False, but depends on filename to add sample_id"
+    }
+}
+
+task SummarizeSvs {
+    input {            
+        String pipeline = "v7"
+        String name
+        Array[File] highConfidenceSvTables
+        Array[File] allSomaticSvTables
+        String svTablePath = "~{name}.~{pipeline}.summarySv.csv"
+        Int diskSize = 1
+        Int memoryGb = 1
+    }
+    
+    command {
+        python \
+        /summarize_svs.py \
+        --output ~{svTablePath} \
+        --high-conf-sv-tables ~{sep=" " highConfidenceSvTables} \
+        --all-somatic-sv-tables ~{sep=" " allSomaticSvTables}
+    }
+    
+    output {
+        File summarySvTable = "~{svTablePath}"
+    }
+    
+    runtime {
+        memory : memoryGb + "GB"
+        disks: "local-disk " + diskSize + " HDD"
+        docker: "gcr.io/nygc-internal-tools/somatic_reports@sha256:ba18bd0fd7ce55af26e4d255f85529a728951bab02596e0528391b2b52d05045"
+    }
+    
+    meta {
+        summaryTsvColumns : ["Confidence", "Count", "pair_id"]
+        internalOnly : "False, but depends on filename to add sample_id"
+    }
+}
+
+task SummarizeFlagStat {
+    input {            
+        String pipeline = "v7"
+        String name
+        Array[File] flagStats
+        String flagStatTablePath = "~{name}.~{pipeline}.flagstat.csv"
+        Int diskSize = 1
+        Int memoryGb = 1
+    }
+    
+    command {
+        python \
+        /prep_flagstat.py \
+        --output ~{flagStatTablePath} \
+        --flagstat-files ~{sep=" " flagStats}
+    }
+    
+    output {
+        File flagStatTable = "~{flagStatTablePath}"
+    }
+    
+    runtime {
+        memory : memoryGb + "GB"
+        disks: "local-disk " + diskSize + " HDD"
+        docker: "gcr.io/nygc-internal-tools/somatic_reports@sha256:ba18bd0fd7ce55af26e4d255f85529a728951bab02596e0528391b2b52d05045"
+    }
+    
+    meta {
+        summaryTsvColumns : ["flagstat", "value", "sample_id"]
+        internalOnly : "False, but depends on filename to add sample_id"
+    }
+}
+
+task DraftSampleReport {
+    input {
+        String pairId
+        Array[String] listOfChroms
+        File chromLengths
+        Array[File] cnvTable
+        Array[File] cnvGenesTable
+        
+        Array[File] svGenesTable
+        Array[File] svTable
+        
+        Array[File] detailedVcfTable
+        Array[File] summaryVcfTable
+        
+        String mdPath = "~{pairId}.v7.final.report.md"
+        String headerPath = "~{pairId}.v7.final.report.header.txt"
+        
+        Int diskSize = 10
+        Int memoryGb = 20
+    }
+    
+    command {
+       python \
+        /draft_sample_report.py \
+        --chrom-lengths ~{chromLengths} \
+        --chroms ~{sep=" " listOfChroms} \
+        --pair-id ~{pairId} \
+        --cnv-gene-tables ~{sep=" " cnvTable} \
+        --cnv-tables ~{sep=" " cnvGenesTable} \
+        --sv-gene-tables ~{sep=" " svGenesTable} \
+        --sv-tables ~{sep=" " svTable} \
+        --snv-gene-tables ~{sep=" " detailedVcfTable} \
+        --snv-summary-tables ~{sep=" " summaryVcfTable} \
+    }
+    
+    output {
+        File md = "~{mdPath}"
+        File header = "~{headerPath}"
+    }
+    
+    runtime {
+        memory : memoryGb + "GB"
+        disks: "local-disk " + diskSize + " HDD"
+        docker: "gcr.io/nygc-internal-tools/somatic_reports@sha256:ba18bd0fd7ce55af26e4d255f85529a728951bab02596e0528391b2b52d05045"
+    }
+
+}
+
+task DescribeBaf {
+    input {            
+        String pipeline = "v7"
+        String pairId
+        File bedpe
+        File chromLengths
+        Array[String] listOfChroms
+        String svTablePath = "~{pairId}.~{pipeline}.baf.csv"
+        Int diskSize = 1
+        Int memoryGb = 1
+    }
+    
+    command {
+        python \
+        /prep_fusions.py \
+        --sv-bedpes ~{bedpe} \
+        --output ~{svTablePath} \
+        --chrom-lengths ~{chromLengths} \
+        --chroms ~{sep=" " listOfChroms} \
+        --pair-id ~{pairId}
+    }
+    
+    output {
+        File svTable = "~{svTablePath}"
+    }
+    
+    runtime {
+        memory : memoryGb + "GB"
+        disks: "local-disk " + diskSize + " HDD"
+        docker: "gcr.io/nygc-internal-tools/somatic_reports@sha256:ba18bd0fd7ce55af26e4d255f85529a728951bab02596e0528391b2b52d05045"
+    }
+    
+    meta {
+        summaryTsvColumns : ["pair_id", "type", "coordinates", "log2", "chrom", "start", "end", "cumulative_start_pos", "cumulative_end_pos", "xs", "kind"]
+        internalOnly : "True, produces empty output for external BED files"
+    }
+}
+
+task DescribeBedPe {
+    input {            
+        String pipeline = "v7"
+        String name
+        String pairId
+        File bedpe
+        File chromLengths
+        Array[String] listOfChroms
+        String svTablePath = "~{pairId}.~{name}.~{pipeline}.fusions.sv.csv"
+        Int diskSize = 1
+        Int memoryGb = 1
+    }
+    
+    command {
+        python \
+        /prep_fusions.py \
+        --sv-bedpes ~{bedpe} \
+        --output ~{svTablePath} \
+        --chrom-lengths ~{chromLengths} \
+        --chroms ~{sep=" " listOfChroms} \
+        --pair-id ~{pairId}
+    }
+    
+    output {
+        File svTable = "~{svTablePath}"
+    }
+    
+    runtime {
+        memory : memoryGb + "GB"
+        disks: "local-disk " + diskSize + " HDD"
+        docker: "gcr.io/nygc-internal-tools/somatic_reports@sha256:ba18bd0fd7ce55af26e4d255f85529a728951bab02596e0528391b2b52d05045"
+    }
+    
+    meta {
+        summaryTsvColumns : ["pair_id", "type", "coordinates", "log2", "chrom", "start", "end", "cumulative_start_pos", "cumulative_end_pos", "xs", "kind"]
+        internalOnly : "True, produces empty output for external BED files"
+    }
+}
+
+task DescribeBedPeGenes {
+    input {            
+        String pipeline = "v7"
+        String pairId
+        File bedpe
+        String svGenesTablePath = "~{pairId}.~{pipeline}.genes.sv.csv"
+        Int diskSize = 1
+        Int memoryGb = 1
+    }
+    
+    command {
+        python \
+        /describe_bedpe_genes.py \
+        --bedpe-file ~{bedpe} \
+        --output ~{svGenesTablePath} \
+        --pair-id ~{pairId}
+    }
+    
+    output {
+        File svGenesTable = "~{svGenesTablePath}"
+    }
+    
+    runtime {
+        memory : memoryGb + "GB"
+        disks: "local-disk " + diskSize + " HDD"
+        docker: "gcr.io/nygc-internal-tools/somatic_reports@sha256:ba18bd0fd7ce55af26e4d255f85529a728951bab02596e0528391b2b52d05045"
+    }
+    
+    meta {
+        summaryTsvColumns : ["pair_id", "type", "coordinates", "log2", "chrom", "start", "end", "cumulative_start_pos", "cumulative_end_pos", "xs", "kind"]
+        internalOnly : "True, produces empty output for external BED files"
+    }
+}
+
+task SummarizeFinalVcf {
+    input {
+        String pairId
+        String pipeline = "v7"
+        File vcf
+        String detailedOutputTablePath = "~{pairId}.~{pipeline}.detailed.output.csv"
+        String summaryOutputTablePath = "~{pairId}.~{pipeline}.counts.csv"
+        
+        Int diskSize = 10
+        Int memoryGb = 20
+    }
+    
+    command {
+       python \
+        /summarize_vcfs.py \
+        --pair-id ~{pairId} \
+        --vcf ~{vcf} \
+        --output ~{detailedOutputTablePath} \
+        --summary ~{summaryOutputTablePath}
+    }
+    
+    output {
+        File detailedVcfTable = "~{detailedOutputTablePath}"
+        File summaryVcfTable = "~{summaryOutputTablePath}"
+    }
+    
+    runtime {
+        memory : memoryGb + "GB"
+        disks: "local-disk " + diskSize + " HDD"
+        docker: "gcr.io/nygc-internal-tools/somatic_reports@sha256:ba18bd0fd7ce55af26e4d255f85529a728951bab02596e0528391b2b52d05045"
+    }
+    
+    meta {
+        summaryTsvColumns : ["Callset", "Confidence", "Count"]
+        Callsets : ["Old unique", "New unique", "Concordant"]
+        internalOnly : "False, produces output for external or internal VCF files"
+    }
+}
+
+task DescribeBed {
+    input {
+        String pipeline = "v7"
+        String pairId
+        File bed
+        File chromLengths
+        Array[String] listOfChroms
+        String cnvTablePath = "~{pairId}.~{pipeline}.cnv.csv"
+        Int diskSize = 1
+        Int memoryGb = 1
+    }
+    
+    command {
+        python \
+        /describe_bed.py \
+        --bed-file ~{bed} \
+        --output ~{cnvTablePath} \
+        --chrom-lengths ~{chromLengths} \
+        --chroms ~{sep=" " listOfChroms} \
+        --pair-id ~{pairId}
+    }
+    
+    output {
+        File cnvTable = "~{cnvTablePath}"
+    }
+    
+    runtime {
+        memory : memoryGb + "GB"
+        disks: "local-disk " + diskSize + " HDD"
+        docker: "gcr.io/nygc-internal-tools/somatic_reports@sha256:ba18bd0fd7ce55af26e4d255f85529a728951bab02596e0528391b2b52d05045"
+    }
+    
+    meta {
+        #summaryTsvColumns : ["pair_id", "type", "coordinates", "log2", "chrom", "start", "end", "cumulative_start_pos", "cumulative_end_pos", "xs", "kind"]
+        internalOnly : "True, produces empty output for external BED files"
+    }
+}
+
+task DescribeBedGenes {
+    input {            
+        String pipeline = "v7"
+        String pairId
+        File bed
+        String cnvGenesTablePath = "~{pairId}.~{pipeline}.genes.cnv.csv"
+        Int diskSize = 1
+        Int memoryGb = 1
+    }
+    
+    command {
+        python \
+        /describe_bed_genes.py \
+        --bed-file ~{bed} \
+        --output ~{cnvGenesTablePath} \
+        --pair-id ~{pairId}
+    }
+    
+    output {
+        File cnvGenesTable = "~{cnvGenesTablePath}"
+    }
+    
+    runtime {
+        memory : memoryGb + "GB"
+        disks: "local-disk " + diskSize + " HDD"
+        docker: "gcr.io/nygc-internal-tools/somatic_reports@sha256:ba18bd0fd7ce55af26e4d255f85529a728951bab02596e0528391b2b52d05045"
+    }
+    
+    meta {
+        summaryTsvColumns : ["pair_id", "type", "coordinates", "log2", "chrom", "start", "end", "cumulative_start_pos", "cumulative_end_pos", "xs", "kind"]
+        internalOnly : "True, produces empty output for external BED files"
+    }
+}
+
+task SummarizeHla {
+    input {
+        String sampleId
+        File oldkouramiResult
+        File newkouramiResult
+        String outputTablePath = "~{sampleId}.hla.summary.csv"
+        String outputConcordancePath = "~{sampleId}.hla.concordance.csv"
+        Int diskSize = 1
+        Int memoryGb = 1
+    }
+
+    command {
+       python \
+        /compare_hla.py \
+        --old-kourami ~{oldkouramiResult} \
+        --new-kourami ~{newkouramiResult} \
+        --sample-id ~{sampleId} \
+        --output ~{outputTablePath} \
+        --concordance ~{outputConcordancePath}
+    }
+
+    output {
+        File outputTable = "~{outputTablePath}"
+        File outputConcordance = "~{outputConcordancePath}"
+    }
+
+    runtime {
+        memory : memoryGb + "GB"
+        disks: "local-disk " + diskSize + " HDD"
+        docker: "gcr.io/nygc-internal-tools/somatic_reports@sha256:ba18bd0fd7ce55af26e4d255f85529a728951bab02596e0528391b2b52d05045"
+    }
+
+    meta {
+        outputTableColumns : ["sample_id", "version", "A", "B", "C", "DQA1", "DQB1", "DRB1"]
+        outputConcordanceColumns : ["gene", "sample_id", "discordance_count", "concordance_count"]
+    }
+}
+
 task CompareCnvGenes {
     input {
         String pairId
@@ -10,12 +552,11 @@ task CompareCnvGenes {
         String cnvGenesTablePath = "~{pairId}.~{name}.cnv.gene.concordance.csv"
         Int diskSize = 1
         Int memoryGb = 1
-        File compareBed = "gs://nygc-comp-s-fd4e-input/compare_bed.py"
     }
     
     command {
         python \
-        ~{compareBed} \
+        /compare_bed.py \
         --bed-file ~{concordanceBed} \
         --output ~{cnvGenesTablePath}
     }
@@ -27,7 +568,7 @@ task CompareCnvGenes {
     runtime {
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker: "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
+        docker: "gcr.io/nygc-internal-tools/somatic_reports@sha256:ba18bd0fd7ce55af26e4d255f85529a728951bab02596e0528391b2b52d05045"
     }
     
     meta {
@@ -44,12 +585,11 @@ task CompareSvGenes {
         String svGenesTablePath = "~{pairId}.~{name}.sv.gene.concordance.csv"
         Int diskSize = 1
         Int memoryGb = 1
-        File compareBedPe = "gs://nygc-comp-s-fd4e-input/compare_bedpe.py"
     }
     
     command {
         python \
-        ~{compareBedPe} \
+        /compare_bedpe.py \
         --bedpe-file ~{concordanceBedPe} \
         --output ~{svGenesTablePath}
     }
@@ -61,7 +601,7 @@ task CompareSvGenes {
     runtime {
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker: "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
+        docker: "gcr.io/nygc-internal-tools/somatic_reports@sha256:ba18bd0fd7ce55af26e4d255f85529a728951bab02596e0528391b2b52d05045"
     }
     
     meta {
@@ -92,7 +632,7 @@ task ConcateTables {
     runtime {
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker: "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
+        docker: "gcr.io/nygc-internal-tools/somatic_tools@sha256:46ab81b8dc09d6f8cf90c81f7d5692f23d73c134df6dbcd5298abde7f414dce3"
     }
     
     meta {
@@ -108,12 +648,11 @@ task SummarizeFlagstat {
         String outputTablePath = "~{sampleId}.flagstat.summary.csv"
         Int diskSize = 1
         Int memoryGb = 1
-        File compareBams = "gs://nygc-comp-s-fd4e-input/compare_bam.py"
     }
     
     command {
        python \
-        ~{compareBams} \
+        /compare_bam.py \
         --old-flagstat ~{oldflagStat} \
         --new-flagstat ~{newflagStat} \
         --sample-id ~{sampleId} \
@@ -127,7 +666,7 @@ task SummarizeFlagstat {
     runtime {
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker: "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
+        docker: "gcr.io/nygc-internal-tools/somatic_reports@sha256:ba18bd0fd7ce55af26e4d255f85529a728951bab02596e0528391b2b52d05045"
     }
     
     meta {
@@ -144,12 +683,11 @@ task SummarizeMsi {
         String outputTablePath = "~{sampleId}.msi.summary.csv"
         Int diskSize = 1
         Int memoryGb = 1
-        File compareMsis = "gs://nygc-comp-s-fd4e-input/compare_msi.py"
     }
     
     command {
        python \
-        ~{compareMsis} \
+        /compare_msi.py \
         --old-mantis-final ~{oldmantisStatusFinal} \
         --new-mantis-final ~{newmantisStatusFinal} \
         --sample-id ~{sampleId} \
@@ -163,7 +701,7 @@ task SummarizeMsi {
     runtime {
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker: "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
+        docker: "gcr.io/nygc-internal-tools/somatic_reports@sha256:ba18bd0fd7ce55af26e4d255f85529a728951bab02596e0528391b2b52d05045"
     }
     
     meta {
@@ -184,12 +722,11 @@ task SummarizeVcf {
         
         Int diskSize = 10
         Int memoryGb = 20
-        File compareVcfs = "gs://nygc-comp-s-fd4e-input/compare_vcfs.py"
     }
     
     command {
        python \
-        ~{compareVcfs} \
+        /compare_vcfs.py \
         --pair-id ~{pairId} \
         --old-only-vcf ~{oldOnlyVcf} \
         --new-only-vcf ~{newOnlyVcf} \
@@ -206,7 +743,7 @@ task SummarizeVcf {
     runtime {
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker: "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
+        docker: "gcr.io/nygc-internal-tools/somatic_reports@sha256:ba18bd0fd7ce55af26e4d255f85529a728951bab02596e0528391b2b52d05045"
     }
     
     meta {
@@ -240,17 +777,11 @@ task DraftComparison {
         
         Int diskSize = 10
         Int memoryGb = 20
-        File draftComparison = "gs://nygc-comp-s-fd4e-input/draft_comparison.py"
-        File plotComparison = "gs://nygc-comp-s-fd4e-input/plot_comparison.py"
-        File prep = "gs://nygc-comp-s-fd4e-input/prep.py"
-        File compose = "gs://nygc-comp-s-fd4e-input/compose.py"
-        File ploter = "gs://nygc-comp-s-fd4e-input/ploter.py"
-        File colorer = "gs://nygc-comp-s-fd4e-input/Colorer.py" 
     }
     
     command {
        python \
-        ~{draftComparison} \
+        /draft_comparison.py \
         --chrom-lengths ~{chromLengths} \
         --cosmic-census ~{cosmicCensus} \
         --chroms ~{sep=" " listOfChroms} \
@@ -277,7 +808,7 @@ task DraftComparison {
     runtime {
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker: "gcr.io/nygc-public/bokeh_plotly:1.0.1"
+        docker: "gcr.io/nygc-internal-tools/somatic_reports@sha256:ba18bd0fd7ce55af26e4d255f85529a728951bab02596e0528391b2b52d05045"
     }
 
 }
@@ -319,7 +850,7 @@ task SomPy {
     runtime {
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker: "gcr.io/nygc-public/hap:v0.3.9"
+        docker: "gcr.io/nygc-public/hap@sha256:6fc9a90c944d4e8434977909d0a175bde9f0cbcdd8a8e6806a65d1aa24b4a683"
     }
     
     meta {
@@ -343,12 +874,11 @@ task CompareBedPe {
         Float sizeMargin = 0.8
         Int diskSize = 10
         Int memoryGb = 20
-        File bedpeConcordance = "gs://nygc-comp-s-fd4e-input/bedpe-concordance.r"
     }
     
     command {
         Rscript \
-        ~{bedpeConcordance} \
+        /bedpe-concordance.r \
         --old_bedpe=~{oldBedpe} \
         --new_bedpe=~{newBedpe} \
         --slop=~{slop} \
@@ -366,7 +896,7 @@ task CompareBedPe {
     runtime {
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker: "gcr.io/nygc-internal-tools/sv_cnv:1.0.0"
+        docker : "gcr.io/nygc-internal-tools/sv_cnv@sha256:1c14a50d131323a2a4bab323cf224879776af8de37f93df79292fd2e63269274"
     }
     
     meta {
@@ -384,13 +914,12 @@ task CompareBed {
         String outFileBedPath = "~{pairId}.cnv.concordance.bed"
         Float overlapFraction = 0.8
         Int diskSize = 10
-        Int memoryGb = 20
-        File bedConcordance = "gs://nygc-comp-s-fd4e-input/bed-concordance.r"
+        Int memoryGb = 20        
     }
     
     command {
         Rscript \
-        ~{bedConcordance} \
+        /bed-concordance.r \
         --old_bed=~{oldBed} \
         --new_bed=~{newBed} \
         --overlap_fraction=~{overlapFraction} \
@@ -407,7 +936,7 @@ task CompareBed {
     runtime {
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker: "gcr.io/nygc-internal-tools/sv_cnv:1.0.0"
+        docker : "gcr.io/nygc-internal-tools/sv_cnv@sha256:1c14a50d131323a2a4bab323cf224879776af8de37f93df79292fd2e63269274"
     }
     
     meta {

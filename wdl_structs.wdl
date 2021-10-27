@@ -71,6 +71,21 @@ struct SampleBamInfo {
     Bam finalBam
 }
 
+struct PreMergedPairVcfInfo {
+    String pairId
+    File filteredMantaSV
+    File strelka2Snv
+    File strelka2Indel
+    File mutect2
+    File lancet
+    File svabaSv
+    File svabaIndel
+    String tumor
+    String normal
+    Bam tumorFinalBam
+    Bam normalFinalBam
+}
+
 struct PairRawVcfInfo {
     String pairId
     File? mergedVcf
@@ -122,7 +137,7 @@ struct FinalVcfPairInfo {
     File lancet
     File svabaSv
     File svabaIndel
-    File gridssVcf
+    IndexedVcf gridssVcf
     File bicseq2Png
     File bicseq2
     File cnvAnnotatedFinalBed
@@ -146,7 +161,7 @@ struct FinalPairInfo {
     File lancet
     File svabaSv
     File svabaIndel
-    File gridssVcf
+    IndexedVcf gridssVcf
     File bicseq2Png
     File bicseq2
     File cnvAnnotatedFinalBed
@@ -173,3 +188,65 @@ struct pairInfo {
     String normal
 }
 
+struct FinalWorkflowOutput {
+    # alignment and calling results (calling results may not exist if qc failed)
+    # SNV INDELs CNV SV and BAM output
+    Array[FinalVcfPairInfo?] finalPairInfo
+
+    # MSI
+    Array[File?] mantisWxsKmerCountsFinal
+    Array[File?] mantisWxsKmerCountsFiltered
+    Array[File?] mantisExomeTxt
+    Array[File?] mantisStatusFinal
+    # SIGs
+    Array[File?] sigs
+    Array[File?] counts
+    Array[File?] sig_input
+    Array[File?] reconstructed
+    Array[File?] diff
+
+    # Preprocessing output.
+    Array[Bam] finalBams
+
+    # QC
+    Array[File] alignmentSummaryMetrics
+    Array[File] qualityByCyclePdf
+    Array[File] baseDistributionByCycleMetrics
+    Array[File] qualityByCycleMetrics
+    Array[File] baseDistributionByCyclePdf
+    Array[File] qualityDistributionPdf
+    Array[File] qualityDistributionMetrics
+    Array[File] insertSizeHistogramPdf
+    Array[File] insertSizeMetrics
+    Array[File] gcBiasMetrics
+    Array[File] gcBiasSummary
+    Array[File] gcBiasPdf
+    Array[File] flagStat
+    Array[File] hsMetrics
+    Array[File] hsMetricsPerTargetCoverage
+    Array[File] hsMetricsPerTargetCoverageAutocorr
+    Array[File] autocorroutput1100
+    Array[File] collectOxoGMetrics
+    Array[File] collectWgsMetrics
+    Array[File] binestCov
+    Array[File] normCoverageByChrPng
+    # Dedup metrics
+    Array[File] collectWgsMetricsPreBqsr
+    Array[File] qualityDistributionPdfPreBqsr
+    Array[File] qualityByCycleMetricsPreBqsr
+    Array[File] qualityByCyclePdfPreBqsr
+    Array[File] qualityDistributionMetricsPreBqsr
+
+    # Conpair
+    Array[File] concordanceAll
+    Array[File] concordanceHomoz
+    Array[File] contamination
+
+    # Germline
+    Array[File?] kouramiResult
+    Array[IndexedVcf?] haplotypecallerVcf
+    Array[IndexedVcf?] haplotypecallerFinalFiltered
+    Array[File?] filteredHaplotypecallerAnnotatedVcf
+    Array[File?] haplotypecallerAnnotatedVcf
+    Array[File?] alleleCountsTxt
+}

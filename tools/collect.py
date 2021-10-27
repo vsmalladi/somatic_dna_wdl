@@ -14,6 +14,7 @@ import Colorer
 from collections.abc import Iterable
 import copy
 import meta
+import make_auth
 
 log.basicConfig(format='%(levelname)s:  %(message)s', level=log.INFO)
 
@@ -165,11 +166,8 @@ class JsonModify():
         else:
             uri = string
             sub_workflow_uuid = uri.replace('/cacheCopy', '').split('/call-')[-2].split('/')[-1]
-            if sub_workflow_uuid == self.workflow_uuid:
-                pass
-            else:
-                self.sub_workflow_uuids.append(sub_workflow_uuid)
-                return string
+            self.sub_workflow_uuids.append(sub_workflow_uuid)
+            return string
     
     def run_tool(self, subnode):
         '''run the correct tool for the string (subnode)'''
@@ -243,16 +241,23 @@ class CloudOutput():
         self.url = url
         self.run_data = run_data
         self.options = run_data.options
-        self.gcp_project = gcp_project
+        # login
+        self.credentials, self.gcp_project = make_auth.login()
+        if gcp_project:
+            self.default_project = False
+            self.gcp_query_project = gcp_project
+        else:
+            self.default_project = True
+            self.gcp_query_project = self.gcp_project
         self.workflow_uuid = self.run_data.workflow_uuid
         # get root dir
         self.root_dir = self.read_api(goal='get_root')
         # fast get calls from API to search for uuids
         self.uri_list = self.list_uris()
-#         if len(self.uri_list) == 0:
-#             # slow get uris from bucket directory
-#             log.warning('Slow uri lookup beginning')
-#             self.uri_list = self.list_project()
+        self.all_sub_workflow_uuids = list(set([uri for uri in self.get_uuid_from_uri(self.uri_list)]))
+#         self.all_sub_workflow_uuids = list(set([self.get_uuid_from_uri(uri) for uri in self.uri_list]))
+        self.run_data.run_info['sub_workflow_uuids'] = self.all_sub_workflow_uuids
+        self.uri_list = [uri for uri in self.uri_list if not uri.endswith('/rc')]
         # get API outputs section
         self.raw_outputs = self.read_api()
         # get files (named and unnamed) from API outputs section
@@ -265,8 +270,6 @@ class CloudOutput():
         # filename with . or _ after the name
         if self.uri_list == False:
             log.warning('No output files created')
-            sys.exit(0)
-        self.divide_uuid_by_id()
         # Add in if needed
         if not 'run_date' in self.run_data.project_info:
             run_date = self.get_run_date()
@@ -277,7 +280,6 @@ class CloudOutput():
         self.run_data.run_info['outputs'] = self.named_outputs
         self.run_data.run_info['named_files'] = self.named_files
         self.run_data.run_info['unnamed_files'] = self.unnamed_files
-        self.run_data.run_info['sub_workflow_uuids'] = self.sub_workflow_uuids
         
     def filter_by_id(self, association, pair=True, sample=False):
         '''skip object that have no files after filtering by id'''
@@ -332,46 +334,12 @@ class CloudOutput():
         for pair_id in self.pair_association:
             for object in self.pair_association[pair_id]:
                 if isinstance(self.pair_association[pair_id][object], dict):
-                    self.pair_association[pair_id][object] = {self.pair_association[pair_id][object][key] for key in self.pair_association[pair_id][object]
+                    self.pair_association[pair_id][object] = {key : self.pair_association[pair_id][object][key] for key in self.pair_association[pair_id][object]
                                                               if not len(self.pair_association[pair_id][object][key]) == 0}
                 elif not isinstance(self.pair_association[pair_id][object], str) \
                         and isinstance(self.pair_association[pair_id][object], Iterable):
                     self.pair_association[pair_id][object] = [self.pair_association[pair_id][object][i] for i in range(len(self.pair_association[pair_id][object]))
                                                               if not len(self.pair_association[pair_id][object][i]) == 0]
-        
-    def divide_uuid_by_id(self):
-        ''' Find only task uuids for files with the pair or the sample in the 
-        filename with . or _ after the name'''
-        self.sub_workflow_uuids = {}
-        pair_ids = list(set([pair_info["pairId"] for pair_info in self.run_data.project_info["listOfPairRelationships"]]))
-        for pair_id in pair_ids:
-            matches = JsonModify(inputs={},
-                                 workflow_uuid=self.workflow_uuid,
-                                 uri_list=self.uri_list,
-                                 all_pair_ids=list(pair_ids),
-                                 pair_id=pair_id,
-                                 tool='match').results
-            sub_workflow_uuids = JsonModify(inputs={},
-                                            workflow_uuid=self.workflow_uuid,
-                                            uri_list=matches,
-                                            all_pair_ids=list(pair_ids),
-                                            pair_id=pair_id,
-                                            tool='sub_workflow_uuid').sub_workflow_uuids
-            self.sub_workflow_uuids[pair_id] = list(set([uuid for uuid in sub_workflow_uuids if uuid]))
-        for sample_id in self.run_data.project_info["sampleIds"]:
-            matches = JsonModify(inputs={},
-                                 workflow_uuid=self.workflow_uuid,
-                                 uri_list=self.uri_list,
-                                 all_pair_ids=list(pair_ids),
-                                 sample_id=sample_id,
-                                 tool='match').results
-            sub_workflow_uuids = JsonModify(inputs={},
-                                            workflow_uuid=self.workflow_uuid,
-                                            uri_list=matches,
-                                            all_pair_ids=list(pair_ids),
-                                            sample_id=sample_id,
-                                            tool='sub_workflow_uuid').sub_workflow_uuids
-            self.sub_workflow_uuids[sample_id] = list(set([uuid for uuid in sub_workflow_uuids if uuid]))
 
     def out_path(self):
         if self.options["use_relative_output_paths"]:
@@ -406,6 +374,16 @@ class CloudOutput():
         run_date = run_date.replace('"', '').split('T')[0]
         return run_date
         
+    def fake_get_uuid_from_uri(self, uri):
+        sub_workflow_uuid = uri.replace('/cacheCopy', '').split('/call-')[-2].split('/')[-1]
+        return sub_workflow_uuid
+    
+    def get_uuid_from_uri(self, uris):
+        sub_workflow_uuids = []
+        for uri in uris:
+            for possible in uri.replace('/cacheCopy', '').split('/call-')[1::-1]:
+                sub_workflow_uuid = possible.split('/')[-1]
+                yield sub_workflow_uuid
     
     def list_uris(self):
         '''
@@ -423,6 +401,9 @@ class CloudOutput():
                         pass
                         #log.warning('potential skipped uri : ' + string)
         self.uri_list = list(set(self.uri_list))
+        # get any uris for steps that have failed
+        uris = self.ls_gsutil()
+        self.uri_list += uris
         return list(set(self.uri_list))
     
     def list_project(self):
@@ -456,17 +437,19 @@ class CloudOutput():
         '''
             return empty list if no URLs are found
         '''
+        script = self.parent_dir + '/get_failed_uuids.sh'
+        args = ['bash', script,
+                '-w', self.workflow_uuid,
+                '-g', self.gcp_query_project]
         try:
-            result = subprocess.run(['gsutil', 'ls', self.out_dir + '/*'],
+            result = subprocess.run(args,
                                     check=True,
                                     stdout=subprocess.PIPE).stdout.decode('utf-8')
         except subprocess.CalledProcessError as err:
             log.warning(err.output.decode('utf-8'))
             log.warning('Failed to read URI: ' + self.out_dir)
             return []
-        return [file for file in result.split('\n') if not file == '' 
-                and not file.endswith(':')
-                and not file.endswith('/')]
+        return [file for file in result.split('\n') if not file == '']
                     
     def read_api(self, goal='get_outputs'):
         if goal == 'get_run_date':
@@ -480,7 +463,7 @@ class CloudOutput():
         else:
             log.error("unknown read_api task: " + str(goal))
             sys.exit(1)
-        if not self.gcp_project:
+        if self.default_project:
             args = ['bash', script,
                     '-u', self.url,
                     '-w', self.workflow_uuid]
@@ -488,7 +471,7 @@ class CloudOutput():
             args = ['bash', script,
                     '-u', self.url,
                     '-w', self.workflow_uuid,
-                    '-g', self.gcp_project]
+                    '-g', self.gcp_query_project]
         try:
             result = subprocess.run(args,
                                     check=True,

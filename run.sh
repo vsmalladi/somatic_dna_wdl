@@ -4,7 +4,7 @@
 #               --url URL --log-dir LOG_DIR
 #               --project PROJECT 
 #               [--library {WGS,Exome}]
-#               [--genome {Human_GRCh38_full_analysis_set_plus_decoy_hla}]
+#               [--genome {Human_GRCh38_full_analysis_set_plus_decoy_hla, Human_GRCh38_tcga}]
 #               [--read-length READ_LENGTH]
 #               [--pairs-file PAIRS_FILE]
 #               [--samples-file SAMPLES_FILE]
@@ -38,7 +38,7 @@ help_top="run.sh [-h] --options OPTIONS --wdl-file WDL_FILE
                --url URL --log-dir LOG_DIR
                --project PROJECT 
                [--library {WGS,Exome}]
-               [--genome {Human_GRCh38_full_analysis_set_plus_decoy_hla}]
+               [--genome {Human_GRCh38_full_analysis_set_plus_decoy_hla, Human_GRCh38_tcga}]
                [--read-length READ_LENGTH]
                [--pairs-file PAIRS_FILE]
                [--samples-file SAMPLES_FILE]
@@ -52,35 +52,37 @@ help_long="-h, --help            show this help message and exit
   --url URL             Cromwell server URL (required)
   --log-dir LOG_DIR     Output directory for all logs and reports
                         related to this workflow UUID (required)
-  --options OPTIONS     Options json file (required)
+  --options OPTIONS     Options json file for cromwell (required)
   --wdl-file WDL_FILE   WDL workflow. An input JSON that matches this
                         WDL workflow will be created (required)
   --library {WGS,Exome}
                         Sequence library type.
-  --genome {Human_GRCh38_full_analysis_set_plus_decoy_hla}
+  --genome {Human_GRCh38_full_analysis_set_plus_decoy_hla, Human_GRCh38_tcga}
                         Genome key to use for pipeline.
   --project PROJECT     Project name associated with account.
   --read-length READ_LENGTH     Required only for steps like BiqSeq2 that 
                         use read_length as input.
   --pairs-file PAIRS_FILE
-                        JSON file with items that are required to have
-                        \"tumor\", \"normal\" sample_ids defined.
+                        CSV file with items that are required to have
+                        \"tumor\", \"normal\" and \"pair_id\" in the columns.
   --samples-file [SAMPLES_FILE]
-                        Not generally required. If steps run only require
+                        Not generally required. If tasks only require
                         sample_id and do not use pairing information sample
                         info can be populated with a CSV file. The CSV file
                         requires a columns named [\"sampleId\"].
   --interval-list {SureSelect_V6plusCOSMIC.target.GRCh38_full_analysis_set_plus_decoy_hla}
                         File basename for interval list.If not supplied the
                         default (the SureSelect interval list for your genome)
-                        will be used
+                        will be used (only needed for future Exome workflows)
   --custom-inputs [CUSTOM_INPUTS]
                         Optional JSON file with custom input variables. The
                         name of the variable in the input file must match the
                         name of the variable in the WDL workflow. It is not
                         required that the input specify the workflow. By
                         default the input will be added to the top-level
-                        workflow.
+                        workflow. Any variable defined in in this JSON will
+                        overwrite any reference variable in the the config 
+                        directory or workflow default.
   --skip-validate       Skip the step where input files are validated.
                         Otherwise all gs//: URIs will be checked to see that a
                         file exists. Disable with caution.Cromwell will launch

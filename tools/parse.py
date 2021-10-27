@@ -54,8 +54,10 @@ class Wdl():
                  genome,
                  read_length,
                  custom_inputs,
+                 bicseq2_draft=False,
                  validate=True,
                  project_info_file=False):
+        self.bicseq2_draft = bicseq2_draft
         self.genome = genome
         self.custom_inputs = custom_inputs
         self.validate = validate
@@ -72,17 +74,18 @@ class Wdl():
                                      'full_variable' : full_variable,
                                      'object' : None,
                                      'type' : type}
-        # load bicseq variables for custom config files
-        if 'bicseq2ConfigFile' in self.inputs:
-            assert self.genome in self.load_json(genome_input), 'error genome not in interval file'
-            assert read_length, '--read-length is required to run BicSeq2'
-            genome_data = self.load_json(genome_input)[self.genome]
-            upload_bucket = self.project_info['options']['final_workflow_log_dir'].replace('cromwell-logs', 'input')
-            bicseq = bicseq_config_prep.Bicseq2Prep(list_of_chroms_full=genome_data['listOfChromsFull'],
-                                                    uniq_coords=genome_data['uniqCoords'],
-                                                    read_length=read_length,
-                                                    upload_bucket=upload_bucket)
-            self.load_custom_dict(custom_dict=bicseq.inputs)   
+        if self.bicseq2_draft:
+            # load bicseq variables for custom config files
+            if 'bicseq2ConfigFile' in self.inputs:
+                assert self.genome in self.load_json(genome_input), 'error genome not in interval file'
+                assert read_length, '--read-length is required to run BicSeq2'
+                genome_data = self.load_json(genome_input)[self.genome]
+                upload_bucket = self.project_info['options']['final_workflow_log_dir'].replace('cromwell-logs', 'input')
+                bicseq = bicseq_config_prep.Bicseq2Prep(list_of_chroms_full=genome_data['listOfChromsFull'],
+                                                        uniq_coords=genome_data['uniqCoords'],
+                                                        read_length=read_length,
+                                                        upload_bucket=upload_bucket)
+                self.load_custom_dict(custom_dict=bicseq.inputs)   
         # load preexisting reference variables
         self.load_genome_input(genome_input)
         self.load_pipeline_input(pipeline_input)
@@ -324,7 +327,11 @@ def main():
     genome_input = sys.argv[2]
     interval_input = sys.argv[3]
     genome = 'Human_GRCh38_full_analysis_set_plus_decoy_hla'
-    Wdl(file, genome_input=genome_input, interval_input=interval_input, genome=genome)
+    bicseq2_draft=False
+    Wdl(file, genome_input=genome_input, 
+        interval_input=interval_input, 
+        genome=genome,
+        bicseq2_draft=bicseq2_draft)
 
 
 if __name__ == "__main__":

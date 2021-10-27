@@ -73,7 +73,7 @@ task GetIndex {
 }
 
 
-workflow SomaticWorkflow {
+workflow SomaticDNA {
     input {
         BwaReference bwaReference
         IndexedReference referenceFa
@@ -210,10 +210,10 @@ workflow SomaticWorkflow {
         IndexedVcf deepIntronicsVcf
         IndexedVcf clinvarIntronicsVcf
         IndexedVcf chdWhitelistVcf
-        
+
         # signatures
         File cosmicSigs
-        
+
         Boolean highMem = false
 
     }
@@ -388,7 +388,7 @@ workflow SomaticWorkflow {
                 sampleIds = normalSampleIds,
                 sampleId = pairRelationship.normal
         }
-        
+
         if ( size(unFilteredGermlineAnnotate.haplotypecallerAnnotatedVcf[germlineBafGetIndex.index]) > 0 ) {
             call baf.Baf {
                 input:
@@ -447,15 +447,15 @@ workflow SomaticWorkflow {
                     concordanceFile = Conpair.concordanceAll,
                     contaminationFile = Conpair.contamination
             }
-            Boolean qcPass = SomaticQcCheck.qcPass
         }
 
-        if (bypassQcCheck || select_first([SomaticQcCheck.qcPass, false])) {
+        Boolean SomaticQcCheck = select_first([SomaticQcCheck.qcPass, bypassQcCheck])
+        if (SomaticQcCheck) {
             call callingTasks.GetInsertSize as tumorGetInsertSize {
                 input:
                     insertSizeMetrics = Preprocess.insertSizeMetrics[tumorGetIndex.index]
             }
-            
+
             call callingTasks.GetInsertSize as normalGetInsertSize {
                 input:
                     insertSizeMetrics = Preprocess.insertSizeMetrics[normalGetIndex.index]
@@ -502,6 +502,22 @@ workflow SomaticWorkflow {
                     tumorFinalBam=Preprocess.finalBam[tumorGetIndex.index],
                     normalFinalBam=Preprocess.finalBam[normalGetIndex.index]
             }
+            
+            PreMergedPairVcfInfo preMergedPairVcfInfo = object {
+                pairId : pairRelationship.pairId,
+                filteredMantaSV : Calling.filteredMantaSV,
+                strelka2Snv : Calling.strelka2Snv,
+                strelka2Indel : Calling.strelka2Indel,
+                mutect2 : Calling.mutect2,
+                lancet : Calling.lancet,
+                svabaSv : Calling.svabaSv,
+                svabaIndel : Calling.svabaIndel,
+                tumor : pairRelationship.tumor,
+                normal : pairRelationship.normal,
+                tumorFinalBam : pairRelationship.tumorFinalBam,
+                normalFinalBam : pairRelationship.normalFinalBam
+    
+            }
 
             PairRawVcfInfo pairRawVcfInfo = object {
                 pairId : pairRelationship.pairId,
@@ -525,7 +541,7 @@ workflow SomaticWorkflow {
             if (library == 'WGS') {
                 call mergeVcf.MergeVcf as wgsMergeVcf {
                     input:
-                        pairRawVcfInfo = pairRawVcfInfo,
+                        preMergedPairVcfInfo = preMergedPairVcfInfo,
                         referenceFa = referenceFa,
                         listOfChroms = listOfChroms,
                         intervalListBed = intervalListBed,
@@ -538,7 +554,7 @@ workflow SomaticWorkflow {
             if (library == 'Exome') {
                 call mergeVcf.MergeVcf as exomeMergeVcf {
                     input:
-                        pairRawVcfInfo = pairRawVcfInfo,
+                        preMergedPairVcfInfo = preMergedPairVcfInfo,
                         referenceFa = referenceFa,
                         listOfChroms = listOfChroms,
                         intervalListBed = intervalListBed,
@@ -610,16 +626,16 @@ workflow SomaticWorkflow {
                     cosmicBedPe=cosmicBedPe
 
           }
-          
+
           call deconstructSigs.DeconstructSig {
-              input: 
+              input:
                     pairId = pairRelationship.pairId,
                     mainVcf = mergedVcf,
                     cosmicSigs = cosmicSigs,
                     vepGenomeBuild = vepGenomeBuild
           }
-          
-          FinalPairInfo finalPairInfos = object {
+
+          FinalVcfPairInfo finalPairInfos = object {
                 pairId : pairRelationship.pairId,
                 tumor : pairRelationship.tumor,
                 normal : pairRelationship.normal,
@@ -643,73 +659,78 @@ workflow SomaticWorkflow {
                 svHighConfidenceFinalBedPe : AnnotateCnvSv.svHighConfidenceFinalBedPe,
                 svSupplementalBedPe : AnnotateCnvSv.svSupplementalBedPe,
                 svHighConfidenceSupplementalBedPe : AnnotateCnvSv.svHighConfidenceSupplementalBedPe,
-                tumorFinalBam : Preprocess.finalBam[tumorGetIndex.index],
-                normalFinalBam : Preprocess.finalBam[normalGetIndex.index]
+
         }
-          
+
       }
+    }
 
-   }
-
-    output {
+    FinalWorkflowOutput workflowOutput = object {
         # alignment and calling results (calling results may not exist if qc failed)
         # SNV INDELs CNV SV and BAM output
-        Array[FinalPairInfo?] finalPairInfo = finalPairInfos
-        
+        finalPairInfo: finalPairInfos,
+
         # MSI
-        Array[File?] mantisWxsKmerCountsFinal = Msi.mantisWxsKmerCountsFinal
-        Array[File?] mantisWxsKmerCountsFiltered = Msi.mantisWxsKmerCountsFiltered
-        Array[File?] mantisExomeTxt = Msi.mantisExomeTxt
-        Array[File?] mantisStatusFinal = Msi.mantisStatusFinal
+        mantisWxsKmerCountsFinal: Msi.mantisWxsKmerCountsFinal,
+        mantisWxsKmerCountsFiltered: Msi.mantisWxsKmerCountsFiltered,
+        mantisExomeTxt: Msi.mantisExomeTxt,
+        mantisStatusFinal: Msi.mantisStatusFinal,
         # SIGs
-        Array[File?] sigs = DeconstructSig.sigs
-        Array[File?] counts = DeconstructSig.counts
-        Array[File?] sig_input = DeconstructSig.sigInput
-        Array[File?] reconstructed = DeconstructSig.reconstructed
-        Array[File?] diff = DeconstructSig.diff
-        
+        sigs: DeconstructSig.sigs,
+        counts: DeconstructSig.counts,
+        sig_input: DeconstructSig.sigInput,
+        reconstructed: DeconstructSig.reconstructed,
+        diff: DeconstructSig.diff,
+
+        # Bams
+        finalBams: Preprocess.finalBam,
         # QC
-        Array[File] alignmentSummaryMetrics = Preprocess.alignmentSummaryMetrics
-        Array[File] qualityByCyclePdf = Preprocess.qualityByCyclePdf
-        Array[File] baseDistributionByCycleMetrics = Preprocess.baseDistributionByCycleMetrics
-        Array[File] qualityByCycleMetrics = Preprocess.qualityByCycleMetrics
-        Array[File] baseDistributionByCyclePdf = Preprocess.baseDistributionByCyclePdf
-        Array[File] qualityDistributionPdf = Preprocess.qualityDistributionPdf
-        Array[File] qualityDistributionMetrics = Preprocess.qualityDistributionMetrics
-        Array[File] insertSizeHistogramPdf = Preprocess.insertSizeHistogramPdf
-        Array[File] insertSizeMetrics = Preprocess.insertSizeMetrics
-        Array[File] gcBiasMetrics = Preprocess.gcBiasMetrics
-        Array[File] gcBiasSummary = Preprocess.gcBiasSummary
-        Array[File] gcBiasPdf = Preprocess.gcBiasPdf
-        Array[File] flagStat = Preprocess.flagStat
-        Array[File] hsMetrics = Preprocess.hsMetrics
-        Array[File] hsMetricsPerTargetCoverage = Preprocess.hsMetricsPerTargetCoverage
-        Array[File] hsMetricsPerTargetCoverageAutocorr = Preprocess.hsMetricsPerTargetCoverageAutocorr
-        Array[File] autocorroutput1100 = Preprocess.autocorroutput1100
-        Array[File] collectOxoGMetrics = Preprocess.collectOxoGMetrics
-        Array[File] collectWgsMetrics = Preprocess.collectWgsMetrics
-        Array[File] binestCov = Preprocess.binestCov
-        Array[File] normCoverageByChrPng = Preprocess.normCoverageByChrPng
-        # Dedup metrics
-        Array[File] collectWgsMetricsPreBqsr = Preprocess.collectWgsMetricsPreBqsr
-        Array[File] qualityDistributionPdfPreBqsr = Preprocess.qualityDistributionPdfPreBqsr
-        Array[File] qualityByCycleMetricsPreBqsr = Preprocess.qualityByCycleMetricsPreBqsr
-        Array[File] qualityByCyclePdfPreBqsr = Preprocess.qualityByCyclePdfPreBqsr
-        Array[File] qualityDistributionMetricsPreBqsr = Preprocess.qualityDistributionMetricsPreBqsr
+        alignmentSummaryMetrics: Preprocess.alignmentSummaryMetrics,
+        qualityByCyclePdf: Preprocess.qualityByCyclePdf,
+        baseDistributionByCycleMetrics: Preprocess.baseDistributionByCycleMetrics,
+        qualityByCycleMetrics: Preprocess.qualityByCycleMetrics,
+        baseDistributionByCyclePdf: Preprocess.baseDistributionByCyclePdf,
+        qualityDistributionPdf: Preprocess.qualityDistributionPdf,
+        qualityDistributionMetrics: Preprocess.qualityDistributionMetrics,
+        insertSizeHistogramPdf: Preprocess.insertSizeHistogramPdf,
+        insertSizeMetrics: Preprocess.insertSizeMetrics,
+        gcBiasMetrics: Preprocess.gcBiasMetrics,
+        gcBiasSummary: Preprocess.gcBiasSummary,
+        gcBiasPdf: Preprocess.gcBiasPdf,
+        flagStat: Preprocess.flagStat,
+        hsMetrics: Preprocess.hsMetrics,
+        hsMetricsPerTargetCoverage: Preprocess.hsMetricsPerTargetCoverage,
+        hsMetricsPerTargetCoverageAutocorr: Preprocess.hsMetricsPerTargetCoverageAutocorr,
+        autocorroutput1100: Preprocess.autocorroutput1100,
+        collectOxoGMetrics: Preprocess.collectOxoGMetrics,
+        collectWgsMetrics: Preprocess.collectWgsMetrics,
+        binestCov: Preprocess.binestCov,
+        normCoverageByChrPng: Preprocess.normCoverageByChrPng,
+        # Dedup metrics,
+        collectWgsMetricsPreBqsr: Preprocess.collectWgsMetricsPreBqsr,
+        qualityDistributionPdfPreBqsr: Preprocess.qualityDistributionPdfPreBqsr,
+        qualityByCycleMetricsPreBqsr: Preprocess.qualityByCycleMetricsPreBqsr,
+        qualityByCyclePdfPreBqsr: Preprocess.qualityByCyclePdfPreBqsr,
+        qualityDistributionMetricsPreBqsr: Preprocess.qualityDistributionMetricsPreBqsr,
 
         # Conpair
-        Array[File] concordanceAll = Conpair.concordanceAll
-        Array[File] concordanceHomoz = Conpair.concordanceHomoz
-        Array[File] contamination = Conpair.contamination
+        concordanceAll: Conpair.concordanceAll,
+        concordanceHomoz: Conpair.concordanceHomoz,
+        contamination: Conpair.contamination,
 
         # Germline
-        Array[File?] kouramiResult = Kourami.result
-        Array[IndexedVcf?] haplotypecallerVcf = Germline.haplotypecallerVcf
-        Array[IndexedVcf?] haplotypecallerFinalFiltered = Germline.haplotypecallerFinalFiltered
-        Array[File?] filteredHaplotypecallerAnnotatedVcf = filteredGermlineAnnotate.haplotypecallerAnnotatedVcf
-        Array[File?] haplotypecallerAnnotatedVcf = unFilteredGermlineAnnotate.haplotypecallerAnnotatedVcf
-        Array[File?] alleleCountsTxt = Baf.alleleCountsTxt
+        kouramiResult: Kourami.result,
+        haplotypecallerVcf: Germline.haplotypecallerVcf,
+        haplotypecallerFinalFiltered: Germline.haplotypecallerFinalFiltered,
+        filteredHaplotypecallerAnnotatedVcf: filteredGermlineAnnotate.haplotypecallerAnnotatedVcf,
+        haplotypecallerAnnotatedVcf: unFilteredGermlineAnnotate.haplotypecallerAnnotatedVcf,
+        alleleCountsTxt: Baf.alleleCountsTxt
     }
+
+    output {
+       FinalWorkflowOutput finalOutput = workflowOutput
+    }
+
 }
 
 task BamQcCheck {

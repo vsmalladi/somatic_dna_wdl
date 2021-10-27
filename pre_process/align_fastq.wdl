@@ -37,7 +37,7 @@ task Skewer {
     runtime {
         cpu : threads
         memory : mem + " GB"
-        docker : "gcr.io/nygc-public/skewer:v0.2.2"
+        docker : "gcr.io/nygc-public/skewer@sha256:31cb01e3deab46a7a7e9e93e789ab68e66d5b660b7d0b8967c096da6fd38c5e9"
         disks: "local-disk " + diskSize + " HDD"
     }
 }
@@ -90,7 +90,7 @@ task AlignBwaMem {
         cpu : totalThreads
         memory : mem + " GB"
         disks: "local-disk " + diskSize + " LOCAL"
-        docker : "gcr.io/nygc-public/bwa-kit:0.7.15"
+        docker : "gcr.io/nygc-public/bwa-kit@sha256:0642151a32fe8f90ece70cde3bd61a03c7421314c37c1de2c0ee5e368d2bfc7a"
     }
 }
 
@@ -124,7 +124,7 @@ task ShortAlignMark {
 
     runtime {
         memory : mem + " GB"
-        docker : "gcr.io/nygc-public/nygc-short-alignment-marking:v2.1"
+        docker : "gcr.io/nygc-public/nygc-short-alignment-marking@sha256:8adc1ac0417d080cb6d6dd8901a5282c3cca497cff1b9800c2f51b0058b15bde"
         disks: "local-disk " + diskSize + " HDD"
         preemptible: 1
     }

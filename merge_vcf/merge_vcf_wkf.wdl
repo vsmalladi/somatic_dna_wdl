@@ -11,7 +11,7 @@ workflow MergeVcf {
     #   merge and filter raw VCFs
     #   annotate
     input {
-        PairRawVcfInfo pairRawVcfInfo
+        PreMergedPairVcfInfo preMergedPairVcfInfo
         IndexedReference referenceFa
         Array[String]+ listOfChroms
         
@@ -23,80 +23,80 @@ workflow MergeVcf {
     
     call prepMergeVcf.PrepMergeVcf as filteredMantaSVPrepMergeVcf {
         input:
-            callerVcf=pairRawVcfInfo.filteredMantaSV,
-            tumor=pairRawVcfInfo.tumor,
-            normal=pairRawVcfInfo.normal,
+            callerVcf=preMergedPairVcfInfo.filteredMantaSV,
+            tumor=preMergedPairVcfInfo.tumor,
+            normal=preMergedPairVcfInfo.normal,
             tool='manta',
-            pairName=pairRawVcfInfo.pairId,
+            pairName=preMergedPairVcfInfo.pairId,
             referenceFa=referenceFa
             
     }
     
     call prepMergeVcf.PrepMergeVcf as strelka2SnvPrepMergeVcf {
         input:
-            callerVcf=pairRawVcfInfo.strelka2Snv,
-            tumor=pairRawVcfInfo.tumor,
-            normal=pairRawVcfInfo.normal,
+            callerVcf=preMergedPairVcfInfo.strelka2Snv,
+            tumor=preMergedPairVcfInfo.tumor,
+            normal=preMergedPairVcfInfo.normal,
             tool='strelka2',
-            pairName=pairRawVcfInfo.pairId,
+            pairName=preMergedPairVcfInfo.pairId,
             referenceFa=referenceFa
             
     }
     
     call prepMergeVcf.PrepMergeVcf as strelka2IndelPrepMergeVcf {
         input:
-            callerVcf=pairRawVcfInfo.strelka2Indel,
-            tumor=pairRawVcfInfo.tumor,
-            normal=pairRawVcfInfo.normal,
+            callerVcf=preMergedPairVcfInfo.strelka2Indel,
+            tumor=preMergedPairVcfInfo.tumor,
+            normal=preMergedPairVcfInfo.normal,
             tool='strelka2',
-            pairName=pairRawVcfInfo.pairId,
+            pairName=preMergedPairVcfInfo.pairId,
             referenceFa=referenceFa
             
     }
     
     call prepMergeVcf.PrepMergeVcf as mutect2PrepMergeVcf {
         input:
-            callerVcf=pairRawVcfInfo.mutect2,
-            tumor=pairRawVcfInfo.tumor,
-            normal=pairRawVcfInfo.normal,
+            callerVcf=preMergedPairVcfInfo.mutect2,
+            tumor=preMergedPairVcfInfo.tumor,
+            normal=preMergedPairVcfInfo.normal,
             tool='mutect2',
-            pairName=pairRawVcfInfo.pairId,
+            pairName=preMergedPairVcfInfo.pairId,
             referenceFa=referenceFa
             
     }
     
     call prepMergeVcf.PrepMergeVcf as lancetPrepMergeVcf {
         input:
-            callerVcf=pairRawVcfInfo.lancet,
-            tumor=pairRawVcfInfo.tumor,
-            normal=pairRawVcfInfo.normal,
+            callerVcf=preMergedPairVcfInfo.lancet,
+            tumor=preMergedPairVcfInfo.tumor,
+            normal=preMergedPairVcfInfo.normal,
             tool='lancet',
-            pairName=pairRawVcfInfo.pairId,
+            pairName=preMergedPairVcfInfo.pairId,
             referenceFa=referenceFa
             
     }
     
     call prepMergeVcf.PrepMergeVcf as svabaIndelPrepMergeVcf {
         input:
-            callerVcf=pairRawVcfInfo.svabaIndel,
-            tumor=pairRawVcfInfo.tumor,
-            normal=pairRawVcfInfo.normal,
+            callerVcf=preMergedPairVcfInfo.svabaIndel,
+            tumor=preMergedPairVcfInfo.tumor,
+            normal=preMergedPairVcfInfo.normal,
             tool='svaba',
-            pairName=pairRawVcfInfo.pairId,
+            pairName=preMergedPairVcfInfo.pairId,
             referenceFa=referenceFa
             
     }
     
     call mergeCallers.MergeCallers {
         input:
-            tumor=pairRawVcfInfo.tumor,
-            normal=pairRawVcfInfo.normal,
-            pairName=pairRawVcfInfo.pairId,
+            tumor=preMergedPairVcfInfo.tumor,
+            normal=preMergedPairVcfInfo.normal,
+            pairName=preMergedPairVcfInfo.pairId,
             listOfChroms=listOfChroms,
             intervalListBed=intervalListBed,
             referenceFa=referenceFa,
-            normalFinalBam=pairRawVcfInfo.normalFinalBam,
-            tumorFinalBam=pairRawVcfInfo.tumorFinalBam,
+            normalFinalBam=preMergedPairVcfInfo.normalFinalBam,
+            tumorFinalBam=preMergedPairVcfInfo.tumorFinalBam,
             ponFile=ponFile,
             germFile=germFile,
             allVcfCompressed=[filteredMantaSVPrepMergeVcf.preppedVcf, 
@@ -110,9 +110,9 @@ workflow MergeVcf {
     
     call mergeChroms.MergeChroms {
         input:
-            tumor=pairRawVcfInfo.tumor,
-            normal=pairRawVcfInfo.normal,
-            pairName=pairRawVcfInfo.pairId,
+            tumor=preMergedPairVcfInfo.tumor,
+            normal=preMergedPairVcfInfo.normal,
+            pairName=preMergedPairVcfInfo.pairId,
             referenceFa=referenceFa,
             finalChromVcf=MergeCallers.finalChromVcf,
             

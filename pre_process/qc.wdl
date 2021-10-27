@@ -246,7 +246,7 @@ task FormatHsMetrics {
     runtime {
         cpu : threads
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:1.0.2"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools@sha256:46ab81b8dc09d6f8cf90c81f7d5692f23d73c134df6dbcd5298abde7f414dce3"
     }
 }
 
@@ -277,7 +277,7 @@ task Autocorrelations {
     runtime {
         cpu : threads
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:1.0.2"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools@sha256:46ab81b8dc09d6f8cf90c81f7d5692f23d73c134df6dbcd5298abde7f414dce3"
     }
 }
 
@@ -387,7 +387,7 @@ task Binest {
         cpu : threads
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker : "gcr.io/nygc-compbio/binest:0.8.4"
+        docker : "gcr.io/nygc-compbio/binest@sha256:86aa44cd68a70e811d4f6250dd1fafbd49c6b2a5e59462f131753cb9f0f5be1a"
     }
 }
 
@@ -418,7 +418,7 @@ task PlotBinCov {
     runtime {
         cpu : threads
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:1.0.2"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools@sha256:46ab81b8dc09d6f8cf90c81f7d5692f23d73c134df6dbcd5298abde7f414dce3"
     }
 }
 
@@ -559,7 +559,7 @@ task ConpairPileup {
         cpu : threads
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker: "gcr.io/nygc-public/broadinstitute/gatk3:3.5-0"
+        docker: "gcr.io/nygc-public/broadinstitute/gatk3@sha256:9f72be83047bf9774c6afb091d622c6e7e0c8e94111f4acc745a4e70b7a1b965"
     }
 }
 
@@ -591,7 +591,7 @@ task VerifyConcordanceAll {
     runtime {
         cpu : threads
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/conpair:v0.2-1"
+        docker : "gcr.io/nygc-public/conpair@sha256:c427e731b280ba8ad83c79993970bab5e94dd42f2b972f580b817c4a1f88e8c9"
     }
 }
 
@@ -624,7 +624,7 @@ task VerifyConcordanceHomoz {
     runtime {
         cpu : threads
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/conpair:v0.2-1"
+        docker : "gcr.io/nygc-public/conpair@sha256:c427e731b280ba8ad83c79993970bab5e94dd42f2b972f580b817c4a1f88e8c9"
     }
 }
 
@@ -656,6 +656,6 @@ task Contamination {
     runtime {
         cpu : threads
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/conpair:v0.2-1"
+        docker : "gcr.io/nygc-public/conpair@sha256:c427e731b280ba8ad83c79993970bab5e94dd42f2b972f580b817c4a1f88e8c9"
     }
 }

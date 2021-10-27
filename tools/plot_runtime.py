@@ -273,29 +273,36 @@ class PlotRuntime():
                 category_orders[y] = grouped[y].agg(['max']).reset_index().sort_values('max')[x].unique().tolist()
         # plot total vs max mem
         max_color = '#C0FF02'
-        print(data_steps.shape[0])
         max_colors = [max_color] * data_steps.shape[0]
         fig1 = px.box(data_steps, x=x, y=central_ys[0], points="all",
                       hover_data=['id', top_ys[0], central_ys[0]],
                       color_discrete_sequence=color_discrete_sequence,
                       labels=labels,
+                      boxmode='overlay',
                       color=color, category_orders=category_orders)
+        for trace in fig1.data:
+            trace['pointpos'] = 0
         fig1.add_trace(go.Scatter(
             x=data_steps[x], y=data_steps[top_ys[0]],
             text=data_steps['task_call_name'],
             mode='markers',
+            name='Mem requested',
             marker_color=max_color
             ))
         # plot total vs max disk used
         fig2 = px.box(data_steps, x=x, y=central_ys[1], points="all",
                       hover_data=['id', top_ys[1], central_ys[1]],
                       labels=labels,
+                      boxmode='overlay',
                       color_discrete_sequence=color_discrete_sequence,
                       color=color, category_orders=category_orders)
+        for trace in fig2.data:
+            trace['pointpos'] = 0
         fig2.add_trace(go.Scatter(
             x=data_steps[x], y=data_steps[top_ys[1]],
             text=data_steps['task_call_name'],
             mode='markers',
+            name='Disk requested',
             marker_color=max_color
             ))
         # plot stacked bar of task persample summed runtime [x, 'id']

@@ -6,6 +6,8 @@
 
 - [Dependencies](#dependencies)
 - [On prem environment setup](#environment)
+- [Environment setup](#external_environment)
+- [Available workflows](#workflows)
 - [Write input and submit](#write_input)
 - [Post run reports](#post_run)
 - [Create new workflow](#create_new_workflow) 
@@ -13,8 +15,8 @@
   - [Credentials](#credentials)
   - [Cram incompatible steps](#cram-incompatible)
   - [Cram compatible steps](#cram-compatible)
-- [Contact us](#contact_us)
-- [Release notes](#release_notes)
+  - [Contact us](#contact_us)
+  - [Release notes](#release_notes)
 
 ![NYGC Somatic Pipeline overview](diagrams/WDL_Pipeline.png)
 
@@ -32,6 +34,9 @@ Python
 - pandas
 - jsonschema
 
+Docker images
+- [dockerfiles and images](https://bitbucket.nygenome.org/projects/DOC/repos/docker-images/browse)
+
 
 ### On prem environment setup
 <a name="environment"></a>
@@ -40,10 +45,63 @@ Python
 Set up on prem:
 
 ```
-# run in this order
-module load gcloud cromwell-tools jq
-. /gpfs/commons/groups/nygcfaculty/kancero/envs/miniconda3/etc/profile.d/conda.sh
+module load wdl
+```
+
+### Environment setup
+<a name="external_environment"></a>
+
+
+Set up:
+
+```
+# Install gcloud cromwell-tools and jq and have them in you path
+
+# Install conda (only need to do this install once)
+wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
+bash \
+Miniconda3-latest-Linux-x86_64.sh
+# Then follow install instructions and then instructions to add conda to your path
+# create wdl environment
+conda env create -f wdl_port/tools/environment.yml
+
+# activate the environment
 conda activate wdl
+```
+gcloud cromwell-tools jq
+
+### Available workflows
+<a name="workflows"></a>
+
+The pipeline is designed to be modular because there are times when we only run a segment 
+and not the entire v7 pipeline. Below are available workflows:
+
+```
+alignment_analysis_wkf.wdl             Run Kourami (HLA typing) and Mantis (MSI status) on BAMs
+annotate_cnv_sv_wkf.wdl                Merge SV calls, filter and annotation both SV and CNV calls
+calling_wkf.wdl                        Run SNV, INDEL, SV and CNV callers on BAMs                                  
+filter_intervals.wdl                   Prep reference files by filtering using a BED file of intervals
+gdc_wkf.wdl                            Compare VCF files
+germline_wkf.wdl                       Call germline SNVs and INDELs and output a filtered and unfiltered 
+                                        annotated VCF
+kourami_wkf.wdl                        Run Kourami (HLA typing)
+merge_vcf_wkf.wdl                      Merge, filter and annotate v7 pipeline calls
+report_mini_wkf.wdl                    In dev report writing workflow
+report_wkf.wdl                         In dev full report writing workflow
+somatic_bam_wkf.wdl                    Full v7 pipeline starting from BAMs: SNV, INDEL, SV and CNV calling 
+                                        filtering and annotating, germline calls and BAF (HaplotypeCaller),
+                                        DeconstructSigs (Mutational Signatures), contamination and concordance 
+                                        (Conpair), Kourami (HLA typing) and 
+                                        Mantis (MSI status)
+somatic_wkf.wdl                        Full v7 pipeline starting from FASTQs: Alignment, QC, SNV, INDEL, SV 
+                                        and CNV calling filtering and annotating, germline calls and BAF 
+                                        (HaplotypeCaller), DeconstructSigs (Mutational Signatures), 
+                                        contamination and concordance (Conpair), Kourami (HLA typing) and 
+                                        Mantis (MSI status)
+tests_wkf.wdl                          Automated comparison of prior pipeline run to current pipeline run output.
+variant_analysis_wkf.wdl               Run DeconstructSigs (Mutational Signatures)
+wdl_structs.wdl                        Custom Struct objects to reference primary and secondary files together 
+                                        or group ids and related files
 ```
 
 ### Write input and submit
@@ -75,6 +133,7 @@ USAGE: run.sh [-h] --options OPTIONS --wdl-file WDL_FILE
                [--custom-inputs [CUSTOM_INPUTS [CUSTOM_INPUTS ...]]]
                [--skip-validate]
                [--dry-run]
+
 DESCRIPTION: validate workflow, create input json and submit workflow to cromwell.
 Script requires jq, cromwell-tools, gcloud to be in the path.
 Script shows submission command and command to check status
@@ -83,35 +142,37 @@ in the STDERR stream.
   --url URL             Cromwell server URL (required)
   --log-dir LOG_DIR     Output directory for all logs and reports
                         related to this workflow UUID (required)
-  --options OPTIONS     Options json file (required)
+  --options OPTIONS     Options json file for cromwell (required)
   --wdl-file WDL_FILE   WDL workflow. An input JSON that matches this
                         WDL workflow will be created (required)
   --library {WGS,Exome}
                         Sequence library type.
-  --genome {Human_GRCh38_full_analysis_set_plus_decoy_hla}
+  --genome {Human_GRCh38_full_analysis_set_plus_decoy_hla, Human_GRCh38_tcga}
                         Genome key to use for pipeline.
   --project PROJECT     Project name associated with account.
   --read-length READ_LENGTH     Required only for steps like BiqSeq2 that
                         use read_length as input.
   --pairs-file PAIRS_FILE
-                        JSON file with items that are required to have
-                        "tumor", "normal" sample_ids defined.
+                        CSV file with items that are required to have
+                        "tumor", "normal" and "pair_id" in the columns.
   --samples-file [SAMPLES_FILE]
-                        Not generally required. If steps run only require
+                        Not generally required. If tasks only require
                         sample_id and do not use pairing information sample
                         info can be populated with a CSV file. The CSV file
                         requires a columns named ["sampleId"].
   --interval-list {SureSelect_V6plusCOSMIC.target.GRCh38_full_analysis_set_plus_decoy_hla}
                         File basename for interval list.If not supplied the
                         default (the SureSelect interval list for your genome)
-                        will be used
+                        will be used (only needed for future Exome workflows)
   --custom-inputs [CUSTOM_INPUTS]
                         Optional JSON file with custom input variables. The
                         name of the variable in the input file must match the
                         name of the variable in the WDL workflow. It is not
                         required that the input specify the workflow. By
                         default the input will be added to the top-level
-                        workflow.
+                        workflow. Any variable defined in in this JSON will
+                        overwrite any reference variable in the the config
+                        directory or workflow default.
   --skip-validate       Skip the step where input files are validated.
                         Otherwise all gs//: URIs will be checked to see that a
                         file exists. Disable with caution.Cromwell will launch

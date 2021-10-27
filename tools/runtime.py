@@ -22,6 +22,8 @@ class Runtime():
                  gcp_project=False,
                  metrics_file=False):
         self.output_info = output_info
+        # find existing project id info
+        self.prep_ids()
         if not metrics_file:
             self.metrics_file = output_info["project_data"]['project'].replace(' ', '_') + '.' +  output_info['workflow_uuid'] + '_outputMetrics.csv'
         else:
@@ -39,7 +41,7 @@ class Runtime():
                 self.gcp_query_project = gcp_project
             else:
                 self.gcp_query_project = self.gcp_project
-            self.sub_workflow_uuids = self.load_sub_workflow_uuids()
+            self.sub_workflow_uuids = self.output_info['sub_workflow_uuids']
             self.run_date = self.get_rundate()
             self.get_sample_info()
             # gather big cloud tables
@@ -54,7 +56,7 @@ class Runtime():
                 self.start_instance_maps()
                 self.load_metrics()
                 self.add_to_instance_maps()
-                hashable = ['instance_name', 'workflow_id', 'attempt']
+                hashable = ['instance_name', 'workflow_id', 'attempt', 'shard']
                 self.metadata = self.metadata.drop_duplicates(subset=hashable)
                 self.instance_id_map = self.get_max_mems(self.metadata, 
                                                          instance_id_map=self.instance_id_map, 
@@ -102,7 +104,7 @@ class Runtime():
                      execution_status='Done',
                      job_id_col='task_call_name', metrics_key='mem_used_gb'):
         '''Get max mem for a runs with the same sub-workflow_id and task_call_name'''
-        runtime_results = metadata.drop_duplicates(['task_call_name', 'workflow_id', 'instance_name'])
+        runtime_results = metadata.drop_duplicates(['task_call_name', 'workflow_id', 'instance_name', 'shard', 'attempt'])
         max_values = {}
         for index, row in runtime_results.iterrows():
             instance_ids = []
@@ -308,7 +310,7 @@ class Runtime():
         '''
         log.info('Loading Metadata...')
         
-        self.sub_workflow_uuid_list = self.format_sub_workflow(self.sub_workflow_uuids.sub_workflow_uuid.unique())
+        self.sub_workflow_uuid_list = self.format_sub_workflow(self.sub_workflow_uuids)
         
         query_string = '''
         SELECT * FROM `''' + self.gcp_query_project + '''.cromwell_monitoring.metadata`
@@ -326,15 +328,11 @@ class Runtime():
         self.end_date = self.load_end_date(self.metadata.end_time.max())
         if not self.end_date:
             return False
-        sub_workflow_uuid_sample_map = self.sub_workflow_uuids.copy()
-        sub_workflow_uuid_sample_map.columns = ['workflow_id', 'id']
-        sub_workflow_uuid_sample_map = sub_workflow_uuid_sample_map.drop_duplicates().copy()
         self.metadata['inputs'] = self.metadata.apply(lambda row: str(row.inputs).replace('\n', ' '), axis=1)
+        self.metadata['id'] = self.metadata.apply(lambda row: self.match_id(row.inputs).replace('\n', ' '), axis=1)
         unhashable = ['disk_mounts', 'disk_total_gb', 'disk_used_gb', 'disk_types', 'inputs']
-        # hashable = [col for col in self.metadata.columns if not col in unhashable]
-        hashable = ['instance_name', 'workflow_id', 'attempt']
+        hashable = ['instance_name', 'workflow_id', 'attempt', 'shard']
         self.metadata = self.metadata.drop_duplicates(subset=hashable)
-        self.metadata = self.metadata.merge(sub_workflow_uuid_sample_map, on='workflow_id')
         return True
         
     def load_runtime(self):
@@ -355,8 +353,7 @@ class Runtime():
             .result()
             .to_dataframe(bqstorage_client=self.bqstorageclient)
         )
-        sub_workflow_uuids = self.sub_workflow_uuids.sub_workflow_uuid.tolist()
-        self.runtime = runtime[runtime.workflow_id.isin(sub_workflow_uuids)].copy()
+        self.runtime = runtime[runtime.workflow_id.isin(self.sub_workflow_uuids)].copy()
         
     def start_instance_maps(self):
         self.instance_ids = self.runtime.instance_id.unique().tolist()
@@ -459,16 +456,182 @@ class Runtime():
                 self.non_retry_instance_id_map[instance_id]['preemptible'] = preemptible
                 self.non_retry_instance_id_map[instance_id]['disk_total_gb'] = disk_total_gb
                 self.non_retry_instance_id_map[instance_id]['disk_used_gb'] = disk_used_gb
+                
+    def id_matches(self, identifier, id):
+        '''test if it is a likely substring of the WDL input string'''
+        if (id + '.' in identifier \
+                or id == identifier \
+                or id + '_' in identifier):
+            return True
+        return False
+    
+    def search_sample_ids(self, possible_indentifiers):
+        '''sample_id '''
+        matched_sample_ids = []
+        if self.sample_ids:
+            for sample_id in self.sample_ids:
+                pair_in_name = False
+                group_in_name = False
+                match = False
+                #look for longer samples id that the current sample id may be a substring of
+                other_file_sample_ids = [other_sample_id for other_sample_id in self.sample_ids if
+                                         (not other_sample_id == sample_id)]
+                other_file_sample_ids = [other_sample_id for other_sample_id in other_file_sample_ids
+                                         if sample_id in other_sample_id]
+                self.other_file_sample_ids = list(other_file_sample_ids)
+                self.other_file_sample_ids += [other_sample_id + '.' for other_sample_id in other_file_sample_ids]
+                self.other_file_sample_ids += [other_sample_id + '_' for other_sample_id in other_file_sample_ids]
+                self.other_file_sample_ids += [other_sample_id + '/' for other_sample_id in other_file_sample_ids]
+                for identifier in possible_indentifiers:
+                    # if id is in input string
+                    if self.id_matches(identifier, sample_id):
+                        # but no other id is also in the input string
+                        other_possible_match = any([self.id_matches(identifier, id) for id in self.other_file_sample_ids])
+                        if not other_possible_match:
+                            # filters if pair id is longer and sample_id is a substring
+                            if self.pair_relationships:
+                                pair_in_name = any([pair_id in identifier for pair_id in [pair['pairId'] \
+                                                                                          for pair in self.pair_relationships \
+                                                                                          if len(pair['pairId']) > len(sample_id)]])
+                            # filters if group id is longer and sample_id is a substring
+                            if self.analysis_groups:
+                                group_in_name = any([group_id in identifier for group_id in [group['analysisGroupId'] \
+                                                                                             for group in self.analysis_groups \
+                                                                                             if len(group['analysisGroupId']) > len(sample_id)]])
+                            if not pair_in_name or group_in_name:
+                                matched_sample_ids.append(sample_id)
+        return list(set(matched_sample_ids))
+    
+    def search_group_ids(self, possible_indentifiers,
+                         all_matched_sample_ids):
+        '''match pair_id to WDL input string'''
+        matched_group_ids = []
+        if self.analysis_groups:
+            analysis_group_ids = [group['analysisGroupId'] for group in self.analysis_groups]
+            for analysis_group in self.analysis_groups:
+                group_id = analysis_group['analysisGroupId']
+                #look for longer group id that the current group id may be a substring of
+                other_file_group_ids = [other_group_id for other_group_id in analysis_group_ids if
+                                         (not other_group_id == group_id)]
+                other_file_group_ids = [other_group_id for other_group_id in other_file_group_ids
+                                         if group_id in other_group_id]
+                self.other_file_group_ids = list(other_file_group_ids)
+                self.other_file_group_ids += [other_group_id + '.' for other_group_id in other_file_group_ids]
+                self.other_file_group_ids += [other_group_id + '_' for other_group_id in other_file_group_ids]
+                self.other_file_group_ids += [other_group_id + '/' for other_group_id in other_file_group_ids]
+                # look to see if all samples in the analysis group have been identified in the inputs
+                for identifier in possible_indentifiers:
+                    if set(analysis_group[sampleIds]).issubset(set(all_matched_sample_ids)) \
+                            or self.id_matches(identifier, group_id):
+                        other_possible_match = any([self.id_matches(identifier, id) for id in self.other_file_group_ids])
+                        if not other_possible_match:
+                            matched_group_ids.append(group_id)
+        return list(set(matched_group_ids))
+    
+    def search_pair_ids(self, possible_indentifiers,
+                        matched_sample_ids):
+        '''match pair_id to WDL input string'''
+        all_matched_sample_ids = matched_sample_ids
+        matched_pair_ids = []
+        if self.pair_relationships:
+            pair_ids = [pair['pairId'] for pair in self.pair_relationships]
+            for pair_relationship in self.pair_relationships:
+                pair_id = pair_relationship['pairId']
+                #look for longer pair id that the current pair id may be a substring of
+                other_file_pair_ids = [other_pair_id for other_pair_id in pair_ids if
+                                         (not other_pair_id == pair_id)]
+                other_file_pair_ids = [other_pair_id for other_pair_id in other_file_pair_ids
+                                         if pair_id in other_pair_id]
+                self.other_file_pair_ids = list(other_file_pair_ids)
+                self.other_file_pair_ids += [other_pair_id + '.' for other_pair_id in other_file_pair_ids]
+                self.other_file_pair_ids += [other_pair_id + '_' for other_pair_id in other_file_pair_ids]
+                self.other_file_pair_ids += [other_pair_id + '/' for other_pair_id in other_file_pair_ids]
+                
+                for identifier in possible_indentifiers:
+                    # if both ids in a pair are in the command or if the pair
+                    # or if the id is in the string
+                    if (pair_relationship['tumor'] in matched_sample_ids \
+                            and pair_relationship['normal'] in matched_sample_ids) \
+                            or self.id_matches(identifier, pair_id):
+                        # but no other id is also in the input string
+                        other_possible_match = any([self.id_matches(identifier, id) for id in self.other_file_pair_ids])
+                        if not other_possible_match:
+                                matched_pair_ids.append(pair_id)
+                                all_matched_sample_ids.append(pair_relationship['tumor'])
+                                all_matched_sample_ids.append(pair_relationship['normal'])
+        return list(set(matched_pair_ids)), all_matched_sample_ids
+ 
+    def search_ids(self, possible_indentifiers):
+        ''' search for matches to:
+        multi-patient analysis group, 
+        patient-centered cohort, 
+        pair, 
+        or sample_id '''
+        matched_sample_ids = self.search_sample_ids(possible_indentifiers)
+        matched_pair_ids, all_matched_sample_ids = self.search_pair_ids(possible_indentifiers, matched_sample_ids)
+        matched_group_ids = self.search_group_ids(possible_indentifiers, all_matched_sample_ids)
+        if len(matched_group_ids) > 0 :
+            if len(matched_group_ids) > 1:
+                log.warning('multiple group ids matched the input: ' + ' '.join(matched_group_ids))
+                return 'Multi sample'
+            return matched_group_ids[0]
+        elif len(matched_pair_ids) > 0 :
+            if len(matched_pair_ids) > 1:
+                log.warning('multiple pair ids matched the input: ' + ' '.join(matched_pair_ids))
+                return 'Multi sample'
+            return matched_pair_ids[0]
+        elif len(matched_sample_ids) > 0 :
+            if len(matched_sample_ids) > 1:
+                log.warning('multiple sample ids matched the input: ' + ' '.join(matched_sample_ids))
+                return 'Multi sample'
+            return matched_sample_ids[0]
+        return 'Unknown'
 
-    def load_sub_workflow_uuids(self):
-        sub_workflow_uuids_list = []
-        for id in self.output_info['sub_workflow_uuids']:
-            data = pd.DataFrame({'sub_workflow_uuid' : self.output_info['sub_workflow_uuids'][id]})
-            data['id'] = id
-            sub_workflow_uuids_list.append(data)
-        sub_workflow_uuids = pd.concat(sub_workflow_uuids_list, 
-                                       ignore_index=False)
-        return sub_workflow_uuids
+    def prep_ids(self):
+        ''' gather sample relationship information:
+        multi-patient analysis groups, 
+        patient-centered cohorts, 
+        pairs, 
+        or sample_ids
+        '''
+        self.pair_relationships = False
+        self.analysis_groups = False
+        self.sample_ids = False
+        if 'listOfPairRelationships' in self.output_info['project_data'] \
+                and len(self.output_info['project_data']['listOfPairRelationships']) > 0:
+            self.pair_relationships = self.output_info['project_data']['listOfPairRelationships']
+        if 'analysisGroups' in self.output_info['project_data'] \
+                and len(self.output_info['project_data']['analysisGroups']) > 0:
+            self.analysis_groups = self.output_info['project_data']['analysisGroups']
+        if 'sampleIds' in self.output_info['project_data'] \
+                and len(self.output_info['project_data']['sampleIds']) > 0:
+            self.sample_ids = self.output_info['project_data']['sampleIds']
+
+    def match_id(self, inputs):
+        ''' convert inputs to dictionary (problematic but current best options?)
+        '''
+        possible_indentifiers = []
+        inputs = inputs.replace(" None}", " 'None'}").replace("'}  {'", "'},  {'").replace("'", '"')
+        inputs = inputs.replace('["', '[').replace('"]', ']')
+        cleaned_inputs = []
+        for input in inputs.split():
+            if '\\"' not in input:
+                cleaned_inputs.append(input)
+            else:
+                if input.endswith('"},'):
+                    cleaned_inputs.append('""},')
+                elif input.endswith('"],'):
+                    cleaned_inputs.append('""],')
+        inputs = ' '.join(cleaned_inputs)
+        if inputs != '':
+            inputs_dicts = json.loads(' '.join(cleaned_inputs))
+            for inputs_dict in inputs_dicts:
+                if inputs_dict['type'] == 'string':
+                    possible_indentifiers.append(inputs_dict['value'])
+            if len(possible_indentifiers) > 0:
+                top_match = self.search_ids(possible_indentifiers)
+                return top_match
+        return 'No possible identifiers'
 
     
 def get_args():

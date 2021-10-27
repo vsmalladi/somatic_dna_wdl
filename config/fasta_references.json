@@ -1,5 +1,15 @@
 {
     "Human_GRCh38_full_analysis_set_plus_decoy_hla": {
+        "bicseq2SegConfigFile": {
+            "type": "File",
+            "description": "",
+            "object": "gs://nygc-comp-s-82ed-resources/SomaticWorkflowMisc/pairId.bicseq2.seg.config"
+        },
+        "bicseq2ConfigFile": {
+            "type": "File",
+            "description": "",
+            "object": "gs://nygc-comp-s-82ed-resources/SomaticWorkflowMisc/sampleId.bicseq2.config"
+        },
         "listOfChroms": {
             "type": "Array[String]+",
             "description": "",
@@ -669,6 +679,16 @@
         }
     },
     "Human_GRCh38_tcga": {
+        "bicseq2SegConfigFile": {
+            "type": "File",
+            "description": "",
+            "object": "gs://nygc-comp-s-82ed-resources/SomaticWorkflowMisc/pairId.bicseq2.seg.config"
+        },
+        "bicseq2ConfigFile": {
+            "type": "File",
+            "description": "",
+            "object": "gs://nygc-comp-s-82ed-resources/SomaticWorkflowMisc/sampleId.bicseq2.config"
+        },
         "listOfChroms": {
             "type": "Array[String]+",
             "description": "",

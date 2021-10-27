@@ -32,7 +32,7 @@ task RemoveSpanning {
         cpu : threads
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/bcftools:1.5"
+        docker : "gcr.io/nygc-public/bcftools@sha256:d9b84254b8cc29fcae76b728a5a9a9a0ef0662ee52893d8d82446142876fb400"
     }
 }
 
@@ -61,7 +61,7 @@ task AddCosmic {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools@sha256:46ab81b8dc09d6f8cf90c81f7d5692f23d73c134df6dbcd5298abde7f414dce3"
     }
 }
 
@@ -90,7 +90,7 @@ task AddCancerResistanceMutations {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools@sha256:46ab81b8dc09d6f8cf90c81f7d5692f23d73c134df6dbcd5298abde7f414dce3"
     }
 }
 
@@ -119,7 +119,7 @@ task AddCancerResistanceMutationsFinal {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools@sha256:46ab81b8dc09d6f8cf90c81f7d5692f23d73c134df6dbcd5298abde7f414dce3"
     }
 }
 
@@ -146,7 +146,7 @@ task AnnotateId {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools@sha256:46ab81b8dc09d6f8cf90c81f7d5692f23d73c134df6dbcd5298abde7f414dce3"
     }
 }
 
@@ -173,7 +173,7 @@ task RenameCsqVcf {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools@sha256:46ab81b8dc09d6f8cf90c81f7d5692f23d73c134df6dbcd5298abde7f414dce3"
     }
 }
 
@@ -200,7 +200,7 @@ task MainVcf {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools@sha256:46ab81b8dc09d6f8cf90c81f7d5692f23d73c134df6dbcd5298abde7f414dce3"
     }
 }
 
@@ -230,7 +230,7 @@ task TableVcf {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools@sha256:46ab81b8dc09d6f8cf90c81f7d5692f23d73c134df6dbcd5298abde7f414dce3"
     }
 }
 
@@ -267,7 +267,7 @@ task VcfToMaf {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools@sha256:46ab81b8dc09d6f8cf90c81f7d5692f23d73c134df6dbcd5298abde7f414dce3"
     }
 }
 
@@ -317,7 +317,7 @@ task annotateBicSeq2Cnv {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/sv_cnv:1.0.0"
+        docker : "gcr.io/nygc-internal-tools/sv_cnv@sha256:bffe04515c387b2dba752819191308f537c2a3f034de9c3887cbb652041b3311"
     }
 }
 
@@ -363,7 +363,7 @@ task mergeSv {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/sv_cnv:1.0.0"
+        docker : "gcr.io/nygc-internal-tools/sv_cnv@sha256:bffe04515c387b2dba752819191308f537c2a3f034de9c3887cbb652041b3311"
     }
 }
 
@@ -407,7 +407,7 @@ task annotateSv {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/sv_cnv:1.0.0"
+        docker : "gcr.io/nygc-internal-tools/sv_cnv@sha256:bffe04515c387b2dba752819191308f537c2a3f034de9c3887cbb652041b3311"
     }
 }
 
@@ -443,7 +443,7 @@ task annotateGenesSv {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/sv_cnv:1.0.0"
+        docker : "gcr.io/nygc-internal-tools/sv_cnv@sha256:bffe04515c387b2dba752819191308f537c2a3f034de9c3887cbb652041b3311"
     }
 }
 
@@ -479,7 +479,7 @@ task annotateGenesSvSupplemental {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/sv_cnv:1.0.0"
+        docker : "gcr.io/nygc-internal-tools/sv_cnv@sha256:bffe04515c387b2dba752819191308f537c2a3f034de9c3887cbb652041b3311"
     }
 }
 
@@ -512,7 +512,7 @@ task annotateWithCnvSv {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/sv_cnv:1.0.0"
+        docker : "gcr.io/nygc-internal-tools/sv_cnv@sha256:bffe04515c387b2dba752819191308f537c2a3f034de9c3887cbb652041b3311"
     }
 }
 
@@ -546,7 +546,7 @@ task filterBedPe {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/sv_cnv:1.0.0"
+        docker : "gcr.io/nygc-internal-tools/sv_cnv@sha256:bffe04515c387b2dba752819191308f537c2a3f034de9c3887cbb652041b3311"
     }
 }
 
