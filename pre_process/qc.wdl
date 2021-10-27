@@ -246,7 +246,7 @@ task FormatHsMetrics {
     runtime {
         cpu : threads
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools@sha256:46ab81b8dc09d6f8cf90c81f7d5692f23d73c134df6dbcd5298abde7f414dce3"
+        docker : "gcr.io/nygc-public/somatic_tools@sha256:46ab81b8dc09d6f8cf90c81f7d5692f23d73c134df6dbcd5298abde7f414dce3"
     }
 }
 
@@ -277,7 +277,7 @@ task Autocorrelations {
     runtime {
         cpu : threads
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools@sha256:46ab81b8dc09d6f8cf90c81f7d5692f23d73c134df6dbcd5298abde7f414dce3"
+        docker : "gcr.io/nygc-public/somatic_tools@sha256:46ab81b8dc09d6f8cf90c81f7d5692f23d73c134df6dbcd5298abde7f414dce3"
     }
 }
 
@@ -387,7 +387,7 @@ task Binest {
         cpu : threads
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker : "gcr.io/nygc-compbio/binest@sha256:86aa44cd68a70e811d4f6250dd1fafbd49c6b2a5e59462f131753cb9f0f5be1a"
+        docker : "gcr.io/nygc-public/binest@sha256:86aa44cd68a70e811d4f6250dd1fafbd49c6b2a5e59462f131753cb9f0f5be1a"
     }
 }
 
@@ -418,7 +418,7 @@ task PlotBinCov {
     runtime {
         cpu : threads
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools@sha256:46ab81b8dc09d6f8cf90c81f7d5692f23d73c134df6dbcd5298abde7f414dce3"
+        docker : "gcr.io/nygc-public/somatic_tools@sha256:46ab81b8dc09d6f8cf90c81f7d5692f23d73c134df6dbcd5298abde7f414dce3"
     }
 }
 
