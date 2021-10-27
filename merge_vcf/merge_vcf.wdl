@@ -635,7 +635,7 @@ task MergeColumnsPon {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools@sha256:46ab81b8dc09d6f8cf90c81f7d5692f23d73c134df6dbcd5298abde7f414dce3"
     }
 }
 

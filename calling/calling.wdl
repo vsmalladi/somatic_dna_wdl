@@ -158,7 +158,7 @@ task AddCommandReorderColumnsVcf {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
+        docker : "gcr.io/nygc-internal-tools/somatic_tools@sha256:46ab81b8dc09d6f8cf90c81f7d5692f23d73c134df6dbcd5298abde7f414dce3"
     }
 }
 
@@ -320,7 +320,7 @@ task MantaWgsPon {
         cpu : threads
         disks: "local-disk " + diskSize + " LOCAL"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/manta:1.4.0"
+        docker : "gcr.io/nygc-public/manta@sha256:e171112cccf6758693b7a8aab80000fe6121d6969ce83e14a4e15fbc5f2f3662"
     }
 }
 
@@ -672,7 +672,7 @@ task SvabaWgsPon {
         cpu : threads
         disks: "local-disk " + diskSize + " LOCAL"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/svaba:1.1.3-c4d7b571"
+        docker : "gcr.io/nygc-public/svaba@sha256:48f6bd86e933ca88fd74d8effc66e93eee5b40945ee37612b80d7edaadc567f3"
         preemptible: 1
     }
 }
@@ -702,7 +702,7 @@ task ReheaderVcf {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/bcftools:1.5"
+        docker : "gcr.io/nygc-public/bcftools@sha256:d9b84254b8cc29fcae76b728a5a9a9a0ef0662ee52893d8d82446142876fb400"
     }
 }
 
