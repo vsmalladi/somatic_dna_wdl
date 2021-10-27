@@ -81,10 +81,6 @@ workflow GermlineAnnotate {
                 plugins = plugins,
                 vepGenomeBuild = vepGenomeBuild,
                 vepFastaReference = vepFastaReference,
-                # NYGC-only
-                hgmdGene = hgmdGene,
-                hgmdUd10 = hgmdUd10,
-                hgmdPro = hgmdPro,
                 # Public
                 chdGenesVcf = chdGenesVcf,
                 chdEvolvingGenesVcf = chdEvolvingGenesVcf,

@@ -33,7 +33,7 @@ workflow CallingPon {
     #   merge and filter raw VCFs
     #   annotate
     input {
-        Boolean production = false
+        Boolean production = true
         Array[SampleBamInfo]+ tumorInfos
         # strelka2
         File strelkaJsonLog
@@ -143,10 +143,6 @@ workflow CallingPon {
                     plugins = plugins,
                     vepGenomeBuild = vepGenomeBuild,
                     vepFastaReference = vepFastaReference,
-                    # NYGC-only
-                    hgmdGene = hgmdGene,
-                    hgmdUd10 = hgmdUd10,
-                    hgmdPro = hgmdPro,
                     # Public
                     chdGenesVcf = chdGenesVcf,
                     chdEvolvingGenesVcf = chdEvolvingGenesVcf,
@@ -197,8 +193,7 @@ workflow CallingPon {
     }
  
     output {
-        # General 
-
+        # General
         Array[File] vcfAnnotatedVep = finalVcfAnnotatedVep
         
         # Mutect2
