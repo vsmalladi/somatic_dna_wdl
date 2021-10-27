@@ -15,8 +15,6 @@ class Json_leaves():
     
     def __init__(self, inputs):
         self.files = []
-#         with open(file) as fp:
-#             self.json_obj = json.load(fp)
         self.json_obj = inputs
         self.hlpr_fnc(self.json_obj)
         
@@ -52,11 +50,12 @@ class Wdl():
                  interval_input,
                  pipeline_input,
                  genome,
-                 read_length,
                  custom_inputs,
                  bicseq2_draft=False,
                  validate=True,
                  project_info_file=False):
+        self.nygc_prefix = 'gs://nygc'
+        self.nygc_public = 'gs://nygc-resources-public/'
         self.bicseq2_draft = bicseq2_draft
         self.genome = genome
         self.custom_inputs = custom_inputs
@@ -77,8 +76,9 @@ class Wdl():
         if self.bicseq2_draft:
             # load bicseq variables for custom config files
             if 'bicseq2ConfigFile' in self.inputs:
+                assert 'readLength' in self.custom_inputs, 'readLength must be defined in the custom inputs json to use bicseq2_draft'
+                read_length = self.inputs['readLength']['object']
                 assert self.genome in self.load_json(genome_input), 'error genome not in interval file'
-                assert read_length, '--read-length is required to run BicSeq2'
                 genome_data = self.load_json(genome_input)[self.genome]
                 upload_bucket = self.project_info['options']['final_workflow_log_dir'].replace('cromwell-logs', 'input')
                 bicseq = bicseq_config_prep.Bicseq2Prep(list_of_chroms_full=genome_data['listOfChromsFull'],
@@ -88,18 +88,57 @@ class Wdl():
                 self.load_custom_dict(custom_dict=bicseq.inputs)   
         # load preexisting reference variables
         self.load_genome_input(genome_input)
+        # load preexisting pipeline reference variables
         self.load_pipeline_input(pipeline_input)
+        # load preexisting interval list reference variables
         self.load_interval_input(interval_input)
+        # load custom variables and overwrite any defaults from the reference jsons
         self.load_custom()
         # populate
         self.populate_inputs()
         self.finish_inputs()
+        self.check_external()
         if self.validate:
             self.validate_inputs()
+            
+    def check_external_var(self, variable):
+        if variable in self.inputs.keys():
+            try:
+                value = self.inputs[variable]['object']
+            except TypeError:
+                value = self.inputs[variable]
+            if value == True:
+                return True
+        default = self.get_default(current_variable=variable)
+        if default:
+            if default == 'true':
+                return True
+            
+    def check_external(self):
+        self.external = False
+        value = self.check_external_var(variable='production')
+        if value:
+            self.external = True
+        value = self.check_external_var(variable='external')
+        if value:
+            self.external = True
+            
+    def skip(self, file):
+        '''If "production" or "external" inputs are true this triggers the skipping of internal-only files 
+        (the steps that run with these also are written to skip tasks that localize these files 
+        so any inability to read these files will not negatively affect the run'''
+        if file.startswith(self.nygc_prefix):
+            if not file.startswith(self.nygc_public):
+                if self.external:
+                    return True
+            return False
+        return False
         
     def validate_inputs(self):
         potential_files = Json_leaves(self.inputs)
         files = [string for string in potential_files.files if string.startswith('gs://')]
+        files = [file for file in files if not self.skip(file)]
+        print(files)
         found = self.validate_input_gsutil(strings=files)
         if not found:
             log.error('searching for first missing/unreadible file. This may be slow...')
@@ -175,18 +214,21 @@ class Wdl():
                     final_inputs[full_variable] = self.inputs[variable]['object']
                 except TypeError:
                     final_inputs[full_variable] = self.inputs[variable]
-        self.inputs = final_inputs
+        self.final_inputs = final_inputs
         
-    def add_from_ref(self):
-        '''Load from pre-existing reference data'''
+    def add_from_ref_custom(self):
+        '''Load from pre-existing reference JSONs and
+           custom input JSONs
+        '''
         for variable in self.inputs:
             if variable in self.input_objects:
                 self.inputs[variable]['object'] = self.input_objects[variable]['object']
                 self.inputs[variable]['default'] = False
                     
     def add_from_project(self):
-        '''Load from user define project-specific information 
-        (e.g. pairing location of input files etc)
+        '''Load from user define project-specific information. 
+        See "tools/project_schema.json" for examples of values stored in tools/project_schema.json
+        (e.g. pairIds, pairInfos, genome, library, sample lists etc)
         '''
         for variable in self.inputs:
             if not self.inputs[variable]['object']:
@@ -195,7 +237,7 @@ class Wdl():
                     self.inputs[variable]['default'] = False
                     
     def populate_inputs(self):
-        self.add_from_ref()
+        self.add_from_ref_custom()
         self.add_from_project()
         
     def parse_input(self, line):
@@ -249,7 +291,7 @@ class Wdl():
                 self.input_objects[variable] = data[variable]
                 
     def load_custom_dict(self, custom_dict):
-        '''load variables from any custom file'''
+        '''load variables from any custom list of dictionaries'''
         for variable in custom_dict:
             if variable in self.input_objects.keys():
                 log.warning(variable + 'value is being taken from custom generated dictionary.')
@@ -276,7 +318,7 @@ class Wdl():
     def load(self, file):
         '''Use womtool to list input files
         Replace with python parser later'''
-        custom_types = {variable: type for type, variable in self.load_custom_type(file)}
+        self.custom_types = {variable: type for type, variable in self.load_custom_type(file)}
         # inputs with no defaults
         try:
             result = subprocess.run(['womtool', 'inputs', 
@@ -297,29 +339,51 @@ class Wdl():
         except subprocess.CalledProcessError:
             log.error('Failed to read file: ' + file)
             sys.exit(1)
-        all_inputs = [full_variable for full_variable in json.loads(result)]
-        optional_inputs = list(set(all_inputs).difference(set(required_inputs)))
-        for input in all_inputs:
+        self.all_inputs_with_values = json.loads(result)
+        self.all_inputs = [full_variable for full_variable in json.loads(result)]
+        self.optional_inputs = list(set(self.all_inputs).difference(set(required_inputs)))
+        for input in self.all_inputs:
             variable = input.split('.')[-1]
             # skip variables only defined with default
-            if variable in custom_types:
-                type = custom_types[variable]
+            if variable in self.custom_types:
+                type = self.custom_types[variable]
                 full_variable = input
-                default = input in optional_inputs
+                default = input in self.optional_inputs
                 yield type, variable, full_variable, default
-                      
+                
+    def get_default(self, current_variable):
+        ''' Lookup default values'''
+        for input in self.all_inputs:
+            variable = input.split('.')[-1]
+            if current_variable == variable:
+                # skip variables only defined with default
+                self.simple_inputs_with_values = {key.split('.')[-1] : self.all_inputs_with_values[key] for key in self.all_inputs_with_values}
+                if variable in self.custom_types:
+                    value = self.simple_inputs_with_values[current_variable]
+                    value = re.sub(r"\s+", '', value)
+                    if 'default=' in value:
+                        value = value.split('default=')[-1].replace(')', '').replace('\\', '').replace('"', '')
+                        return value
+        return False
+
     def load_custom_type(self, file):
         ''' get name of custom struct from WDL file'''
         read = False
+        within_workflow = False
         with open(file) as input:
             for line in input:
                 line = line.rstrip()
                 if read:
                     read, type, variable = self.parse_input(line)
                     if read and type and variable:
-                        yield type, variable 
-                if re.sub(r"\s+", '', line)  == 'input{':
+                        yield type, variable
+                if re.sub(r"\s+", '', line).startswith('workflow') and re.sub(r"\s+", '', line).endswith('{'):
+                    within_workflow = True
+                elif within_workflow and re.sub(r"\s+", '', line)  == 'input{':
                     read = True
+                elif read and re.sub(r"\s+", '', line)  == '}':
+                    read = False
+                    within_workflow = False
 
 
 def main():
