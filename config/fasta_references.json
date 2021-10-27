@@ -3,12 +3,12 @@
         "bicseq2SegConfigFile": {
             "type": "File",
             "description": "",
-            "object": "gs://nygc-comp-s-82ed-resources/SomaticWorkflowMisc/pairId.bicseq2.seg.config"
+            "object": "gs://nygc-resources-public/SomaticWorkflowMisc/pairId.bicseq2.seg.config"
         },
         "bicseq2ConfigFile": {
             "type": "File",
             "description": "",
-            "object": "gs://nygc-comp-s-82ed-resources/SomaticWorkflowMisc/sampleId.bicseq2.config"
+            "object": "gs://nygc-resources-public/SomaticWorkflowMisc/sampleId.bicseq2.config"
         },
         "listOfChroms": {
             "type": "Array[String]+",
@@ -73,32 +73,32 @@
             "type": "IndexedVcf",
             "description": "",
             "object": {
-                "vcf": "gs://nygc-comp-s-82ed-resources/annotations/vep_whitelist_38.20201118.vcf.gz",
-                "index": "gs://nygc-comp-s-82ed-resources/annotations/vep_whitelist_38.20201118.vcf.gz.tbi"
+                "vcf": "gs://nygc-resources-public/annotations/vep_whitelist_38.20201118.vcf.gz",
+                "index": "gs://nygc-resources-public/annotations/vep_whitelist_38.20201118.vcf.gz.tbi"
             }
         },
         "pgx": {
             "type": "IndexedVcf",
             "description": "",
             "object": {
-                "vcf": "gs://nygc-comp-s-82ed-resources/annotations/pgx_vep_hg38.vcf.gz",
-                "index": "gs://nygc-comp-s-82ed-resources/annotations/pgx_vep_hg38.vcf.gz.tbi"
+                "vcf": "gs://nygc-resources-public/annotations/pgx_vep_hg38.vcf.gz",
+                "index": "gs://nygc-resources-public/annotations/pgx_vep_hg38.vcf.gz.tbi"
             }
         },
         "rwgsPgxBed": {
             "type": "IndexedTable",
             "description": "",
             "object": {
-                "table": "gs://nygc-comp-s-82ed-resources/rWGS_PGX/rWGS_PGx.bed.gz",
-                "index": "gs://nygc-comp-s-82ed-resources/rWGS_PGX/rWGS_PGx.bed.gz.tbi"
+                "table": "gs://nygc-resources-public/rWGS_PGX/rWGS_PGx.bed.gz",
+                "index": "gs://nygc-resources-public/rWGS_PGX/rWGS_PGx.bed.gz.tbi"
             }
         },
         "nygcAf": {
             "type": "IndexedVcf",
             "description": "",
             "object": {
-                "vcf": "gs://nygc-comp-s-82ed-resources/annotations/04142020_NYGC_samples.vcf.gz",
-                "index": "gs://nygc-comp-s-82ed-resources/annotations/04142020_NYGC_samples.vcf.gz.tbi"
+                "vcf": "gs://nygc-resources-public/annotations/04142020_NYGC_samples.vcf.gz",
+                "index": "gs://nygc-resources-public/annotations/04142020_NYGC_samples.vcf.gz.tbi"
             }
         },
 
@@ -114,18 +114,18 @@
         },
         "dgvBedpe" :{
             "type": "File",
-            "description" : "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/DGV.GRCh38_hg38_variants_2020-02-25.README.txt",
-            "object" : "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/DGV.GRCh38_hg38_variants_2020-02-25.bedpe"
+            "description" : "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/DGV.GRCh38_hg38_variants_2020-02-25.README.txt",
+            "object" : "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/DGV.GRCh38_hg38_variants_2020-02-25.bedpe"
         },
         "gap" :{
             "type": "File",
             "description" : "",
-            "object" : "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/GRCh38.gap.UCSC.annotated.chr.sorted.bed"
+            "object" : "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/GRCh38.gap.UCSC.annotated.chr.sorted.bed"
         },
         "thousandGVcf" :{
             "type": "File",
-            "description" : "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/1KGP.pruned_wAFs.PASS_and_MULTIALLELIC_Mosaic.GRCh38.README.txt",
-            "object" : "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/1KGP.pruned_wAFs.PASS_and_MULTIALLELIC_Mosaic.GRCh38.vcf"
+            "description" : "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/1KGP.pruned_wAFs.PASS_and_MULTIALLELIC_Mosaic.GRCh38.README.txt",
+            "object" : "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/1KGP.pruned_wAFs.PASS_and_MULTIALLELIC_Mosaic.GRCh38.vcf"
         },
         "svPon" :{
             "type": "File",
@@ -134,54 +134,54 @@
         },
         "cosmicBedPe" :{
             "type": "File",
-            "description" : "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/cosmic-sv-GRCh38-v92.README.txt",
-            "object" : "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/cosmic-sv-GRCh38-v92.bedpe"
+            "description" : "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/cosmic-sv-GRCh38-v92.README.txt",
+            "object" : "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/cosmic-sv-GRCh38-v92.bedpe"
         },
         "dgv" :{
             "type": "File",
-            "description" : "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/DGV.GRCh38_hg38_variants_2020-02-25.README.txt",
-            "object" : "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/DGV.GRCh38_hg38_variants_2020-02-25.bed"
+            "description" : "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/DGV.GRCh38_hg38_variants_2020-02-25.README.txt",
+            "object" : "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/DGV.GRCh38_hg38_variants_2020-02-25.bed"
         },
         "cytoBand" :{
             "type": "File",
-            "description" : "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/CosmicCompleteCNA.GRch38.README.txt",
-            "object" : "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/external/GRCh38.cytoBand.UCSC.chr.sorted.txt"
+            "description" : "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/CosmicCompleteCNA.GRch38.README.txt",
+            "object" : "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/external/GRCh38.cytoBand.UCSC.chr.sorted.txt"
         },
         "thousandG" :{
             "type": "File",
-            "description" : "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/v92/1KGP.CNV.GRCh38.canvas.merged.README.txt",
-            "object" : "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/v92/1KGP.CNV.GRCh38.canvas.merged.bed"
+            "description" : "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/v92/1KGP.CNV.GRCh38.canvas.merged.README.txt",
+            "object" : "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/v92/1KGP.CNV.GRCh38.canvas.merged.bed"
         },
         "cosmicUniqueBed" :{
             "type": "File",
-            "description" : "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/CosmicCompleteCNA.GRch38.README.txt",
-            "object" : "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/v92/CosmicCompleteCNA.GRch38.bed"
+            "description" : "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/CosmicCompleteCNA.GRch38.README.txt",
+            "object" : "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/v92/CosmicCompleteCNA.GRch38.bed"
         },
         "cancerCensusBed" :{
             "type": "File",
-            "description" : "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/cancer_gene_census.GRCh38-v92.README.txt",
-            "object" : "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/cancer_gene_census.GRCh38-v92.bed"
+            "description" : "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/cancer_gene_census.GRCh38-v92.README.txt",
+            "object" : "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/cancer_gene_census.GRCh38-v92.bed"
         },
         "ensemblUniqueBed" :{
             "type": "File",
             "description" : "",
-            "object" : "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/ensembl_genes_unique_sorted.final.v93.chr.sorted.bed"
+            "object" : "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/ensembl_genes_unique_sorted.final.v93.chr.sorted.bed"
         },
 
         "cosmicSigs" :{
             "type": "File",
             "description" : "Mutational Signatures (v3.2 - March 2021) from https://cancer.sanger.ac.uk/signatures/downloads/",
-            "object" : "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/signatures.genome.cosmic.v3.2.march2021.grch38.rda"
+            "object" : "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/signatures.genome.cosmic.v3.2.march2021.grch38.rda"
         },
         "chromLengths": {
             "type": "File",
             "description": "",
-            "object": "gs://nygc-comp-s-82ed-resources/Annotation/GRCh38/chrom_lengths.txt"
+            "object": "gs://nygc-resources-public/Annotation/GRCh38/chrom_lengths.txt"
         },
         "ponTarGz": {
             "type": "File",
             "description": "HG38 GRIDSS PON resources required for somatic call filtering. Downloaded from https://nextcloud.hartwigmedicalfoundation.nl/s/LTiKTd8XxBqwaiC?path=%2FHMFTools-Resources%2FGRIDSS",
-            "object": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/pon.grch38.tar.gz"
+            "object": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/pon.grch38.tar.gz"
         },
         "gridssAdditionalReference": {
             "type": "Array[File]",
@@ -192,7 +192,7 @@
         "bqsrCallRegions": {
             "type": "File",
             "description": "",
-            "object": "gs://nygc-comp-s-82ed-resources/Regions/grch38_autosomes.intervals"
+            "object": "gs://nygc-resources-public/Regions/grch38_autosomes.intervals"
         },
         "hsMetricsIntervals": {
             "type": "File",
@@ -202,79 +202,79 @@
         "kouramiFastaGem3Index": {
             "type": "File",
             "description": "For use with BAMs aligned to any reference gs://nygc-comp-s-fd4e-input/All_FINAL_with_Decoy.fa.info",
-            "object": "gs://nygc-comp-s-82ed-resources/kourami/All_FINAL_with_Decoy.fa.gem"
+            "object": "gs://nygc-resources-public/kourami/All_FINAL_with_Decoy.fa.gem"
         },
         "kouramiFastaGem1Index": {
             "type": "File",
             "description": "For use with BAMs aligned to any reference gs://nygc-comp-s-fd4e-input/All_FINAL_with_Decoy.fa.info",
-            "object": "gs://nygc-comp-s-82ed-resources/kourami/All_FINAL_with_Decoy.v1.gem"
+            "object": "gs://nygc-resources-public/kourami/All_FINAL_with_Decoy.v1.gem"
         },
         "kouramiReference": {
             "type": "BwaReference",
             "description": "For use with BAMs aligned to any reference. https://github.com/Kingsford-Group/kourami/blob/master/scripts/download_panel.sh",
             "object": {
-                "fasta": "gs://nygc-comp-s-82ed-resources/kourami/All_FINAL_with_Decoy.fa.gz",
-                "sa": "gs://nygc-comp-s-82ed-resources/kourami/All_FINAL_with_Decoy.fa.gz.sa",
-                "pac": "gs://nygc-comp-s-82ed-resources/kourami/All_FINAL_with_Decoy.fa.gz.pac",
-                "bwt": "gs://nygc-comp-s-82ed-resources/kourami/All_FINAL_with_Decoy.fa.gz.bwt",
-                "ann": "gs://nygc-comp-s-82ed-resources/kourami/All_FINAL_with_Decoy.fa.gz.ann",
-                "amb": "gs://nygc-comp-s-82ed-resources/kourami/All_FINAL_with_Decoy.fa.gz.amb"
+                "fasta": "gs://nygc-resources-public/kourami/All_FINAL_with_Decoy.fa.gz",
+                "sa": "gs://nygc-resources-public/kourami/All_FINAL_with_Decoy.fa.gz.sa",
+                "pac": "gs://nygc-resources-public/kourami/All_FINAL_with_Decoy.fa.gz.pac",
+                "bwt": "gs://nygc-resources-public/kourami/All_FINAL_with_Decoy.fa.gz.bwt",
+                "ann": "gs://nygc-resources-public/kourami/All_FINAL_with_Decoy.fa.gz.ann",
+                "amb": "gs://nygc-resources-public/kourami/All_FINAL_with_Decoy.fa.gz.amb"
             }
         },
         "mantisBed": {
             "type": "File",
-            "description": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/README_mantis_repeatfinder.md",
-            "object": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/mantis_repeatfinder-hg38.chr.bed"
+            "description": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/README_mantis_repeatfinder.md",
+            "object": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/mantis_repeatfinder-hg38.chr.bed"
         },
         "cosmicCoding": {
             "type": "IndexedVcf",
             "description": "https://cancer.sanger.ac.uk/cosmic/download v92 VCF file of all coding mutations( normalised ) in the current release. The file has the variants 5' shifted as per the VCF standard, and the info part contains the 3' shifted syntaxes for cds and genome, along with the unshifted variants in the OLD_VARIANT field.",
             "object": {
-                "vcf": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/external/v92/CosmicCodingMuts.vcf.gz",
-                "index": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/external/v92/CosmicCodingMuts.vcf.gz.tbi"
+                "vcf": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/external/v92/CosmicCodingMuts.vcf.gz",
+                "index": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/external/v92/CosmicCodingMuts.vcf.gz.tbi"
             }
         },
         "cosmicNoncoding": {
             "type": "IndexedVcf",
             "description": "https://cancer.sanger.ac.uk/cosmic/download v92 VCF file of all non-coding variants( normalised ) in the current release. The file has the variants 5' shifted as per the VCF standard, and the info part contains the 3' shifted syntaxes for cds and genome, along with the unshifted variants in the OLD_VARIANT field.",
             "object": {
-                "vcf": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/external/v92/CosmicNonCodingVariants.normal.vcf.gz",
-                "index": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/external/v92/CosmicNonCodingVariants.normal.vcf.gz.tbi"
+                "vcf": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/external/v92/CosmicNonCodingVariants.normal.vcf.gz",
+                "index": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/external/v92/CosmicNonCodingVariants.normal.vcf.gz.tbi"
             }
         },
         "vepFastaReference": {
             "type": "IndexedReference",
             "description": "ftp://ftp.ensembl.org/pub/release-90/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz",
             "object": {
-                "fasta": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/external/Homo_sapiens.GRCh38.dna.primary_assembly.fa",
+                "fasta": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/external/Homo_sapiens.GRCh38.dna.primary_assembly.fa",
                 "dict": null,
-                "index": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/external/Homo_sapiens.GRCh38.dna.primary_assembly.fa.fai"
+                "index": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/external/Homo_sapiens.GRCh38.dna.primary_assembly.fa.fai"
             }
         },
         "cosmicCensus": {
             "type": "File",
             "description": "https://cancer.sanger.ac.uk/cosmic/download v92 A list of all cancer census genes from the current release in a comma separated table. The census table is exported from http://cancer.sanger.ac.uk/census and the format is the same.",
-            "object": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/external/v92/cancer_gene_census.csv"
+            "object": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/external/v92/cancer_gene_census.csv"
         },
         "cancerResistanceMutations": {
             "type": "File",
             "description": "https://cancer.sanger.ac.uk/cosmic/download v92 A tab separated table listing the details of all mutations in COSMIC which are known to confer drug resistance.",
-            "object": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/external/v92/CosmicResistanceMutations.tsv"
+            "object": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/external/v92/CosmicResistanceMutations.tsv"
         },
         "cosmicActionabilityData": {
             "type": "File",
             "description": "https://cancer.sanger.ac.uk/cosmic/download v93 A tab separated table of Actionability information and a read me file. Please Note: This file is based on GRCh37 assembly.",
-            "object": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/external/v92/ActionabilityData.tsv"
+            "object": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/external/v92/ActionabilityData.tsv"
         },
         "cosmicHallmarks_Of_Cancer": {
             "type": "File",
             "description": "https://cancer.sanger.ac.uk/cosmic/download v92 A tab separated table listing the hallmarks of cancer for a subset of cancer census genes.",
-            "object": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/external/v92/Cancer_Gene_Census_Hallmarks_Of_Cancer.tsv"
+            "object": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/external/v92/Cancer_Gene_Census_Hallmarks_Of_Cancer.tsv"
         },
         "ensemblEntrez": {
             "type": "File",
             "description": "",
-            "object": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/external/homo_sapiens_ensembl_gene_id_entrez_id_map.csv"
+            "object": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/external/homo_sapiens_ensembl_gene_id_entrez_id_map.csv"
         },
         "referenceFa": {
             "type": "IndexedReference",
@@ -290,108 +290,108 @@
             "description": "",
             "object": {
                 "100": {
-                    "chr6": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr6.uniq.txt",
-                    "chr15": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr15.uniq.txt",
-                    "chr1": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr1.uniq.txt",
-                    "chr14": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr14.uniq.txt",
-                    "chr18": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr18.uniq.txt",
-                    "chr19": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr19.uniq.txt",
-                    "chr22": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr22.uniq.txt",
-                    "chr16": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr16.uniq.txt",
-                    "chr10": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr10.uniq.txt",
-                    "chr12": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr12.uniq.txt",
-                    "chr21": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr21.uniq.txt",
-                    "chr13": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr13.uniq.txt",
-                    "chrY": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chrY.uniq.txt",
-                    "chr8": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr8.uniq.txt",
-                    "chr20": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr20.uniq.txt",
-                    "chr3": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr3.uniq.txt",
-                    "chr4": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr4.uniq.txt",
-                    "chr9": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr9.uniq.txt",
-                    "chr7": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr7.uniq.txt",
-                    "chr5": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr5.uniq.txt",
-                    "chrX": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chrX.uniq.txt",
-                    "chr17": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr17.uniq.txt",
-                    "chr11": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr11.uniq.txt",
-                    "chr2": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr2.uniq.txt"
+                    "chr6": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr6.uniq.txt",
+                    "chr15": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr15.uniq.txt",
+                    "chr1": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr1.uniq.txt",
+                    "chr14": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr14.uniq.txt",
+                    "chr18": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr18.uniq.txt",
+                    "chr19": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr19.uniq.txt",
+                    "chr22": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr22.uniq.txt",
+                    "chr16": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr16.uniq.txt",
+                    "chr10": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr10.uniq.txt",
+                    "chr12": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr12.uniq.txt",
+                    "chr21": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr21.uniq.txt",
+                    "chr13": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr13.uniq.txt",
+                    "chrY": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chrY.uniq.txt",
+                    "chr8": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr8.uniq.txt",
+                    "chr20": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr20.uniq.txt",
+                    "chr3": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr3.uniq.txt",
+                    "chr4": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr4.uniq.txt",
+                    "chr9": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr9.uniq.txt",
+                    "chr7": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr7.uniq.txt",
+                    "chr5": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr5.uniq.txt",
+                    "chrX": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chrX.uniq.txt",
+                    "chr17": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr17.uniq.txt",
+                    "chr11": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr11.uniq.txt",
+                    "chr2": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr2.uniq.txt"
                 },
                 "125": {
-                    "chr6": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr6.uniq.txt",
-                    "chr15": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr15.uniq.txt",
-                    "chr1": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr1.uniq.txt",
-                    "chr14": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr14.uniq.txt",
-                    "chr18": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr18.uniq.txt",
-                    "chr19": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr19.uniq.txt",
-                    "chr22": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr22.uniq.txt",
-                    "chr16": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr16.uniq.txt",
-                    "chr10": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr10.uniq.txt",
-                    "chr12": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr12.uniq.txt",
-                    "chr21": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr21.uniq.txt",
-                    "chr13": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr13.uniq.txt",
-                    "chrY": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chrY.uniq.txt",
-                    "chr8": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr8.uniq.txt",
-                    "chr20": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr20.uniq.txt",
-                    "chr3": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr3.uniq.txt",
-                    "chr4": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr4.uniq.txt",
-                    "chr9": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr9.uniq.txt",
-                    "chr7": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr7.uniq.txt",
-                    "chr5": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr5.uniq.txt",
-                    "chrX": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chrX.uniq.txt",
-                    "chr17": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr17.uniq.txt",
-                    "chr11": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr11.uniq.txt",
-                    "chr2": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr2.uniq.txt"
+                    "chr6": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr6.uniq.txt",
+                    "chr15": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr15.uniq.txt",
+                    "chr1": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr1.uniq.txt",
+                    "chr14": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr14.uniq.txt",
+                    "chr18": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr18.uniq.txt",
+                    "chr19": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr19.uniq.txt",
+                    "chr22": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr22.uniq.txt",
+                    "chr16": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr16.uniq.txt",
+                    "chr10": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr10.uniq.txt",
+                    "chr12": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr12.uniq.txt",
+                    "chr21": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr21.uniq.txt",
+                    "chr13": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr13.uniq.txt",
+                    "chrY": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chrY.uniq.txt",
+                    "chr8": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr8.uniq.txt",
+                    "chr20": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr20.uniq.txt",
+                    "chr3": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr3.uniq.txt",
+                    "chr4": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr4.uniq.txt",
+                    "chr9": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr9.uniq.txt",
+                    "chr7": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr7.uniq.txt",
+                    "chr5": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr5.uniq.txt",
+                    "chrX": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chrX.uniq.txt",
+                    "chr17": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr17.uniq.txt",
+                    "chr11": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr11.uniq.txt",
+                    "chr2": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr2.uniq.txt"
                 },
                 "151": {
-                    "chr6": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr6.uniq.txt",
-                    "chr15": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr15.uniq.txt",
-                    "chr1": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr1.uniq.txt",
-                    "chr14": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr14.uniq.txt",
-                    "chr18": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr18.uniq.txt",
-                    "chr19": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr19.uniq.txt",
-                    "chr22": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr22.uniq.txt",
-                    "chr16": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr16.uniq.txt",
-                    "chr10": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr10.uniq.txt",
-                    "chr12": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr12.uniq.txt",
-                    "chr21": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr21.uniq.txt",
-                    "chr13": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr13.uniq.txt",
-                    "chrY": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chrY.uniq.txt",
-                    "chr8": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr8.uniq.txt",
-                    "chr20": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr20.uniq.txt",
-                    "chr3": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr3.uniq.txt",
-                    "chr4": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr4.uniq.txt",
-                    "chr9": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr9.uniq.txt",
-                    "chr7": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr7.uniq.txt",
-                    "chr5": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr5.uniq.txt",
-                    "chrX": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chrX.uniq.txt",
-                    "chr17": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr17.uniq.txt",
-                    "chr11": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr11.uniq.txt",
-                    "chr2": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr2.uniq.txt"
+                    "chr6": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr6.uniq.txt",
+                    "chr15": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr15.uniq.txt",
+                    "chr1": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr1.uniq.txt",
+                    "chr14": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr14.uniq.txt",
+                    "chr18": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr18.uniq.txt",
+                    "chr19": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr19.uniq.txt",
+                    "chr22": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr22.uniq.txt",
+                    "chr16": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr16.uniq.txt",
+                    "chr10": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr10.uniq.txt",
+                    "chr12": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr12.uniq.txt",
+                    "chr21": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr21.uniq.txt",
+                    "chr13": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr13.uniq.txt",
+                    "chrY": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chrY.uniq.txt",
+                    "chr8": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr8.uniq.txt",
+                    "chr20": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr20.uniq.txt",
+                    "chr3": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr3.uniq.txt",
+                    "chr4": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr4.uniq.txt",
+                    "chr9": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr9.uniq.txt",
+                    "chr7": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr7.uniq.txt",
+                    "chr5": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr5.uniq.txt",
+                    "chrX": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chrX.uniq.txt",
+                    "chr17": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr17.uniq.txt",
+                    "chr11": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr11.uniq.txt",
+                    "chr2": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr2.uniq.txt"
                 },
                 "250": {
-                    "chr6": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr6.uniq.txt",
-                    "chr15": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr15.uniq.txt",
-                    "chr1": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr1.uniq.txt",
-                    "chr14": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr14.uniq.txt",
-                    "chr18": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr18.uniq.txt",
-                    "chr19": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr19.uniq.txt",
-                    "chr22": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr22.uniq.txt",
-                    "chr16": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr16.uniq.txt",
-                    "chr10": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr10.uniq.txt",
-                    "chr12": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr12.uniq.txt",
-                    "chr21": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr21.uniq.txt",
-                    "chr13": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr13.uniq.txt",
-                    "chrY": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chrY.uniq.txt",
-                    "chr8": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr8.uniq.txt",
-                    "chr20": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr20.uniq.txt",
-                    "chr3": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr3.uniq.txt",
-                    "chr4": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr4.uniq.txt",
-                    "chr9": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr9.uniq.txt",
-                    "chr7": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr7.uniq.txt",
-                    "chr5": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr5.uniq.txt",
-                    "chrX": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chrX.uniq.txt",
-                    "chr17": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr17.uniq.txt",
-                    "chr11": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr11.uniq.txt",
-                    "chr2": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr2.uniq.txt"
+                    "chr6": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr6.uniq.txt",
+                    "chr15": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr15.uniq.txt",
+                    "chr1": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr1.uniq.txt",
+                    "chr14": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr14.uniq.txt",
+                    "chr18": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr18.uniq.txt",
+                    "chr19": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr19.uniq.txt",
+                    "chr22": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr22.uniq.txt",
+                    "chr16": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr16.uniq.txt",
+                    "chr10": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr10.uniq.txt",
+                    "chr12": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr12.uniq.txt",
+                    "chr21": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr21.uniq.txt",
+                    "chr13": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr13.uniq.txt",
+                    "chrY": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chrY.uniq.txt",
+                    "chr8": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr8.uniq.txt",
+                    "chr20": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr20.uniq.txt",
+                    "chr3": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr3.uniq.txt",
+                    "chr4": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr4.uniq.txt",
+                    "chr9": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr9.uniq.txt",
+                    "chr7": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr7.uniq.txt",
+                    "chr5": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr5.uniq.txt",
+                    "chrX": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chrX.uniq.txt",
+                    "chr17": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr17.uniq.txt",
+                    "chr11": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr11.uniq.txt",
+                    "chr2": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr2.uniq.txt"
                 }
             }
         },
@@ -429,40 +429,40 @@
             "type": "IndexedTable",
             "description": "",
             "object": {
-                "table": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/GRCh38.callregions.bed.gz",
-                "index": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/GRCh38.callregions.bed.gz.tbi"
+                "table": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/GRCh38.callregions.bed.gz",
+                "index": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/GRCh38.callregions.bed.gz.tbi"
             }
         },
         "dbsnp": {
             "type": "IndexedVcf",
             "description": "",
             "object": {
-                "vcf": "gs://nygc-comp-s-82ed-resources/GatkBundle/hg38bundle/Homo_sapiens_assembly38.dbsnp138.vcf",
-                "index": "gs://nygc-comp-s-82ed-resources/GatkBundle/hg38bundle/Homo_sapiens_assembly38.dbsnp138.vcf.idx"
+                "vcf": "gs://nygc-resources-public/GatkBundle/hg38bundle/Homo_sapiens_assembly38.dbsnp138.vcf",
+                "index": "gs://nygc-resources-public/GatkBundle/hg38bundle/Homo_sapiens_assembly38.dbsnp138.vcf.idx"
             }
         },
         "omni": {
             "type": "IndexedVcf",
             "description": "",
             "object": {
-                "vcf": "gs://nygc-comp-s-82ed-resources/GatkBundle/hg38bundle/1000G_omni2.5.hg38.vcf.gz",
-                "index": "gs://nygc-comp-s-82ed-resources/GatkBundle/hg38bundle/1000G_omni2.5.hg38.vcf.gz.tbi"
+                "vcf": "gs://nygc-resources-public/GatkBundle/hg38bundle/1000G_omni2.5.hg38.vcf.gz",
+                "index": "gs://nygc-resources-public/GatkBundle/hg38bundle/1000G_omni2.5.hg38.vcf.gz.tbi"
             }
         },
         "hapmap": {
             "type": "IndexedVcf",
             "description": "",
             "object": {
-                "vcf": "gs://nygc-comp-s-82ed-resources/GatkBundle/hg38bundle/hapmap_3.3.hg38.vcf.gz",
-                "index": "gs://nygc-comp-s-82ed-resources/GatkBundle/hg38bundle/hapmap_3.3.hg38.vcf.gz.tbi"
+                "vcf": "gs://nygc-resources-public/GatkBundle/hg38bundle/hapmap_3.3.hg38.vcf.gz",
+                "index": "gs://nygc-resources-public/GatkBundle/hg38bundle/hapmap_3.3.hg38.vcf.gz.tbi"
             }
         },
         "onekG": {
             "type": "IndexedVcf",
             "description": "",
             "object": {
-                "vcf": "gs://nygc-comp-s-82ed-resources/GatkBundle/hg38bundle/1000G_phase1.snps.high_confidence.hg38.vcf.gz",
-                "index": "gs://nygc-comp-s-82ed-resources/GatkBundle/hg38bundle/1000G_phase1.snps.high_confidence.hg38.vcf.gz.tbi"
+                "vcf": "gs://nygc-resources-public/GatkBundle/hg38bundle/1000G_phase1.snps.high_confidence.hg38.vcf.gz",
+                "index": "gs://nygc-resources-public/GatkBundle/hg38bundle/1000G_phase1.snps.high_confidence.hg38.vcf.gz.tbi"
             }
         },
         "ponExomeFile": {
@@ -479,8 +479,8 @@
             "type": "IndexedVcf",
             "description": "",
             "object": {
-                "vcf": "gs://nygc-comp-s-82ed-resources/gnomAD/gnomad_data/vcf/GRCh38/gnomad-and-ALL_GRCh38_sites.20170504.normalized.modified.PASS.vcf.gz",
-                "index": "gs://nygc-comp-s-82ed-resources/gnomAD/gnomad_data/vcf/GRCh38/gnomad-and-ALL_GRCh38_sites.20170504.normalized.modified.PASS.vcf.gz.tbi"
+                "vcf": "gs://nygc-resources-public/gnomAD/gnomad_data/vcf/GRCh38/gnomad-and-ALL_GRCh38_sites.20170504.normalized.modified.PASS.vcf.gz",
+                "index": "gs://nygc-resources-public/gnomAD/gnomad_data/vcf/GRCh38/gnomad-and-ALL_GRCh38_sites.20170504.normalized.modified.PASS.vcf.gz.tbi"
             }
         },
         "bwaReference": {
@@ -503,34 +503,34 @@
             "type": "IndexedVcf",
             "description": "",
             "object": {
-                "vcf": "gs://nygc-comp-s-82ed-resources/GatkBundle/hg38bundle/Mills_and_1000G_gold_standard.indels.hg38.vcf.gz",
-                "index": "gs://nygc-comp-s-82ed-resources/GatkBundle/hg38bundle/Mills_and_1000G_gold_standard.indels.hg38.vcf.gz.tbi"
+                "vcf": "gs://nygc-resources-public/GatkBundle/hg38bundle/Mills_and_1000G_gold_standard.indels.hg38.vcf.gz",
+                "index": "gs://nygc-resources-public/GatkBundle/hg38bundle/Mills_and_1000G_gold_standard.indels.hg38.vcf.gz.tbi"
             }
         },
         "Indels": {
             "type": "IndexedVcf",
             "description": "",
             "object": {
-                "vcf": "gs://nygc-comp-s-82ed-resources/GatkBundle/hg38bundle/Homo_sapiens_assembly38.known_indels.vcf.gz",
-                "index": "gs://nygc-comp-s-82ed-resources/GatkBundle/hg38bundle/Homo_sapiens_assembly38.known_indels.vcf.gz.tbi"
+                "vcf": "gs://nygc-resources-public/GatkBundle/hg38bundle/Homo_sapiens_assembly38.known_indels.vcf.gz",
+                "index": "gs://nygc-resources-public/GatkBundle/hg38bundle/Homo_sapiens_assembly38.known_indels.vcf.gz.tbi"
             }
         },
         "markerTxtFile": {
             "type": "File",
             "description": "https://git.nygenome.org/compbio-software/kancero/-/blob/master/Conpair/data/markers/GRCh38.autosomes.phase3_shapeit2_mvncall_integrated.20130502.SNV.genotype.sselect_v4_MAF_0.4_LD_0.8.liftover.rna.txt",
-            "object": "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/GRCh38.autosomes.phase3_shapeit2_mvncall_integrated.20130502.SNV.genotype.sselect_v4_MAF_0.4_LD_0.8.liftover.canonical.txt"
+            "object": "gs://nygc-resources-public/GRCh38_tcga/GRCh38.autosomes.phase3_shapeit2_mvncall_integrated.20130502.SNV.genotype.sselect_v4_MAF_0.4_LD_0.8.liftover.canonical.txt"
         },
         "markerBedFile": {
             "type": "File",
             "description": "https://git.nygenome.org/compbio-software/kancero/-/blob/master/Conpair/data/markers/GRCh38.autosomes.phase3_shapeit2_mvncall_integrated.20130502.SNV.genotype.sselect_v4_MAF_0.4_LD_0.8.liftover.rna.bed",
-            "object": "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/GRCh38.autosomes.phase3_shapeit2_mvncall_integrated.20130502.SNV.genotype.sselect_v4_MAF_0.4_LD_0.8.liftover.canonical.bed"
+            "object": "gs://nygc-resources-public/GRCh38_tcga/GRCh38.autosomes.phase3_shapeit2_mvncall_integrated.20130502.SNV.genotype.sselect_v4_MAF_0.4_LD_0.8.liftover.canonical.bed"
         },
         "gnomadBiallelic": {
             "type": "IndexedVcf",
             "description": "",
             "object": {
-                "vcf": "gs://nygc-comp-s-82ed-resources/gnomAD/gnomad_data/vcf/GRCh38/gnomad.genomes.r2.0.2.sites.ALL.liftover.b38.chr_af_pass_biallelic.vcf",
-                "index": "gs://nygc-comp-s-82ed-resources/gnomAD/gnomad_data/vcf/GRCh38/gnomad.genomes.r2.0.2.sites.ALL.liftover.b38.chr_af_pass_biallelic.vcf.idx"
+                "vcf": "gs://nygc-resources-public/gnomAD/gnomad_data/vcf/GRCh38/gnomad.genomes.r2.0.2.sites.ALL.liftover.b38.chr_af_pass_biallelic.vcf",
+                "index": "gs://nygc-resources-public/gnomAD/gnomad_data/vcf/GRCh38/gnomad.genomes.r2.0.2.sites.ALL.liftover.b38.chr_af_pass_biallelic.vcf.idx"
             }
         },
         "randomIntervals": {
@@ -545,8 +545,8 @@
         },
         "dbsnpIndels": {
             "type": "File",
-            "description": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/README_dbsnp_146.indels.md",
-            "object": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/dbsnp_146.indels.hg38.vcf"
+            "description": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/README_dbsnp_146.indels.md",
+            "object": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/dbsnp_146.indels.hg38.vcf"
         },
         "vepGenomeBuild": {
             "type": "String",
@@ -556,17 +556,17 @@
         "vepCache": {
             "type": "File",
             "description": "VEP cache files",
-            "object": "gs://nygc-comp-s-82ed-resources/ensembl_vep/97_GRCh38.tar.gz"
+            "object": "gs://nygc-resources-public/ensembl_vep/97_GRCh38.tar.gz"
         },
         "plugins": {
             "type": "File",
             "description": "VEP plugin",
-            "object": "gs://nygc-comp-s-82ed-resources/ensembl_vep/Plugins.tar.gz"
+            "object": "gs://nygc-resources-public/ensembl_vep/Plugins.tar.gz"
         },
         "annotations": {
             "type": "File",
             "description": "VEP annotations",
-            "object": "gs://nygc-comp-s-82ed-resources/ensembl_vep/annotations.tar.gz"
+            "object": "gs://nygc-resources-public/ensembl_vep/annotations.tar.gz"
         },
         "hgmdGene": {
             "type": "IndexedVcf",
@@ -604,77 +604,77 @@
             "type": "IndexedVcf",
             "description": "congenital heart disease (CHD)  genes. Adult patients with CHD may have an increased incidence of cancer",
             "object": {
-                "vcf": "gs://nygc-comp-s-82ed-resources/annotations/chd_genes.vcf.gz",
-                "index": "gs://nygc-comp-s-82ed-resources/annotations/chd_genes.vcf.gz.tbi"
+                "vcf": "gs://nygc-resources-public/annotations/chd_genes.vcf.gz",
+                "index": "gs://nygc-resources-public/annotations/chd_genes.vcf.gz.tbi"
             }
         },
         "chdEvolvingGenesVcf": {
             "type": "IndexedVcf",
             "description": "congenital heart disease (CHD)  genes. Adult patients with CHD may have an increased incidence of cancer",
             "object": {
-                "vcf": "gs://nygc-comp-s-82ed-resources/annotations/chd_evolving.vcf.gz",
-                "index": "gs://nygc-comp-s-82ed-resources/annotations/chd_evolving.vcf.gz.tbi"
+                "vcf": "gs://nygc-resources-public/annotations/chd_evolving.vcf.gz",
+                "index": "gs://nygc-resources-public/annotations/chd_evolving.vcf.gz.tbi"
             }
         },
         "chdWhitelistVcf": {
             "type": "IndexedVcf",
             "description": "congenital heart disease (CHD)  genes. Adult patients with CHD may have an increased incidence of cancer",
             "object": {
-                "vcf": "gs://nygc-comp-s-82ed-resources/annotations/chd_whitelist.vcf.gz",
-                "index": "gs://nygc-comp-s-82ed-resources/annotations/chd_whitelist.vcf.gz.tbi"
+                "vcf": "gs://nygc-resources-public/annotations/chd_whitelist.vcf.gz",
+                "index": "gs://nygc-resources-public/annotations/chd_whitelist.vcf.gz.tbi"
             }
         },
         "clinvarIntronicsVcf": {
             "type": "IndexedVcf",
             "description": "",
             "object": {
-                "vcf": "gs://nygc-comp-s-82ed-resources/annotations/clinvar_deep_intronics_09012020.vcf.gz",
-                "index": "gs://nygc-comp-s-82ed-resources/annotations/clinvar_deep_intronics_09012020.vcf.gz.tbi"
+                "vcf": "gs://nygc-resources-public/annotations/clinvar_deep_intronics_09012020.vcf.gz",
+                "index": "gs://nygc-resources-public/annotations/clinvar_deep_intronics_09012020.vcf.gz.tbi"
             }
         },
         "deepIntronicsVcf": {
             "type": "IndexedVcf",
             "description": "",
             "object": {
-                "vcf": "gs://nygc-comp-s-82ed-resources/annotations/deep_intronic_whitelist_08132020.vcf.gz",
-                "index": "gs://nygc-comp-s-82ed-resources/annotations/deep_intronic_whitelist_08132020.vcf.gz.tbi"
+                "vcf": "gs://nygc-resources-public/annotations/deep_intronic_whitelist_08132020.vcf.gz",
+                "index": "gs://nygc-resources-public/annotations/deep_intronic_whitelist_08132020.vcf.gz.tbi"
             }
         },
         "masterMind": {
             "type": "masterMind",
             "description": "Annotates any variant with an associated paper",
             "object": {
-                "vcf": "gs://nygc-comp-s-82ed-resources/annotations/mastermind/2021-01-02-hg38/mastermind_cited_variants_reference-2021.01.02-grch38_fixed-contigs.vcf.gz",
-                "index": "gs://nygc-comp-s-82ed-resources/annotations/mastermind/2021-01-02-hg38/mastermind_cited_variants_reference-2021.01.02-grch38_fixed-contigs.vcf.gz.tbi"
+                "vcf": "gs://nygc-resources-public/annotations/mastermind/2021-01-02-hg38/mastermind_cited_variants_reference-2021.01.02-grch38_fixed-contigs.vcf.gz",
+                "index": "gs://nygc-resources-public/annotations/mastermind/2021-01-02-hg38/mastermind_cited_variants_reference-2021.01.02-grch38_fixed-contigs.vcf.gz.tbi"
             }
         },
         "chromBedsWgs": {
             "type": "Map[String, File]",
             "description": "",
             "object": {
-                "chr1": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr1.bed",
-                "chr10": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr10.bed",
-                "chr11": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr11.bed",
-                "chr12": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr12.bed",
-                "chr13": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr13.bed",
-                "chr14": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr14.bed",
-                "chr15": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr15.bed",
-                "chr16": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr16.bed",
-                "chr17": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr17.bed",
-                "chr18": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr18.bed",
-                "chr19": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr19.bed",
-                "chr2": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr2.bed",
-                "chr20": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr20.bed",
-                "chr21": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr21.bed",
-                "chr22": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr22.bed",
-                "chr3": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr3.bed",
-                "chr4": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr4.bed",
-                "chr5": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr5.bed",
-                "chr6": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr6.bed",
-                "chr7": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr7.bed",
-                "chr8": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr8.bed",
-                "chr9": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr9.bed",
-                "chrX": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chrX.bed"
+                "chr1": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr1.bed",
+                "chr10": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr10.bed",
+                "chr11": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr11.bed",
+                "chr12": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr12.bed",
+                "chr13": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr13.bed",
+                "chr14": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr14.bed",
+                "chr15": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr15.bed",
+                "chr16": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr16.bed",
+                "chr17": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr17.bed",
+                "chr18": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr18.bed",
+                "chr19": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr19.bed",
+                "chr2": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr2.bed",
+                "chr20": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr20.bed",
+                "chr21": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr21.bed",
+                "chr22": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr22.bed",
+                "chr3": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr3.bed",
+                "chr4": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr4.bed",
+                "chr5": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr5.bed",
+                "chr6": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr6.bed",
+                "chr7": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr7.bed",
+                "chr8": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr8.bed",
+                "chr9": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr9.bed",
+                "chrX": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chrX.bed"
             }
         }
     },
@@ -682,12 +682,12 @@
         "bicseq2SegConfigFile": {
             "type": "File",
             "description": "",
-            "object": "gs://nygc-comp-s-82ed-resources/SomaticWorkflowMisc/pairId.bicseq2.seg.config"
+            "object": "gs://nygc-resources-public/SomaticWorkflowMisc/pairId.bicseq2.seg.config"
         },
         "bicseq2ConfigFile": {
             "type": "File",
             "description": "",
-            "object": "gs://nygc-comp-s-82ed-resources/SomaticWorkflowMisc/sampleId.bicseq2.config"
+            "object": "gs://nygc-resources-public/SomaticWorkflowMisc/sampleId.bicseq2.config"
         },
         "listOfChroms": {
             "type": "Array[String]+",
@@ -752,108 +752,108 @@
             "type": "IndexedVcf",
             "description": "",
             "object": {
-                "vcf": "gs://nygc-comp-s-82ed-resources/annotations/vep_whitelist_38.20201118.vcf.gz",
-                "index": "gs://nygc-comp-s-82ed-resources/annotations/vep_whitelist_38.20201118.vcf.gz.tbi"
+                "vcf": "gs://nygc-resources-public/annotations/vep_whitelist_38.20201118.vcf.gz",
+                "index": "gs://nygc-resources-public/annotations/vep_whitelist_38.20201118.vcf.gz.tbi"
             }
         },
         "pgx": {
             "type": "IndexedVcf",
             "description": "",
             "object": {
-                "vcf": "gs://nygc-comp-s-82ed-resources/annotations/pgx_vep_hg38.vcf.gz",
-                "index": "gs://nygc-comp-s-82ed-resources/annotations/pgx_vep_hg38.vcf.gz.tbi"
+                "vcf": "gs://nygc-resources-public/annotations/pgx_vep_hg38.vcf.gz",
+                "index": "gs://nygc-resources-public/annotations/pgx_vep_hg38.vcf.gz.tbi"
             }
         },
         "rwgsPgxBed": {
             "type": "IndexedTable",
             "description": "",
             "object": {
-                "table": "gs://nygc-comp-s-82ed-resources/rWGS_PGX/rWGS_PGx.bed.gz",
-                "index": "gs://nygc-comp-s-82ed-resources/rWGS_PGX/rWGS_PGx.bed.gz.tbi"
+                "table": "gs://nygc-resources-public/rWGS_PGX/rWGS_PGx.bed.gz",
+                "index": "gs://nygc-resources-public/rWGS_PGX/rWGS_PGx.bed.gz.tbi"
             }
         },
         "nygcAf": {
             "type": "IndexedVcf",
             "description": "",
             "object": {
-                "vcf": "gs://nygc-comp-s-82ed-resources/annotations/04142020_NYGC_samples.vcf.gz",
-                "index": "gs://nygc-comp-s-82ed-resources/annotations/04142020_NYGC_samples.vcf.gz.tbi"
+                "vcf": "gs://nygc-resources-public/annotations/04142020_NYGC_samples.vcf.gz",
+                "index": "gs://nygc-resources-public/annotations/04142020_NYGC_samples.vcf.gz.tbi"
             }
         },
 
         "excludeIntervalList" : {
             "type": "File",
             "description" : "",
-            "object" : "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/hg38_haplotypeCaller_skip.tcga.interval_list"
+            "object" : "gs://nygc-resources-public/GRCh38_tcga/hg38_haplotypeCaller_skip.tcga.interval_list"
         },
         "scatterIntervalsHcs" : {
             "type": "Array[File]",
             "description" : "50 intervals to divide the genome into for parallel calling",
-            "object" : ["gs://nygc-comp-s-82ed-resources/GRCh38_tcga/scattered.tcga.10.interval_list",
-                "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/scattered.tcga.11.interval_list",
-                "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/scattered.tcga.12.interval_list",
-                "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/scattered.tcga.13.interval_list",
-                "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/scattered.tcga.14.interval_list",
-                "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/scattered.tcga.15.interval_list",
-                "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/scattered.tcga.16.interval_list",
-                "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/scattered.tcga.17.interval_list",
-                "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/scattered.tcga.18.interval_list",
-                "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/scattered.tcga.19.interval_list",
-                "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/scattered.tcga.20.interval_list",
-                "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/scattered.tcga.21.interval_list",
-                "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/scattered.tcga.22.interval_list",
-                "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/scattered.tcga.23.interval_list",
-                "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/scattered.tcga.24.interval_list",
-                "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/scattered.tcga.25.interval_list",
-                "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/scattered.tcga.26.interval_list",
-                "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/scattered.tcga.27.interval_list",
-                "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/scattered.tcga.28.interval_list",
-                "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/scattered.tcga.29.interval_list",
-                "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/scattered.tcga.3.interval_list",
-                "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/scattered.tcga.30.interval_list",
-                "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/scattered.tcga.31.interval_list",
-                "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/scattered.tcga.32.interval_list",
-                "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/scattered.tcga.33.interval_list",
-                "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/scattered.tcga.34.interval_list",
-                "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/scattered.tcga.35.interval_list",
-                "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/scattered.tcga.36.interval_list",
-                "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/scattered.tcga.37.interval_list",
-                "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/scattered.tcga.38.interval_list",
-                "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/scattered.tcga.39.interval_list",
-                "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/scattered.tcga.4.interval_list",
-                "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/scattered.tcga.40.interval_list",
-                "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/scattered.tcga.41.interval_list",
-                "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/scattered.tcga.42.interval_list",
-                "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/scattered.tcga.43.interval_list",
-                "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/scattered.tcga.44.interval_list",
-                "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/scattered.tcga.45.interval_list",
-                "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/scattered.tcga.46.interval_list",
-                "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/scattered.tcga.47.interval_list",
-                "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/scattered.tcga.48.interval_list",
-                "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/scattered.tcga.49.interval_list",
-                "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/scattered.tcga.5.interval_list",
-                "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/scattered.tcga.50.interval_list",
-                "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/scattered.tcga.51.interval_list",
-                "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/scattered.tcga.52.interval_list",
-                "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/scattered.tcga.6.interval_list",
-                "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/scattered.tcga.7.interval_list",
-                "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/scattered.tcga.8.interval_list",
+            "object" : ["gs://nygc-resources-public/GRCh38_tcga/scattered.tcga.10.interval_list",
+                "gs://nygc-resources-public/GRCh38_tcga/scattered.tcga.11.interval_list",
+                "gs://nygc-resources-public/GRCh38_tcga/scattered.tcga.12.interval_list",
+                "gs://nygc-resources-public/GRCh38_tcga/scattered.tcga.13.interval_list",
+                "gs://nygc-resources-public/GRCh38_tcga/scattered.tcga.14.interval_list",
+                "gs://nygc-resources-public/GRCh38_tcga/scattered.tcga.15.interval_list",
+                "gs://nygc-resources-public/GRCh38_tcga/scattered.tcga.16.interval_list",
+                "gs://nygc-resources-public/GRCh38_tcga/scattered.tcga.17.interval_list",
+                "gs://nygc-resources-public/GRCh38_tcga/scattered.tcga.18.interval_list",
+                "gs://nygc-resources-public/GRCh38_tcga/scattered.tcga.19.interval_list",
+                "gs://nygc-resources-public/GRCh38_tcga/scattered.tcga.20.interval_list",
+                "gs://nygc-resources-public/GRCh38_tcga/scattered.tcga.21.interval_list",
+                "gs://nygc-resources-public/GRCh38_tcga/scattered.tcga.22.interval_list",
+                "gs://nygc-resources-public/GRCh38_tcga/scattered.tcga.23.interval_list",
+                "gs://nygc-resources-public/GRCh38_tcga/scattered.tcga.24.interval_list",
+                "gs://nygc-resources-public/GRCh38_tcga/scattered.tcga.25.interval_list",
+                "gs://nygc-resources-public/GRCh38_tcga/scattered.tcga.26.interval_list",
+                "gs://nygc-resources-public/GRCh38_tcga/scattered.tcga.27.interval_list",
+                "gs://nygc-resources-public/GRCh38_tcga/scattered.tcga.28.interval_list",
+                "gs://nygc-resources-public/GRCh38_tcga/scattered.tcga.29.interval_list",
+                "gs://nygc-resources-public/GRCh38_tcga/scattered.tcga.3.interval_list",
+                "gs://nygc-resources-public/GRCh38_tcga/scattered.tcga.30.interval_list",
+                "gs://nygc-resources-public/GRCh38_tcga/scattered.tcga.31.interval_list",
+                "gs://nygc-resources-public/GRCh38_tcga/scattered.tcga.32.interval_list",
+                "gs://nygc-resources-public/GRCh38_tcga/scattered.tcga.33.interval_list",
+                "gs://nygc-resources-public/GRCh38_tcga/scattered.tcga.34.interval_list",
+                "gs://nygc-resources-public/GRCh38_tcga/scattered.tcga.35.interval_list",
+                "gs://nygc-resources-public/GRCh38_tcga/scattered.tcga.36.interval_list",
+                "gs://nygc-resources-public/GRCh38_tcga/scattered.tcga.37.interval_list",
+                "gs://nygc-resources-public/GRCh38_tcga/scattered.tcga.38.interval_list",
+                "gs://nygc-resources-public/GRCh38_tcga/scattered.tcga.39.interval_list",
+                "gs://nygc-resources-public/GRCh38_tcga/scattered.tcga.4.interval_list",
+                "gs://nygc-resources-public/GRCh38_tcga/scattered.tcga.40.interval_list",
+                "gs://nygc-resources-public/GRCh38_tcga/scattered.tcga.41.interval_list",
+                "gs://nygc-resources-public/GRCh38_tcga/scattered.tcga.42.interval_list",
+                "gs://nygc-resources-public/GRCh38_tcga/scattered.tcga.43.interval_list",
+                "gs://nygc-resources-public/GRCh38_tcga/scattered.tcga.44.interval_list",
+                "gs://nygc-resources-public/GRCh38_tcga/scattered.tcga.45.interval_list",
+                "gs://nygc-resources-public/GRCh38_tcga/scattered.tcga.46.interval_list",
+                "gs://nygc-resources-public/GRCh38_tcga/scattered.tcga.47.interval_list",
+                "gs://nygc-resources-public/GRCh38_tcga/scattered.tcga.48.interval_list",
+                "gs://nygc-resources-public/GRCh38_tcga/scattered.tcga.49.interval_list",
+                "gs://nygc-resources-public/GRCh38_tcga/scattered.tcga.5.interval_list",
+                "gs://nygc-resources-public/GRCh38_tcga/scattered.tcga.50.interval_list",
+                "gs://nygc-resources-public/GRCh38_tcga/scattered.tcga.51.interval_list",
+                "gs://nygc-resources-public/GRCh38_tcga/scattered.tcga.52.interval_list",
+                "gs://nygc-resources-public/GRCh38_tcga/scattered.tcga.6.interval_list",
+                "gs://nygc-resources-public/GRCh38_tcga/scattered.tcga.7.interval_list",
+                "gs://nygc-resources-public/GRCh38_tcga/scattered.tcga.8.interval_list",
                 "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/scattered.tcga.9.interval_list"]
         },
         "dgvBedpe" :{
             "type": "File",
-            "description" : "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/DGV.GRCh38_hg38_variants_2020-02-25.README.txt",
-            "object" : "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/DGV.GRCh38_hg38_variants_2020-02-25.bedpe"
+            "description" : "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/DGV.GRCh38_hg38_variants_2020-02-25.README.txt",
+            "object" : "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/DGV.GRCh38_hg38_variants_2020-02-25.bedpe"
         },
         "gap" :{
             "type": "File",
             "description" : "",
-            "object" : "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/GRCh38.gap.UCSC.annotated.chr.sorted.bed"
+            "object" : "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/GRCh38.gap.UCSC.annotated.chr.sorted.bed"
         },
         "thousandGVcf" :{
             "type": "File",
-            "description" : "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/1KGP.pruned_wAFs.PASS_and_MULTIALLELIC_Mosaic.GRCh38.README.txt",
-            "object" : "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/1KGP.pruned_wAFs.PASS_and_MULTIALLELIC_Mosaic.GRCh38.vcf"
+            "description" : "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/1KGP.pruned_wAFs.PASS_and_MULTIALLELIC_Mosaic.GRCh38.README.txt",
+            "object" : "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/1KGP.pruned_wAFs.PASS_and_MULTIALLELIC_Mosaic.GRCh38.vcf"
         },
         "svPon" :{
             "type": "File",
@@ -862,155 +862,155 @@
         },
         "cosmicBedPe" :{
             "type": "File",
-            "description" : "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/cosmic-sv-GRCh38-v92.README.txt",
-            "object" : "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/cosmic-sv-GRCh38-v92.bedpe"
+            "description" : "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/cosmic-sv-GRCh38-v92.README.txt",
+            "object" : "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/cosmic-sv-GRCh38-v92.bedpe"
         },
         "dgv" :{
             "type": "File",
-            "description" : "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/DGV.GRCh38_hg38_variants_2020-02-25.README.txt",
-            "object" : "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/DGV.GRCh38_hg38_variants_2020-02-25.bed"
+            "description" : "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/DGV.GRCh38_hg38_variants_2020-02-25.README.txt",
+            "object" : "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/DGV.GRCh38_hg38_variants_2020-02-25.bed"
         },
         "cytoBand" :{
             "type": "File",
-            "description" : "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/CosmicCompleteCNA.GRch38.README.txt",
-            "object" : "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/external/GRCh38.cytoBand.UCSC.chr.sorted.txt"
+            "description" : "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/CosmicCompleteCNA.GRch38.README.txt",
+            "object" : "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/external/GRCh38.cytoBand.UCSC.chr.sorted.txt"
         },
         "thousandG" :{
             "type": "File",
-            "description" : "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/v92/1KGP.CNV.GRCh38.canvas.merged.README.txt",
-            "object" : "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/v92/1KGP.CNV.GRCh38.canvas.merged.bed"
+            "description" : "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/v92/1KGP.CNV.GRCh38.canvas.merged.README.txt",
+            "object" : "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/v92/1KGP.CNV.GRCh38.canvas.merged.bed"
         },
         "cosmicUniqueBed" :{
             "type": "File",
-            "description" : "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/CosmicCompleteCNA.GRch38.README.txt",
-            "object" : "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/v92/CosmicCompleteCNA.GRch38.bed"
+            "description" : "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/CosmicCompleteCNA.GRch38.README.txt",
+            "object" : "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/v92/CosmicCompleteCNA.GRch38.bed"
         },
         "cancerCensusBed" :{
             "type": "File",
-            "description" : "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/cancer_gene_census.GRCh38-v92.README.txt",
-            "object" : "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/cancer_gene_census.GRCh38-v92.bed"
+            "description" : "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/cancer_gene_census.GRCh38-v92.README.txt",
+            "object" : "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/cancer_gene_census.GRCh38-v92.bed"
         },
         "ensemblUniqueBed" :{
             "type": "File",
             "description" : "",
-            "object" : "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/ensembl_genes_unique_sorted.final.v93.chr.sorted.bed"
+            "object" : "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/ensembl_genes_unique_sorted.final.v93.chr.sorted.bed"
         },
 
         "cosmicSigs" :{
             "type": "File",
             "description" : "Mutational Signatures (v3.2 - March 2021) from https://cancer.sanger.ac.uk/signatures/downloads/",
-            "object" : "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/signatures.genome.cosmic.v3.2.march2021.grch38.rda"
+            "object" : "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/signatures.genome.cosmic.v3.2.march2021.grch38.rda"
         },
         "chromLengths": {
             "type": "File",
             "description": "",
-            "object": "gs://nygc-comp-s-82ed-resources/Annotation/GRCh38/chrom_lengths.txt"
+            "object": "gs://nygc-resources-public/Annotation/GRCh38/chrom_lengths.txt"
         },
         "ponTarGz": {
             "type": "File",
             "description": "HG38 GRIDSS PON resources required for somatic call filtering. Downloaded from https://nextcloud.hartwigmedicalfoundation.nl/s/LTiKTd8XxBqwaiC?path=%2FHMFTools-Resources%2FGRIDSS",
-            "object": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/pon.grch38.tar.gz"
+            "object": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/pon.grch38.tar.gz"
         },
         "gridssAdditionalReference": {
             "type": "Array[File]",
             "description": "",
-            "object": ["gs://nygc-comp-s-82ed-resources/gridss/GRCh38.d1.vd1.fa.img",
+            "object": ["gs://nygc-resources-public/gridss/GRCh38.d1.vd1.fa.img",
             "gs://nygc-comp-s-82ed-resources/gridss/GRCh38.d1.vd1.fa.gridsscache"]
         },
         "bqsrCallRegions": {
             "type": "File",
             "description": "",
-            "object": "gs://nygc-comp-s-82ed-resources/Regions/grch38_autosomes.intervals"
+            "object": "gs://nygc-resources-public/Regions/grch38_autosomes.intervals"
         },
         "hsMetricsIntervals": {
             "type": "File",
             "description": "",
-            "object": "gs://nygc-comp-s-fd4e-resources/window1kb_step10kb.GRCh38.v2.tcga.interval_list"
+            "object": "gs://nygc-resources-public/window1kb_step10kb.GRCh38.v2.tcga.interval_list"
         },
         "kouramiFastaGem3Index": {
             "type": "File",
             "description": "For use with BAMs aligned to any reference gs://nygc-comp-s-fd4e-input/All_FINAL_with_Decoy.fa.info",
-            "object": "gs://nygc-comp-s-82ed-resources/kourami/All_FINAL_with_Decoy.fa.gem"
+            "object": "gs://nygc-resources-public/kourami/All_FINAL_with_Decoy.fa.gem"
         },
         "kouramiFastaGem1Index": {
             "type": "File",
             "description": "For use with BAMs aligned to any reference gs://nygc-comp-s-fd4e-input/All_FINAL_with_Decoy.fa.info",
-            "object": "gs://nygc-comp-s-82ed-resources/kourami/All_FINAL_with_Decoy.v1.gem"
+            "object": "gs://nygc-resources-public/kourami/All_FINAL_with_Decoy.v1.gem"
         },
         "kouramiReference": {
             "type": "BwaReference",
             "description": "For use with BAMs aligned to any reference. https://github.com/Kingsford-Group/kourami/blob/master/scripts/download_panel.sh",
             "object": {
-                "fasta": "gs://nygc-comp-s-82ed-resources/kourami/All_FINAL_with_Decoy.fa.gz",
-                "sa": "gs://nygc-comp-s-82ed-resources/kourami/All_FINAL_with_Decoy.fa.gz.sa",
-                "pac": "gs://nygc-comp-s-82ed-resources/kourami/All_FINAL_with_Decoy.fa.gz.pac",
-                "bwt": "gs://nygc-comp-s-82ed-resources/kourami/All_FINAL_with_Decoy.fa.gz.bwt",
-                "ann": "gs://nygc-comp-s-82ed-resources/kourami/All_FINAL_with_Decoy.fa.gz.ann",
-                "amb": "gs://nygc-comp-s-82ed-resources/kourami/All_FINAL_with_Decoy.fa.gz.amb"
+                "fasta": "gs://nygc-resources-public/kourami/All_FINAL_with_Decoy.fa.gz",
+                "sa": "gs://nygc-resources-public/kourami/All_FINAL_with_Decoy.fa.gz.sa",
+                "pac": "gs://nygc-resources-public/kourami/All_FINAL_with_Decoy.fa.gz.pac",
+                "bwt": "gs://nygc-resources-public/kourami/All_FINAL_with_Decoy.fa.gz.bwt",
+                "ann": "gs://nygc-resources-public/kourami/All_FINAL_with_Decoy.fa.gz.ann",
+                "amb": "gs://nygc-resources-public/kourami/All_FINAL_with_Decoy.fa.gz.amb"
             }
         },
         "mantisBed": {
             "type": "File",
-            "description": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/README_mantis_repeatfinder.md",
-            "object": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/mantis_repeatfinder-hg38.chr.bed"
+            "description": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/README_mantis_repeatfinder.md",
+            "object": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/mantis_repeatfinder-hg38.chr.bed"
         },
         "cosmicCoding": {
             "type": "IndexedVcf",
             "description": "https://cancer.sanger.ac.uk/cosmic/download v92 VCF file of all coding mutations( normalised ) in the current release. The file has the variants 5' shifted as per the VCF standard, and the info part contains the 3' shifted syntaxes for cds and genome, along with the unshifted variants in the OLD_VARIANT field.",
             "object": {
-                "vcf": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/external/v92/CosmicCodingMuts.vcf.gz",
-                "index": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/external/v92/CosmicCodingMuts.vcf.gz.tbi"
+                "vcf": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/external/v92/CosmicCodingMuts.vcf.gz",
+                "index": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/external/v92/CosmicCodingMuts.vcf.gz.tbi"
             }
         },
         "cosmicNoncoding": {
             "type": "IndexedVcf",
             "description": "https://cancer.sanger.ac.uk/cosmic/download v92 VCF file of all non-coding variants( normalised ) in the current release. The file has the variants 5' shifted as per the VCF standard, and the info part contains the 3' shifted syntaxes for cds and genome, along with the unshifted variants in the OLD_VARIANT field.",
             "object": {
-                "vcf": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/external/v92/CosmicNonCodingVariants.normal.vcf.gz",
-                "index": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/external/v92/CosmicNonCodingVariants.normal.vcf.gz.tbi"
+                "vcf": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/external/v92/CosmicNonCodingVariants.normal.vcf.gz",
+                "index": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/external/v92/CosmicNonCodingVariants.normal.vcf.gz.tbi"
             }
         },
         "vepFastaReference": {
             "type": "IndexedReference",
             "description": "ftp://ftp.ensembl.org/pub/release-90/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz",
             "object": {
-                "fasta": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/external/Homo_sapiens.GRCh38.dna.primary_assembly.fa",
+                "fasta": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/external/Homo_sapiens.GRCh38.dna.primary_assembly.fa",
                 "dict": null,
-                "index": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/external/Homo_sapiens.GRCh38.dna.primary_assembly.fa.fai"
+                "index": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/external/Homo_sapiens.GRCh38.dna.primary_assembly.fa.fai"
             }
         },
         "cosmicCensus": {
             "type": "File",
             "description": "https://cancer.sanger.ac.uk/cosmic/download v92 A list of all cancer census genes from the current release in a comma separated table. The census table is exported from http://cancer.sanger.ac.uk/census and the format is the same.",
-            "object": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/external/v92/cancer_gene_census.csv"
+            "object": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/external/v92/cancer_gene_census.csv"
         },
         "cancerResistanceMutations": {
             "type": "File",
             "description": "https://cancer.sanger.ac.uk/cosmic/download v92 A tab separated table listing the details of all mutations in COSMIC which are known to confer drug resistance.",
-            "object": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/external/v92/CosmicResistanceMutations.tsv"
+            "object": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/external/v92/CosmicResistanceMutations.tsv"
         },
         "cosmicActionabilityData": {
             "type": "File",
             "description": "https://cancer.sanger.ac.uk/cosmic/download v93 A tab separated table of Actionability information and a read me file. Please Note: This file is based on GRCh37 assembly.",
-            "object": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/external/v92/ActionabilityData.tsv"
+            "object": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/external/v92/ActionabilityData.tsv"
         },
         "cosmicHallmarks_Of_Cancer": {
             "type": "File",
             "description": "https://cancer.sanger.ac.uk/cosmic/download v92 A tab separated table listing the hallmarks of cancer for a subset of cancer census genes.",
-            "object": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/external/v92/Cancer_Gene_Census_Hallmarks_Of_Cancer.tsv"
+            "object": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/external/v92/Cancer_Gene_Census_Hallmarks_Of_Cancer.tsv"
         },
         "ensemblEntrez": {
             "type": "File",
             "description": "",
-            "object": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/external/homo_sapiens_ensembl_gene_id_entrez_id_map.csv"
+            "object": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/external/homo_sapiens_ensembl_gene_id_entrez_id_map.csv"
         },
         "referenceFa": {
             "type": "IndexedReference",
             "description": "ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/GRCh38_reference_genome/README.20150309.GRCh38_full_analysis_set_plus_decoy_hla",
             "object": {
-                "fasta": "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/GRCh38.d1.vd1.fa",
-                "dict": "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/GRCh38.d1.vd1.dict",
-                "index": "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/GRCh38.d1.vd1.fa.fai"
+                "fasta": "gs://nygc-resources-public/GRCh38_tcga/GRCh38.d1.vd1.fa",
+                "dict": "gs://nygc-resources-public/GRCh38_tcga/GRCh38.d1.vd1.dict",
+                "index": "gs://nygc-resources-public/GRCh38_tcga/GRCh38.d1.vd1.fa.fai"
             }
         },
         "uniqCoords": {
@@ -1018,108 +1018,108 @@
             "description": "",
             "object": {
                 "100": {
-                    "chr6": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr6.uniq.txt",
-                    "chr15": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr15.uniq.txt",
-                    "chr1": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr1.uniq.txt",
-                    "chr14": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr14.uniq.txt",
-                    "chr18": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr18.uniq.txt",
-                    "chr19": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr19.uniq.txt",
-                    "chr22": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr22.uniq.txt",
-                    "chr16": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr16.uniq.txt",
-                    "chr10": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr10.uniq.txt",
-                    "chr12": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr12.uniq.txt",
-                    "chr21": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr21.uniq.txt",
-                    "chr13": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr13.uniq.txt",
-                    "chrY": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chrY.uniq.txt",
-                    "chr8": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr8.uniq.txt",
-                    "chr20": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr20.uniq.txt",
-                    "chr3": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr3.uniq.txt",
-                    "chr4": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr4.uniq.txt",
-                    "chr9": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr9.uniq.txt",
-                    "chr7": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr7.uniq.txt",
-                    "chr5": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr5.uniq.txt",
-                    "chrX": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chrX.uniq.txt",
-                    "chr17": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr17.uniq.txt",
-                    "chr11": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr11.uniq.txt",
-                    "chr2": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr2.uniq.txt"
+                    "chr6": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr6.uniq.txt",
+                    "chr15": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr15.uniq.txt",
+                    "chr1": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr1.uniq.txt",
+                    "chr14": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr14.uniq.txt",
+                    "chr18": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr18.uniq.txt",
+                    "chr19": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr19.uniq.txt",
+                    "chr22": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr22.uniq.txt",
+                    "chr16": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr16.uniq.txt",
+                    "chr10": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr10.uniq.txt",
+                    "chr12": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr12.uniq.txt",
+                    "chr21": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr21.uniq.txt",
+                    "chr13": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr13.uniq.txt",
+                    "chrY": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chrY.uniq.txt",
+                    "chr8": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr8.uniq.txt",
+                    "chr20": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr20.uniq.txt",
+                    "chr3": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr3.uniq.txt",
+                    "chr4": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr4.uniq.txt",
+                    "chr9": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr9.uniq.txt",
+                    "chr7": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr7.uniq.txt",
+                    "chr5": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr5.uniq.txt",
+                    "chrX": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chrX.uniq.txt",
+                    "chr17": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr17.uniq.txt",
+                    "chr11": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr11.uniq.txt",
+                    "chr2": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/100bp/chr2.uniq.txt"
                 },
                 "125": {
-                    "chr6": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr6.uniq.txt",
-                    "chr15": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr15.uniq.txt",
-                    "chr1": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr1.uniq.txt",
-                    "chr14": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr14.uniq.txt",
-                    "chr18": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr18.uniq.txt",
-                    "chr19": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr19.uniq.txt",
-                    "chr22": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr22.uniq.txt",
-                    "chr16": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr16.uniq.txt",
-                    "chr10": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr10.uniq.txt",
-                    "chr12": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr12.uniq.txt",
-                    "chr21": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr21.uniq.txt",
-                    "chr13": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr13.uniq.txt",
-                    "chrY": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chrY.uniq.txt",
-                    "chr8": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr8.uniq.txt",
-                    "chr20": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr20.uniq.txt",
-                    "chr3": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr3.uniq.txt",
-                    "chr4": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr4.uniq.txt",
-                    "chr9": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr9.uniq.txt",
-                    "chr7": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr7.uniq.txt",
-                    "chr5": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr5.uniq.txt",
-                    "chrX": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chrX.uniq.txt",
-                    "chr17": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr17.uniq.txt",
-                    "chr11": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr11.uniq.txt",
-                    "chr2": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr2.uniq.txt"
+                    "chr6": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr6.uniq.txt",
+                    "chr15": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr15.uniq.txt",
+                    "chr1": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr1.uniq.txt",
+                    "chr14": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr14.uniq.txt",
+                    "chr18": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr18.uniq.txt",
+                    "chr19": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr19.uniq.txt",
+                    "chr22": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr22.uniq.txt",
+                    "chr16": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr16.uniq.txt",
+                    "chr10": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr10.uniq.txt",
+                    "chr12": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr12.uniq.txt",
+                    "chr21": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr21.uniq.txt",
+                    "chr13": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr13.uniq.txt",
+                    "chrY": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chrY.uniq.txt",
+                    "chr8": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr8.uniq.txt",
+                    "chr20": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr20.uniq.txt",
+                    "chr3": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr3.uniq.txt",
+                    "chr4": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr4.uniq.txt",
+                    "chr9": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr9.uniq.txt",
+                    "chr7": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr7.uniq.txt",
+                    "chr5": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr5.uniq.txt",
+                    "chrX": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chrX.uniq.txt",
+                    "chr17": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr17.uniq.txt",
+                    "chr11": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr11.uniq.txt",
+                    "chr2": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/125bp/chr2.uniq.txt"
                 },
                 "151": {
-                    "chr6": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr6.uniq.txt",
-                    "chr15": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr15.uniq.txt",
-                    "chr1": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr1.uniq.txt",
-                    "chr14": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr14.uniq.txt",
-                    "chr18": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr18.uniq.txt",
-                    "chr19": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr19.uniq.txt",
-                    "chr22": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr22.uniq.txt",
-                    "chr16": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr16.uniq.txt",
-                    "chr10": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr10.uniq.txt",
-                    "chr12": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr12.uniq.txt",
-                    "chr21": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr21.uniq.txt",
-                    "chr13": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr13.uniq.txt",
-                    "chrY": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chrY.uniq.txt",
-                    "chr8": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr8.uniq.txt",
-                    "chr20": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr20.uniq.txt",
-                    "chr3": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr3.uniq.txt",
-                    "chr4": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr4.uniq.txt",
-                    "chr9": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr9.uniq.txt",
-                    "chr7": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr7.uniq.txt",
-                    "chr5": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr5.uniq.txt",
-                    "chrX": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chrX.uniq.txt",
-                    "chr17": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr17.uniq.txt",
-                    "chr11": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr11.uniq.txt",
-                    "chr2": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr2.uniq.txt"
+                    "chr6": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr6.uniq.txt",
+                    "chr15": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr15.uniq.txt",
+                    "chr1": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr1.uniq.txt",
+                    "chr14": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr14.uniq.txt",
+                    "chr18": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr18.uniq.txt",
+                    "chr19": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr19.uniq.txt",
+                    "chr22": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr22.uniq.txt",
+                    "chr16": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr16.uniq.txt",
+                    "chr10": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr10.uniq.txt",
+                    "chr12": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr12.uniq.txt",
+                    "chr21": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr21.uniq.txt",
+                    "chr13": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr13.uniq.txt",
+                    "chrY": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chrY.uniq.txt",
+                    "chr8": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr8.uniq.txt",
+                    "chr20": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr20.uniq.txt",
+                    "chr3": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr3.uniq.txt",
+                    "chr4": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr4.uniq.txt",
+                    "chr9": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr9.uniq.txt",
+                    "chr7": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr7.uniq.txt",
+                    "chr5": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr5.uniq.txt",
+                    "chrX": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chrX.uniq.txt",
+                    "chr17": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr17.uniq.txt",
+                    "chr11": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr11.uniq.txt",
+                    "chr2": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/151bp/chr2.uniq.txt"
                 },
                 "250": {
-                    "chr6": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr6.uniq.txt",
-                    "chr15": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr15.uniq.txt",
-                    "chr1": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr1.uniq.txt",
-                    "chr14": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr14.uniq.txt",
-                    "chr18": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr18.uniq.txt",
-                    "chr19": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr19.uniq.txt",
-                    "chr22": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr22.uniq.txt",
-                    "chr16": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr16.uniq.txt",
-                    "chr10": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr10.uniq.txt",
-                    "chr12": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr12.uniq.txt",
-                    "chr21": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr21.uniq.txt",
-                    "chr13": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr13.uniq.txt",
-                    "chrY": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chrY.uniq.txt",
-                    "chr8": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr8.uniq.txt",
-                    "chr20": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr20.uniq.txt",
-                    "chr3": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr3.uniq.txt",
-                    "chr4": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr4.uniq.txt",
-                    "chr9": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr9.uniq.txt",
-                    "chr7": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr7.uniq.txt",
-                    "chr5": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr5.uniq.txt",
-                    "chrX": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chrX.uniq.txt",
-                    "chr17": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr17.uniq.txt",
-                    "chr11": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr11.uniq.txt",
-                    "chr2": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr2.uniq.txt"
+                    "chr6": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr6.uniq.txt",
+                    "chr15": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr15.uniq.txt",
+                    "chr1": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr1.uniq.txt",
+                    "chr14": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr14.uniq.txt",
+                    "chr18": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr18.uniq.txt",
+                    "chr19": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr19.uniq.txt",
+                    "chr22": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr22.uniq.txt",
+                    "chr16": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr16.uniq.txt",
+                    "chr10": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr10.uniq.txt",
+                    "chr12": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr12.uniq.txt",
+                    "chr21": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr21.uniq.txt",
+                    "chr13": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr13.uniq.txt",
+                    "chrY": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chrY.uniq.txt",
+                    "chr8": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr8.uniq.txt",
+                    "chr20": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr20.uniq.txt",
+                    "chr3": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr3.uniq.txt",
+                    "chr4": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr4.uniq.txt",
+                    "chr9": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr9.uniq.txt",
+                    "chr7": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr7.uniq.txt",
+                    "chr5": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr5.uniq.txt",
+                    "chrX": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chrX.uniq.txt",
+                    "chr17": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr17.uniq.txt",
+                    "chr11": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr11.uniq.txt",
+                    "chr2": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/250bp/chr2.uniq.txt"
                 }
             }
         },
@@ -1127,70 +1127,70 @@
             "type": "Map[String, File]",
             "description": "",
             "object": {
-                "chr1": "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/GRCh38.d1.vd1_chr1.fasta",
-                "chr10": "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/GRCh38.d1.vd1_chr10.fasta",
-                "chr11": "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/GRCh38.d1.vd1_chr11.fasta",
-                "chr12": "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/GRCh38.d1.vd1_chr12.fasta",
-                "chr13": "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/GRCh38.d1.vd1_chr13.fasta",
-                "chr14": "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/GRCh38.d1.vd1_chr14.fasta",
-                "chr15": "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/GRCh38.d1.vd1_chr15.fasta",
-                "chr16": "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/GRCh38.d1.vd1_chr16.fasta",
-                "chr17": "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/GRCh38.d1.vd1_chr17.fasta",
-                "chr18": "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/GRCh38.d1.vd1_chr18.fasta",
-                "chr19": "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/GRCh38.d1.vd1_chr19.fasta",
-                "chr2": "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/GRCh38.d1.vd1_chr2.fasta",
-                "chr20": "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/GRCh38.d1.vd1_chr20.fasta",
-                "chr21": "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/GRCh38.d1.vd1_chr21.fasta",
-                "chr22": "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/GRCh38.d1.vd1_chr22.fasta",
-                "chr3": "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/GRCh38.d1.vd1_chr3.fasta",
-                "chr4": "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/GRCh38.d1.vd1_chr4.fasta",
-                "chr5": "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/GRCh38.d1.vd1_chr5.fasta",
-                "chr6": "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/GRCh38.d1.vd1_chr6.fasta",
-                "chr7": "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/GRCh38.d1.vd1_chr7.fasta",
-                "chr8": "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/GRCh38.d1.vd1_chr8.fasta",
-                "chr9": "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/GRCh38.d1.vd1_chr9.fasta",
-                "chrX": "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/GRCh38.d1.vd1_chrX.fasta",
-                "chrY": "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/GRCh38.d1.vd1_chrY.fasta"
+                "chr1": "gs://nygc-resources-public/GRCh38_tcga/GRCh38.d1.vd1_chr1.fasta",
+                "chr10": "gs://nygc-resources-public/GRCh38_tcga/GRCh38.d1.vd1_chr10.fasta",
+                "chr11": "gs://nygc-resources-public/GRCh38_tcga/GRCh38.d1.vd1_chr11.fasta",
+                "chr12": "gs://nygc-resources-public/GRCh38_tcga/GRCh38.d1.vd1_chr12.fasta",
+                "chr13": "gs://nygc-resources-public/GRCh38_tcga/GRCh38.d1.vd1_chr13.fasta",
+                "chr14": "gs://nygc-resources-public/GRCh38_tcga/GRCh38.d1.vd1_chr14.fasta",
+                "chr15": "gs://nygc-resources-public/GRCh38_tcga/GRCh38.d1.vd1_chr15.fasta",
+                "chr16": "gs://nygc-resources-public/GRCh38_tcga/GRCh38.d1.vd1_chr16.fasta",
+                "chr17": "gs://nygc-resources-public/GRCh38_tcga/GRCh38.d1.vd1_chr17.fasta",
+                "chr18": "gs://nygc-resources-public/GRCh38_tcga/GRCh38.d1.vd1_chr18.fasta",
+                "chr19": "gs://nygc-resources-public/GRCh38_tcga/GRCh38.d1.vd1_chr19.fasta",
+                "chr2": "gs://nygc-resources-public/GRCh38_tcga/GRCh38.d1.vd1_chr2.fasta",
+                "chr20": "gs://nygc-resources-public/GRCh38_tcga/GRCh38.d1.vd1_chr20.fasta",
+                "chr21": "gs://nygc-resources-public/GRCh38_tcga/GRCh38.d1.vd1_chr21.fasta",
+                "chr22": "gs://nygc-resources-public/GRCh38_tcga/GRCh38.d1.vd1_chr22.fasta",
+                "chr3": "gs://nygc-resources-public/GRCh38_tcga/GRCh38.d1.vd1_chr3.fasta",
+                "chr4": "gs://nygc-resources-public/GRCh38_tcga/GRCh38.d1.vd1_chr4.fasta",
+                "chr5": "gs://nygc-resources-public/GRCh38_tcga/GRCh38.d1.vd1_chr5.fasta",
+                "chr6": "gs://nygc-resources-public/GRCh38_tcga/GRCh38.d1.vd1_chr6.fasta",
+                "chr7": "gs://nygc-resources-public/GRCh38_tcga/GRCh38.d1.vd1_chr7.fasta",
+                "chr8": "gs://nygc-resources-public/GRCh38_tcga/GRCh38.d1.vd1_chr8.fasta",
+                "chr9": "gs://nygc-resources-public/GRCh38_tcga/GRCh38.d1.vd1_chr9.fasta",
+                "chrX": "gs://nygc-resources-public/GRCh38_tcga/GRCh38.d1.vd1_chrX.fasta",
+                "chrY": "gs://nygc-resources-public/GRCh38_tcga/GRCh38.d1.vd1_chrY.fasta"
             }
         },
         "callRegions": {
             "type": "IndexedTable",
             "description": "",
             "object": {
-                "table": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/GRCh38.callregions.bed.gz",
-                "index": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/GRCh38.callregions.bed.gz.tbi"
+                "table": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/GRCh38.callregions.bed.gz",
+                "index": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/GRCh38.callregions.bed.gz.tbi"
             }
         },
         "dbsnp": {
             "type": "IndexedVcf",
             "description": "",
             "object": {
-                "vcf": "gs://nygc-comp-s-82ed-resources/GatkBundle/hg38bundle/Homo_sapiens_assembly38.dbsnp138.vcf",
-                "index": "gs://nygc-comp-s-82ed-resources/GatkBundle/hg38bundle/Homo_sapiens_assembly38.dbsnp138.vcf.idx"
+                "vcf": "gs://nygc-resources-public/GatkBundle/hg38bundle/Homo_sapiens_assembly38.dbsnp138.vcf",
+                "index": "gs://nygc-resources-public/GatkBundle/hg38bundle/Homo_sapiens_assembly38.dbsnp138.vcf.idx"
             }
         },
         "omni": {
             "type": "IndexedVcf",
             "description": "",
             "object": {
-                "vcf": "gs://nygc-comp-s-82ed-resources/GatkBundle/hg38bundle/1000G_omni2.5.hg38.vcf.gz",
-                "index": "gs://nygc-comp-s-82ed-resources/GatkBundle/hg38bundle/1000G_omni2.5.hg38.vcf.gz.tbi"
+                "vcf": "gs://nygc-resources-public/GatkBundle/hg38bundle/1000G_omni2.5.hg38.vcf.gz",
+                "index": "gs://nygc-resources-public/GatkBundle/hg38bundle/1000G_omni2.5.hg38.vcf.gz.tbi"
             }
         },
         "hapmap": {
             "type": "IndexedVcf",
             "description": "",
             "object": {
-                "vcf": "gs://nygc-comp-s-82ed-resources/GatkBundle/hg38bundle/hapmap_3.3.hg38.vcf.gz",
-                "index": "gs://nygc-comp-s-82ed-resources/GatkBundle/hg38bundle/hapmap_3.3.hg38.vcf.gz.tbi"
+                "vcf": "gs://nygc-resources-public/GatkBundle/hg38bundle/hapmap_3.3.hg38.vcf.gz",
+                "index": "gs://nygc-resources-public/GatkBundle/hg38bundle/hapmap_3.3.hg38.vcf.gz.tbi"
             }
         },
         "onekG": {
             "type": "IndexedVcf",
             "description": "",
             "object": {
-                "vcf": "gs://nygc-comp-s-82ed-resources/GatkBundle/hg38bundle/1000G_phase1.snps.high_confidence.hg38.vcf.gz",
-                "index": "gs://nygc-comp-s-82ed-resources/GatkBundle/hg38bundle/1000G_phase1.snps.high_confidence.hg38.vcf.gz.tbi"
+                "vcf": "gs://nygc-resources-public/GatkBundle/hg38bundle/1000G_phase1.snps.high_confidence.hg38.vcf.gz",
+                "index": "gs://nygc-resources-public/GatkBundle/hg38bundle/1000G_phase1.snps.high_confidence.hg38.vcf.gz.tbi"
             }
         },
         "ponExomeFile": {
@@ -1207,22 +1207,22 @@
             "type": "IndexedVcf",
             "description": "",
             "object": {
-                "vcf": "gs://nygc-comp-s-82ed-resources/gnomAD/gnomad_data/vcf/GRCh38/gnomad-and-ALL_GRCh38_sites.20170504.normalized.modified.PASS.vcf.gz",
-                "index": "gs://nygc-comp-s-82ed-resources/gnomAD/gnomad_data/vcf/GRCh38/gnomad-and-ALL_GRCh38_sites.20170504.normalized.modified.PASS.vcf.gz.tbi"
+                "vcf": "gs://nygc-resources-public/gnomAD/gnomad_data/vcf/GRCh38/gnomad-and-ALL_GRCh38_sites.20170504.normalized.modified.PASS.vcf.gz",
+                "index": "gs://nygc-resources-public/gnomAD/gnomad_data/vcf/GRCh38/gnomad-and-ALL_GRCh38_sites.20170504.normalized.modified.PASS.vcf.gz.tbi"
             }
         },
         "bwaReference": {
             "type": "BwaReference",
             "description": "ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/GRCh38_reference_genome/README.20150309.GRCh38_full_analysis_set_plus_decoy_hla",
             "object": {
-                "fasta": "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/GRCh38.d1.vd1.fa",
-                "sa": "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/GRCh38.d1.vd1.fa.sa",
-                "pac": "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/GRCh38.d1.vd1.fa.pac",
-                "bwt": "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/GRCh38.d1.vd1.fa.bwt",
-                "ann": "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/GRCh38.d1.vd1.fa.ann",
-                "amb": "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/GRCh38.d1.vd1.fa.amb",
-                "dict": "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/GRCh38.d1.vd1.dict",
-                "index": "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/GRCh38.d1.vd1.fa.fai"
+                "fasta": "gs://nygc-resources-public/GRCh38_tcga/GRCh38.d1.vd1.fa",
+                "sa": "gs://nygc-resources-public/GRCh38_tcga/GRCh38.d1.vd1.fa.sa",
+                "pac": "gs://nygc-resources-public/GRCh38_tcga/GRCh38.d1.vd1.fa.pac",
+                "bwt": "gs://nygc-resources-public/GRCh38_tcga/GRCh38.d1.vd1.fa.bwt",
+                "ann": "gs://nygc-resources-public/GRCh38_tcga/GRCh38.d1.vd1.fa.ann",
+                "amb": "gs://nygc-resources-public/GRCh38_tcga/GRCh38.d1.vd1.fa.amb",
+                "dict": "gs://nygc-resources-public/GRCh38_tcga/GRCh38.d1.vd1.dict",
+                "index": "gs://nygc-resources-public/GRCh38_tcga/GRCh38.d1.vd1.fa.fai"
 
             }
         },
@@ -1230,40 +1230,40 @@
             "type": "IndexedVcf",
             "description": "",
             "object": {
-                "vcf": "gs://nygc-comp-s-82ed-resources/GatkBundle/hg38bundle/Mills_and_1000G_gold_standard.indels.hg38.vcf.gz",
-                "index": "gs://nygc-comp-s-82ed-resources/GatkBundle/hg38bundle/Mills_and_1000G_gold_standard.indels.hg38.vcf.gz.tbi"
+                "vcf": "gs://nygc-resources-public/GatkBundle/hg38bundle/Mills_and_1000G_gold_standard.indels.hg38.vcf.gz",
+                "index": "gs://nygc-resources-public/GatkBundle/hg38bundle/Mills_and_1000G_gold_standard.indels.hg38.vcf.gz.tbi"
             }
         },
         "Indels": {
             "type": "IndexedVcf",
             "description": "",
             "object": {
-                "vcf": "gs://nygc-comp-s-82ed-resources/GatkBundle/hg38bundle/Homo_sapiens_assembly38.known_indels.vcf.gz",
-                "index": "gs://nygc-comp-s-82ed-resources/GatkBundle/hg38bundle/Homo_sapiens_assembly38.known_indels.vcf.gz.tbi"
+                "vcf": "gs://nygc-resources-public/GatkBundle/hg38bundle/Homo_sapiens_assembly38.known_indels.vcf.gz",
+                "index": "gs://nygc-resources-public/GatkBundle/hg38bundle/Homo_sapiens_assembly38.known_indels.vcf.gz.tbi"
             }
         },
         "markerTxtFile": {
             "type": "File",
             "description": "https://git.nygenome.org/compbio-software/kancero/-/blob/master/Conpair/data/markers/GRCh38.autosomes.phase3_shapeit2_mvncall_integrated.20130502.SNV.genotype.sselect_v4_MAF_0.4_LD_0.8.liftover.rna.txt",
-            "object": "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/GRCh38.autosomes.phase3_shapeit2_mvncall_integrated.20130502.SNV.genotype.sselect_v4_MAF_0.4_LD_0.8.liftover.canonical.txt"
+            "object": "gs://nygc-resources-public/GRCh38_tcga/GRCh38.autosomes.phase3_shapeit2_mvncall_integrated.20130502.SNV.genotype.sselect_v4_MAF_0.4_LD_0.8.liftover.canonical.txt"
         },
         "markerBedFile": {
             "type": "File",
             "description": "https://git.nygenome.org/compbio-software/kancero/-/blob/master/Conpair/data/markers/GRCh38.autosomes.phase3_shapeit2_mvncall_integrated.20130502.SNV.genotype.sselect_v4_MAF_0.4_LD_0.8.liftover.rna.bed",
-            "object": "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/GRCh38.autosomes.phase3_shapeit2_mvncall_integrated.20130502.SNV.genotype.sselect_v4_MAF_0.4_LD_0.8.liftover.canonical.bed"
+            "object": "gs://nygc-resources-public/GRCh38_tcga/GRCh38.autosomes.phase3_shapeit2_mvncall_integrated.20130502.SNV.genotype.sselect_v4_MAF_0.4_LD_0.8.liftover.canonical.bed"
         },
         "gnomadBiallelic": {
             "type": "IndexedVcf",
             "description": "",
             "object": {
-                "vcf": "gs://nygc-comp-s-82ed-resources/gnomAD/gnomad_data/vcf/GRCh38/gnomad.genomes.r2.0.2.sites.ALL.liftover.b38.chr_af_pass_biallelic.vcf",
-                "index": "gs://nygc-comp-s-82ed-resources/gnomAD/gnomad_data/vcf/GRCh38/gnomad.genomes.r2.0.2.sites.ALL.liftover.b38.chr_af_pass_biallelic.vcf.idx"
+                "vcf": "gs://nygc-resources-public/gnomAD/gnomad_data/vcf/GRCh38/gnomad.genomes.r2.0.2.sites.ALL.liftover.b38.chr_af_pass_biallelic.vcf",
+                "index": "gs://nygc-resources-public/gnomAD/gnomad_data/vcf/GRCh38/gnomad.genomes.r2.0.2.sites.ALL.liftover.b38.chr_af_pass_biallelic.vcf.idx"
             }
         },
         "randomIntervals": {
             "type": "File",
             "description": "",
-            "object": "gs://nygc-comp-s-fd4e-resources/GRCh38.autosomes.random.tcga.interval_list"
+            "object": "gs://nygc-resources-public/GRCh38.autosomes.random.tcga.interval_list"
         },
         "bsGenome": {
             "type": "String",
@@ -1272,8 +1272,8 @@
         },
         "dbsnpIndels": {
             "type": "File",
-            "description": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/README_dbsnp_146.indels.md",
-            "object": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/dbsnp_146.indels.hg38.vcf"
+            "description": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/README_dbsnp_146.indels.md",
+            "object": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/dbsnp_146.indels.hg38.vcf"
         },
         "vepGenomeBuild": {
             "type": "String",
@@ -1283,17 +1283,17 @@
         "vepCache": {
             "type": "File",
             "description": "VEP cache files",
-            "object": "gs://nygc-comp-s-82ed-resources/ensembl_vep/97_GRCh38.tar.gz"
+            "object": "gs://nygc-resources-public/ensembl_vep/97_GRCh38.tar.gz"
         },
         "plugins": {
             "type": "File",
             "description": "VEP plugin",
-            "object": "gs://nygc-comp-s-82ed-resources/ensembl_vep/Plugins.tar.gz"
+            "object": "gs://nygc-resources-public/ensembl_vep/Plugins.tar.gz"
         },
         "annotations": {
             "type": "File",
             "description": "VEP annotations",
-            "object": "gs://nygc-comp-s-82ed-resources/ensembl_vep/annotations.tar.gz"
+            "object": "gs://nygc-resources-public/ensembl_vep/annotations.tar.gz"
         },
         "hgmdGene": {
             "type": "IndexedVcf",
@@ -1331,77 +1331,77 @@
             "type": "IndexedVcf",
             "description": "congenital heart disease (CHD)  genes. Adult patients with CHD may have an increased incidence of cancer",
             "object": {
-                "vcf": "gs://nygc-comp-s-82ed-resources/annotations/chd_genes.vcf.gz",
-                "index": "gs://nygc-comp-s-82ed-resources/annotations/chd_genes.vcf.gz.tbi"
+                "vcf": "gs://nygc-resources-public/annotations/chd_genes.vcf.gz",
+                "index": "gs://nygc-resources-public/annotations/chd_genes.vcf.gz.tbi"
             }
         },
         "chdEvolvingGenesVcf": {
             "type": "IndexedVcf",
             "description": "congenital heart disease (CHD)  genes. Adult patients with CHD may have an increased incidence of cancer",
             "object": {
-                "vcf": "gs://nygc-comp-s-82ed-resources/annotations/chd_evolving.vcf.gz",
-                "index": "gs://nygc-comp-s-82ed-resources/annotations/chd_evolving.vcf.gz.tbi"
+                "vcf": "gs://nygc-resources-public/annotations/chd_evolving.vcf.gz",
+                "index": "gs://nygc-resources-public/annotations/chd_evolving.vcf.gz.tbi"
             }
         },
         "chdWhitelistVcf": {
             "type": "IndexedVcf",
             "description": "congenital heart disease (CHD)  genes. Adult patients with CHD may have an increased incidence of cancer",
             "object": {
-                "vcf": "gs://nygc-comp-s-82ed-resources/annotations/chd_whitelist.vcf.gz",
-                "index": "gs://nygc-comp-s-82ed-resources/annotations/chd_whitelist.vcf.gz.tbi"
+                "vcf": "gs://nygc-resources-public/annotations/chd_whitelist.vcf.gz",
+                "index": "gs://nygc-resources-public/annotations/chd_whitelist.vcf.gz.tbi"
             }
         },
         "clinvarIntronicsVcf": {
             "type": "IndexedVcf",
             "description": "",
             "object": {
-                "vcf": "gs://nygc-comp-s-82ed-resources/annotations/clinvar_deep_intronics_09012020.vcf.gz",
-                "index": "gs://nygc-comp-s-82ed-resources/annotations/clinvar_deep_intronics_09012020.vcf.gz.tbi"
+                "vcf": "gs://nygc-resources-public/annotations/clinvar_deep_intronics_09012020.vcf.gz",
+                "index": "gs://nygc-resources-public/annotations/clinvar_deep_intronics_09012020.vcf.gz.tbi"
             }
         },
         "deepIntronicsVcf": {
             "type": "IndexedVcf",
             "description": "",
             "object": {
-                "vcf": "gs://nygc-comp-s-82ed-resources/annotations/deep_intronic_whitelist_08132020.vcf.gz",
-                "index": "gs://nygc-comp-s-82ed-resources/annotations/deep_intronic_whitelist_08132020.vcf.gz.tbi"
+                "vcf": "gs://nygc-resources-public/annotations/deep_intronic_whitelist_08132020.vcf.gz",
+                "index": "gs://nygc-resources-public/annotations/deep_intronic_whitelist_08132020.vcf.gz.tbi"
             }
         },
         "masterMind": {
             "type": "masterMind",
             "description": "Annotates any variant with an associated paper",
             "object": {
-                "vcf": "gs://nygc-comp-s-82ed-resources/annotations/mastermind/2021-01-02-hg38/mastermind_cited_variants_reference-2021.01.02-grch38_fixed-contigs.vcf.gz",
-                "index": "gs://nygc-comp-s-82ed-resources/annotations/mastermind/2021-01-02-hg38/mastermind_cited_variants_reference-2021.01.02-grch38_fixed-contigs.vcf.gz.tbi"
+                "vcf": "gs://nygc-resources-public/annotations/mastermind/2021-01-02-hg38/mastermind_cited_variants_reference-2021.01.02-grch38_fixed-contigs.vcf.gz",
+                "index": "gs://nygc-resources-public/annotations/mastermind/2021-01-02-hg38/mastermind_cited_variants_reference-2021.01.02-grch38_fixed-contigs.vcf.gz.tbi"
             }
         },
         "chromBedsWgs": {
             "type": "Map[String, File]",
             "description": "",
             "object": {
-                "chr1": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr1.bed",
-                "chr10": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr10.bed",
-                "chr11": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr11.bed",
-                "chr12": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr12.bed",
-                "chr13": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr13.bed",
-                "chr14": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr14.bed",
-                "chr15": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr15.bed",
-                "chr16": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr16.bed",
-                "chr17": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr17.bed",
-                "chr18": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr18.bed",
-                "chr19": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr19.bed",
-                "chr2": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr2.bed",
-                "chr20": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr20.bed",
-                "chr21": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr21.bed",
-                "chr22": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr22.bed",
-                "chr3": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr3.bed",
-                "chr4": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr4.bed",
-                "chr5": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr5.bed",
-                "chr6": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr6.bed",
-                "chr7": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr7.bed",
-                "chr8": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr8.bed",
-                "chr9": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr9.bed",
-                "chrX": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chrX.bed"
+                "chr1": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr1.bed",
+                "chr10": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr10.bed",
+                "chr11": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr11.bed",
+                "chr12": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr12.bed",
+                "chr13": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr13.bed",
+                "chr14": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr14.bed",
+                "chr15": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr15.bed",
+                "chr16": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr16.bed",
+                "chr17": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr17.bed",
+                "chr18": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr18.bed",
+                "chr19": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr19.bed",
+                "chr2": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr2.bed",
+                "chr20": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr20.bed",
+                "chr21": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr21.bed",
+                "chr22": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr22.bed",
+                "chr3": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr3.bed",
+                "chr4": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr4.bed",
+                "chr5": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr5.bed",
+                "chr6": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr6.bed",
+                "chr7": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr7.bed",
+                "chr8": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr8.bed",
+                "chr9": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr9.bed",
+                "chrX": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chrX.bed"
             }
         }
     }
