@@ -11,6 +11,8 @@ workflow Preprocess {
     #   and
     #   merge lane level BAMs
     input {
+        Boolean external = false
+        
         Array[Fastqs] listOfFastqPairs
         Boolean trim = true
         BwaReference bwaReference
@@ -49,6 +51,7 @@ workflow Preprocess {
 
     call mergeBams.MergeBams {
         input:
+            external = external,
             laneFixmateBams = AlignFastq.laneFixmateBam,
             sample_bam_sizes = AlignFastq.laneFixmateBamSizes,
             sampleId = sampleId,

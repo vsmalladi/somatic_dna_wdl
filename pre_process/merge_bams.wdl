@@ -2,6 +2,46 @@ version 1.0
 
 import "../wdl_structs.wdl"
 
+task NovosortMarkDupExternal {
+   input {
+       # command
+       Array[File]+ laneBams
+       String sampleId
+       String mergedDedupBamPath = "~{sampleId}.merged_dedup.bam"
+       # resources
+       Int mem = 20
+       # without a license in the docker image novosort should run with one thread
+       Int threads = 1
+       Int diskSize
+   }
+
+    command {
+        /bin/novosort \
+        -m 9216M \
+        -i \
+        -o ~{mergedDedupBamPath} \
+        --forcesort \
+        --markDuplicates \
+        ${sep=' ' laneBams}
+    }
+
+    output {
+        Bam mergedDedupBam = object {
+            bam : mergedDedupBamPath,
+            bamIndex : mergedDedupBamPath + ".bai"
+        }
+    }
+
+    runtime {
+        cpu : threads
+        memory : mem + " GB"
+        docker :  "gcr.io/nygc-public/novosort@sha256:acc029023227b996b0f0fb7074070de3a36f00293237273f7862ba523cdae5c9"
+        # Per clinical team novosort runs significantly faster with SSD
+        disks: "local-disk " + diskSize + " LOCAL"
+    }
+}
+
+
 task NovosortMarkDup {
    input {
        # command

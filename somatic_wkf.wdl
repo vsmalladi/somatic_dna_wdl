@@ -75,6 +75,8 @@ task GetIndex {
 
 workflow SomaticDNA {
     input {
+        Boolean external = false
+        
         BwaReference bwaReference
         IndexedReference referenceFa
         File adaptersFa
@@ -221,6 +223,7 @@ workflow SomaticDNA {
     scatter (sampleInfoObj in sampleInfos) {
         call preProcess.Preprocess {
             input:
+                external = external,
                 listOfFastqPairs = sampleInfoObj.listOfFastqPairs,
                 trim = trim,
                 adaptersFa = adaptersFa,

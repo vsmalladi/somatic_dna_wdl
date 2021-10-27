@@ -8,6 +8,7 @@ workflow MergeBams {
     # command
     #     merge lane level BAMs
     input {
+        Boolean external = false
         #    command merge flowcell
         Array[File] laneFixmateBams
         Array[Int] sample_bam_sizes
@@ -34,22 +35,39 @@ workflow MergeBams {
 
     Int diskSize = ceil(SumFloats.total_size * 2) 
 
-    call mergeBams.NovosortMarkDup as novosort {
-        input:
-            laneBams = laneFixmateBams,
-            sampleId = sampleId,
-            mem = 20,
-            threads = threads,
-            # novosort uses a lot of memory and a lot of disk.
-            diskSize = ceil((SumFloats.total_size * 3))
+    if (!external) { 
+        call mergeBams.NovosortMarkDup as novosort {
+            input:
+                laneBams = laneFixmateBams,
+                sampleId = sampleId,
+                mem = 20,
+                threads = threads,
+                # novosort uses a lot of memory and a lot of disk.
+                diskSize = ceil((SumFloats.total_size * 3))
+        }
     }
+    
+    if (external) { 
+        call mergeBams.NovosortMarkDupExternal as novosortExternal {
+            input:
+                laneBams = laneFixmateBams,
+                sampleId = sampleId,
+                mem = 20,
+                threads = 1,
+                # novosort uses a lot of memory and a lot of disk.
+                diskSize = ceil((SumFloats.total_size * 3))
+        }
+    }
+    
+    Bam mergedDedupBam = select_first([novosort.mergedDedupBam, novosortExternal.mergedDedupBam])
+    
 
     # This task runs in parallel with Bqsr38. We are missing coverage check
     # tasks. The idea is that we check coverage and if it's lower than expected
     # coverage, the check task fails thereby stopping the workflow.
     call qc.CollectWgsMetrics {
         input:
-            inputBam = novosort.mergedDedupBam,
+            inputBam = mergedDedupBam,
             sampleId = sampleId,
             outputDir = qcDir,
             collectWgsMetricsPath = "~{qcDir}/~{sampleId}.CollectWgsMetrics.dedup.txt",
@@ -61,7 +79,7 @@ workflow MergeBams {
     call qc.MultipleMetricsPreBqsr {
         input:
             referenceFa = referenceFa,
-            mergedDedupBam = novosort.mergedDedupBam,
+            mergedDedupBam = mergedDedupBam,
             outputDir = qcDir,
             sampleId = sampleId,
             diskSize = diskSize
@@ -69,7 +87,7 @@ workflow MergeBams {
 
     call mergeBams.Downsample {
         input:
-            mergedDedupBam = novosort.mergedDedupBam,
+            mergedDedupBam = mergedDedupBam,
             sampleId = sampleId,
             diskSize = diskSize
     }
@@ -88,7 +106,7 @@ workflow MergeBams {
     call mergeBams.PrintReads {
         input:
             referenceFa = referenceFa,
-            mergedDedupBam = novosort.mergedDedupBam,
+            mergedDedupBam = mergedDedupBam,
             recalGrp = Bqsr38.recalGrp,
             sampleId = sampleId,
             diskSize = ceil((SumFloats.total_size * 3))
