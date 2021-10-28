@@ -5,7 +5,6 @@
 #               --project PROJECT 
 #               [--library {WGS,Exome}]
 #               [--genome {Human_GRCh38_full_analysis_set_plus_decoy_hla, Human_GRCh38_tcga}]
-#               [--read-length READ_LENGTH]
 #               [--pairs-file PAIRS_FILE]
 #               [--samples-file SAMPLES_FILE]
 #               [--interval-list {SureSelect_V6plusCOSMIC.target.GRCh38_full_analysis_set_plus_decoy_hla}]
@@ -39,7 +38,6 @@ help_top="run.sh [-h] --options OPTIONS --wdl-file WDL_FILE
                --project PROJECT 
                [--library {WGS,Exome}]
                [--genome {Human_GRCh38_full_analysis_set_plus_decoy_hla, Human_GRCh38_tcga}]
-               [--read-length READ_LENGTH]
                [--pairs-file PAIRS_FILE]
                [--samples-file SAMPLES_FILE]
                [--interval-list {SureSelect_V6plusCOSMIC.target.GRCh38_full_analysis_set_plus_decoy_hla}]
@@ -60,14 +58,14 @@ help_long="-h, --help            show this help message and exit
   --genome {Human_GRCh38_full_analysis_set_plus_decoy_hla, Human_GRCh38_tcga}
                         Genome key to use for pipeline.
   --project PROJECT     Project name associated with account.
-  --read-length READ_LENGTH     Required only for steps like BiqSeq2 that 
-                        use read_length as input.
   --pairs-file PAIRS_FILE
                         CSV file with items that are required to have
-                        \"tumor\", \"normal\" and \"pair_id\" in the columns.
+                        \"tumor\", \"normal\" and \"pairId\" in the columns.
+                        Optionally, include \"tumorBam\", \"normalBam\" columns to create 
+                        \"pairInfos\" and \"normalSampleBamInfos\" automatically.
   --samples-file [SAMPLES_FILE]
                         Not generally required. If tasks only require
-                        sample_id and do not use pairing information sample
+                        sampleId and do not use pairing information sample
                         info can be populated with a CSV file. The CSV file
                         requires a columns named [\"sampleId\"].
   --interval-list {SureSelect_V6plusCOSMIC.target.GRCh38_full_analysis_set_plus_decoy_hla}
@@ -85,7 +83,7 @@ help_long="-h, --help            show this help message and exit
                         directory or workflow default.
   --skip-validate       Skip the step where input files are validated.
                         Otherwise all gs//: URIs will be checked to see that a
-                        file exists. Disable with caution.Cromwell will launch
+                        file exists. Disable with caution. Cromwell will launch
                         instances and run without checking. Test a small pairs
                         file to ensure all references exist and at least some
                         sample input files can be read by the current user.
@@ -98,6 +96,17 @@ print_help() {
     echo "Script requires jq, cromwell-tools, gcloud to be in the path."
     echo "Script shows submission command and command to check status"
     echo "in the STDERR stream."
+  
+    echo 'Creation of input JSON:'  
+    echo 'The WDL is used to determine which variables are required. '
+    echo  'Required or optional variables are defined from custom inputs JSON. '
+    echo  'Any required variable not defined in the custom inputs JSON will be defined from the '
+    echo  'reference JSONs in the config directory (as long as the variable names are identical).'
+    echo  'The pairing/sample info CSVs (--pairs-file/--samples-file) are used to create pairRelationships and '
+    echo  '(if columns named tumorBam and normalBam exist) map BAMs to pairs. '
+    echo  'If "production" or "external" inputs are true then validation of NYGC internal-only files is skipped '
+    echo  'The pipelines are written to skip tasks that localize these files if "production" or "external" are true '
+    echo  'so any inability to read these files will not negatively affect the run.'
     echo "${help_long}"
     exit 1
 }
@@ -131,11 +140,6 @@ for arg in "$@"; do
         ;;
         -n|--project)
         project_id="$2"
-        shift # Remove argument name from processing
-        shift # Remove argument value from processing
-        ;;
-        -r|--read-length)
-        read_length="$2"
         shift # Remove argument name from processing
         shift # Remove argument value from processing
         ;;
@@ -225,10 +229,6 @@ meta_command="python ${script_dir}/tools/meta.py \
     --genome ${genome} \
     --wdl-file ${workflow} \
     --options ${options}"
-if [ ! -z "$read_length" ]; then
-    meta_command="${meta_command} \
-    --read-length ${read_length}"
-fi
 if [ ! -z "$custom_inputs" ]; then
     meta_command="${meta_command} \
     --custom-inputs ${custom_inputs}"

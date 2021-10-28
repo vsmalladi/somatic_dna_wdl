@@ -9,20 +9,22 @@ class Bicseq2Prep():
     portion of the config files.
     Also returns the Bicseq2 WDL input variables that will be required for the run.'''
     def __init__(self, list_of_chroms_full,
+                 inputs,
                  uniq_coords,
                  read_length,
-                 upload_bucket
+                 upload_bucket,
+                 create_config=True
                  ):
         self.list_of_chroms_full = list_of_chroms_full['object']
-        self.upload_bucket_uri = upload_bucket
         self.read_length = self.match_read_length(uniq_coords, read_length)
         self.uniq_coords = uniq_coords['object'][self.read_length]
-        self.inputs = {}
-        self.inputs['coordReadLength'] = self.read_length
-        self.inputs['readLength'] = read_length
-        self.credentials, self.gcp_project = make_auth.login()
-        self.write_sample_configs()
-        self.write_pair_config()
+        self.inputs = inputs
+        self.inputs['coordReadLength']['object'] = self.read_length
+        if create_config:
+            self.upload_bucket_uri = upload_bucket
+            self.credentials, self.gcp_project = make_auth.login()
+            self.write_sample_configs()
+            self.write_pair_config()
         
     def write_sample_configs(self):
         '''create and upload configs for the normalization steps'''
