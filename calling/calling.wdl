@@ -713,7 +713,7 @@ task GridssPreprocess {
         disks: "local-disk " + diskSize + " LOCAL"
         cpu : threads
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/gridss:2.11.1-2"
+        docker : "gcr.io/nygc-public/gridss:2.11.1-3"
     }
 }
 
@@ -788,7 +788,7 @@ task GridssAssembleChunk {
         disks: "local-disk " + diskSize + " LOCAL"
         cpu : threads
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/gridss:2.11.1-2"
+        docker : "gcr.io/nygc-public/gridss:2.11.1-3"
     }
 }
 
@@ -871,7 +871,7 @@ task GridssAssemble {
         disks: "local-disk " + diskSize + " LOCAL"
         cpu : threads
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/gridss:2.11.1-2"
+        docker : "gcr.io/nygc-public/gridss:2.11.1-3"
     }
 }
 
@@ -964,7 +964,7 @@ task GridssCalling {
         disks: "local-disk " + diskSize + " LOCAL"
         cpu : threads
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/gridss:2.11.1-2"
+        docker : "gcr.io/nygc-public/gridss:2.11.1-3"
     }
 }
 
@@ -1011,6 +1011,6 @@ task GridssFilter {
         disks: "local-disk " + diskSize + " HDD"
         cpu : threads
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/gridss:2.11.1-2"
+        docker : "gcr.io/nygc-public/gridss:2.11.1-3"
     }
 }
