@@ -195,21 +195,23 @@ Command
 
 ```
 # Create input json
-./wdl_port/run.sh \
+cd ${working-dir}
+
+../wdl_port/run.sh \
 --log-dir ${working-dir} \
 --url ${url} \
 --project ${lab_quote_number} \
 --pairs-file ${tumor_normal_pairs_csv} \
 --library WGS \
 --genome Human_GRCh38_full_analysis_set_plus_decoy_hla \
---wdl-file wdl_port/calling_wkf.wdl \
+--wdl-file wdl_port/somatic_wkf.wdl \
 --options options.json
 ```
 
 
 #### Output:
 
-  1. `calling_wkfInput.json` - inputs for cromwell
+  1. `somatic_wkfInput.json` - inputs for cromwell
   2. `${lab_quote_number}_projectInfo.json` - contains project info like the current list of samples/pairs and the library type as well as the pipeline version (tag and commit). 
   3. `${lab_quote_number}_project.<DATE>.RunInfo.json` - contains projectInfo, workflow Input, workflow UUID.
 
@@ -230,7 +232,9 @@ cromwell-tools status \
 After workflow finishes and the status is `SUCCEEDED` run:
 
 ```
-bash wdl_port/run_post.sh \
+cd ${working-dir}
+
+bash ../wdl_port/run_post.sh \
 -u ${url} \
 -d ${log_dir} \
 -p ${project_id}

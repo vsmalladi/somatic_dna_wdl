@@ -447,7 +447,7 @@ class CloudOutput():
                                     stdout=subprocess.PIPE).stdout.decode('utf-8')
         except subprocess.CalledProcessError as err:
             log.warning(err.output.decode('utf-8'))
-            log.warning('Failed to read URI: ' + self.out_dir)
+            log.warning('Failed to run: ' + ' '.join([str(a) for a in args]))
             return []
         return [file for file in result.split('\n') if not file == '']
                     

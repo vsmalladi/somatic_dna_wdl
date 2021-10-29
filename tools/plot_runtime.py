@@ -85,7 +85,7 @@ class PlotRuntime():
                                       hover_data=['id'],
                                       color_discrete_sequence=self.colors_set2,
                                       title='Tasks: resource usage summary plot',
-                                      labels={'sample_task_run_time_h' : 'Max Task runtime(h)',
+                                      labels={'sample_task_run_time_h' : 'Task runtime(h)',
                                               'max_mem_g' : 'Mem (G)',
                                               'sample_task_core_h' : 'Task core hours',
                                               'workflow_name' : 'Sub-workflow',
@@ -101,7 +101,7 @@ class PlotRuntime():
                                        color="workflow_name",
                                        hover_data=['id'],
                                        color_discrete_sequence=self.colors_set1,
-                                       labels={'sample_subworkflow_run_time_h' : 'Max sub-workflow runtime(h)',
+                                       labels={'sample_subworkflow_run_time_h' : 'sub-workflow runtime(h)',
                                               'subworkflow_max_mem_g' : 'Mem (G)',
                                               'sample_subworkflow_core_h' : 'Sub-workflow core hours',
                                               'workflow_name' : 'Sub-workflow',
@@ -118,7 +118,7 @@ class PlotRuntime():
                                        color="id",
                                        hover_data=['id'],
                                        color_discrete_sequence=self.colors,
-                                       labels={'sample_workflow_run_time_h' : 'Max workflow runtime(h)',
+                                       labels={'sample_workflow_run_time_h' : 'workflow runtime(h)',
                                               'workflow_max_mem_g' : 'Mem (G)',
                                               'sample_workflow_core_h' : 'Workflow core hours',
                                               'workflow_name' : 'Sub-workflow',
@@ -138,7 +138,7 @@ class PlotRuntime():
                                                               labels={'disk_used_gb' : 'Disk used (G)',
                                                                       'disk_total_gb' : 'Available disk (G)',
                                                                       'mem_total_gb' : 'Available mem (G)',
-                                                                      'sample_task_run_time_h' : 'Max Task runtime(h)',
+                                                                      'sample_task_run_time_h' : 'Task runtime(h)',
                                                                       'max_mem_g' : 'Mem (G)',
                                                                       'sample_task_core_h' : 'Task core hours',
                                                                       'workflow_name' : 'Sub-workflow',
@@ -173,8 +173,8 @@ class PlotRuntime():
         self.preemptible_percent = self.metadata[self.metadata.preemptible].shape[0] / float(self.metadata.shape[0])
         # disk type
         self.metadata['disk_type']= self.metadata.apply(lambda row: row.disk_types.replace('[\'', '').replace('\']', ''), axis=1)
-        self.disk_type = self.metadata.groupby(['id', 'disk_type']).sample_task_run_time_h.sum().reset_index()
-        self.disk_type.columns = ['Id', 'Disk type', 'Wall clock (h)']
+        self.disk_type = self.metadata.groupby(['task_call_name', 'id', 'instance_name', 'disk_type']).sample_task_run_time_h.sum().reset_index()
+        self.disk_type.columns = ['Task', 'Id', 'Instance name', 'Disk type', 'Wall clock (h)']
         
     def add_button(self, fig):
         fig.update_layout(updatemenus=[{'type' : 'buttons',
@@ -210,7 +210,7 @@ class PlotRuntime():
     def plot_summary(self):
         fig = px.box(self.disk_type, x='Disk type', y='Wall clock (h)', points="all",
                           color_discrete_sequence=self.colors_set2,
-                          color='Id',
+                          color='Task',
                           height=300)
         for trace in fig.data:
             trace['showlegend'] = True
