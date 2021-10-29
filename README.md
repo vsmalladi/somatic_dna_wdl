@@ -355,6 +355,23 @@ We are in the process of setting up a public issue tracker. In the mean time  pl
 # Release Notes
 <a name="release_notes"></a>
 
+[7.3.3] Refactor:
+
+    - switch from tags to sha has for docker images
+    - make bicseq2 config files reference files
+    - begin pipeline output docs
+    - switch to merge specific preMergedPairVcfInfo object for merge
+    - add environment.yml
+    - get rc file for more complete uuid list (for any not listed in subworkflow final output)
+    - added SNV/INDEL only pipeline
+    - added SNV/INDEL, SV and CNV only pipeline
+    - added 'external' boolean to skip internal files
+    - switch to public docker images
+    - switch to public reference files
+    - add input examples and example commands in docs
+    - remove --read-length flag and replace with reading from input json
+    - remove all private files from input JSON
+
 [7.3.2](https://bitbucket.nygenome.org/rest/api/latest/projects/COMPBIO/repos/wdl_port/archive?at=refs%2Ftags%2F7.3.2&format=zip) Refactor:
 
     - adjust mem and disk size
