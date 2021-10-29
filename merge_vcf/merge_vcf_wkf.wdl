@@ -11,6 +11,7 @@ workflow MergeVcf {
     #   merge and filter raw VCFs
     #   annotate
     input {
+        Boolean external = false
         PreMergedPairVcfInfo preMergedPairVcfInfo
         IndexedReference referenceFa
         Array[String]+ listOfChroms
@@ -89,6 +90,7 @@ workflow MergeVcf {
     
     call mergeCallers.MergeCallers {
         input:
+            external=external,
             tumor=preMergedPairVcfInfo.tumor,
             normal=preMergedPairVcfInfo.normal,
             pairName=preMergedPairVcfInfo.pairId,

@@ -78,6 +78,7 @@ workflow SomaticBamWorkflow {
         BwaReference bwaReference
         IndexedReference referenceFa
         
+        Boolean external = false
         Boolean production = true
 
         Array[pairInfo]+ pairInfos
@@ -459,6 +460,7 @@ workflow SomaticBamWorkflow {
         if (library == 'WGS') {
             call mergeVcf.MergeVcf as wgsMergeVcf {
                 input:
+                    external = external,
                     preMergedPairVcfInfo = preMergedPairVcfInfo,
                     referenceFa = referenceFa,
                     listOfChroms = listOfChroms,
@@ -472,6 +474,7 @@ workflow SomaticBamWorkflow {
         if (library == 'Exome') {
             call mergeVcf.MergeVcf as exomeMergeVcf {
                 input:
+                    external = external,
                     preMergedPairVcfInfo = preMergedPairVcfInfo,
                     referenceFa = referenceFa,
                     listOfChroms = listOfChroms,

@@ -25,6 +25,7 @@ workflow MergeVcf {
     #   merge and filter raw VCFs
     #   annotate
     input {
+        Boolean external = false
         Array[PreMergedPairVcfInfo]+ preMergedPairVcfInfos
         
         IndexedReference referenceFa
@@ -44,6 +45,7 @@ workflow MergeVcf {
         if (library == 'WGS') {
             call mergeVcf.MergeVcf as wgsMergeVcf {
                 input:
+                    external = external,
                     preMergedPairVcfInfo = preMergedPairVcfInfo,
                     referenceFa = referenceFa,
                     listOfChroms = listOfChroms,
@@ -56,6 +58,7 @@ workflow MergeVcf {
         if (library == 'Exome') {
             call mergeVcf.MergeVcf as exomeMergeVcf {
                 input:
+                    external = external,
                     preMergedPairVcfInfo = preMergedPairVcfInfo,
                     referenceFa = referenceFa,
                     listOfChroms = listOfChroms,

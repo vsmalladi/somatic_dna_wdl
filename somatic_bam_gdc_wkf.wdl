@@ -1,13 +1,12 @@
 version 1.0
 
 import "./wdl_structs.wdl"
-import "calling/snv_indel_wkf.wdl" as calling
-import "alignment_analysis/msi_wkf.wdl" as msi
+import "calling/calling_wkf.wdl" as calling
 import "calling/calling.wdl" as callingTasks
 import "merge_vcf/merge_vcf_wkf.wdl" as mergeVcf
 import "pre_process/qc.wdl" as qc
 import "annotate/annotate_wkf.wdl" as annotate
-import "variant_analysis/deconstruct_sigs_wkf.wdl" as deconstructSigs
+import "annotate/annotate_cnv_sv_wkf.wdl" as annotate_cnv_sv
 
 # ================== COPYRIGHT ================================================
 # New York Genome Center
@@ -45,6 +44,27 @@ import "variant_analysis/deconstruct_sigs_wkf.wdl" as deconstructSigs
 
 # for wdl version 1.0
 
+task GetIndex {
+    input {
+        String sampleId
+        Array[String] sampleIds
+    }
+
+    command {
+        python /get_index.py \
+        --sample-id ~{sampleId} \
+        --sample-ids ~{sep=' ' sampleIds}
+    }
+
+    output {
+        Int index = read_int(stdout())
+    }
+
+    runtime {
+        docker: "gcr.io/nygc-internal-tools/workflow_utils:2.0"
+    }
+}
+
 
 workflow SomaticBamWorkflow {
     input {
@@ -52,12 +72,9 @@ workflow SomaticBamWorkflow {
         IndexedReference referenceFa
         
         Boolean production = true
+        Boolean external = false
 
         Array[pairInfo]+ pairInfos
-
-        # For Tumor-Normal QC
-        File markerBedFile
-        File markerTxtFile
 
         # calling
         Array[String]+ listOfChromsFull
@@ -73,6 +90,21 @@ workflow SomaticBamWorkflow {
         File mutectJsonLogFilter
         File configureStrelkaSomaticWorkflow
         
+        #   BicSeq2
+        Int readLength
+        Int coordReadLength
+        Map[Int, Map[String, File]] uniqCoords
+        File bicseq2ConfigFile
+        File bicseq2SegConfigFile
+        Map[String, File] chromFastas
+        Int tumorMedianInsertSize = 400
+        Int normalMedianInsertSize = 400
+        Int lambda = 4
+        
+        # Gridss
+        String bsGenome
+        File ponTarGz
+        Array[File] gridssAdditionalReference
         
         # merge callers
         File intervalListBed
@@ -81,9 +113,8 @@ workflow SomaticBamWorkflow {
         File ponWGSFile
         File ponExomeFile
         IndexedVcf gnomadBiallelic
-        
-        # mantis
-        File mantisBed
+
+        IndexedVcf germFile
         
         # annotation:
         String vepGenomeBuild
@@ -112,15 +143,27 @@ workflow SomaticBamWorkflow {
         IndexedVcf clinvarIntronicsVcf
         IndexedVcf masterMind
         
+        # annotate cnv
+        File cytoBand
+        File dgv
+        File thousandG
+        File cosmicUniqueBed
+        File cancerCensusBed
+        File ensemblUniqueBed
+        
+        # annotate sv
+        String vepGenomeBuild
+        # gap,DGV,1000G,PON,COSMIC
+        File gap
+        File dgvBedpe
+        File thousandGVcf
+        File svPon
+        File cosmicBedPe
+        
         # post annotation
         File cosmicCensus
         
         File ensemblEntrez
-        
-        # germline
-        
-        File excludeIntervalList
-        Array[File] scatterIntervalsHcs
         
         IndexedVcf MillsAnd1000G
         IndexedVcf omni
@@ -136,16 +179,43 @@ workflow SomaticBamWorkflow {
         IndexedVcf clinvarIntronicsVcf
         IndexedVcf chdWhitelistVcf
         
-        IndexedVcf germFile
-        
-        # signatures
-        File cosmicSigs
-        
         Boolean highMem = false
     }
     
     scatter(pairInfo in pairInfos) {
         
+        # tumor insert size
+        Int tumorDiskSize = ceil(size(pairInfo.tumorFinalBam.bam, "GB")) + 30
+                      
+        call qc.MultipleMetrics as tumorMultipleMetrics {
+            input:
+                referenceFa = referenceFa,
+                finalBam = pairInfo.tumorFinalBam,
+                sampleId = pairInfo.tumor,
+                diskSize = tumorDiskSize
+        }
+        
+        call callingTasks.GetInsertSize as tumorGetInsertSize {
+            input:
+                insertSizeMetrics = tumorMultipleMetrics.insertSizeMetrics
+        }
+        
+        # normal insert size
+        Int normalDiskSize = ceil(size(pairInfo.normalFinalBam.bam, "GB")) + 30
+                      
+        call qc.MultipleMetrics as normalMultipleMetrics {
+            input:
+                referenceFa = referenceFa,
+                finalBam = pairInfo.normalFinalBam,
+                sampleId = pairInfo.normal,
+                diskSize = normalDiskSize
+        }
+        
+        call callingTasks.GetInsertSize as normalGetInsertSize {
+            input:
+                insertSizeMetrics = normalMultipleMetrics.insertSizeMetrics
+        }
+
         call calling.Calling {
             input:
                 mantaJsonLog = mantaJsonLog,
@@ -163,20 +233,20 @@ workflow SomaticBamWorkflow {
                 bwaReference = bwaReference,
                 dbsnpIndels = dbsnpIndels,
                 chromBedsWgs = chromBedsWgs,
+                readLength = readLength,
+                coordReadLength = coordReadLength,
+                uniqCoords = uniqCoords,
+                bicseq2ConfigFile = bicseq2ConfigFile,
+                bicseq2SegConfigFile = bicseq2SegConfigFile,
+                tumorMedianInsertSize = tumorGetInsertSize.insertSize,
+                normalMedianInsertSize = normalGetInsertSize.insertSize,
+                chromFastas = chromFastas,
+                bsGenome = bsGenome,
+                ponTarGz = ponTarGz,
+                gridssAdditionalReference = gridssAdditionalReference,
                 highMem = highMem
         }
-
-        call msi.Msi {
-            input:
-                normal = pairInfo.normal,
-                pairName = pairInfo.pairId,
-                mantisBed = mantisBed,
-                intervalListBed = intervalListBed,
-                referenceFa = referenceFa,
-                tumorFinalBam = pairInfo.tumorFinalBam,
-                normalFinalBam = pairInfo.normalFinalBam
-        }
-
+        
         PreMergedPairVcfInfo preMergedPairVcfInfo = object {
             pairId : pairInfo.pairId,
             filteredMantaSV : Calling.filteredMantaSV,
@@ -193,9 +263,29 @@ workflow SomaticBamWorkflow {
 
         }
 
+        PairRawVcfInfo pairRawVcfInfo = object {
+            pairId : pairInfo.pairId,
+            filteredMantaSV : Calling.filteredMantaSV,
+            strelka2Snv : Calling.strelka2Snv,
+            strelka2Indel : Calling.strelka2Indel,
+            mutect2 : Calling.mutect2,
+            lancet : Calling.lancet,
+            svabaSv : Calling.svabaSv,
+            svabaIndel : Calling.svabaIndel,
+            gridssVcf : Calling.gridssVcf,
+            bicseq2Png : Calling.bicseq2Png,
+            bicseq2 : Calling.bicseq2,
+            tumor : pairInfo.tumor,
+            normal : pairInfo.normal,
+            tumorFinalBam : pairInfo.tumorFinalBam,
+            normalFinalBam : pairInfo.normalFinalBam
+
+        }
+
         if (library == 'WGS') {
             call mergeVcf.MergeVcf as wgsMergeVcf {
                 input:
+                    external = external,
                     preMergedPairVcfInfo = preMergedPairVcfInfo,
                     referenceFa = referenceFa,
                     listOfChroms = listOfChroms,
@@ -209,6 +299,7 @@ workflow SomaticBamWorkflow {
         if (library == 'Exome') {
             call mergeVcf.MergeVcf as exomeMergeVcf {
                 input:
+                    external = external,
                     preMergedPairVcfInfo = preMergedPairVcfInfo,
                     referenceFa = referenceFa,
                     listOfChroms = listOfChroms,
@@ -256,43 +347,61 @@ workflow SomaticBamWorkflow {
                 library = library  
         }
         
-        File runMainVcf = Annotate.pairVcfInfo.mainVcf
-        File runSupplementalVcf = Annotate.pairVcfInfo.supplementalVcf
-        File runVcfAnnotatedTxt = Annotate.pairVcfInfo.vcfAnnotatedTxt
+        call annotate_cnv_sv.AnnotateCnvSv {
+            input:
+                tumor = pairRawVcfInfo.tumor,
+                normal = pairRawVcfInfo.normal,
+                pairName = pairRawVcfInfo.pairId,
+                listOfChroms =listOfChroms,
+                bicseq2 = pairRawVcfInfo.bicseq2,
+                cytoBand = cytoBand,
+                dgv = dgv,
+                thousandG = thousandG,
+                cosmicUniqueBed = cosmicUniqueBed,
+                cancerCensusBed = cancerCensusBed, 
+                ensemblUniqueBed = ensemblUniqueBed,
+                
+                filteredMantaSV = pairRawVcfInfo.filteredMantaSV,
+                svabaSv = pairRawVcfInfo.svabaSv,
+                gridssVcf = pairRawVcfInfo.gridssVcf,
+                vepGenomeBuild = vepGenomeBuild,
+                gap = gap,
+                dgvBedpe = dgvBedpe,
+                thousandGVcf = thousandGVcf,
+                svPon = svPon,
+                cosmicBedPe = cosmicBedPe
+        }
         
-        call deconstructSigs.DeconstructSig {
-            input: 
-                pairId = pairInfo.pairId,
-                mainVcf = mergedVcf,
-                cosmicSigs = cosmicSigs,
-                vepGenomeBuild = vepGenomeBuild
+        FinalVcfPairInfo finalVcfPairInfo = object {
+            pairId : pairInfo.pairId,
+            tumor : pairInfo.tumor,
+            normal : pairInfo.normal,
+            mainVcf : Annotate.pairVcfInfo.mainVcf,
+            supplementalVcf : Annotate.pairVcfInfo.supplementalVcf,
+            vcfAnnotatedTxt : Annotate.pairVcfInfo.vcfAnnotatedTxt,
+            maf : Annotate.pairVcfInfo.maf,
+            filteredMantaSV : Calling.filteredMantaSV,
+            strelka2Snv : Calling.strelka2Snv,
+            strelka2Indel : Calling.strelka2Indel,
+            mutect2 : Calling.mutect2,
+            lancet : Calling.lancet,
+            svabaSv : Calling.svabaSv,
+            svabaIndel : Calling.svabaIndel,
+            gridssVcf : Calling.gridssVcf,
+            bicseq2Png : Calling.bicseq2Png,
+            bicseq2 : Calling.bicseq2,
+            cnvAnnotatedFinalBed : AnnotateCnvSv.cnvAnnotatedFinalBed,
+            cnvAnnotatedSupplementalBed : AnnotateCnvSv.cnvAnnotatedSupplementalBed,
+            svFinalBedPe : AnnotateCnvSv.svFinalBedPe,
+            svHighConfidenceFinalBedPe : AnnotateCnvSv.svHighConfidenceFinalBedPe,
+            svSupplementalBedPe : AnnotateCnvSv.svSupplementalBedPe,
+            svHighConfidenceSupplementalBedPe : AnnotateCnvSv.svHighConfidenceSupplementalBedPe
         }
    }
 
     output {
-    
         # CNV SV output and SNV INDELs
-        Array[File] mainVcf = runMainVcf
-        Array[File] supplementalVcf = runSupplementalVcf
-        Array[File] vcfAnnotatedTxt = runVcfAnnotatedTxt
-        Array[File] filteredMantaSV = Calling.filteredMantaSV
-        Array[File] strelka2Snv = Calling.strelka2Snv
-        Array[File] strelka2Indel = Calling.strelka2Indel
-        Array[File] mutect2 = Calling.mutect2
-        Array[File] lancet = Calling.lancet
-        Array[File] svabaSv = Calling.svabaSv
-        Array[File] svabaIndel = Calling.svabaIndel
-        # MSI
-        Array[File] mantisWxsKmerCountsFinal = Msi.mantisWxsKmerCountsFinal
-        Array[File] mantisWxsKmerCountsFiltered = Msi.mantisWxsKmerCountsFiltered
-        Array[File] mantisExomeTxt = Msi.mantisExomeTxt
-        Array[File] mantisStatusFinal = Msi.mantisStatusFinal
-        # sigs
-        Array[File] sigs = DeconstructSig.sigs
-        Array[File] counts = DeconstructSig.counts
-        Array[File] sig_input = DeconstructSig.sigInput
-        Array[File] reconstructed = DeconstructSig.reconstructed
-        Array[File] diff = DeconstructSig.diff
+        Array[FinalVcfPairInfo] finalVcfPairInfos = finalVcfPairInfo
 
     }
 }
