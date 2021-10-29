@@ -112,7 +112,7 @@ Script `wdl_port/run.sh` will first quickly validate the WDL workflow. Next it w
 to determine which variables are required. All required variables will be defined from the 
 Reference JSON in config, the pairing/sample info or the custom inputs JSON.
 
-Any URI for a file will be validated to ensure you can read the file (unless the `--skip-validate` flag is used).
+Most URIs for files will be validated to ensure you can read the file (unless the `--skip-validate` flag is used). If a pipeline has the variable `production` and/or `external` and these are set to true then the pipeline will skip tasks that require private NYGC files or licenses. Because of this if either `production` or `external` are true for a workflow private NYGC files will not have their uris validated.
 
 Next, the input JSON will be compared to the original WDL and the program will exit if any required variable could not be found and will need to be provided in the custom input JSON.
 
@@ -121,12 +121,11 @@ Then the workflow will be submitted to the cromwell server.
 In addition to submitting the command, this will create an output file that you should save. It contains information about the project, pipeline version, cromwell options, inputs. It will also contain the workflow UUID. This will be used after the run to agregate information about the run.
 ```
 wdl_port/run.sh -h
-USAGE: run.sh [-h] --options OPTIONS --wdl-file WDL_FILE
+run.sh [-h] --options OPTIONS --wdl-file WDL_FILE
                --url URL --log-dir LOG_DIR
                --project PROJECT
                [--library {WGS,Exome}]
                [--genome {Human_GRCh38_full_analysis_set_plus_decoy_hla, Human_GRCh38_tcga}]
-               [--read-length READ_LENGTH]
                [--pairs-file PAIRS_FILE]
                [--samples-file SAMPLES_FILE]
                [--interval-list {SureSelect_V6plusCOSMIC.target.GRCh38_full_analysis_set_plus_decoy_hla}]
@@ -135,10 +134,20 @@ USAGE: run.sh [-h] --options OPTIONS --wdl-file WDL_FILE
                [--dry-run]
 
 DESCRIPTION: validate workflow, create input json and submit workflow to cromwell.
-Script requires jq, cromwell-tools, gcloud to be in the path.
-Script shows submission command and command to check status
-in the STDERR stream.
--h, --help            show this help message and exit
+    Script requires jq, cromwell-tools, gcloud to be in the path.
+    Script shows submission command and command to check status
+    in the STDERR stream.
+  Creation of input JSON:
+    The WDL is used to determine which variables are required.
+    Required or optional variables are defined from custom inputs JSON.
+    Any required variable not defined in the custom inputs JSON will be defined from the
+    reference JSONs in the config directory (as long as the variable names are identical).
+    The pairing/sample info CSVs (--pairs-file/--samples-file) are used to create pairRelationships and
+    (if columns named tumorBam and normalBam exist) map BAMs to pairs.
+    If "production" or "external" inputs are true then validation of NYGC internal-only files is skipped
+    The pipelines are written to skip tasks that localize these files if "production" or "external" are true
+    so any inability to read these files will not negatively affect the run.
+  -h, --help            show this help message and exit
   --url URL             Cromwell server URL (required)
   --log-dir LOG_DIR     Output directory for all logs and reports
                         related to this workflow UUID (required)
@@ -150,14 +159,14 @@ in the STDERR stream.
   --genome {Human_GRCh38_full_analysis_set_plus_decoy_hla, Human_GRCh38_tcga}
                         Genome key to use for pipeline.
   --project PROJECT     Project name associated with account.
-  --read-length READ_LENGTH     Required only for steps like BiqSeq2 that
-                        use read_length as input.
   --pairs-file PAIRS_FILE
                         CSV file with items that are required to have
-                        "tumor", "normal" and "pair_id" in the columns.
+                        "tumor", "normal" and "pairId" in the columns.
+                        Optionally, include "tumorBam", "normalBam" columns to create
+                        "pairInfos" and "normalSampleBamInfos" automatically.
   --samples-file [SAMPLES_FILE]
                         Not generally required. If tasks only require
-                        sample_id and do not use pairing information sample
+                        sampleId and do not use pairing information sample
                         info can be populated with a CSV file. The CSV file
                         requires a columns named ["sampleId"].
   --interval-list {SureSelect_V6plusCOSMIC.target.GRCh38_full_analysis_set_plus_decoy_hla}
@@ -175,7 +184,7 @@ in the STDERR stream.
                         directory or workflow default.
   --skip-validate       Skip the step where input files are validated.
                         Otherwise all gs//: URIs will be checked to see that a
-                        file exists. Disable with caution.Cromwell will launch
+                        file exists. Disable with caution. Cromwell will launch
                         instances and run without checking. Test a small pairs
                         file to ensure all references exist and at least some
                         sample input files can be read by the current user.
