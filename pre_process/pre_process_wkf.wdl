@@ -33,7 +33,7 @@ workflow Preprocess {
         # resources
         #    prep flowcell
         Int bwaMem = 86
-        Int novosortMem = 20
+        Int novosortMem = 32
         Int threads = 16
         Int bwaThreads = 96
     }
