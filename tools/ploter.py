@@ -23,8 +23,13 @@ class Fig():
         self.fig.update_xaxes(showgrid=False, zeroline=False)
         for i, annotation in enumerate(self.fig.layout['annotations']):
             self.fig.layout['annotations'][i]['font'] = {'color' : '#0080ff',
-                                                            'size' : 8
+                                                         'family' : 'Helvetica',
+                                                         'size' : 8
                                                         }
+        self.fig.update_layout(
+                                title_font_color="midnightblue",
+                                title_font_size=14
+                            )
         if self.scale:
             self.fig = self.scale_sizes(self.fig)
         self.remove_buttons = remove_buttons

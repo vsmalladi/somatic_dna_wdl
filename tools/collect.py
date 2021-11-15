@@ -15,6 +15,10 @@ from collections.abc import Iterable
 import copy
 import meta
 import make_auth
+import re
+
+uuid_pattern = '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+uuid_compiled = re.compile(uuid_pattern)
 
 log.basicConfig(format='%(levelname)s:  %(message)s', level=log.INFO)
 
@@ -309,22 +313,31 @@ class CloudOutput():
         filename with . or _ after the name'''
         pair_association = {}
         sample_association = {}
-        pair_ids = list(set([pair_info["pairId"] for pair_info in self.run_data.project_info["listOfPairRelationships"]]))
-        for pair_id in pair_ids:
-            current_pair_association = JsonModify(inputs=self.named_outputs, 
-                                                    workflow_uuid=self.workflow_uuid,
-                                                    all_pair_ids=list(pair_ids),
-                                                    pair_id=pair_id,
-                                                    tool='match').final_json_obj
-            pair_association[pair_id] = current_pair_association
-        for sample_id in self.run_data.project_info["sampleIds"]:
-            current_sample_association = JsonModify(inputs=self.named_outputs,
-                                                       workflow_uuid=self.workflow_uuid,
-                                                       all_sample_ids=self.run_data.project_info["sampleIds"],
-                                                       sample_id=sample_id,
-                                                       all_pair_ids=list(pair_ids),
-                                                       tool='match').final_json_obj
-            sample_association[sample_id] = current_sample_association
+        if 'listOfPairRelationships' in self.run_data.project_info:
+            pair_ids = list(set([pair_info["pairId"] for pair_info in self.run_data.project_info["listOfPairRelationships"]]))
+            for pair_id in pair_ids:
+                current_pair_association = JsonModify(inputs=self.named_outputs, 
+                                                        workflow_uuid=self.workflow_uuid,
+                                                        all_pair_ids=list(pair_ids),
+                                                        pair_id=pair_id,
+                                                        tool='match').final_json_obj
+                pair_association[pair_id] = current_pair_association
+        else:
+            pair_ids = []
+            pair_association = {}
+            self.run_data.project_info["pairIds"] = []
+        if 'sampleIds' in self.run_data.project_info:
+            for sample_id in self.run_data.project_info["sampleIds"]:
+                current_sample_association = JsonModify(inputs=self.named_outputs,
+                                                           workflow_uuid=self.workflow_uuid,
+                                                           all_sample_ids=self.run_data.project_info["sampleIds"],
+                                                           sample_id=sample_id,
+                                                           all_pair_ids=list(pair_ids),
+                                                           tool='match').final_json_obj
+                sample_association[sample_id] = current_sample_association
+        else:
+            self.run_data.project_info["sampleIds"] = []
+            sample_association = {}
         self.pair_association = self.filter_by_id(pair_association, 
                                                   pair=True, 
                                                   sample=False)
@@ -376,14 +389,19 @@ class CloudOutput():
         
     def fake_get_uuid_from_uri(self, uri):
         sub_workflow_uuid = uri.replace('/cacheCopy', '').split('/call-')[-2].split('/')[-1]
-        return sub_workflow_uuid
+        match = re.match(uuid_compiled, sub_workflow_uuid)
+        if match != None:
+            return sub_workflow_uuid
     
     def get_uuid_from_uri(self, uris):
         sub_workflow_uuids = []
+        print(uris)
         for uri in uris:
             for possible in uri.replace('/cacheCopy', '').split('/call-')[1::-1]:
                 sub_workflow_uuid = possible.split('/')[-1]
-                yield sub_workflow_uuid
+                match = re.match(uuid_compiled, sub_workflow_uuid)
+                if match != None:
+                    yield sub_workflow_uuid
     
     def list_uris(self):
         '''

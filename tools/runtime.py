@@ -10,6 +10,7 @@ import make_auth
 import argparse
 import os 
 import numpy as np
+import subprocess
 
 pd.set_option('display.max_columns', 500)
 log.basicConfig(format='%(levelname)s:  %(message)s', level=log.INFO)
@@ -18,10 +19,14 @@ log.basicConfig(format='%(levelname)s:  %(message)s', level=log.INFO)
 class Runtime():
     def __init__(self,
                  output_info,
+                 url,
                  limit=10000,
                  gcp_project=False,
                  metrics_file=False):
+        self.parent_dir = os.path.abspath(os.path.dirname(__file__))
         self.output_info = output_info
+        self.workflow_uuid = output_info['workflow_uuid']
+        self.url = url
         # find existing project id info
         self.prep_ids()
         if not metrics_file:
@@ -38,8 +43,10 @@ class Runtime():
             # login
             self.credentials, self.gcp_project = make_auth.login()
             if gcp_project:
+                self.default_project = False
                 self.gcp_query_project = gcp_project
             else:
+                self.default_project = True
                 self.gcp_query_project = self.gcp_project
             self.sub_workflow_uuids = self.output_info['sub_workflow_uuids']
             self.run_date = self.get_rundate()
@@ -48,7 +55,7 @@ class Runtime():
             self.bqclient = bigquery.Client(project=self.gcp_project , 
                                             credentials=self.credentials)
             self.bqstorageclient = bigquery_storage.BigQueryReadClient(credentials=self.credentials)
-            self.loaded = self.load_metadata()
+            self.loaded = self.load_metadata_api()
             if not self.loaded:
                 log.warning('No endtime found for workflow: ' + output_info['workflow_uuid'])
             else:
@@ -60,20 +67,25 @@ class Runtime():
                 self.metadata = self.metadata.drop_duplicates(subset=hashable)
                 self.instance_id_map = self.get_max_mems(self.metadata, 
                                                          instance_id_map=self.instance_id_map, 
-                                                         execution_status=False,
+                                                         backend_status=False,
                                                          metrics_key='mem_used_gb')
                 self.non_retry_instance_id_map = self.get_max_mems(self.metadata, 
                                                                    instance_id_map=self.non_retry_instance_id_map, 
-                                                                   execution_status='Done',
+                                                                   backend_status='Success',
                                                                    metrics_key='mem_used_gb')
-                self.non_retry_metadata = self.metadata[self.metadata.execution_status == 'Done'].copy()
+                self.metadata_cache = self.metadata.loc[pd.isnull(self.metadata[['instance_name']]).any(axis=1)]
+                self.metadata = self.metadata.dropna(subset=['instance_name'])
+                self.non_retry_metadata = self.metadata[self.metadata.backend_status == 'Success'].copy()
                 if self.metadata[self.metadata.execution_status != 'RUNNING'].empty:
+                    self.metadata = pd.concat([self.metadata, self.metadata_cache], ignore_index=True)
                     self.metadata.to_csv(self.metrics_file, index=False)
                 else:
+                    self.metadata_full = self.metadata.copy()
                     self.metadata = self.load_plot_metrics(self.metadata,
                                                            instance_id_map=self.instance_id_map)
                     self.non_retry_metadata = self.load_plot_metrics(self.non_retry_metadata,
                                                                      instance_id_map=self.non_retry_instance_id_map)
+                    self.metadata = pd.concat([self.metadata, self.metadata_cache], ignore_index=True)
                     self.metadata.to_csv(self.metrics_file, index=False)
                     self.non_retry_metadata.to_csv(self.non_retried_metrics_file, index=False)
         
@@ -89,19 +101,19 @@ class Runtime():
         ''' get runtime in core hours for the task (within a workflow) '''
         return (row.cpu_count * float(row.run_time_m)) / 60
     
-    def match_instance_id(self, instance_id_map, row, execution_status='Done'):
+    def match_instance_id(self, instance_id_map, row, backend_status='Success'):
         for inst in instance_id_map:
             if (row.workflow_id in instance_id_map[inst]['workflow_ids'] \
                     and row.task_call_name == instance_id_map[inst]['task_call_name']):
-                if execution_status:
-                    if execution_status == row.execution_status:
+                if backend_status:
+                    if backend_status == row.backend_status:
                         yield inst
                 else:
                     yield inst
             
     
     def get_max_mems(self, metadata, instance_id_map, 
-                     execution_status='Done',
+                     backend_status='Success',
                      job_id_col='task_call_name', metrics_key='mem_used_gb'):
         '''Get max mem for a runs with the same sub-workflow_id and task_call_name'''
         runtime_results = metadata.drop_duplicates(['task_call_name', 'workflow_id', 'instance_name', 'shard', 'attempt'])
@@ -110,7 +122,7 @@ class Runtime():
             instance_ids = []
             for inst in self.match_instance_id(instance_id_map, 
                                                row, 
-                                               execution_status=execution_status):
+                                               backend_status=backend_status):
                 instance_ids.append(inst)
             instance_ids = list(set(instance_ids))
             try:
@@ -144,6 +156,7 @@ class Runtime():
         return the end-to-end wallclock time for a particular id.
         For tasks this will only return the longest runtime.
         '''
+        # id example  ['id', 'instance_name', 'task_call_name', 'workflow_name']
         if 'task_call_name' in ids:
             runtime_results = grouped.run_time_m.agg(['max']).reset_index()
             for id in ids:
@@ -291,7 +304,7 @@ class Runtime():
     
     def get_sample_info(self):
         self.sample_count = len(self.output_info['project_data']['sampleIds'])
-        self.pair_count = len(self.output_info['project_data']['pairId'])
+        self.pair_count = len(self.output_info['project_data']['pairIds'])
         
     def get_rundate(self):
         return self.modify_date(self.output_info['project_data']['run_date']) 
@@ -302,6 +315,13 @@ class Runtime():
     def format_sub_workflow(self, sub_workflow_uuids):
         sub_workflow_uuid_list = '("' + '", "'.join(sub_workflow_uuids) + '")'
         return sub_workflow_uuid_list
+    
+    def deduplicate_metadata(self):
+        '''deduplicate and add in sample ids'''
+        self.metadata['id'] = self.metadata.apply(lambda row: self.match_id(row.inputs).replace('\n', ' '), axis=1)
+        unhashable = ['disk_mounts', 'disk_total_gb', 'disk_used_gb', 'disk_types', 'inputs']
+        hashable = ['instance_name', 'workflow_id', 'attempt', 'shard']
+        self.metadata = self.metadata.drop_duplicates(subset=hashable)
     
     def load_metadata(self):
         '''convert big query metadata table into pandas dataframe
@@ -316,10 +336,6 @@ class Runtime():
         SELECT * FROM `''' + self.gcp_query_project + '''.cromwell_monitoring.metadata`
             WHERE DATE(start_time) >= "''' + self.run_date + '''"
             AND workflow_id IN ''' + self.sub_workflow_uuid_list
-            
-#             + '''"
-#             LIMIT ''' + self.limit + '''
-#         '''
         self.metadata =  (
             self.bqclient.query(query_string)
             .result()
@@ -329,11 +345,198 @@ class Runtime():
         if not self.end_date:
             return False
         self.metadata['inputs'] = self.metadata.apply(lambda row: str(row.inputs).replace('\n', ' '), axis=1)
-        self.metadata['id'] = self.metadata.apply(lambda row: self.match_id(row.inputs).replace('\n', ' '), axis=1)
-        unhashable = ['disk_mounts', 'disk_total_gb', 'disk_used_gb', 'disk_types', 'inputs']
-        hashable = ['instance_name', 'workflow_id', 'attempt', 'shard']
-        self.metadata = self.metadata.drop_duplicates(subset=hashable)
+        self.deduplicate_metadata()
         return True
+    
+    def load_metadata_api(self):
+        '''
+        project_id    zone    instance_name    preemptible    workflow_name    
+            workflow_id    task_call_name    shard    attempt    start_time    
+            end_time    execution_status    cpu_count    mem_total_gb    
+            disk_mounts    disk_total_gb    disk_types    docker_image    inputs
+            
+        convert metadata from api into table for pandas dataframe
+            Includes start_time, end_time, execution_status, cpu_count,
+            mem_total_gb, task_call_name, workflow_name
+                   
+            inputs
+        '''
+        log.info('Loading Metadata...')
+        metadata = self.load_from_api()
+        # whole-run level metadata
+        main_workflow_name = metadata['workflowName']
+        labels = metadata['submittedFiles']['labels'] # dictionary in a string        
+        # instance-level results
+        task_call_names = []
+        workflow_names = []
+        execution_statuss = []
+        mem_total_gbs = []
+        cpu_counts = []
+        disk_types = []
+        disk_total_gbs = []
+        docker_images = []
+        disk_mounts = []
+        attempts = []
+        backend_statuss = []
+        preemptibles = []
+        instance_names = []
+        zones = []
+        project_ids = []
+        return_codes = []
+        workflow_ids = []
+        shards = []
+        start_times = []
+        end_times = []
+        localization_ms = []
+        inputs = []
+        self.tasks = []
+        self.call_gen(metadata['calls'], 
+                      metadata['workflowName'])
+        for task_call_name, call, workflow_name in self.tasks:
+            task_call_names.append(task_call_name)
+            workflow_names.append(workflow_name.split('.')[-1])
+            execution_statuss.append(call['executionStatus'])
+            if 'runtimeAttributes' in call:
+                mem_total_gbs.append(int(call['runtimeAttributes']['memory'].split()[0]))
+                cpu_counts.append(int(call['runtimeAttributes']['cpu']))
+                disk_types.append(call['runtimeAttributes']['disks'].split()[-1])
+                disk_total_gbs.append(call['runtimeAttributes']['disks'].split()[-2])
+                docker_images.append(call['runtimeAttributes']['docker'])
+            else:
+                mem_total_gbs.append(0)
+                cpu_counts.append(0)
+                disk_types.append('')
+                disk_total_gbs.append(0)
+                docker_images.append('')
+            attempts.append(call['attempt'])
+            disk_mounts.append('Unknown')
+            
+            if 'backendStatus' in call:
+                backend_status = call['backendStatus'] # Preempted or Failed or Success
+            elif 'callCaching' in call and call['callCaching']['hit']:
+                backend_status = 'CacheHit'
+            else:
+                backend_status = 'Error'
+            backend_statuss.append(backend_status)
+            
+            if backend_status in ['CacheHit']:
+                preemptibles.append(np.nan)
+                instance_names.append(np.nan)
+                zones.append(np.nan)
+                project_ids.append(np.nan)
+            else:
+                preemptibles.append(call['preemptible'])
+                instance_names.append(call['jes']['instanceName'])
+                zones.append(call['jes']['zone'])
+                project_ids.append(call['jes']['googleProject'])
+            
+
+            if backend_status in ['Preempted']:
+                return_codes.append(np.nan)
+            else:
+                return_codes.append(call['returnCode'])
+            if 'id' in call:
+                workflow_ids.append(call['id'])
+            else:
+                workflow_ids.append('')
+            shards.append(call['shardIndex'])
+            start_times.append(call['start'])
+            if 'end' in call:
+                # get localization time
+                localization_m = np.nan
+                for event in call["executionEvents"]:
+                    if event == "Localization":
+                        start = event['Localization']['startTime']
+                        end = event['Localization']['endTime']
+                        localization_m = sec_between(start, end) / 60.0
+                localization_ms.append(localization_m)
+                end_times.append(call['end'])
+            else:
+                localization_ms.append(np.nan)
+                end_times.append(np.nan)
+            inputs.append(call['inputs'])
+        # output
+        self.metadata = pd.DataFrame({'task_call_name' : task_call_names,
+                                'workflow_name' : workflow_names,
+                                'execution_status' : execution_statuss,
+                                'mem_total_gb' : mem_total_gbs,
+                                'cpu_count' : cpu_counts,
+                                'disk_types' : disk_types,
+                                'disk_total_gb' : disk_total_gbs,
+                                'docker_image' : docker_images,
+                                'disk_mounts' : disk_mounts,
+                                'attempt'  : attempts,
+                                'backend_status' : backend_statuss,
+                                'preemptible' : preemptibles,
+                                'instance_name' : instance_names,
+                                'zone' : zones,
+                                'project_id' : project_ids,
+                                'return_code' : return_codes,
+                                'workflow_id' : workflow_ids,
+                                'shard' : shards,
+                                'start_time' : start_times,
+                                'end_time' : end_times,
+                                'localization_m' : localization_ms,
+                                'inputs' : inputs
+        })
+        self.metadata['main_workflow_name'] = main_workflow_name
+        self.metadata['labels'] = labels
+        self.deduplicate_metadata()
+        self.metadata['start_time'] = pd.to_datetime(self.metadata['start_time'],
+                                                     format="%Y-%m-%dT%H:%M:%S.%fZ")
+        self.metadata['end_time'] = pd.to_datetime(self.metadata['end_time'],
+                                                     format="%Y-%m-%dT%H:%M:%S.%fZ")
+#         self.metadata.head()[['start_time', 'end_time']] = pd.to_datetime(self.metadata.head()[['start_time', 'end_time']],
+#                                                                           format="%Y-%m-%dT%H:%M:%S.%fZ")
+        self.end_date = self.load_end_date(self.metadata.end_time.max())
+        if not self.end_date:
+            return False
+        return True
+    
+    def get_cromwell_time(self, timestamp):
+        return datetime.datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%S.%fZ")
+    
+    def sec_between(d1,d2):
+        d1 = self.get_cromwell_time(d1)
+        d2 = self.get_cromwell_time(d2)
+        return abs((d2 - d1).seconds)
+
+    def call_gen(self, call_dictionary, workflowName, statement='main'):
+        '''takes as input the metadata "calls" section 
+        and yields all task calls nested in metadata
+        '''
+        for call in call_dictionary:
+            for i, attempt in enumerate(call_dictionary[call]): # subnode is a list within the dictionary
+                if 'subWorkflowMetadata' in attempt:
+                    self.call_gen(attempt['subWorkflowMetadata']['calls'], 
+                                            attempt['subWorkflowMetadata']['workflowName'],
+                                            statement='sub')
+                else:
+                    self.tasks.append([call, attempt, workflowName])
+                
+    def load_from_api(self, script='/get_metadata.sh'):
+        '''
+            return json from api
+        '''
+        script = self.parent_dir + script
+        if self.default_project:
+            args = ['bash', script,
+                    '-u', self.url,
+                    '-w', self.workflow_uuid]
+        else:
+            args = ['bash', script,
+                    '-u', self.url,
+                    '-w', self.workflow_uuid,
+                    '-g', self.gcp_query_project]
+        try:
+            result = subprocess.run(args,
+                                    check=True,
+                                    stdout=subprocess.PIPE).stdout.decode('utf-8')
+        except subprocess.CalledProcessError as err:
+            log.warning(err.output.decode('utf-8'))
+            log.error('Failed to get metadata from api for workflow: ' + self.workflow_uuid)
+            return {}
+        return json.loads(result)
         
     def load_runtime(self):
         '''convert big query runtime table into pandas dataframe
@@ -341,6 +544,7 @@ class Runtime():
         Use to map workflow_id to instance_ids
         '''
         log.info('Loading Runtime...')
+        self.sub_workflow_uuid_list = self.format_sub_workflow(self.sub_workflow_uuids)
         query_string = '''
         SELECT * FROM `''' + self.gcp_query_project + '''.cromwell_monitoring.runtime`
             WHERE DATE(start_time) >= "''' + self.run_date + '''"
@@ -364,10 +568,10 @@ class Runtime():
             self.instance_id_map[instance_id]['task_call_name'] = self.runtime[self.runtime.instance_id == instance_id].task_call_name.tolist()[0]
             self.instance_id_map[instance_id]['instance_name'] = self.runtime[(self.runtime.instance_id == instance_id)].instance_name.tolist()[0]
         self.non_retry_instance_id_map = {}
-        map = {row.instance_name: row.execution_status for index, row in self.metadata[['instance_name', 'execution_status']].drop_duplicates().iterrows()}
-        execution_status_map = {row.instance_id : map[row.instance_name] for index, row in 
+        map = {row.instance_name: row.backend_status for index, row in self.metadata[['instance_name', 'backend_status']].drop_duplicates().iterrows()}
+        backend_status_map = {row.instance_id : map[row.instance_name] for index, row in 
                                 self.runtime[['instance_name', 'instance_id']].drop_duplicates().iterrows()}
-        self.non_retry_instance_ids = [inst for inst in execution_status_map]
+        self.non_retry_instance_ids = [inst for inst in backend_status_map]
         for instance_id in self.non_retry_instance_ids:
             self.non_retry_instance_id_map[instance_id] = {}
             self.non_retry_instance_id_map[instance_id]['workflow_ids'] = self.runtime[(self.runtime.instance_id == instance_id)].workflow_id.unique().tolist()[0]
@@ -607,7 +811,7 @@ class Runtime():
                 and len(self.output_info['project_data']['sampleIds']) > 0:
             self.sample_ids = self.output_info['project_data']['sampleIds']
 
-    def match_id(self, inputs):
+    def match_id_str(self, inputs):
         ''' convert inputs to dictionary (problematic but current best options?)
         '''
         possible_indentifiers = []
@@ -631,6 +835,33 @@ class Runtime():
             if len(possible_indentifiers) > 0:
                 top_match = self.search_ids(possible_indentifiers)
                 return top_match
+        return 'No possible identifiers'
+    
+    def get_possible(self, dictionary):
+        '''search for input strings that make reference 
+            to sample id name'''
+        if isinstance(dictionary, dict):
+            for key in dictionary:
+                value = dictionary[key]
+                if isinstance(value, str):
+                    self.possible_indentifiers.append(value)
+                elif isinstance(value, dict):
+                    self.get_possible(value)
+                elif isinstance(value, list):
+                    for pos in value:
+                        if isinstance(pos, str):
+                            self.possible_indentifiers.append(pos)
+                        elif isinstance(pos, dict):
+                            self.get_possible(pos)
+    
+    def match_id(self, inputs):
+        ''' convert inputs to dictionary (problematic but current best options?)
+        '''
+        self.possible_indentifiers = []
+        self.get_possible(inputs)
+        if len(self.possible_indentifiers) > 0:
+            top_match = self.search_ids(self.possible_indentifiers)
+            return top_match
         return 'No possible identifiers'
 
     
@@ -667,6 +898,10 @@ def get_args():
                         default=False,
                         required=False
                         )
+    parser.add_argument('--url',
+                        help='URL for cromwell server.',
+                        required=True
+                        )
     args_namespace = parser.parse_args()
     return args_namespace.__dict__
 
@@ -689,6 +924,7 @@ def main():
     final_manifest_files = []
     for i, output_info in enumerate(output_infos):
         runtime = Runtime(limit=100000,
+                          url=args['url'],
                           output_info=output_info,
                           gcp_project=args['gcp_project'])
         if runtime.loaded:
