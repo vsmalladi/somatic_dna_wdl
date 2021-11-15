@@ -11,13 +11,12 @@ workflow MantaPon {
         String intHVmem = "unlimited"
         IndexedReference referenceFa
         IndexedTable callRegions
-        Bam normalFinalBam
         Bam tumorFinalBam
         # reorder columns
         String mantaPath = "~{tumor}.manta.v1.4.0.vcf"
         String filteredMantafPath = "~{tumor}.manta.v1.4.0.filtered.vcf"
         # resources
-        Int diskSize = ceil( size(tumorFinalBam.bam, "GB") + size(normalFinalBam.bam, "GB")) + 20
+        Int diskSize = ceil( size(tumorFinalBam.bam, "GB")) + 20
         Int memoryGb = 64
         Int threads = 8
         # remove definition after replacing the command step for gcp
@@ -46,11 +45,11 @@ workflow MantaPon {
             threads = threads
     }
     
-    call calling.FilterNonpass {
+    call calling.FilterNonpassPon {
         input:
             referenceFa = referenceFa,
             pairName = tumor,
-            vcf = MantaWgsPon.somaticSV.vcf,
+            vcf = MantaWgsPon.tumorSV,
             memoryGb = 8,
             outVcfPath = "~{tumor}.manta.v1.4.0.filtered.vcf",
             threads = 4,
@@ -59,7 +58,7 @@ workflow MantaPon {
     }
 
     output {
-        File filteredMantaSV = FilterNonpass.outVcf
+        File filteredMantaSV = FilterNonpassPon.outVcf
     }
 
 }

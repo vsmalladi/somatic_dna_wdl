@@ -8,19 +8,18 @@ workflow SvabaPon {
     #   run Svaba caller
     input {
         String tumor
-        String sampleId
-        BwaReference bwaReference
+        File refCache
+        BwaReference svabaIndexedReference
         IndexedTable callRegions
         IndexedReference referenceFa
         File dbsnpIndels
         Bam tumorFinalBam
         # resources
-        Int threads = 8
-        Int diskSize = ceil( size(tumorFinalBam.bam, "GB")) + 40
-        Int memoryGb = 32
+        Int threads = 4
+        Int diskSize = ceil( size(tumorFinalBam.bam, "GB")) + 20
         File svabaJsonLog
         
-        Boolean highMem = false
+        Boolean highMem = true
     }
     
     Int lowCallMemoryGb = 16
@@ -30,17 +29,18 @@ workflow SvabaPon {
     }
     Int callMemoryGb = select_first([highCallMemoryGb, lowCallMemoryGb])
 
+
     call calling.SvabaWgsPon {
         input:
+            refCache = refCache,
             sampleId=tumor,
-            bwaReference = bwaReference,
+            svabaIndexedReference = svabaIndexedReference,
             callRegions = callRegions,
             tumorFinalBam = tumorFinalBam,
             dbsnpIndels = dbsnpIndels,
             memoryGb = callMemoryGb,
             threads = threads,
             diskSize = diskSize
-
     }
 
     # indel
@@ -55,6 +55,7 @@ workflow SvabaPon {
     }
 
     output {
+        File svabaSvGz = SvabaWgsPon.svabaGz
         File svabaIndel = indelReheaderVcf.reheaderedVcf
     }
 }

@@ -1,6 +1,6 @@
 version 1.0
 
-
+import "calling/calling.wdl" as callingTasks
 import "calling/mutect2_pon_wkf.wdl" as mutect2Pon
 import "calling/manta_pon_wkf.wdl" as mantaPon
 import "calling/svaba_pon_wkf.wdl" as svabaPon
@@ -49,7 +49,8 @@ workflow CallingPon {
         File dbsnpIndels
         File svabaJsonLog
         File mutectJsonLogFilter
-        BwaReference bwaReference
+        BwaReference svabaIndexedReference
+        File refCache
         Boolean highMem = false
         
         # annotation:
@@ -81,10 +82,12 @@ workflow CallingPon {
         Int vepDiskSize = ceil(size(vepCache, "GB") + size(plugins, "GB") + size(annotations, "GB") + size(hgmdGene.vcf, "GB") + size(hgmdUd10.vcf, "GB") + size(hgmdPro.vcf, "GB") + size(chdGenesVcf.vcf, "GB") + size(chdEvolvingGenesVcf.vcf, "GB") + size(chdWhitelistVcf.vcf, "GB") + size(deepIntronicsVcf.vcf, "GB") + size(clinvarIntronicsVcf.vcf, "GB") + size(masterMind.vcf, "GB")) + 200
         
     }
+    
     scatter(tumorInfo in tumorInfos) {
         
         call mutect2Pon.Mutect2Pon {
             input:
+                mutectJsonLog = mutectJsonLog,
                 mutectJsonLogFilter = mutectJsonLogFilter,
                 tumor = tumorInfo.sampleId,
                 listOfChroms = listOfChroms,
@@ -105,16 +108,19 @@ workflow CallingPon {
         
         call svabaPon.SvabaPon {
             input:
+                refCache = refCache,
                 svabaJsonLog = svabaJsonLog,
                 tumor = tumorInfo.sampleId,
                 dbsnpIndels = dbsnpIndels,
+                callRegions = callRegions,
                 referenceFa = referenceFa,
-                bwaReference = bwaReference,
+                svabaIndexedReference = svabaIndexedReference,
                 tumorFinalBam = tumorInfo.finalBam,
-                highMem = highMem
+                highMem = true
         }
         call MergeVcfPon.MergeVcfPon as wgsMergeVcfPon {
                     input:
+                        tumor = tumorInfo.sampleId,
                         filteredMantaSV = MantaPon.filteredMantaSV,
                         mutect2 = Mutect2Pon.mutect2,
                         svabaIndel = SvabaPon.svabaIndel,
@@ -193,6 +199,7 @@ workflow CallingPon {
     }
  
     output {
+        # temp
         # General
         Array[File] vcfAnnotatedVep = finalVcfAnnotatedVep
         
@@ -203,6 +210,7 @@ workflow CallingPon {
         # Strelka2
 
         # Svaba
+        Array[File] svabaSvGz = SvabaPon.svabaSvGz
         Array[File] svabaIndel = SvabaPon.svabaIndel
     }
 }

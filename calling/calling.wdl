@@ -309,9 +309,9 @@ task MantaWgsPon {
     }
 
     output {
-        IndexedVcf somaticSV = object {
-                vcf : "~{sampleId}.MantaRaw/results/variants/somaticSV.vcf.gz",
-                index : "~{sampleId}.MantaRaw/results/variants/somaticSV.vcf.gz.tbi"
+        IndexedVcf tumorSV = object {
+                vcf : "~{sampleId}.MantaRaw/results/variants/tumorSV.vcf.gz",
+                index : "~{sampleId}.MantaRaw/results/variants/tumorSV.vcf.gz.tbi"
             }
 
     }
@@ -341,6 +341,39 @@ task FilterNonpass {
         --java-options "-XX:ParallelGCThreads=4" \
         -R ~{referenceFa.fasta} \
         -V ~{vcf} \
+        -O ~{outVcfPath} \
+        --exclude-filtered
+    }
+
+    output {
+        File outVcf = "~{outVcfPath}"
+    }
+
+    runtime {
+        cpu : 4
+        disks: "local-disk " + diskSize + " HDD"
+        memory : memoryGb + "GB"
+        docker : "us.gcr.io/broad-gatk/gatk:4.1.1.0"
+    }
+}
+
+task FilterNonpassPon {
+    input {
+        Int threads = 4
+        Int memoryGb = 8
+        Int diskSize
+        String pairName
+        String outVcfPath = "~{pairName}.manta.v1.4.0.filtered.unorder.vcf"
+        IndexedReference referenceFa
+        IndexedVcf vcf
+    }
+
+    command {
+        gatk \
+        SelectVariants \
+        --java-options "-XX:ParallelGCThreads=4" \
+        -R ~{referenceFa.fasta} \
+        -V ~{vcf.vcf} \
         -O ~{outVcfPath} \
         --exclude-filtered
     }
@@ -639,38 +672,120 @@ task SvabaWgs {
     }
 }
 
-task SvabaWgsPon {
+task PopulateCache {
     input {
-        Int threads
         Int memoryGb = 16
-        String sampleId
-        IndexedTable callRegions
         BwaReference bwaReference
-        File dbsnpIndels
-        Bam tumorFinalBam
-        Int diskSize
+        String refCacheDirPath = "ref_cache"
+        String refCachePath = "ref_cache.tar.gz"
+        Int diskSize = 10
     }
 
     command {
+        set -e -o pipefail
+        
+        /samtools-1.4.1/misc/seq_cache_populate.pl \
+        -root ~{refCacheDirPath} \
+        ~{bwaReference.fasta}
+        
+        tar -czvf \
+        ~{refCachePath} \
+        ~{refCacheDirPath}
+    }
+
+    output {
+        File refCache = "~{refCachePath}"
+    }
+
+    runtime {
+        disks: "local-disk " + diskSize + " LOCAL"
+        memory : memoryGb + "GB"
+        docker : "gcr.io/nygc-public/samtools@sha256:e1149e965e8379f4a75b120d832b84e87dbb97bd5510ed581113400f768e5940"
+    }
+}
+
+task SvabaIndex {
+    input {
+        Int memoryGb = 16
+        BwaReference bwaReference
+        String svabaIndexedReferencePath = basename(bwaReference.fasta)
+        Int diskSize = 16
+    }
+
+    command {
+        set -e -o pipefail
+        
+        cp ~{bwaReference.fasta} \
+        ~{svabaIndexedReferencePath}
+        
+        /svaba/SeqLib/bwa/bwa \
+        index \
+        ~{svabaIndexedReferencePath}
+    }
+
+    output {
+        BwaReference svabaIndexedReference = object {
+                fasta : "~{svabaIndexedReferencePath}",
+                sa : "~{svabaIndexedReferencePath}.sa",
+                pac : "~{svabaIndexedReferencePath}.pac",
+                bwt : "~{svabaIndexedReferencePath}.bwt",
+                ann : "~{svabaIndexedReferencePath}.ann",
+                amb : "~{svabaIndexedReferencePath}.amb"
+            }
+    }
+
+    runtime {
+        disks: "local-disk " + diskSize + " LOCAL"
+        memory : memoryGb + "GB"
+        docker : "gcr.io/nygc-public/svaba@sha256:48f6bd86e933ca88fd74d8effc66e93eee5b40945ee37612b80d7edaadc567f3"
+    }
+}
+
+task SvabaWgsPon {
+    input {
+        Int threads = 4
+        Int memoryGb = 16
+        String sampleId
+        IndexedTable callRegions
+        BwaReference svabaIndexedReference
+        File dbsnpIndels
+        File refCache
+        Bam tumorFinalBam
+        String refCacheDirPath = sub(basename(refCache), ".tar.gz$", "")
+        Int diskSize
+        Int verbose = 0
+    }
+
+    command {
+        set -e -o pipefail
+        
+        tar -xzf \
+        ~{refCache}
+        
+        export REF_PATH=./~{refCacheDirPath}/%2s/%2s/%s
+        export REF_CACHE=./~{refCacheDirPath}/%2s/%2s/%s
+        
         svaba \
         run \
+        --verbose ~{verbose} \
         -t ~{tumorFinalBam.bam} \
         -p ~{threads} \
+        -L 100000 \
         --region ~{callRegions.table} \
         -D ~{dbsnpIndels} \
         -a ~{sampleId} \
-        -G ~{bwaReference.fasta} \
+        -G ~{svabaIndexedReference.fasta} \
         -z on
     }
 
     output {
-        File svabaIndelGz = "~{sampleId}.svaba.somatic.indel.vcf.gz"
-        File svabaGz = "~{sampleId}.svaba.somatic.sv.vcf.gz"
+        File svabaIndelGz = "~{sampleId}.svaba.indel.vcf.gz"
+        File svabaGz = "~{sampleId}.svaba.sv.vcf.gz"
     }
 
     runtime {
         cpu : threads
-        disks: "local-disk " + diskSize + " LOCAL"
+        disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/svaba@sha256:48f6bd86e933ca88fd74d8effc66e93eee5b40945ee37612b80d7edaadc567f3"
         preemptible: 1
