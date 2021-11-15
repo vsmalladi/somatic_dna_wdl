@@ -65,7 +65,7 @@ task IndexVcf {
         cpu : threads
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "us.gcr.io/broad-gatk/gatk:4.1.1.0"
+        docker : "gcr.io/nygc-public/broadinstitute/gatk:4.1.8.0"
     }
 }
 
@@ -354,7 +354,7 @@ task Gatk4MergeSortVcf {
         cpu : threads
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "us.gcr.io/broad-gatk/gatk:4.1.1.0"
+        docker : "gcr.io/nygc-public/broadinstitute/gatk:4.1.8.0"
     }
 }
 

@@ -148,7 +148,7 @@ task Bqsr38 {
     runtime {
         cpu : cpu
         memory : mem + " GB"
-        docker : "us.gcr.io/broad-gatk/gatk:4.1.1.0"
+        docker : "gcr.io/nygc-public/broadinstitute/gatk:4.1.8.0"
         disks: "local-disk " + diskSize + " HDD"
     }
 }
@@ -183,7 +183,7 @@ task Downsample{
     runtime {
         cpu: 2
         memory: mem + "GB"
-        docker: "us.gcr.io/broad-gatk/gatk:4.1.1.0"
+        docker: "gcr.io/nygc-public/broadinstitute/gatk:4.1.8.0"
         disks: "local-disk " + diskSize + " HDD"
     }
 }
@@ -222,7 +222,7 @@ task PrintReads {
     runtime {
         cpu : cpu
         memory : mem + "GB"
-        docker : "us.gcr.io/broad-gatk/gatk:4.1.1.0"
+        docker : "gcr.io/nygc-public/broadinstitute/gatk:4.1.8.0"
         disks: "local-disk " + diskSize + " HDD"
         preemptible: 1
      }

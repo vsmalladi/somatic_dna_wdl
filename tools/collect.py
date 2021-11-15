@@ -395,7 +395,6 @@ class CloudOutput():
     
     def get_uuid_from_uri(self, uris):
         sub_workflow_uuids = []
-        print(uris)
         for uri in uris:
             for possible in uri.replace('/cacheCopy', '').split('/call-')[1::-1]:
                 sub_workflow_uuid = possible.split('/')[-1]

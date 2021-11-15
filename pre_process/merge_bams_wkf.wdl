@@ -137,6 +137,6 @@ task SumFloats {
     }
 
     runtime {
-        docker: "python:2.7"
+        docker: "gcr.io/nygc-public/python@sha256:9b7d62026be68c2e91c17fb4e0499454e41ebf498ef345f9ad6e100a67e4b697"
     }
 }

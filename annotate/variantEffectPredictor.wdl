@@ -117,7 +117,7 @@ task vepSvnIndel {
         cpu : threads
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " LOCAL"
-        docker: "ensemblorg/ensembl-vep:release_97.4"
+        docker: "gcr.io/nygc-public/ensemblorg/ensembl-vep@sha256:7c99fadb332d65fc913844ce93aaee89dac5516afb68179304f1973a9e270196"
     }
 
     output {
@@ -230,7 +230,7 @@ task vepPublicSvnIndel {
         cpu : threads
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " LOCAL"
-        docker: "ensemblorg/ensembl-vep:release_97.4"
+        docker: "gcr.io/nygc-public/ensemblorg/ensembl-vep@sha256:7c99fadb332d65fc913844ce93aaee89dac5516afb68179304f1973a9e270196"
     }
 
     output {

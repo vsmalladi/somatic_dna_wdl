@@ -40,7 +40,7 @@ task FilterForHetSnps {
     runtime {
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker: "us.gcr.io/broad-gatk/gatk:4.1.8.0"
+        docker: "gcr.io/nygc-public/broadinstitute/gatk@sha256:18146e79d06787483310e5de666502090a480e10ac0fad06a36a5e7a5c9bb1dc"
     }
 }
 

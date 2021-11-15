@@ -22,7 +22,7 @@ task GetInsertSize {
     }
 
     runtime {
-        docker: "ubuntu:latest"
+        docker: "gcr.io/nygc-public/python@sha256:9b7d62026be68c2e91c17fb4e0499454e41ebf498ef345f9ad6e100a67e4b697"
     }
 }
 
@@ -71,7 +71,7 @@ task Gatk4MergeSortCompressVcf {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "us.gcr.io/broad-gatk/gatk:4.1.1.0"
+        docker : "gcr.io/nygc-public/broadinstitute/gatk:4.1.8.0"
     }
 }
 
@@ -120,7 +120,7 @@ task Gatk4MergeSortVcf {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "us.gcr.io/broad-gatk/gatk:4.1.1.0"
+        docker : "gcr.io/nygc-public/broadinstitute/gatk:4.1.8.0"
     }
 }
 
@@ -353,7 +353,7 @@ task FilterNonpass {
         cpu : 4
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "us.gcr.io/broad-gatk/gatk:4.1.1.0"
+        docker : "gcr.io/nygc-public/broadinstitute/gatk:4.1.8.0"
     }
 }
 
@@ -386,7 +386,7 @@ task FilterNonpassPon {
         cpu : 4
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "us.gcr.io/broad-gatk/gatk:4.1.1.0"
+        docker : "gcr.io/nygc-public/broadinstitute/gatk:4.1.8.0"
     }
 }
 
@@ -561,7 +561,7 @@ task Mutect2Wgs {
 
     runtime {
         memory : memoryGb + "GB"
-        docker : "us.gcr.io/broad-gatk/gatk:4.0.5.1"
+        docker : "gcr.io/nygc-public/broadinstitute/gatk@sha256:d78b14aa86b42638fe2844def82816d002a134cc19154a21dac7067ecb3c7e06"
         disks: "local-disk " + diskSize + " LOCAL"
     }
 }
@@ -594,7 +594,7 @@ task Mutect2WgsPon {
 
     runtime {
         memory : memoryGb + "GB"
-        docker : "us.gcr.io/broad-gatk/gatk:4.0.5.1"
+        docker : "gcr.io/nygc-public/broadinstitute/gatk@sha256:d78b14aa86b42638fe2844def82816d002a134cc19154a21dac7067ecb3c7e06"
         disks: "local-disk " + diskSize + " LOCAL"
     }
 }
@@ -625,7 +625,7 @@ task Mutect2Filter {
 
     runtime {
         memory : memoryGb + "GB"
-        docker : "us.gcr.io/broad-gatk/gatk:4.0.5.1"
+        docker : "gcr.io/nygc-public/broadinstitute/gatk@sha256:d78b14aa86b42638fe2844def82816d002a134cc19154a21dac7067ecb3c7e06"
         disks: "local-disk " + diskSize + " HDD"
     }
 }
