@@ -9,7 +9,7 @@ task NovosortMarkDupExternal {
        String sampleId
        String mergedDedupBamPath = "~{sampleId}.merged_dedup.bam"
        # resources
-       Int mem = 20
+       Int memoryGb = 20
        # without a license in the docker image novosort should run with one thread
        Int threads = 1
        Int diskSize
@@ -33,8 +33,10 @@ task NovosortMarkDupExternal {
     }
 
     runtime {
+        mem: memoryGb + "G"
+        cpus: threads
         cpu : threads
-        memory : mem + " GB"
+        memory : memoryGb + " GB"
         docker :  "gcr.io/nygc-public/novosort@sha256:acc029023227b996b0f0fb7074070de3a36f00293237273f7862ba523cdae5c9"
         # Per clinical team novosort runs significantly faster with SSD
         disks: "local-disk " + diskSize + " LOCAL"
@@ -49,7 +51,7 @@ task NovosortMarkDup {
        String sampleId
        String mergedDedupBamPath = "~{sampleId}.merged_dedup.bam"
        # resources
-       Int mem = 20
+       Int memoryGb = 20
        Int threads = 8
        Int diskSize
    }
@@ -73,8 +75,10 @@ task NovosortMarkDup {
     }
 
     runtime {
+        mem: memoryGb + "G"
+        cpus: threads
         cpu : threads
-        memory : mem + " GB"
+        memory : memoryGb + " GB"
         docker :  "gcr.io/nygc-compbio/novosort@sha256:ec3b0a6b1293916df21e69ec668f6ee23f33ce643f8c455c21d5f4234be25193"
         # Per clinical team novosort runs significantly faster with SSD
         disks: "local-disk " + diskSize + " LOCAL"
@@ -121,12 +125,12 @@ task Bqsr38 {
         IndexedVcf Indels
         IndexedVcf dbsnp
         # resources
-        Int mem = 12
-        Int cpu = 2
+        Int memoryGb = 12
+        Int threads = 2
         Int diskSize
    }
 
-    Int jvmHeap = mem * 750  # Heap size in Megabytes. mem is in GB. (75% of mem)
+    Int jvmHeap = memoryGb * 750  # Heap size in Megabytes. mem is in GB. (75% of mem)
 
     command {
         gatk \
@@ -146,8 +150,10 @@ task Bqsr38 {
     }
 
     runtime {
-        cpu : cpu
-        memory : mem + " GB"
+        mem: memoryGb + "G"
+        cpus: threads
+        cpu : threads
+        memory : memoryGb + " GB"
         docker : "gcr.io/nygc-public/broadinstitute/gatk:4.1.8.0"
         disks: "local-disk " + diskSize + " HDD"
     }
@@ -158,10 +164,11 @@ task Downsample{
         String sampleId
         String downsampleMergedDedupBamPath = "~{sampleId}.merged_dedup_10_percent.bam"
         Bam mergedDedupBam
-        Int mem = 68  #GB
+        Int memoryGb = 68  #GB
+        Int threads = 2
         Int diskSize
     }
-    Int jvmHeap = mem * 750  # Heap size in Megabytes. mem is in GB. (75% of mem)
+    Int jvmHeap = memoryGb * 750  # Heap size in Megabytes. mem is in GB. (75% of mem)
     command {
         gatk DownsampleSam \
         --java-options "-Xmx~{jvmHeap}m -XX:ParallelGCThreads=4" \
@@ -181,8 +188,10 @@ task Downsample{
         }
     }
     runtime {
-        cpu: 2
-        memory: mem + "GB"
+        mem: memoryGb + "G"
+        cpus: threads
+        cpu: threads
+        memory: memoryGb + "GB"
         docker: "gcr.io/nygc-public/broadinstitute/gatk:4.1.8.0"
         disks: "local-disk " + diskSize + " HDD"
     }
@@ -197,12 +206,13 @@ task PrintReads {
         String sampleId
         String finalBamPath = "~{sampleId}.final.bam"
         # resources
-        Int mem = 16
-        Int cpu = 2
+        Int memoryGb = 16
+        Int threads = 2
         Int diskSize
+        Int preemptible = 3
     }
 
-    Int jvmHeap = mem * 750  # Heap size in Megabytes. mem is in GB. (75% of mem)
+    Int jvmHeap = memoryGb * 750  # Heap size in Megabytes. mem is in GB. (75% of mem)
     command {
         gatk ApplyBQSR \
         --java-options "-Xmx~{jvmHeap}m -XX:ParallelGCThreads=4" \
@@ -220,10 +230,12 @@ task PrintReads {
     }
 
     runtime {
-        cpu : cpu
-        memory : mem + "GB"
+        mem: memoryGb + "G"
+        cpus: threads
+        cpu : threads
+        memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/broadinstitute/gatk:4.1.8.0"
         disks: "local-disk " + diskSize + " HDD"
-        preemptible: 1
+        preemptible: preemptible
      }
 }

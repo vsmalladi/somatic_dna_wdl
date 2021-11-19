@@ -62,7 +62,7 @@ workflow Preprocess {
             referenceFa = referenceFa,
             randomIntervals = randomIntervals,
             qcDir = "Sample_~{sampleId}/qc",
-            mem = novosortMem,
+            memoryGb = novosortMem,
             threads = threads
     }
 

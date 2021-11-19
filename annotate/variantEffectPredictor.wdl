@@ -114,6 +114,8 @@ task vepSvnIndel {
     }
 
     runtime {
+        mem: memoryGb + "G"
+        cpus: threads
         cpu : threads
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " LOCAL"
@@ -227,6 +229,8 @@ task vepPublicSvnIndel {
     }
 
     runtime {
+        mem: memoryGb + "G"
+        cpus: threads
         cpu : threads
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " LOCAL"

@@ -7,6 +7,7 @@ task BedtoolsIntersect {
         String mantisBedByIntervalListPath
         File mantisBed
         File intervalListBed
+        Int memoryGb = 1
     }
 
     command {
@@ -23,6 +24,8 @@ task BedtoolsIntersect {
     }
 
     runtime {
+        mem: memoryGb + "G"
+        memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/bedtools@sha256:9e737f5c96c00cf3b813d419d7a7b474c4013c9aa9dfe704eb36417570c6474e"
     }
 }
@@ -103,6 +106,8 @@ task MantisExome {
     }
 
     runtime {
+        mem: memoryGb + "G"
+        cpus: threads
         cpu : threads
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
@@ -151,6 +156,7 @@ task GetChr6Contigs {
     }
     
     runtime {
+        mem: memoryGb + "G"
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
         docker : "gcr.io/nygc-public/hla_prep@sha256:a490cf449eeb98b997f0dd87ff1c23ff77d724c7c2072b6c44f75a713ecc2d36"
@@ -216,6 +222,8 @@ task GemSelect {
     }
 
     runtime {
+        mem: memoryGb + "G"
+        cpus: threads
         cpu : threads
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
@@ -253,6 +261,7 @@ task LookUpMates {
     }
 
     runtime {
+        mem: memoryGb + "G"
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
         docker : "gcr.io/nygc-public/hla_prep@sha256:a490cf449eeb98b997f0dd87ff1c23ff77d724c7c2072b6c44f75a713ecc2d36"
@@ -298,6 +307,8 @@ task GetMates {
     }
 
     runtime {
+        mem: memoryGb + "G"
+        cpus: threads
         cpu : threads
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
@@ -338,6 +349,7 @@ task SortFastqs {
     }
 
     runtime {
+        mem: memoryGb + "G"
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
         docker : "gcr.io/nygc-public/hla_prep@sha256:a490cf449eeb98b997f0dd87ff1c23ff77d724c7c2072b6c44f75a713ecc2d36"
@@ -378,6 +390,8 @@ task AlignToPanel {
     }
 
     runtime {
+        mem: memoryGb + "G"
+        cpus: threads
         cpu : threads
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
@@ -406,6 +420,8 @@ task Kourami {
     }
 
     runtime {
+        mem: memoryGb + "G"
+        cpus: threads
         cpu : threads
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/kourami@sha256:d4b906b979c24ee4669fdbf7ee1dfbdeb5c89d0e34b4b4aaf21ee070e988d74b"

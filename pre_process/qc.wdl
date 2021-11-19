@@ -45,6 +45,8 @@ task MultipleMetrics {
     }
 
     runtime {
+        mem: memoryGb + "G"
+        cpus: threads
         cpu : threads
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
@@ -88,6 +90,8 @@ task MultipleMetricsPreBqsr {
     }
 
     runtime {
+        mem: memoryGb + "G"
+        cpus: threads
         cpu : threads
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
@@ -131,6 +135,8 @@ task CollectGcBiasMetrics {
     }
 
     runtime {
+        mem: memoryGb + "G"
+        cpus: threads
         cpu : threads
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
@@ -167,6 +173,8 @@ task Flagstat {
     }
 
     runtime {
+        mem: memoryGb + "G"
+        cpus: threads
         cpu : threads
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
@@ -214,6 +222,8 @@ task HsMetrics {
     }
 
     runtime {
+        mem: memoryGb + "G"
+        cpus: threads
         cpu : threads
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
@@ -244,6 +254,8 @@ task FormatHsMetrics {
     }
 
     runtime {
+        mem: memoryGb + "G"
+        cpus: threads
         cpu : threads
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/somatic_tools@sha256:46ab81b8dc09d6f8cf90c81f7d5692f23d73c134df6dbcd5298abde7f414dce3"
@@ -275,6 +287,8 @@ task Autocorrelations {
     }
 
     runtime {
+        mem: memoryGb + "G"
+        cpus: threads
         cpu : threads
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/somatic_tools@sha256:46ab81b8dc09d6f8cf90c81f7d5692f23d73c134df6dbcd5298abde7f414dce3"
@@ -311,6 +325,8 @@ task CollectOxoGMetricsWgs {
     }
 
     runtime {
+        mem: memoryGb + "G"
+        cpus: threads
         cpu : threads
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
@@ -354,6 +370,8 @@ task CollectWgsMetrics {
     }
 
     runtime {
+        mem: memoryGb + "G"
+        cpus: threads
         cpu : threads
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
@@ -384,6 +402,8 @@ task Binest {
     }
 
     runtime {
+        mem: memoryGb + "G"
+        cpus: threads
         cpu : threads
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
@@ -416,6 +436,8 @@ task PlotBinCov {
     }
 
     runtime {
+        mem: memoryGb + "G"
+        cpus: threads
         cpu : threads
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/somatic_tools@sha256:46ab81b8dc09d6f8cf90c81f7d5692f23d73c134df6dbcd5298abde7f414dce3"
@@ -425,6 +447,7 @@ task PlotBinCov {
 task Pileup {
     input {
         Int memoryGb = 16
+        Int threads = 1
         Int diskSize
         String sampleId
         String outputDir = "."
@@ -449,7 +472,9 @@ task Pileup {
     }
 
     runtime {
-        cpu: 1
+        mem: memoryGb + "G"
+        cpus: threads
+        cpu: threads
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
         docker : "gcr.io/nygc-public/broadinstitute/gatk@sha256:277658fad225fa986eb7c3e5adf984d0c3b9a21f5557b5e82dcd6885bb4d6a52"
@@ -464,6 +489,7 @@ task CalculateContamination {
         String contaminationTablePath = "~{outputDir}/~{sampleId}.contamination.table"
         File pileupsTable
         Int diskSize
+        Int threads = 1
     }
 
     Int jvmHeap = memoryGb * 750  # Heap size in Megabytes. mem is in GB. (75% of mem)
@@ -481,7 +507,9 @@ task CalculateContamination {
     }
 
     runtime {
-        cpu : 1
+        mem: memoryGb + "G"
+        cpus: threads
+        cpu : threads
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/broadinstitute/gatk@sha256:277658fad225fa986eb7c3e5adf984d0c3b9a21f5557b5e82dcd6885bb4d6a52"
         disks: "local-disk " + diskSize + " HDD"
@@ -515,6 +543,8 @@ task CalculateContaminationPaired {
     }
 
     runtime {
+        mem: memoryGb + "G"
+        cpus: threads
         cpu : threads
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/broadinstitute/gatk@sha256:277658fad225fa986eb7c3e5adf984d0c3b9a21f5557b5e82dcd6885bb4d6a52"
@@ -556,6 +586,8 @@ task ConpairPileup {
     }
 
     runtime {
+        mem: memoryGb + "G"
+        cpus: threads
         cpu : threads
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
@@ -589,6 +621,8 @@ task VerifyConcordanceAll {
     }
 
     runtime {
+        mem: memoryGb + "G"
+        cpus: threads
         cpu : threads
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/conpair@sha256:c427e731b280ba8ad83c79993970bab5e94dd42f2b972f580b817c4a1f88e8c9"
@@ -622,6 +656,8 @@ task VerifyConcordanceHomoz {
     }
 
     runtime {
+        mem: memoryGb + "G"
+        cpus: threads
         cpu : threads
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/conpair@sha256:c427e731b280ba8ad83c79993970bab5e94dd42f2b972f580b817c4a1f88e8c9"
@@ -654,6 +690,8 @@ task Contamination {
     }
 
     runtime {
+        mem: memoryGb + "G"
+        cpus: threads
         cpu : threads
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/conpair@sha256:c427e731b280ba8ad83c79993970bab5e94dd42f2b972f580b817c4a1f88e8c9"

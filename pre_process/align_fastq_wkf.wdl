@@ -43,7 +43,7 @@ workflow AlignFastq {
                 fastqR1 = fastqR1,
                 fastqR2 = fastqR2,
                 bwaReference = bwaReference,
-                mem = bwaMem,
+                memoryGb = bwaMem,
                 threads = threads,
                 bwaThreads = bwaThreads,
                 diskSize = diskSize
@@ -53,7 +53,7 @@ workflow AlignFastq {
             input:
                 laneBam = AlignBwaMem.laneBam,
                 bamBase = fastqs.readgroupId,
-                mem = 16,
+                memoryGb = 16,
                 diskSize = diskSize
         }
 
@@ -61,7 +61,7 @@ workflow AlignFastq {
             input:
                 laneBamMark = ShortAlignMark.laneBamMark,
                 bamBase = fastqs.readgroupId,
-                mem = 8,
+                memoryGb = 8,
                 diskSize = diskSize
         }
         Int fixmate_bam_size = ceil(size(Fixmate.laneFixmateBam, "GB"))

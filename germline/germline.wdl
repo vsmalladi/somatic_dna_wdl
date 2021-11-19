@@ -47,6 +47,7 @@ task haplotypeCallerGatk4 {
     }
 
     runtime {
+        mem: memoryGb + "G"
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
         docker: "gcr.io/nygc-public/broadinstitute/gatk@sha256:18146e79d06787483310e5de666502090a480e10ac0fad06a36a5e7a5c9bb1dc"
@@ -124,6 +125,7 @@ task GentotypeGvcfsGatk4 {
     }
 
     runtime {
+        mem: memoryGb + "G"
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
         docker : "gcr.io/nygc-public/broadinstitute/gatk@sha256:18146e79d06787483310e5de666502090a480e10ac0fad06a36a5e7a5c9bb1dc"
@@ -189,6 +191,7 @@ task genotypeRefinementWorkflow {
     }
 
     runtime {
+        mem: memoryGb + "G"
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
         docker : "gcr.io/nygc-public/broadinstitute/gatk@sha256:18146e79d06787483310e5de666502090a480e10ac0fad06a36a5e7a5c9bb1dc"
@@ -208,6 +211,8 @@ task filterHO {
             IndexedVcf clinvarIntronicsVcf
             String haplotypecallerFinalFilteredPath = "~{sampleId}.haplotypecaller.gatk.v4.1.8.0.final.filtered.vcf.gz"
             Int diskSize = 100
+            Int threads = 2
+            Int memoryGb = 8
     }
 
     command <<<
@@ -318,8 +323,10 @@ task filterHO {
     >>>
 
     runtime {
-      memory: "7.5 GB"
-      cpu: "2"
+      mem: memoryGb + "G"
+      cpus: threads
+      memory: memoryGb + " GB"
+      cpu: threads
       disks: "local-disk " + diskSize + " HDD"
       docker: "gcr.io/nygc-public/genome-utils@sha256:59603ab0aeda571c38811d6d1820d1b546a69fc342120bef75597bfd7905ea1f"
     }
