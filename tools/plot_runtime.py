@@ -79,14 +79,14 @@ class PlotRuntime():
                                       button=True,
                                       x="workflow_name",
                                       ys=["sample_task_core_h", 
-                                          "max_mem_g", 
+                                          "max_mem_used_gb", 
                                           "sample_task_run_time_h"],
                                       color="task_call_name",
                                       hover_data=['id'],
                                       color_discrete_sequence=self.colors_set2,
                                       title='<b>Tasks: resource usage summary plot</b>',
                                       labels={'sample_task_run_time_h' : 'Task runtime(h)',
-                                              'max_mem_g' : 'Mem (G)',
+                                              'max_mem_used_gb' : 'Mem (G)',
                                               'sample_task_core_h' : 'Task core hours',
                                               'workflow_name' : 'Sub-workflow',
                                               'task_call_name' : 'Task'},
@@ -96,14 +96,14 @@ class PlotRuntime():
                                       button=True,
                                       x="workflow_name",
                                       ys=["sample_task_core_h", 
-                                          "max_mem_g", 
+                                          "max_mem_used_gb", 
                                           "sample_task_run_time_h"],
                                       color="task_call_name",
                                       hover_data=['id'],
                                       color_discrete_sequence=self.colors_set2,
                                       title='<b>Tasks: run on non-preemptible instances</b>',
                                       labels={'sample_task_run_time_h' : 'Task runtime(h)',
-                                              'max_mem_g' : 'Mem (G)',
+                                              'max_mem_used_gb' : 'Mem (G)',
                                               'sample_task_core_h' : 'Task core hours',
                                               'workflow_name' : 'Sub-workflow',
                                               'task_call_name' : 'Task'},
@@ -147,16 +147,16 @@ class PlotRuntime():
                                                               button=True,                                      
                                                               x="workflow_name",
                                                               top_ys=["mem_total_gb", "disk_total_gb", ""],
-                                                              central_ys=["max_mem_g", "disk_used_gb", "sample_task_run_time_h"],
+                                                              central_ys=["max_mem_used_gb", "max_disk_used_gb", "sample_task_run_time_h"],
                                                               color="task_call_name",
                                                               hover_data=['id'],
                                                               color_discrete_sequence=self.colors,
                                                               title='<b>Tasks: resources used vs available</b>',
-                                                              labels={'disk_used_gb' : 'Disk used (G)',
+                                                              labels={'max_disk_used_gb' : 'Disk used (G)',
                                                                       'disk_total_gb' : 'Available disk (G)',
                                                                       'mem_total_gb' : 'Available mem (G)',
                                                                       'sample_task_run_time_h' : 'Task runtime(h)',
-                                                                      'max_mem_g' : 'Mem (G)',
+                                                                      'max_mem_used_gb' : 'Mem (G)',
                                                                       'sample_task_core_h' : 'Task core hours',
                                                                       'workflow_name' : 'Sub-workflow',
                                                                       'task_call_name' : 'Task'},
@@ -180,7 +180,7 @@ class PlotRuntime():
     
     def gather_summary(self):
         '''Add details about percent of instances that are preemptible'''
-        self.metadata = self.metadata[self.metadata.backend_status != 'CacheHit'].copy()
+        self.metadata = self.metadata[~(self.metadata.backend_status.isin(['Running', 'CacheHit']))].copy()
         # exit status of non-zero exits
         exit_status = self.metadata[['task_call_name', 
                                      'backend_status']].value_counts().to_frame().reset_index()
@@ -253,6 +253,7 @@ class PlotRuntime():
     def get_table(self):
         '''Make workflow resource usage summary table'''
         table_data = self.metadata[['id', 'sample_workflow_run_time_h']].copy()
+        table_data = table_data.dropna(subset=['sample_workflow_run_time_h'])
         table_data = table_data.sort_values(['sample_workflow_run_time_h']).copy()
         table_data.columns = ['Id', 'Wallclock (h)']
         summary_table = ploter.make_html_table(table_data.drop_duplicates(),
@@ -268,7 +269,7 @@ class PlotRuntime():
                           button=False,
                           x="workflow_name",
                           top_ys=["mem_total_gb", "disk_total_gb", ""],
-                          central_ys=["max_mem_g", "disk_used_gb", "sample_task_run_time_h"],
+                          central_ys=["max_mem_used_gb", "max_disk_used_gb", "sample_task_run_time_h"],
                           color="task_call_name",
                           hover_data=['id'],
                           color_discrete_sequence=False,

@@ -1,16 +1,24 @@
 import sys
 from google.cloud import bigquery
 from google.cloud import bigquery_storage
+from google_auth_oauthlib import flow
+import google.auth
 import json
 import datetime
 import logging as log
 import pandas as pd
-import Colorer
-import make_auth
 import argparse
 import os 
 import numpy as np
 import subprocess
+import pprint
+import ast
+
+
+try:
+    import Colorer
+except ImportError:
+    pass
 
 pd.set_option('display.max_columns', 500)
 log.basicConfig(format='%(levelname)s:  %(message)s', level=log.INFO)
@@ -20,20 +28,19 @@ class Runtime():
     def __init__(self,
                  output_info,
                  url,
-                 limit=10000,
+                 metrics_file_prefix,
+                 limit=1000000,
                  gcp_project=False,
-                 metrics_file=False):
+                 test=False):
+        self.test= test
         self.parent_dir = os.path.abspath(os.path.dirname(__file__))
         self.output_info = output_info
         self.workflow_uuid = output_info['workflow_uuid']
         self.url = url
         # find existing project id info
         self.prep_ids()
-        if not metrics_file:
-            self.metrics_file = output_info["project_data"]['project'].replace(' ', '_') + '.' +  output_info['workflow_uuid'] + '_outputMetrics.csv'
-        else:
-            self.metrics_file = metrics_file
-        self.non_retried_metrics_file = self.metrics_file.replace('.csv', '.non_retried.csv')
+        self.metrics_file = metrics_file_prefix + self.workflow_uuid + '_outputMetrics.csv'
+        self.non_retried_metrics_file = metrics_file_prefix + self.workflow_uuid + '_outputMetrics.non_retried.csv'
         if os.path.isfile(self.metrics_file):
             self.loaded = True
         else:
@@ -41,15 +48,13 @@ class Runtime():
             self.limit = str(limit)
             self.metrics_limit = str(limit * 4)
             # login
-            self.credentials, self.gcp_project = make_auth.login()
+            self.credentials, self.gcp_project = self.login()
             if gcp_project:
                 self.default_project = False
                 self.gcp_query_project = gcp_project
             else:
                 self.default_project = True
                 self.gcp_query_project = self.gcp_project
-            self.sub_workflow_uuids = self.output_info['sub_workflow_uuids']
-            self.run_date = self.get_rundate()
             self.get_sample_info()
             # gather big cloud tables
             self.bqclient = bigquery.Client(project=self.gcp_project , 
@@ -60,34 +65,73 @@ class Runtime():
                 log.warning('No endtime found for workflow: ' + output_info['workflow_uuid'])
             else:
                 self.load_runtime()
-                self.start_instance_maps()
+                # merge runtime info with metadata
+                self.runtime.columns = ['project_id', 'zone', 'instance_id', 'instance_name', 'preemptible',
+                               'runtime_workflow_id', 'task_call_name', 'shard', 'attempt', 'cpu_count',
+                               'cpu_platform', 'mem_total_gb', 'disk_mounts', 'disk_total_gb',
+                               'start_time']
+                self.runtime['instance_id']
+                self.runtime['instance_id'] = self.runtime['instance_id'].fillna(-1)
+                self.runtime['instance_id'] = self.runtime['instance_id'].astype(int)
+                self.runtime['instance_id'] = self.runtime['instance_id'].astype(str)
+                self.runtime['instance_id'] = self.runtime['instance_id'].replace('-1', np.nan)
+                cols_to_replace = ['mem_total_gb', 'disk_mounts',  'disk_total_gb']
+                cols_to_keep = [col for col in self.metadata.columns if not col in cols_to_replace]
+                self.metadata = pd.merge(self.metadata[cols_to_keep], self.runtime[['instance_name', 'instance_id',
+                                                              'cpu_platform', 'mem_total_gb', 'disk_mounts', 
+                                                              'disk_total_gb']].drop_duplicates(subset=['instance_id']), on='instance_name', how='left')
+                print(self.metadata.shape)
+                self.metadata['instance_id'] = self.metadata['instance_id'].fillna(-1)
+                self.metadata['instance_id'] = self.metadata['instance_id'].astype(int)
+                self.metadata['instance_id'] = self.metadata['instance_id'].astype(str)
+                self.metadata['instance_id'] = self.metadata['instance_id'].replace('-1', np.nan)
                 self.load_metrics()
-                self.add_to_instance_maps()
-                hashable = ['instance_name', 'workflow_id', 'attempt', 'shard']
-                self.metadata = self.metadata.drop_duplicates(subset=hashable)
-                self.instance_id_map = self.get_max_mems(self.metadata, 
-                                                         instance_id_map=self.instance_id_map, 
-                                                         backend_status=False,
-                                                         metrics_key='mem_used_gb')
-                self.non_retry_instance_id_map = self.get_max_mems(self.metadata, 
-                                                                   instance_id_map=self.non_retry_instance_id_map, 
-                                                                   backend_status='Success',
-                                                                   metrics_key='mem_used_gb')
-                self.metadata_cache = self.metadata.loc[pd.isnull(self.metadata[['instance_name']]).any(axis=1)]
-                self.metadata = self.metadata.dropna(subset=['instance_name'])
+                print(self.metadata.shape)
+                self.metrics['instance_id'] = self.metrics['instance_id'].fillna(-1)
+                self.metrics['instance_id'] = self.metrics['instance_id'].astype(int)
+                self.metrics['instance_id'] = self.metrics['instance_id'].astype(str)
+                self.metrics['instance_id'] = self.metrics['instance_id'].replace('-1', np.nan)
+                print('add custom cols')
+                self.add_custom_cols()
+                print(self.metadata.shape)
+                # remove non-run rows
+                print('remove non-run rows')
+                self.metadata_cache = self.metadata.loc[pd.isnull(self.metadata[['instance_name']]).any(axis=1)].copy()
+                self.metadata = self.metadata.dropna(subset=['instance_name']).copy()
                 self.non_retry_metadata = self.metadata[self.metadata.backend_status == 'Success'].copy()
+                print(self.metadata.shape)
+                print('write metrics')
+                self.metadata.to_csv(self.metrics_file + '.intermediate.csv', index=False, float_format='{:f}'.format, encoding='utf-8')
+                # if no tasks are finished
                 if self.metadata[self.metadata.execution_status != 'RUNNING'].empty:
                     self.metadata = pd.concat([self.metadata, self.metadata_cache], ignore_index=True)
                     self.metadata.to_csv(self.metrics_file, index=False)
                 else:
+                    print('make plot metrics')
                     self.metadata_full = self.metadata.copy()
-                    self.metadata = self.load_plot_metrics(self.metadata,
-                                                           instance_id_map=self.instance_id_map)
-                    self.non_retry_metadata = self.load_plot_metrics(self.non_retry_metadata,
-                                                                     instance_id_map=self.non_retry_instance_id_map)
+                    self.metadata = self.load_plot_metrics(self.metadata)
+                    print('make non retry plot metrics')
+                    self.non_retry_metadata = self.load_plot_metrics(self.non_retry_metadata)
                     self.metadata = pd.concat([self.metadata, self.metadata_cache], ignore_index=True)
-                    self.metadata.to_csv(self.metrics_file, index=False)
-                    self.non_retry_metadata.to_csv(self.non_retried_metrics_file, index=False)
+                    print('write metrics')
+                    self.metadata.to_csv(self.metrics_file, index=False, float_format='{:f}'.format, encoding='utf-8')
+                    self.non_retry_metadata.to_csv(self.non_retried_metrics_file, index=False, float_format='{:f}'.format, encoding='utf-8')
+                    
+    def login(self):
+        '''Run the following to generate a default credentials file
+    
+        $ gcloud auth application-default login
+    
+        https://google-auth.readthedocs.io/en/latest/reference/google.auth.html#google.auth.default.'''
+        credentials, gcp_project = google.auth.default()
+        return credentials, gcp_project
+                    
+    def add_custom_cols(self):
+        '''Add per instance id values from metrics to metadata'''
+        self.metadata['max_cpu_used_percent'] = self.metadata.apply(lambda row: self.get_cpu_used(row.instance_id), axis=1)
+        self.metadata['max_disk_used_gb'] = self.metadata.apply(lambda row: self.get_disk_used_gb(row.instance_id), axis=1)
+        self.metrics['max_mem_used_gb'] = self.metrics.groupby(['instance_id']).mem_used_gb.transform(max)
+        self.metadata = pd.merge(self.metadata, self.metrics[['instance_id', 'max_mem_used_gb']].drop_duplicates(subset=['instance_id']), on='instance_id', how='left')
         
     @staticmethod
     def read(file):
@@ -100,116 +144,24 @@ class Runtime():
                                                  'workflow_name']):
         ''' get runtime in core hours for the task (within a workflow) '''
         return (row.cpu_count * float(row.run_time_m)) / 60
-    
-    def match_instance_id(self, instance_id_map, row, backend_status='Success'):
-        for inst in instance_id_map:
-            if (row.workflow_id in instance_id_map[inst]['workflow_ids'] \
-                    and row.task_call_name == instance_id_map[inst]['task_call_name']):
-                if backend_status:
-                    if backend_status == row.backend_status:
-                        yield inst
-                else:
-                    yield inst
             
-    
-    def get_max_mems(self, metadata, instance_id_map, 
-                     backend_status='Success',
-                     job_id_col='task_call_name', metrics_key='mem_used_gb'):
-        '''Get max mem for a runs with the same sub-workflow_id and task_call_name'''
-        runtime_results = metadata.drop_duplicates(['task_call_name', 'workflow_id', 'instance_name', 'shard', 'attempt'])
-        max_values = {}
-        for index, row in runtime_results.iterrows():
-            instance_ids = []
-            for inst in self.match_instance_id(instance_id_map, 
-                                               row, 
-                                               backend_status=backend_status):
-                instance_ids.append(inst)
-            instance_ids = list(set(instance_ids))
-            try:
-                max_value = self.metrics[self.metrics.instance_id.isin(instance_ids)][metrics_key].max()
-            except ValueError:
-                max_value = 0
-            for inst in instance_ids:
-                instance_id_map[inst][metrics_key] = max_value
-        return instance_id_map
-    
-    def get_max_mem(self, grouped, row, ids, 
-                    instance_id_map,
-                    metadata, metrics_key='mem_used_gb'):
-        '''Get max mem for a given subset of the runs'''
-        runtime_results = metadata.copy()
-        for id in ids:
-            runtime_results = runtime_results[runtime_results[id] == row[id]].copy()
-        max_values = []
-        for inst in instance_id_map:
-            if (row.workflow_id in instance_id_map[inst]['workflow_ids']) \
-                    and (row.task_call_name == instance_id_map[inst]['task_call_name']):
-                max_values.append(instance_id_map[inst][metrics_key])
-        try:
-            return max(max_values)
-        except ValueError:
-            return 0
-        
-    def get_flow_runtime(self, grouped, row, ids):
-        ''' get max runtime in hours for group.
-        For sub workflow and workflows this will also include wait time and
+    def get_flow_runtime(self, metadata, ids, col='sample_subworkflow_run_time_h'):
+        ''' For sub workflow and workflows this will also include wait time and
         return the end-to-end wallclock time for a particular id.
         For tasks this will only return the longest runtime.
         '''
-        # id example  ['id', 'instance_name', 'task_call_name', 'workflow_name']
-        if 'task_call_name' in ids:
-            runtime_results = grouped.run_time_m.agg(['max']).reset_index()
-            for id in ids:
-                runtime_results = runtime_results[runtime_results[id] == row[id]].copy()
-            runtime = runtime_results['max'].tolist()[0]
-            return runtime / 60.0
-        else:
-            end_time_results = grouped.end_time.agg(['max']).reset_index()
-            for id in ids:
-                end_time_results = end_time_results[end_time_results[id] == row[id]].copy()
-            end_time = end_time_results['max'].tolist()[0]
-            start_time_results = grouped.start_time.agg(['min']).reset_index()
-            for id in ids:
-                start_time_results = start_time_results[start_time_results[id] == row[id]].copy()
-            start_time = start_time_results['min'].tolist()[0]
-            runtime = end_time - start_time
-        return runtime.total_seconds() / 60.0 / 60.0
-    
-    def get_from_map(self, instance_id_map, row, query):
-        try:
-            instance_id = [instance_id for instance_id in instance_id_map 
-                           if instance_id_map[instance_id]['instance_name'] == row.instance_name][0]
-        except IndexError:
-            return None
-        return instance_id_map[instance_id][query]
+        metadata['grouped_end_time'] = metadata.groupby(ids).end_time.transform(max)
+        metadata['grouped_start_time'] = metadata.groupby(ids).start_time.transform(min)
+        metadata[col] = metadata.apply(lambda row: (row.grouped_end_time - row.grouped_start_time).total_seconds() / 60.0 / 60.0, axis=1)
+        cols = [col for col in metadata.columns if not col in ['grouped_end_time', 'grouped_start_time']]
+        return metadata[cols]
         
-    def load_plot_metrics(self, metadata, instance_id_map):
+    def load_plot_metrics(self, metadata):
         '''add cpu_time, max_mem, wall_clock, cpu_used_percent, mem_efficiency, mem_used_gb
         also add cpu_used_percent", "disk_total_gb",  "disk_used_gb",  "cpu_count",   "cpu_platform", "preemptible"
         
         '''
-        metadata['max_cpu_used_percent'] = metadata.apply(lambda row: self.get_from_map(instance_id_map, 
-                                                                                    row, 
-                                                                                    query='max_cpu_used_percent'), axis=1)
-        metadata['disk_total_gb'] = metadata.apply(lambda row: self.get_from_map(instance_id_map, 
-                                                                                    row, 
-                                                                                    query='disk_total_gb'), axis=1)
-        metadata['disk_used_gb'] = metadata.apply(lambda row: self.get_from_map(instance_id_map, 
-                                                                                    row, 
-                                                                                    query='disk_used_gb'), axis=1)
-        metadata['cpu_count'] = metadata.apply(lambda row: self.get_from_map(instance_id_map, 
-                                                                                    row, 
-                                                                                    query='cpu_count'), axis=1)
-        metadata['cpu_platform'] = metadata.apply(lambda row: self.get_from_map(instance_id_map, 
-                                                                                    row, 
-                                                                                    query='cpu_platform') , axis=1)
-        metadata['preemptible'] = metadata.apply(lambda row: self.get_from_map(instance_id_map, 
-                                                                                    row, 
-                                                                                    query='preemptible'), axis=1)
-   
-        # get wallclock
-        metadata['start_time'] = pd.to_datetime(metadata.start_time, infer_datetime_format=True)
-        metadata['end_time'] = pd.to_datetime(metadata.end_time, infer_datetime_format=True)
+        log.info('Calculating runtime metrics...')
         metadata['run_time'] = metadata['end_time'] - metadata['start_time']
         metadata['run_time_m'] = metadata.apply(lambda row:
                                                      (row.run_time.total_seconds() / 60.0), axis=1)
@@ -219,49 +171,31 @@ class Runtime():
                                                  * row.cpu_count),
                                                 axis=1)
         # ==============
-        #     Tasks
+        #     Instances
         # ==============
-        grouped = metadata.groupby('task_call_name')
-        metadata['mean_task_core_h'] = metadata.apply(lambda row:
-                                                           (row.cpu_count
-                                                            * float(grouped.mean().run_time_m[row.task_call_name])) / 60,
-                                                           axis=1)
-        # task wallclock time from start to finish
-        metadata['mean_task_run_time_h'] = metadata.apply(lambda row:
-                                                          float(grouped.mean().run_time_m[row.task_call_name]) / 60,
-                                                          axis=1)
+#         log.info('Instances...')
+#         grouped = metadata.groupby('task_call_name')
+#         metadata['mean_task_core_h'] = metadata.apply(lambda row:
+#                                                            (row.cpu_count
+#                                                             * float(grouped.mean().run_time_m[row.task_call_name])) / 60,
+#                                                            axis=1)
+#         # task wallclock time from start to finish
+#         metadata['mean_task_run_time_h'] = metadata.apply(lambda row:
+#                                                           float(grouped.mean().run_time_m[row.task_call_name]) / 60,
+#                                                           axis=1)
         
         # ============================
         #     Tasks w/in subworkflow
         # ============================
-        grouped = metadata.groupby(['id', 'task_call_name', 'workflow_name', 'instance_name'])
+        log.info('Tasks w/in subworkflow...')
+        grouped = metadata.groupby(['id', 'task_call_name', 'workflow_name'])
         # sub task wallclock time from start to finish
-        metadata['sample_task_run_time_h'] = metadata.apply(lambda row: 
-                                                            self.get_flow_runtime(grouped, row,
-                                                                                  ids=['id', 
-                                                                                       'instance_name',
-                                                                                       'task_call_name',
-                                                                                       'workflow_name']),
-                                                            axis=1)
-        metadata['max_mem_g'] = metadata.apply(lambda row: self.get_max_mem(grouped, row,
-                                                                            metadata=metadata,
-                                                                            metrics_key='mem_used_gb',
-                                                                            instance_id_map=instance_id_map,
-                                                                            ids=['id',
-                                                                                 'instance_name',
-                                                                                 'task_call_name',
-                                                                                 'workflow_name']),
-                                                                                 axis=1)
-        metadata['sample_task_core_h'] = metadata.apply(lambda row:
-                                                        self.get_task_core_h(grouped, row,
-                                                                             ids=['id',
-                                                                                  'instance_name',
-                                                                                  'task_call_name',
-                                                                                  'workflow_name']),
-                                                        axis=1)
+        metadata['sample_task_run_time_h'] = metadata.apply(lambda row: row.run_time_m / 60.0, axis=1)
+        metadata['sample_task_core_h'] = metadata.apply(lambda row: row.cpu_time_m / 60.0, axis=1)
         # ============================
         #       sub workflows
         # ============================
+        log.info('Subworkflows...')
         grouped = metadata.groupby(['id', 'workflow_name'])
         sub_metadata = grouped.agg(sample_subworkflow_core_h=pd.NamedAgg(column='sample_task_core_h', aggfunc=sum)).reset_index()
         metadata['sample_subworkflow_core_h'] = metadata.apply(lambda row:
@@ -269,28 +203,22 @@ class Runtime():
                                                                             & (sub_metadata.workflow_name == row.workflow_name)].sample_subworkflow_core_h.tolist()[0], 
                                                                axis=1)
         # sub workflows wallclock time from start to finish
-        metadata['sample_subworkflow_run_time_h'] = metadata.apply(lambda row:
-                                                                   self.get_flow_runtime(grouped, row,
-                                                                                         ids=['id', 'workflow_name']), 
-                                                                   axis=1)
-        metadata['subworkflow_max_mem_g'] = metadata.apply(lambda row: metadata[(metadata.id == row.id)
-                                                                                & (metadata.workflow_name == row.workflow_name)].max_mem_g.max(),
-                                                                                axis=1)
+        metadata = self.get_flow_runtime(metadata, ids=['id', 'workflow_name'], col='sample_subworkflow_run_time_h')
+        metadata['subworkflow_max_mem_g'] = metadata.groupby(['id', 'workflow_name']).max_mem_used_gb.transform(max)
+
         # ============================
         #       workflows
         # ============================
         # full workflow wallclock time from start to finish for an id
+        log.info('Workflow...')
         grouped = metadata.groupby('id')
         sub_metadata = grouped.agg(sample_workflow_core_h=pd.NamedAgg(column='sample_task_core_h', aggfunc=sum)).reset_index()
         metadata['sample_workflow_core_h'] = metadata.apply(lambda row: 
                                                             sub_metadata[(sub_metadata.id == row.id)].sample_workflow_core_h.tolist()[0],
                                                             axis=1)
-        metadata['sample_workflow_run_time_h'] = metadata.apply(lambda row: 
-                                                                self.get_flow_runtime(grouped, row, 
-                                                                                      ids=['id']), 
-                                                                axis=1)
-        metadata['workflow_max_mem_g'] = metadata.apply(lambda row: metadata[(metadata.id == row.id)].max_mem_g.max(),
-                                                        axis=1) 
+        metadata = self.get_flow_runtime(metadata, ids=['id'], col='sample_workflow_run_time_h')
+        metadata['workflow_max_mem_g'] = metadata.groupby(['id']).max_mem_used_gb.transform(max)
+        log.info('Done calculating runtime metrics...')
         return metadata
     
     def load_end_date(self, date_record):
@@ -303,17 +231,20 @@ class Runtime():
         return '-'.join(run_date.split('-')[0:3])
     
     def get_sample_info(self):
-        self.sample_count = len(self.output_info['project_data']['sampleIds'])
-        self.pair_count = len(self.output_info['project_data']['pairIds'])
-        
-    def get_rundate(self):
-        return self.modify_date(self.output_info['project_data']['run_date']) 
-        
-    def get_gcp_project(self):
-        return self.output_info['project_data']['options']['monitoring_image'].split('/')[1]
+        if 'sampleIds' in self.output_info['project_data']:
+            self.sample_count = len(self.output_info['project_data']['sampleIds'])
+        else:
+            self.sample_count = 0
+        if 'listOfPairRelationships' in self.output_info['project_data']:
+            self.pair_count = len([pair['pairId'] for pair in self.output_info['project_data']['listOfPairRelationships']])
+        else:
+            self.pair_count = 0
 
-    def format_sub_workflow(self, sub_workflow_uuids):
-        sub_workflow_uuid_list = '("' + '", "'.join(sub_workflow_uuids) + '")'
+    def format_query_list(self, sub_workflow_uuids, integer=False):
+        if integer:
+            sub_workflow_uuid_list = '(' + ', '.join([str(id) for id in sub_workflow_uuids]) + ')'
+        else:
+            sub_workflow_uuid_list = '("' + '", "'.join([str(id) for id in sub_workflow_uuids]) + '")'
         return sub_workflow_uuid_list
     
     def deduplicate_metadata(self):
@@ -322,31 +253,6 @@ class Runtime():
         unhashable = ['disk_mounts', 'disk_total_gb', 'disk_used_gb', 'disk_types', 'inputs']
         hashable = ['instance_name', 'workflow_id', 'attempt', 'shard']
         self.metadata = self.metadata.drop_duplicates(subset=hashable)
-    
-    def load_metadata(self):
-        '''convert big query metadata table into pandas dataframe
-            Includes start_time, end_time, execution_status, cpu_count,
-            mem_total_gb, task_call_name, workflow_name
-        '''
-        log.info('Loading Metadata...')
-        
-        self.sub_workflow_uuid_list = self.format_sub_workflow(self.sub_workflow_uuids)
-        
-        query_string = '''
-        SELECT * FROM `''' + self.gcp_query_project + '''.cromwell_monitoring.metadata`
-            WHERE DATE(start_time) >= "''' + self.run_date + '''"
-            AND workflow_id IN ''' + self.sub_workflow_uuid_list
-        self.metadata =  (
-            self.bqclient.query(query_string)
-            .result()
-            .to_dataframe(bqstorage_client=self.bqstorageclient)
-        )
-        self.end_date = self.load_end_date(self.metadata.end_time.max())
-        if not self.end_date:
-            return False
-        self.metadata['inputs'] = self.metadata.apply(lambda row: str(row.inputs).replace('\n', ' '), axis=1)
-        self.deduplicate_metadata()
-        return True
     
     def load_metadata_api(self):
         '''
@@ -390,9 +296,10 @@ class Runtime():
         localization_ms = []
         inputs = []
         self.tasks = []
-        self.call_gen(metadata['calls'], 
+        self.call_lister(metadata['calls'], 
                       metadata['workflowName'])
-        for task_call_name, call, workflow_name in self.tasks:
+        # order   call_type, attempt, workflowName
+        for workflow_id, task_call_name, call, workflow_name in self.tasks:
             task_call_names.append(task_call_name)
             workflow_names.append(workflow_name.split('.')[-1])
             execution_statuss.append(call['executionStatus'])
@@ -418,27 +325,34 @@ class Runtime():
             else:
                 backend_status = 'Error'
             backend_statuss.append(backend_status)
-            
             if backend_status in ['CacheHit']:
                 preemptibles.append(np.nan)
                 instance_names.append(np.nan)
                 zones.append(np.nan)
                 project_ids.append(np.nan)
+            elif backend_status in ['Running']:
+                preemptibles.append(call['preemptible'])
+                instance_names.append(np.nan)
+                zones.append(np.nan)
+                project_ids.append(call['jes']['googleProject'])
             else:
                 preemptibles.append(call['preemptible'])
                 instance_names.append(call['jes']['instanceName'])
                 zones.append(call['jes']['zone'])
                 project_ids.append(call['jes']['googleProject'])
-            
-
-            if backend_status in ['Preempted']:
+            if backend_status in ['Preempted', 'Running']:
                 return_codes.append(np.nan)
             else:
                 return_codes.append(call['returnCode'])
+            # get workflow uuid
             if 'id' in call:
                 workflow_ids.append(call['id'])
+            elif 'subWorkflowId' in call:
+                workflow_ids.append(call['subWorkflowId'])
+            elif workflow_id:
+                workflow_ids.append(workflow_id)
             else:
-                workflow_ids.append('')
+                workflow_ids.append(np.nan)
             shards.append(call['shardIndex'])
             start_times.append(call['start'])
             if 'end' in call:
@@ -486,8 +400,7 @@ class Runtime():
                                                      format="%Y-%m-%dT%H:%M:%S.%fZ")
         self.metadata['end_time'] = pd.to_datetime(self.metadata['end_time'],
                                                      format="%Y-%m-%dT%H:%M:%S.%fZ")
-#         self.metadata.head()[['start_time', 'end_time']] = pd.to_datetime(self.metadata.head()[['start_time', 'end_time']],
-#                                                                           format="%Y-%m-%dT%H:%M:%S.%fZ")
+        self.run_date = self.load_end_date(self.metadata.end_time.min())
         self.end_date = self.load_end_date(self.metadata.end_time.max())
         if not self.end_date:
             return False
@@ -501,18 +414,23 @@ class Runtime():
         d2 = self.get_cromwell_time(d2)
         return abs((d2 - d1).seconds)
 
-    def call_gen(self, call_dictionary, workflowName, statement='main'):
+    def call_lister(self, call_dictionary, workflowName, statement='main', workflow_id=False):
         '''takes as input the metadata "calls" section 
         and yields all task calls nested in metadata
         '''
-        for call in call_dictionary:
-            for i, attempt in enumerate(call_dictionary[call]): # subnode is a list within the dictionary
+        for call_type in call_dictionary:
+            for i, attempt in enumerate(call_dictionary[call_type]): # subnode is a list within the dictionary
                 if 'subWorkflowMetadata' in attempt:
-                    self.call_gen(attempt['subWorkflowMetadata']['calls'], 
-                                            attempt['subWorkflowMetadata']['workflowName'],
-                                            statement='sub')
+                    if 'id' in attempt['subWorkflowMetadata']:
+                        workflow_id = attempt['subWorkflowMetadata']['id']
+                    elif 'subWorkflowId' in attempt['subWorkflowMetadata']:
+                        workflow_id = attempt['subWorkflowMetadata']['subWorkflowId']
+                    self.call_lister(attempt['subWorkflowMetadata']['calls'], 
+                                     attempt['subWorkflowMetadata']['workflowName'],
+                                     statement='sub',
+                                     workflow_id= workflow_id)
                 else:
-                    self.tasks.append([call, attempt, workflowName])
+                    self.tasks.append([workflow_id, call_type, attempt, workflowName])
                 
     def load_from_api(self, script='/get_metadata.sh'):
         '''
@@ -536,7 +454,13 @@ class Runtime():
             log.warning(err.output.decode('utf-8'))
             log.error('Failed to get metadata from api for workflow: ' + self.workflow_uuid)
             return {}
+#         with open('api_example.json', 'w') as input_info_file:
+#             json.dump(json.loads(result), input_info_file, indent=4)
         return json.loads(result)
+    
+    def format_instance_id(self):
+        instance_id_list = '(' + ', '.join([str(int(i)) for i in self.instance_ids]) + ')'
+        return instance_id_list
         
     def load_runtime(self):
         '''convert big query runtime table into pandas dataframe
@@ -544,48 +468,63 @@ class Runtime():
         Use to map workflow_id to instance_ids
         '''
         log.info('Loading Runtime...')
-        self.sub_workflow_uuid_list = self.format_sub_workflow(self.sub_workflow_uuids)
+        workflow_uuids = self.metadata.dropna(subset=['workflow_id']).workflow_id.unique().tolist()
+        self.sub_workflow_uuid_list = self.format_query_list(workflow_uuids)
+        instance_names = self.metadata.dropna(subset=['instance_name']).instance_name.unique().tolist()
+        self.instance_name_list = self.format_query_list(instance_names)
         query_string = '''
         SELECT * FROM `''' + self.gcp_query_project + '''.cromwell_monitoring.runtime`
             WHERE DATE(start_time) >= "''' + self.run_date + '''"
             AND DATE(start_time) <= "''' + self.end_date + '''"
             AND workflow_id IN ''' + self.sub_workflow_uuid_list + '''
+            AND instance_name IN ''' + self.instance_name_list + '''
             LIMIT ''' + self.limit + '''
         '''
-        runtime = (
+        self.runtime = (
             self.bqclient.query(query_string)
             .result()
             .to_dataframe(bqstorage_client=self.bqstorageclient)
         )
-        self.runtime = runtime[runtime.workflow_id.isin(self.sub_workflow_uuids)].copy()
-        
-    def start_instance_maps(self):
-        self.instance_ids = self.runtime.instance_id.unique().tolist()
-        self.instance_id_map = {}
-        for instance_id in self.instance_ids:
-            self.instance_id_map[instance_id] = {}
-            self.instance_id_map[instance_id]['workflow_ids'] = self.runtime[self.runtime.instance_id == instance_id].workflow_id.unique().tolist()[0]
-            self.instance_id_map[instance_id]['task_call_name'] = self.runtime[self.runtime.instance_id == instance_id].task_call_name.tolist()[0]
-            self.instance_id_map[instance_id]['instance_name'] = self.runtime[(self.runtime.instance_id == instance_id)].instance_name.tolist()[0]
-        self.non_retry_instance_id_map = {}
-        map = {row.instance_name: row.backend_status for index, row in self.metadata[['instance_name', 'backend_status']].drop_duplicates().iterrows()}
-        backend_status_map = {row.instance_id : map[row.instance_name] for index, row in 
-                                self.runtime[['instance_name', 'instance_id']].drop_duplicates().iterrows()}
-        self.non_retry_instance_ids = [inst for inst in backend_status_map]
-        for instance_id in self.non_retry_instance_ids:
-            self.non_retry_instance_id_map[instance_id] = {}
-            self.non_retry_instance_id_map[instance_id]['workflow_ids'] = self.runtime[(self.runtime.instance_id == instance_id)].workflow_id.unique().tolist()[0]
-            self.non_retry_instance_id_map[instance_id]['task_call_name'] = self.runtime[(self.runtime.instance_id == instance_id)].task_call_name.tolist()[0]
-            self.non_retry_instance_id_map[instance_id]['instance_name'] = self.runtime[(self.runtime.instance_id == instance_id)].instance_name.tolist()[0]
-        
-    def format_instance_id(self):
-        instance_id_list = '(' + ', '.join([str(i) for i in self.instance_ids]) + ')'
-        return instance_id_list
+        log.info('Done loading Runtime')
+    
+    def load_metrics(self, chunk_size=15):
+        '''convert big query metrics table into pandas dataframe
+        Includes instance_id, cpu_used_percent, mem_used_gb, disk_used_gb, 
+        disk_read_iops, disk_write_iops.
+        Use to find max and plot resource usage over time.
+        '''
+        log.info('Loading Metrics...')
+        if self.test:
+            self.metrics = pd.read_csv('metrics.csv')
+        else:
+            self.instance_ids = self.runtime.dropna(subset=['instance_id']).instance_id.unique().tolist()
+    
+            metrics_dfs = []
+            chunk_list = lambda all_instance_ids, chunk: [all_instance_ids[i:i+chunk] 
+                                                          for i in range(0, len(all_instance_ids), chunk)]
+            chunked_list = chunk_list(self.instance_ids, chunk_size)
+            for instance_ids in chunked_list:
+                instance_id_list = self.format_query_list(instance_ids, integer=True)
+                query_string = '''
+                SELECT * FROM `''' + self.gcp_query_project + '''.cromwell_monitoring.metrics`
+                    WHERE DATE(timestamp) >= "''' + self.run_date + '''"
+                    AND DATE(timestamp) <= "''' + self.end_date + '''"
+                    AND instance_id IN ''' + instance_id_list
+                metrics = (
+                    self.bqclient.query(query_string)
+                    .result()
+                    .to_dataframe(bqstorage_client=self.bqstorageclient)
+                )
+                metrics_dfs.append(metrics)
+            self.metrics = pd.concat(metrics_dfs)
+        log.info('Done loading Metrics')
     
     def get_cpu_used(self, instance_id):
         metrics_instance = self.metrics[self.metrics.instance_id == instance_id].copy()
         cpu_used_percents = []
         for cpu_used_percent_list in metrics_instance.cpu_used_percent.tolist():
+            if isinstance(cpu_used_percent_list, str):
+                cpu_used_percent_list = ast.literal_eval(cpu_used_percent_list)
             for cpu_used_percent in cpu_used_percent_list:
                 cpu_used_percents.append(cpu_used_percent)
         if len(cpu_used_percents) > 0:
@@ -596,6 +535,8 @@ class Runtime():
         metrics_instance = self.metrics[self.metrics.instance_id == instance_id].copy()
         disk_used_gbs = []
         for disk_used_gb_list in metrics_instance.disk_used_gb.tolist():
+            if isinstance(disk_used_gb_list, str):
+                disk_used_gb_list = ast.literal_eval(disk_used_gb_list)
             for disk_used_gb in disk_used_gb_list:
                 disk_used_gbs.append(disk_used_gb)
         if len(disk_used_gbs) > 0:
@@ -611,55 +552,6 @@ class Runtime():
         if len(disk_total_gbs) > 0:
             return max(disk_total_gbs)
         return np.nan
-    
-    def load_metrics(self):
-        '''convert big query metrics table into pandas dataframe
-        Includes instance_id, cpu_used_percent, mem_used_gb, disk_used_gb, 
-        disk_read_iops, disk_write_iops.
-        Use to find max and plot resource usage over time.
-        '''
-        log.info('Loading Metrics...')
-        
-        instance_id_list = self.format_instance_id()
-        
-        query_string = '''
-        SELECT * FROM `''' + self.gcp_query_project + '''.cromwell_monitoring.metrics`
-            WHERE DATE(timestamp) >= "''' + self.run_date + '''"
-            AND DATE(timestamp) <= "''' + self.end_date + '''"
-            AND instance_id IN ''' + instance_id_list 
-        self.metrics = (
-            self.bqclient.query(query_string)
-            .result()
-            .to_dataframe(bqstorage_client=self.bqstorageclient)
-        )
-        
-    def add_to_instance_maps(self):
-        for instance_id in self.instance_ids:
-            max_cpu_used_percent = self.get_cpu_used(instance_id)
-            disk_used_gb = self.get_disk_used_gb(instance_id)
-            disk_total_gb = self.get_disk_total_gb(instance_id)
-            match = self.runtime[self.runtime.instance_id == instance_id].copy()
-            cpu_count = match.cpu_count.tolist()[0]
-            cpu_platform = match.cpu_platform.tolist()[0]
-            preemptible = match.preemptible.tolist()[0]
-
-            self.instance_id_map[instance_id]['max_cpu_used_percent'] = max_cpu_used_percent
-            self.instance_id_map[instance_id]['disk_used_gb'] = disk_used_gb
-            self.instance_id_map[instance_id]['disk_total_gb'] = disk_total_gb
-            self.instance_id_map[instance_id]['cpu_count'] = cpu_count
-            self.instance_id_map[instance_id]['cpu_platform'] = cpu_platform
-            self.instance_id_map[instance_id]['preemptible'] = preemptible
-            self.instance_id_map[instance_id]['disk_total_gb'] = disk_total_gb
-            self.instance_id_map[instance_id]['disk_used_gb'] = disk_used_gb
-            if instance_id in self.non_retry_instance_ids:
-                self.non_retry_instance_id_map[instance_id]['max_cpu_used_percent'] = max_cpu_used_percent
-                self.non_retry_instance_id_map[instance_id]['disk_used_gb'] = disk_used_gb
-                self.non_retry_instance_id_map[instance_id]['disk_total_gb'] = disk_total_gb
-                self.non_retry_instance_id_map[instance_id]['cpu_count'] = cpu_count
-                self.non_retry_instance_id_map[instance_id]['cpu_platform'] = cpu_platform
-                self.non_retry_instance_id_map[instance_id]['preemptible'] = preemptible
-                self.non_retry_instance_id_map[instance_id]['disk_total_gb'] = disk_total_gb
-                self.non_retry_instance_id_map[instance_id]['disk_used_gb'] = disk_used_gb
                 
     def id_matches(self, identifier, id):
         '''test if it is a likely substring of the WDL input string'''
@@ -725,7 +617,7 @@ class Runtime():
                 self.other_file_group_ids += [other_group_id + '/' for other_group_id in other_file_group_ids]
                 # look to see if all samples in the analysis group have been identified in the inputs
                 for identifier in possible_indentifiers:
-                    if set(analysis_group[sampleIds]).issubset(set(all_matched_sample_ids)) \
+                    if set(analysis_group['sampleIds']).issubset(set(all_matched_sample_ids)) \
                             or self.id_matches(identifier, group_id):
                         other_possible_match = any([self.id_matches(identifier, id) for id in self.other_file_group_ids])
                         if not other_possible_match:
@@ -869,6 +761,10 @@ def get_args():
     '''Parse input flags
     '''
     parser = argparse.ArgumentParser()
+    parser.add_argument('--metrics-file-prefix',
+                        help='Prefix for output metrics file',
+                        required=True
+                        )
     parser.add_argument('--output-info-file',
                         help='JSON file with outputInfo. Includes workflow uuid, '
                         'options JSON dictionary submitted to cromwell, '
@@ -926,6 +822,7 @@ def main():
         runtime = Runtime(limit=100000,
                           url=args['url'],
                           output_info=output_info,
+                          metrics_file_prefix=args['metrics_file_prefix'],
                           gcp_project=args['gcp_project'])
         if runtime.loaded:
             non_retried_metrics.append(runtime.non_retried_metrics_file)

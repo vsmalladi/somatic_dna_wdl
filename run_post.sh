@@ -110,6 +110,7 @@ fi
 echo "Gather usage metrics..."
 time python ${wdl_dir}/tools/runtime.py \
     --output-info-file ${output_info_file} \
+    --metrics-file-prefix ${log_dir}/${project_id}. \
     --url ${url}
 
 echo "Plot usage metrics..." 
