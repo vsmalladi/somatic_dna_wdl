@@ -838,7 +838,7 @@
                 "gs://nygc-resources-public/GRCh38_tcga/scattered.tcga.6.interval_list",
                 "gs://nygc-resources-public/GRCh38_tcga/scattered.tcga.7.interval_list",
                 "gs://nygc-resources-public/GRCh38_tcga/scattered.tcga.8.interval_list",
-                "gs://nygc-comp-s-82ed-resources/GRCh38_tcga/scattered.tcga.9.interval_list"]
+                "gs://nygc-resources-public/GRCh38_tcga/scattered.tcga.9.interval_list"]
         },
         "dgvBedpe" :{
             "type": "File",
@@ -915,7 +915,7 @@
             "type": "Array[File]",
             "description": "",
             "object": ["gs://nygc-resources-public/gridss/GRCh38.d1.vd1.fa.img",
-            "gs://nygc-comp-s-82ed-resources/gridss/GRCh38.d1.vd1.fa.gridsscache"]
+            "gs://nygc-resources-public/gridss/GRCh38.d1.vd1.fa.gridsscache"]
         },
         "bqsrCallRegions": {
             "type": "File",
