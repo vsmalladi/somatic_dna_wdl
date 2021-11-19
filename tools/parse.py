@@ -53,7 +53,9 @@ class Wdl():
                  custom_inputs,
                  project_info,
                  bicseq2_draft=False,
-                 validate=True):
+                 validate=True,
+                 local=False):
+        self.local = local
         self.genome_input = genome_input
         self.nygc_prefix = 'gs://nygc'
         self.nygc_public = 'gs://nygc-resources-public/'
@@ -128,12 +130,20 @@ class Wdl():
         
     def validate_inputs(self):
         potential_files = Json_leaves(self.inputs)
-        files = [string for string in potential_files.files if string.startswith('gs://')]
-        files = [file for file in files if not self.skip(file)]
-        found = self.validate_input_gsutil(strings=files)
+        if self.local:
+            files = [string for string in potential_files.files if string.startswith('/')]
+            found = len([file for file in files if not os.path.isfile(file)]) == 0
+        else:
+            files = [string for string in potential_files.files if string.startswith('gs://')]
+            files = [file for file in files if not self.skip(file)]
+            found = self.validate_input_gsutil(strings=files)
         if not found:
-            log.error('searching for first missing/unreadible file. This may be slow...')
-            self.narrow_down(strings=files)
+            if self.local:
+                log.error('Input files are missing. Use --skip-validate to override')
+                print('\n'.join([file for file in files if not os.path.isfile(file)]))
+            else:
+                log.error('searching for first missing/unreadible file. This may be slow...')
+                self.narrow_down(strings=files)
         
     def parse_url(self, url):
         '''divide gcp bucket location into parts'''
@@ -154,6 +164,7 @@ class Wdl():
         return True
     
     def narrow_down(self, strings):
+        '''Search for the file that does not exist in a bucket'''
         for string in strings:
              if not self.validate_input_gsutil([string]):
                  print(string)

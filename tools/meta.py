@@ -109,7 +109,8 @@ def verify_required(key, args, project_info):
 
 
 def fill_in_pair_info(project_info, full_pairs, suffix='.bai'):
-    '''Read from input pairs CSV file
+    '''
+    Read from input pairs CSV file
     REPLACE later with step to ingest standard sample sheet
     '''
     pair_infos = []
@@ -162,12 +163,13 @@ def populate(args):
         pairs, full_pairs = load_pairs(args['pairs_file'])
         pair_info = []
         pair_info_relationships = []
+        # update basic pairing information with tumor, normal and pairId from pairs file
         for index, row in pairs.iterrows():
             # add pairRelationship
             current_pair_info_relationship = fill_pair_relationship(row)
             pair_info_relationships.append(current_pair_info_relationship)   
-        # update BAM objects in project_info from custom inputs JSON (if pairInfos and normalSampleBamInfos  are in the custom json)   
         project_info = note_updates(key='listOfPairRelationships', new_value=pair_info_relationships, project_info=project_info)
+        # update BAM objects in project_info from custom inputs JSON (if pairInfos and normalSampleBamInfos  are in the custom json)
         if args['custom_inputs']:
             for alt_project_info_file in args['custom_inputs']:
                 alt_project_info = read(alt_project_info_file)
@@ -197,11 +199,16 @@ def populate(args):
                 project_info = note_custom_updates(key='sampleInfos', alt_project_info=alt_project_info, project_info=project_info)
     return project_info
 
-def write_wdl_json(args, project_info):
+def write_wdl_json(args, project_info, local=False):
     parent_dir = os.path.abspath(os.path.dirname(__file__))
-    pipeline_input = parent_dir + '/../config/pipeline_references.json'
-    interval_input = parent_dir + '/../config/interval_references.json'
-    genome_input = parent_dir + '/../config/fasta_references.json'
+    if local:
+        pipeline_input = parent_dir + '/../config/pipeline_references_local.json'
+        interval_input = parent_dir + '/../config/interval_references_local.json'
+        genome_input = parent_dir + '/../config/fasta_references_local.json'
+    else:
+        pipeline_input = parent_dir + '/../config/pipeline_references.json'
+        interval_input = parent_dir + '/../config/interval_references.json'
+        genome_input = parent_dir + '/../config/fasta_references.json'
     input = parse.Wdl(args['wdl_file'], 
                       genome_input=genome_input,
                       interval_input=interval_input,
@@ -209,7 +216,8 @@ def write_wdl_json(args, project_info):
                       genome=args['genome'],
                       custom_inputs=args['custom_inputs'],
                       validate=not args['skip_validate'],
-                      project_info=project_info)
+                      project_info=project_info,
+                      local=args['local'])
     file_out = os.path.basename(args['wdl_file']).replace('.wdl', '') + 'Input.json'
     with open(file_out, 'w') as input_info_file:
         json.dump(input.final_inputs, input_info_file, indent=4)
@@ -331,6 +339,11 @@ def get_args():
                         required=False,
                         action='store_true'
                         )
+    parser.add_argument('--local',
+                        help='Use local path for all files and run on cluster.',
+                        required=False,
+                        action='store_true'
+                        )
     args_namespace = parser.parse_args()
     return args_namespace.__dict__
 
@@ -345,7 +358,8 @@ def main():
         write_json(args, project_info,
                    file_out=file_out)
         # create/print WDL inputs JSON
-        write_wdl_json(args, project_info)
+        write_wdl_json(args, project_info, 
+                       local=args['local'])
 
 if __name__ == "__main__":
     main()       

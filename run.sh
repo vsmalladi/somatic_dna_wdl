@@ -7,10 +7,12 @@
 #               [--genome {Human_GRCh38_full_analysis_set_plus_decoy_hla, Human_GRCh38_tcga}]
 #               [--pairs-file PAIRS_FILE]
 #               [--samples-file SAMPLES_FILE]
+#               [--labels-file LABELS_FILE]
 #               [--interval-list {SureSelect_V6plusCOSMIC.target.GRCh38_full_analysis_set_plus_decoy_hla}]
 #               [--custom-inputs [CUSTOM_INPUTS [CUSTOM_INPUTS ...]]]
 #               [--skip-validate]
 #               [--dry-run]
+#               [--local]
 # DESCRIPTION: validate workflow, create input json and submit workflow to cromwell.
 # Script requires jq, cromwell-tools, gcloud to be in the path
 # Script returns the workflow uuid.
@@ -40,10 +42,12 @@ help_top="run.sh [-h] --options OPTIONS --wdl-file WDL_FILE
                [--genome {Human_GRCh38_full_analysis_set_plus_decoy_hla, Human_GRCh38_tcga}]
                [--pairs-file PAIRS_FILE]
                [--samples-file SAMPLES_FILE]
+               [--labels-file LABELS_FILE]
                [--interval-list {SureSelect_V6plusCOSMIC.target.GRCh38_full_analysis_set_plus_decoy_hla}]
                [--custom-inputs [CUSTOM_INPUTS [CUSTOM_INPUTS ...]]]
                [--skip-validate]
                [--dry-run]
+               [--local]
 "
 
 help_long="-h, --help            show this help message and exit
@@ -81,6 +85,7 @@ help_long="-h, --help            show this help message and exit
                         workflow. Any variable defined in in this JSON will
                         overwrite any reference variable in the the config 
                         directory or workflow default.
+  --labels-file         Labels json file for cromwell (not required)
   --skip-validate       Skip the step where input files are validated.
                         Otherwise all gs//: URIs will be checked to see that a
                         file exists. Disable with caution. Cromwell will launch
@@ -88,6 +93,7 @@ help_long="-h, --help            show this help message and exit
                         file to ensure all references exist and at least some
                         sample input files can be read by the current user.
   --dry-run             Skip the step where the job is submitted to cromwell-tools.
+  --local               Submit to local cromwell server.
 "
 
 print_help() {
@@ -163,6 +169,11 @@ for arg in "$@"; do
         shift # Remove argument name from processing
         shift # Remove argument value from processing
         ;;
+        -z|--labels-file)
+        labels_file="$2"
+        shift # Remove argument name from processing
+        shift # Remove argument value from processing
+        ;;
         -w|--wdl-file)
         workflow="$2"
         shift # Remove argument name from processing
@@ -179,6 +190,10 @@ for arg in "$@"; do
         ;;
         -x|--dry-run)
         dry_run=1
+        shift # Remove --initialize from processing
+        ;;
+        -y|--local)
+        local=1
         shift # Remove --initialize from processing
         ;;
         -h|--help)
@@ -250,6 +265,10 @@ if [ ! -z "$skip_validate" ]; then
     --skip-validate"
 fi
 
+if [ ! -z "$local" ]; then
+    meta_command="${meta_command} \
+    --local"
+fi
 eval ${meta_command}
 
 # zip dependencies
@@ -268,14 +287,21 @@ ${workflow}
 if [ -z "$dry_run" ]; then
     # start run:
     echo "Submit run and write log..." >&2
-    cd ${log_dir}
-    uuid=$( bash ${script_dir}/tools/submit.sh \
+    
+    submit_command="bash ${script_dir}/tools/submit.sh \
         -u ${url} \
         -w ${workflow} \
         -o ${options} \
         -d ${script_dir}/dependencies.zip \
         -p ${log_dir}/${project_id}_projectInfo.json \
-        -i ${workflow_name}Input.json )
+        -i ${workflow_name}Input.json"
+        
+    if [ ! -z "$labels_file" ]; then
+        submit_command="${submit_command} \
+        -l ${labels_file}"
+    fi
+    cd ${log_dir}
+    uuid=$( ${submit_command} )
 fi
 
 echo "Done" >&2
