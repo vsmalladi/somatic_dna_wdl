@@ -65,6 +65,12 @@ class Runtime():
                 log.warning('No endtime found for workflow: ' + output_info['workflow_uuid'])
             else:
                 self.load_runtime()
+                if 'sub_workflow_uuids' in self.output_info:
+                    # check for UUIDs that were missed in the metadata api call
+                    metadata_workflow_id = set(self.metadata.workflow_id.to_list())
+                    runtime_workflow_id = set(self.runtime.workflow_id.to_list())
+                    missing = runtime_workflow_id.difference(metadata_workflow_id)
+                    assert len(missing) == 0 , 'Some workflow uuids found in rc filenames but not in metadata from API ' + ' '.join(missing)    
                 # merge runtime info with metadata
                 self.runtime.columns = ['project_id', 'zone', 'instance_id', 'instance_name', 'preemptible',
                                'runtime_workflow_id', 'task_call_name', 'shard', 'attempt', 'cpu_count',
@@ -80,40 +86,34 @@ class Runtime():
                 self.metadata = pd.merge(self.metadata[cols_to_keep], self.runtime[['instance_name', 'instance_id',
                                                               'cpu_platform', 'mem_total_gb', 'disk_mounts', 
                                                               'disk_total_gb']].drop_duplicates(subset=['instance_id']), on='instance_name', how='left')
-                print(self.metadata.shape)
                 self.metadata['instance_id'] = self.metadata['instance_id'].fillna(-1)
                 self.metadata['instance_id'] = self.metadata['instance_id'].astype(int)
                 self.metadata['instance_id'] = self.metadata['instance_id'].astype(str)
                 self.metadata['instance_id'] = self.metadata['instance_id'].replace('-1', np.nan)
                 self.load_metrics()
-                print(self.metadata.shape)
                 self.metrics['instance_id'] = self.metrics['instance_id'].fillna(-1)
                 self.metrics['instance_id'] = self.metrics['instance_id'].astype(int)
                 self.metrics['instance_id'] = self.metrics['instance_id'].astype(str)
                 self.metrics['instance_id'] = self.metrics['instance_id'].replace('-1', np.nan)
-                print('add custom cols')
+                log.info('add custom cols')
                 self.add_custom_cols()
-                print(self.metadata.shape)
                 # remove non-run rows
-                print('remove non-run rows')
+                log.info('remove non-run rows')
                 self.metadata_cache = self.metadata.loc[pd.isnull(self.metadata[['instance_name']]).any(axis=1)].copy()
                 self.metadata = self.metadata.dropna(subset=['instance_name']).copy()
                 self.non_retry_metadata = self.metadata[self.metadata.backend_status == 'Success'].copy()
-                print(self.metadata.shape)
-                print('write metrics')
-                self.metadata.to_csv(self.metrics_file + '.intermediate.csv', index=False, float_format='{:f}'.format, encoding='utf-8')
                 # if no tasks are finished
                 if self.metadata[self.metadata.execution_status != 'RUNNING'].empty:
                     self.metadata = pd.concat([self.metadata, self.metadata_cache], ignore_index=True)
                     self.metadata.to_csv(self.metrics_file, index=False)
                 else:
-                    print('make plot metrics')
+                    log.info('make plot metrics')
                     self.metadata_full = self.metadata.copy()
                     self.metadata = self.load_plot_metrics(self.metadata)
-                    print('make non retry plot metrics')
+                    log.info('make non retry plot metrics')
                     self.non_retry_metadata = self.load_plot_metrics(self.non_retry_metadata)
                     self.metadata = pd.concat([self.metadata, self.metadata_cache], ignore_index=True)
-                    print('write metrics')
+                    log.info('write metrics')
                     self.metadata.to_csv(self.metrics_file, index=False, float_format='{:f}'.format, encoding='utf-8')
                     self.non_retry_metadata.to_csv(self.non_retried_metrics_file, index=False, float_format='{:f}'.format, encoding='utf-8')
                     
@@ -203,7 +203,7 @@ class Runtime():
                                                                             & (sub_metadata.workflow_name == row.workflow_name)].sample_subworkflow_core_h.tolist()[0], 
                                                                axis=1)
         # sub workflows wallclock time from start to finish
-        metadata = self.get_flow_runtime(metadata, ids=['id', 'workflow_name'], col='sample_subworkflow_run_time_h')
+        metadata = self.get_flow_runtime(metadata, ids=['id', 'workflow_name'], col='sample_subworkflow_run_time_h').copy()
         metadata['subworkflow_max_mem_g'] = metadata.groupby(['id', 'workflow_name']).max_mem_used_gb.transform(max)
 
         # ============================
@@ -216,7 +216,7 @@ class Runtime():
         metadata['sample_workflow_core_h'] = metadata.apply(lambda row: 
                                                             sub_metadata[(sub_metadata.id == row.id)].sample_workflow_core_h.tolist()[0],
                                                             axis=1)
-        metadata = self.get_flow_runtime(metadata, ids=['id'], col='sample_workflow_run_time_h')
+        metadata = self.get_flow_runtime(metadata, ids=['id'], col='sample_workflow_run_time_h').copy()
         metadata['workflow_max_mem_g'] = metadata.groupby(['id']).max_mem_used_gb.transform(max)
         log.info('Done calculating runtime metrics...')
         return metadata
@@ -466,9 +466,15 @@ class Runtime():
         '''convert big query runtime table into pandas dataframe
         Includes both instance_id and workflow_id.
         Use to map workflow_id to instance_ids
+        
+        Add complete list
+        
         '''
         log.info('Loading Runtime...')
         workflow_uuids = self.metadata.dropna(subset=['workflow_id']).workflow_id.unique().tolist()
+        if 'sub_workflow_uuids' in self.output_info:
+            missing = list(set(self.output_info['sub_workflow_uuids']).difference(set(workflow_uuids)))
+            workflow_uuids += missing
         self.sub_workflow_uuid_list = self.format_query_list(workflow_uuids)
         instance_names = self.metadata.dropna(subset=['instance_name']).instance_name.unique().tolist()
         self.instance_name_list = self.format_query_list(instance_names)
