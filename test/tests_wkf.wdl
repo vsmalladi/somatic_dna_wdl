@@ -20,7 +20,7 @@ task GetIndex {
     }
     
     runtime {
-        docker: "gcr.io/nygc-public/workflow_utils@sha256:e9ea11001d93b56c200094d9eb2919e5eef8dbeb66e78f9dc9f43447264e8a48"
+        docker: "gcr.io/nygc-public/workflow_utils@sha256:b7269061a4620c6565566cbeaf61b1a58d49d26c382fa12f05f41b0e5f2e4807"
     }
 }
 
