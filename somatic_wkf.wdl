@@ -15,7 +15,7 @@ import "germline/germline_wkf.wdl" as germline
 import "annotate/germline_annotate_wkf.wdl" as germlineAnnotate
 import "baf/baf_wkf.wdl" as baf
 import "variant_analysis/deconstruct_sigs_wkf.wdl" as deconstructSigs
-import "widdleware/tasks/label_and_transfer.wdl" as dataTransfer
+#import "widdleware/tasks/label_and_transfer.wdl" as dataTransfer
 
 # ================== COPYRIGHT ================================================
 # New York Genome Center
@@ -697,6 +697,7 @@ workflow SomaticDNA {
         qualityByCycleMetricsPreBqsr: Preprocess.qualityByCycleMetricsPreBqsr,
         qualityByCyclePdfPreBqsr: Preprocess.qualityByCyclePdfPreBqsr,
         qualityDistributionMetricsPreBqsr: Preprocess.qualityDistributionMetricsPreBqsr,
+        dedupLog: Preprocess.dedupLog,
 
         # Conpair
         concordanceAll: Conpair.concordanceAll,
@@ -713,13 +714,13 @@ workflow SomaticDNA {
     }
 
 
-    File tmpFile = write_json(workflowOutput)
-    call dataTransfer.LabelAndTransfer {
-        input:
-            workflowOutput = read_string(tmpFile),
-            bypassQcCheck = bypassQcCheck,
-            allQcPass = SomaticQcCheck
-    }
+    # File tmpFile = write_json(workflowOutput)
+    # call dataTransfer.LabelAndTransfer {
+    #     input:
+    #         workflowOutput = read_string(tmpFile),
+    #         bypassQcCheck = bypassQcCheck,
+    #         allQcPass = SomaticQcCheck
+    # }
 
     output {
        FinalWorkflowOutput finalOutput = workflowOutput

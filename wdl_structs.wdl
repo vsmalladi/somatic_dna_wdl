@@ -221,6 +221,7 @@ struct FinalWorkflowOutput {
     Array[File] qualityByCycleMetricsPreBqsr
     Array[File] qualityByCyclePdfPreBqsr
     Array[File] qualityDistributionMetricsPreBqsr
+    Array[File] dedupLog
 
     # Conpair
     Array[File] concordanceAll
