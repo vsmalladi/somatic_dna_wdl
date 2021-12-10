@@ -51,6 +51,8 @@ task NovosortMarkDup {
        Array[File]+ laneBams
        String sampleId
        String mergedDedupBamPath = "~{sampleId}.merged_dedup.bam"
+       String logDir = "."
+       String dedupLogPath = "~{logDir}/~{sampleId}.novosort_dedup.log"
        # resources
        Int memoryGb = 20
        Int threads = 8
@@ -58,6 +60,8 @@ task NovosortMarkDup {
    }
 
     command {
+        mkdir -p $(dirname ~{dedupLogPath})
+
         /bin/novosort \
         -c ~{threads} \
         -m 9216M \
@@ -65,7 +69,7 @@ task NovosortMarkDup {
         -o ~{mergedDedupBamPath} \
         --forcesort \
         --markDuplicates \
-        ${sep=' ' laneBams}
+        ${sep=' ' laneBams} 2> >(tee -a ~{dedupLogPath} >&2)
     }
 
     output {
@@ -73,6 +77,8 @@ task NovosortMarkDup {
             bam : mergedDedupBamPath,
             bamIndex : mergedDedupBamPath + ".bai"
         }
+
+        File dedupLog = dedupLogPath
     }
 
     runtime {
