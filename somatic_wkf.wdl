@@ -15,7 +15,7 @@ import "germline/germline_wkf.wdl" as germline
 import "annotate/germline_annotate_wkf.wdl" as germlineAnnotate
 import "baf/baf_wkf.wdl" as baf
 import "variant_analysis/deconstruct_sigs_wkf.wdl" as deconstructSigs
-#import "widdleware/tasks/label_and_transfer.wdl" as dataTransfer
+import "widdleware/tasks/label_and_transfer.wdl" as dataTransfer
 
 # ================== COPYRIGHT ================================================
 # New York Genome Center
@@ -749,7 +749,6 @@ workflow SomaticDNA {
         haplotypecallerAnnotatedVcf: unFilteredGermlineAnnotate.haplotypecallerAnnotatedVcf,
         alleleCountsTxt: Baf.alleleCountsTxt
     }
-
 
 
 
