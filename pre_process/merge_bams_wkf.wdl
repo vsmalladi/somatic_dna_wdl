@@ -38,6 +38,7 @@ workflow MergeBams {
         input:
             laneBams = laneFixmateBams,
             sampleId = sampleId,
+            logDir = qcDir,      # Send novosort log to qc dir.
             mem = novosortMem,
             threads = threads,
             # novosort uses a lot of memory and a lot of disk.
@@ -101,6 +102,7 @@ workflow MergeBams {
         File qualityByCycleMetricsPreBqsr = MultipleMetricsPreBqsr.qualityByCycleMetricsPreBqsr
         File qualityByCyclePdfPreBqsr = MultipleMetricsPreBqsr.qualityByCyclePdfPreBqsr
         File qualityDistributionMetricsPreBqsr = MultipleMetricsPreBqsr.qualityDistributionMetricsPreBqsr
+        File dedupLog = novosort.dedupLog
   }
 }
 

@@ -104,6 +104,7 @@ workflow Preprocess {
         File qualityByCycleMetricsPreBqsr = MergeBams.qualityByCycleMetricsPreBqsr
         File qualityByCyclePdfPreBqsr = MergeBams.qualityByCyclePdfPreBqsr
         File qualityDistributionMetricsPreBqsr = MergeBams.qualityDistributionMetricsPreBqsr
+        File dedupLog = MergeBams.dedupLog
     }
 
 }
