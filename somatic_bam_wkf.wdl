@@ -68,13 +68,15 @@ task GetIndex {
     }
 
     runtime {
-        docker: "gcr.io/nygc-internal-tools/workflow_utils:2.0"
+        docker: "gcr.io/nygc-public/workflow_utils@sha256:b7269061a4620c6565566cbeaf61b1a58d49d26c382fa12f05f41b0e5f2e4807"
     }
 }
 
 
 workflow SomaticBamWorkflow {
     input {
+        Boolean local = false
+        
         BwaReference bwaReference
         IndexedReference referenceFa
         
@@ -382,6 +384,7 @@ workflow SomaticBamWorkflow {
 
         call calling.Calling {
             input:
+                local = local,
                 mantaJsonLog = mantaJsonLog,
                 lancetJsonLog = lancetJsonLog,
                 mutectJsonLog = mutectJsonLog,
