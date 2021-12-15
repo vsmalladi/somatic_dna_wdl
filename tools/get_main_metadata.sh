@@ -1,0 +1,60 @@
+#!/bin/bash
+# USAGE: get_uuids.sh -u CROMWELL_URL -w WORKFLOW [-h]
+# DESCRIPTION: get metadata objects from a cromwell workflow.
+# Script requires jq, cromwell-tools to be in the path
+# Script returns the workflow metadata.
+
+
+print_help() {
+  echo "USAGE: get_metadata.sh -u URL -w WORKFLOW [-h])"
+  echo "DESCRIPTION: get metadata objects from a cromwell workflow."
+  echo "Script requires jq, cromwell-tools to be in the path."
+  echo "Script returns the workflow metadata."
+  exit 0
+}
+
+print_usage() {
+  echo "USAGE: get_uuids.sh -u URL -w WORKFLOW"
+  exit 1
+}
+
+
+while getopts 'u:w:g:h' flag; do
+  case "${flag}" in
+    u) url="${OPTARG}" ;;
+    w) uuid="${OPTARG}" ;;
+    g) gcp_project="${OPTARG}" ;;
+    h) print_help ;;
+    \?) print_usage; echo "Unknown option: $OPTARG" >&2 ;;
+    :) print_usage; echo "Missing option argument for option: $OPTARG" >&2 ;;
+    *) print_usage; echo "Unimplemented option: $OPTARG" >&2 ;;
+  esac
+done
+
+if [ -z "$url" ]; then
+    echo "Missing required value for -u URL for cromwell" >&2
+    print_usage
+    exit 1
+fi
+
+if [ -z "$uuid" ]; then
+    echo "Missing required value for -w WORKFLOW UUID for cromwell" >&2
+    print_usage
+    exit 1
+fi
+
+set -e
+set -o pipefail
+
+if [ -z "$gcp_project" ]; then
+    username=$(gcloud secrets versions access latest --secret="cromwell_username")
+    password=$(gcloud secrets versions access latest --secret="cromwell_password")
+else
+    username=$(gcloud secrets versions access latest --project=${gcp_project} --secret="readonly_cromwell_username")
+    password=$(gcloud secrets versions access latest --project=${gcp_project} --secret="readonly_cromwell_password")
+fi
+
+curl -X GET "${url}/api/workflows/v1/${uuid}/metadata" \
+-u ${username}:${password} \
+| jq .
+

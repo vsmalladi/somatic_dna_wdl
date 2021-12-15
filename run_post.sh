@@ -1,6 +1,7 @@
 #!/bin/bash
-# USAGE: run_post.sh -u URL -p PROJECT_ID -d LOG_DIR [-r RUNINFO_JSON]
+# USAGE: run_post.sh -u URL -p PROJECT_ID -d LOG_DIR [-r RUNINFO_JSON] [-l]
 # DESCRIPTION: submit workflow to cromwell.
+# Use -l for large jobs that may timeout.
 # Script requires jq, cromwell-tools, gcloud to be in the path
 # Script generates summary of any workflow.
 # If no *.RunInfo.json file is provided then
@@ -28,8 +29,9 @@ wdl_dir=$( pwd )
 
     
 print_help() {
-  echo "USAGE: run_post.sh -u URL -p PROJECT_ID -d LOG_DIR [-r RUNINFO_JSON]" >&2
+  echo "USAGE: run_post.sh -u URL -p PROJECT_ID -d LOG_DIR [-r RUNINFO_JSON] [-l]" >&2
   echo "DESCRIPTION: submit workflow to cromwell." >&2
+  echo "Use -l for large jobs that may timeout." >&2
   echo "Script requires jq, cromwell-tools, gcloud to be in the path." >&2
   echo "Script also requires a default_credentials_JSON to be created by the user" >&2
   echo "Run the following to generate a default credentials file " >&2
@@ -39,12 +41,14 @@ print_help() {
 }
 
 print_usage() {
-  echo "USAGE: run_post.sh -u URL -p PROJECT_ID -d log_dir [-r RUNINFO_JSON] " >&2
+  echo "USAGE: run_post.sh -u URL -p PROJECT_ID -d log_dir [-r RUNINFO_JSON] [-l]" >&2
   exit 1
 }
 
-while getopts 'u:p:d:r:h' flag; do
+
+while getopts 'u:p:d:r:lh' flag; do
   case "${flag}" in
+    l) large_run="true" ;;
     u) url="${OPTARG}" ;;
     p) project_id="${OPTARG}" ;;
     r) run_info_json="${OPTARG}" ;;
@@ -98,9 +102,16 @@ header="${log_dir}/${project_id}.${workflow_uuid}_outputMetrics.header.txt"
 
 
 echo "Collect subworkflow uuids..."
-time python ${wdl_dir}/tools/collect.py \
+collect_command="time python ${wdl_dir}/tools/collect.py \
 --run-data ${run_info_json} \
---url ${url}
+--url ${url}"
+
+if [ ! -z "$large_run" ]; then
+    collect_command="${collect_command} \
+    --large-run"
+fi
+
+eval ${collect_command}
 
 if [[ ! -f $output_info_file ]]; then
     echo 'No output files were created by workflow so no outputInfo.json exists for further steps' >&2

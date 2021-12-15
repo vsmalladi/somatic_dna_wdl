@@ -240,7 +240,8 @@ class JsonModify():
                     
                     
 class CloudOutput():
-    def __init__(self, run_data, url, gcp_project):
+    def __init__(self, run_data, url, gcp_project, large_run=False):
+        self.large_run = large_run
         self.parent_dir = os.path.abspath(os.path.dirname(__file__))
         self.url = url
         self.run_data = run_data
@@ -259,9 +260,7 @@ class CloudOutput():
         # fast get calls from API to search for uuids
         self.uri_list = self.list_uris()
         self.all_sub_workflow_uuids = list(set([uri for uri in self.get_uuid_from_uri(self.uri_list)]))
-#         self.all_sub_workflow_uuids = list(set([self.get_uuid_from_uri(uri) for uri in self.uri_list]))
         self.run_data.run_info['sub_workflow_uuids'] = self.all_sub_workflow_uuids
-        self.uri_list = [uri for uri in self.uri_list if not uri.endswith('/rc')]
         # get API outputs section
         self.raw_outputs = self.read_api()
         # get files (named and unnamed) from API outputs section
@@ -272,7 +271,7 @@ class CloudOutput():
         self.divide_by_id()
         # Find only task uuids for files with the pair or the sample in the 
         # filename with . or _ after the name
-        if self.uri_list == False:
+        if len(self.unnamed_files) == 0 and len(self.named_files) == 0:
             log.warning('No output files created')
         # Add in if needed
         if not 'run_date' in self.run_data.project_info:
@@ -377,6 +376,7 @@ class CloudOutput():
         too long for the log file'''
         all_files = self.ls_gsutil()
         unnamed_files = list(set(all_files).difference(set(self.named_files)))
+        unnamed_files = [unnamed_file for unnamed_file in unnamed_files if not unnamed_file.endswith('/rc')]
         return unnamed_files
     
     def get_run_date(self):
@@ -406,18 +406,20 @@ class CloudOutput():
         '''
         Get all top level sub workflow uuids
         '''
-        calls = self.read_api(goal='get_uuids')
         self.uri_list = []
-        for line in str(calls).split('\n'):
-            for strings in line.split():
-                for string in strings.split("'"):
-                    if string.startswith("gs://") and 'call-' in string:
-                        uri = string
-                        self.uri_list.append(uri)
-                    elif string.startswith("gs://"):
-                        pass
-                        #log.warning('potential skipped uri : ' + string)
-        self.uri_list = list(set(self.uri_list))
+        if not self.large_run:
+            calls = self.read_api(goal='get_uuids')
+            self.uri_list = []
+            for line in str(calls).split('\n'):
+                for strings in line.split():
+                    for string in strings.split("'"):
+                        if string.startswith("gs://") and 'call-' in string:
+                            uri = string
+                            self.uri_list.append(uri)
+                        elif string.startswith("gs://"):
+                            pass
+                            #log.warning('potential skipped uri : ' + string)
+            self.uri_list = list(set(self.uri_list))
         # get any uris for steps that have failed
         uris = self.ls_gsutil()
         self.uri_list += uris
@@ -534,6 +536,11 @@ def get_args():
                         required=False,
                         action='store_true'
                         )
+    parser.add_argument('--large-run',
+                        help='Query one subworkflow at a time to avoid timeouts.',
+                        required=False,
+                        action='store_true'
+                        )
     parser.add_argument('--name',
                         default='nygc_pipeline',
                         help='Use with the --multi flag to name the output.',
@@ -566,7 +573,8 @@ def main():
         if not os.path.isfile(file_out):
             outputs = CloudOutput(run_data=run_data, 
                                   url=args['url'],
-                                  gcp_project=args['gcp_project'])
+                                  gcp_project=args['gcp_project'],
+                                  large_run=args['large_run'])
             with open(file_out, 'w') as project_info_file:
                 json.dump(outputs.run_data.run_info, project_info_file, indent=4)
     if args['multi']:
