@@ -157,7 +157,10 @@ class JsonModify():
         else:
             uri = string
             basename = '/'.join(uri.replace('/cacheCopy', '').split('/call-')[-1].split('/')[1:])
-            new_uri = self.dir + '/' + basename
+            if self.dir.endswith('/'):
+                new_uri = self.dir + basename
+            else:
+                new_uri = self.dir + '/' + basename
             new_uri = '/'.join([section for section in new_uri.split('/') 
                                if not section.startswith('attempt-') ])
             self.files.append(new_uri)
