@@ -33,6 +33,7 @@ class Runtime():
                  limit=1000000,
                  gcp_project=False,
                  test=False):
+        self.incomplete_uuids = False
         self.large_run = large_run
         self.test= test
         self.parent_dir = os.path.abspath(os.path.dirname(__file__))
@@ -72,54 +73,47 @@ class Runtime():
                                'runtime_workflow_id', 'task_call_name', 'shard', 'attempt', 'cpu_count',
                                'cpu_platform', 'mem_total_gb', 'disk_mounts', 'disk_total_gb',
                                'start_time']
-                self.runtime['instance_id']
-                self.runtime['instance_id'] = self.runtime['instance_id'].fillna(-1)
-                self.runtime['instance_id'] = self.runtime['instance_id'].astype(int)
-                self.runtime['instance_id'] = self.runtime['instance_id'].astype(str)
-                self.runtime['instance_id'] = self.runtime['instance_id'].replace('-1', np.nan)
+                self.runtime = self.reset_instance_id(self.runtime)
                 cols_to_replace = ['mem_total_gb', 'disk_mounts',  'disk_total_gb']
                 cols_to_keep = [col for col in self.metadata.columns if not col in cols_to_replace]
                 self.metadata = pd.merge(self.metadata[cols_to_keep], self.runtime[['instance_name', 'instance_id',
                                                               'cpu_platform', 'mem_total_gb', 'disk_mounts', 
                                                               'disk_total_gb']].drop_duplicates(subset=['instance_id']), 
                                          on='instance_name', how='left')
-                print(self.metadata.shape)
-                self.metadata['instance_id'] = self.metadata['instance_id'].fillna(-1)
-                self.metadata['instance_id'] = self.metadata['instance_id'].astype(int)
-                self.metadata['instance_id'] = self.metadata['instance_id'].astype(str)
-                self.metadata['instance_id'] = self.metadata['instance_id'].replace('-1', np.nan)
+                self.metadata = self.reset_instance_id(self.metadata)
                 self.load_metrics()
-                print(self.metadata.shape)
-                self.metrics['instance_id'] = self.metrics['instance_id'].fillna(-1)
-                self.metrics['instance_id'] = self.metrics['instance_id'].astype(int)
-                self.metrics['instance_id'] = self.metrics['instance_id'].astype(str)
-                self.metrics['instance_id'] = self.metrics['instance_id'].replace('-1', np.nan)
+                self.metrics = self.reset_instance_id(self.metrics)
                 print('add custom cols')
                 self.add_custom_cols()
-                print(self.metadata.shape)
                 # remove non-run rows
                 print('remove non-run rows')
                 self.metadata_cache = self.metadata.loc[pd.isnull(self.metadata[['instance_name']]).any(axis=1)].copy()
                 self.metadata = self.metadata.dropna(subset=['instance_name']).copy()
                 self.non_retry_metadata = self.metadata[self.metadata.backend_status == 'Success'].copy()
-                print(self.metadata.shape)
                 print('write metrics')
-                self.metadata.to_csv(self.metrics_file + '.intermediate.csv', index=False, float_format='{:f}'.format, encoding='utf-8')
+#                 self.metadata.to_csv(self.metrics_file + '.intermediate.csv', index=False, float_format='{:f}'.format, encoding='utf-8')
                 # if no tasks are finished
                 if self.metadata[self.metadata.execution_status != 'RUNNING'].empty:
                     self.metadata = pd.concat([self.metadata, self.metadata_cache], ignore_index=True)
                     self.metadata.to_csv(self.metrics_file, index=False)
                 else:
                     print('make plot metrics')
-                    self.metadata_full = self.metadata.copy()
                     self.metadata = self.load_plot_metrics(self.metadata)
                     print('make non retry plot metrics')
                     self.non_retry_metadata = self.load_plot_metrics(self.non_retry_metadata)
                     self.metadata = pd.concat([self.metadata, self.metadata_cache], ignore_index=True)
+                    self.non_retry_metadata = pd.concat([self.non_retry_metadata, self.metadata_cache], ignore_index=True)
                     print('write metrics')
                     self.metadata.to_csv(self.metrics_file, index=False, float_format='{:f}'.format, encoding='utf-8')
                     self.non_retry_metadata.to_csv(self.non_retried_metrics_file, index=False, float_format='{:f}'.format, encoding='utf-8')
-                    
+    
+    def reset_instance_id(self, data):
+        data['instance_id'] = data['instance_id'].fillna(-1)
+        data['instance_id'] = data['instance_id'].astype(int)
+        data['instance_id'] = data['instance_id'].astype(str)
+        data['instance_id'] = data['instance_id'].replace('-1', np.nan)
+        return data
+                   
     def login(self):
         '''Run the following to generate a default credentials file
     
@@ -173,20 +167,6 @@ class Runtime():
                                                 (row.run_time_m
                                                  * row.cpu_count),
                                                 axis=1)
-        # ==============
-        #     Instances
-        # ==============
-#         log.info('Instances...')
-#         grouped = metadata.groupby('task_call_name')
-#         metadata['mean_task_core_h'] = metadata.apply(lambda row:
-#                                                            (row.cpu_count
-#                                                             * float(grouped.mean().run_time_m[row.task_call_name])) / 60,
-#                                                            axis=1)
-#         # task wallclock time from start to finish
-#         metadata['mean_task_run_time_h'] = metadata.apply(lambda row:
-#                                                           float(grouped.mean().run_time_m[row.task_call_name]) / 60,
-#                                                           axis=1)
-        
         # ============================
         #     Tasks w/in subworkflow
         # ============================
@@ -207,6 +187,7 @@ class Runtime():
                                                                axis=1)
         # sub workflows wallclock time from start to finish
         metadata = self.get_flow_runtime(metadata, ids=['id', 'workflow_name'], col='sample_subworkflow_run_time_h')
+        pd.options.mode.chained_assignment = None
         metadata['subworkflow_max_mem_g'] = metadata.groupby(['id', 'workflow_name']).max_mem_used_gb.transform(max)
 
         # ============================
@@ -283,7 +264,7 @@ class Runtime():
             inputs
         '''
         log.info('Loading Metadata...')
-        if self.large_run:
+        if not self.large_run:
             all_metadata = [self.load_from_api()]
             if len(all_metadata) == 0:
                 all_metadata = self.load_from_large_api()
@@ -318,11 +299,9 @@ class Runtime():
         for metadata in all_metadata:
             self.tasks = []
             self.call_lister(metadata['calls'], 
-                          metadata['workflowName'])
+                             metadata['workflowName'])
             # order   call_type, attempt, workflowName
             for workflow_id, task_call_name, call, workflow_name in self.tasks:
-                with open('example_call.json', 'w') as project_info_file:
-                    json.dump(call, project_info_file, indent=4)
                 task_call_names.append(task_call_name)
                 workflow_names.append(workflow_name.split('.')[-1])
                 execution_statuss.append(call['executionStatus'])
@@ -383,9 +362,10 @@ class Runtime():
                     workflow_ids.append(call['id'])
                 elif 'subWorkflowId' in call:
                     workflow_ids.append(call['subWorkflowId'])
-                elif workflow_id:
-                    workflow_ids.append(workflow_id)
+                elif 'backendLogs' in call:
+                    workflow_ids.append(call['backendLogs']['log'].replace('/cacheCopy', '').split('/call-')[-2].split('/')[-1])
                 else:
+                    self.incomplete_uuids = True
                     workflow_ids.append(np.nan)
                 shards.append(call['shardIndex'])
                 start_times.append(call['start'])
@@ -444,8 +424,13 @@ class Runtime():
     
     def prune(self):
         '''skip results from subsubworkflow uuids that may return less information if a better result is available'''
+        cache_hits = [str(instance_name) == 'nan' for instance_name in self.metadata.instance_name.tolist()]
+        cache_hits = [str(backend_status) in ['nan', 'CacheHit'] for backend_status in self.metadata.backend_status.tolist()]
+        cache_metadata = self.metadata[cache_hits].copy()
+        non_cache = [str(instance_name) != 'nan' for instance_name in self.metadata.instance_name.tolist()]
+        non_cache_metadata = self.metadata[non_cache].copy()
         dfs = []
-        for instance_name in self.metadata.instance_name.unique().tolist():
+        for instance_name in non_cache_metadata.instance_name.unique().tolist():
             match = self.metadata[(self.metadata.instance_name == instance_name) &
                                   ([str(m) != 'nan' for m in self.metadata.workflow_id])].copy()
             null_count = np.Inf
@@ -455,6 +440,7 @@ class Runtime():
                     if current_null_count < null_count:
                         min_row = row
                 dfs.append(pd.DataFrame([min_row]))
+        dfs.append(cache_metadata)
         return pd.concat(dfs, ignore_index=True)
 
     def get_cromwell_time(self, timestamp):
@@ -537,7 +523,6 @@ class Runtime():
         '''
             return json from api
         '''
-        script = self.parent_dir + script
         metadata = self.load_uuid_api(uuid=self.workflow_uuid, script=script)
         if metadata['status'] != 'Succeeded':
             self.large_run = True
@@ -558,11 +543,17 @@ class Runtime():
         self.sub_workflow_uuid_list = self.format_query_list(workflow_uuids)
         instance_names = self.metadata.dropna(subset=['instance_name']).instance_name.unique().tolist()
         self.instance_name_list = self.format_query_list(instance_names)
+        
+            
         query_string = '''
         SELECT * FROM `''' + self.gcp_query_project + '''.cromwell_monitoring.runtime`
             WHERE DATE(start_time) >= "''' + self.run_date + '''"
-            AND DATE(start_time) <= "''' + self.end_date + '''"
-            AND workflow_id IN ''' + self.sub_workflow_uuid_list + '''
+            AND DATE(start_time) <= "''' + self.end_date 
+        if not self.incomplete_uuids:
+            query_string += '''"
+            AND workflow_id IN ''' + self.sub_workflow_uuid_list 
+            
+        query_string += '''
             AND instance_name IN ''' + self.instance_name_list + '''
             LIMIT ''' + self.limit + '''
         '''
