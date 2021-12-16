@@ -886,6 +886,51 @@ task SomPy {
     }
 }
 
+task VcfToBedPe {
+    input {
+        String tumor
+        String normal
+        File vcf
+        String outFileBedpePath
+        String vepGenomeBuild
+        Array[String] listOfChroms
+        Int minSvLength = 500
+        
+        File vcfToBedpe = "gs://nygc-comp-s-fd4e-input/scripts/vcf_to_bedpe.r"
+        
+        Int diskSize = 10
+        Int memoryGb = 20
+    }
+    
+    command {
+        Rscript \
+        ~{vcfToBedpe} \
+        --vcf=~{vcf} \
+        --build=~{vepGenomeBuild} \
+        --tumor=~{tumor} \
+        --normal=~{normal} \
+        --allowed_chr=~{sep="," listOfChroms} \
+        --min_sv_length=~{minSvLength} \
+        --out_file=~{outFileBedpePath}
+    }
+    
+    output {
+        File outFileBedpe = "~{outFileBedpePath}"
+    }
+    
+    runtime {
+        mem: memoryGb + "G"
+        memory : memoryGb + "GB"
+        disks: "local-disk " + diskSize + " HDD"
+        docker : "gcr.io/nygc-public/sv_cnv@sha256:1c14a50d131323a2a4bab323cf224879776af8de37f93df79292fd2e63269274"
+    }
+    
+    meta {
+        summaryTsvColumns : ["#chr1", "start1", "end1", "chr2", "start2", "end2", "type", "score", "strand1", "strand2", "pair_id"]
+        internalOnly : "False, produces output for external or internal BEDPE files"
+    }
+}
+
 task CompareBedPe {
     input {
         String pairId

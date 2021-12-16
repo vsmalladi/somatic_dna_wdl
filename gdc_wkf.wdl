@@ -4,6 +4,7 @@ import "test/tests.wdl" as tests
 import "wdl_structs.wdl"
 import "test/gdc_wkf.wdl" as gdcComparePair
 
+
 struct GdcRelationship {
     String pairId
     String tumor
@@ -11,6 +12,8 @@ struct GdcRelationship {
     File nygcVcf
     File gdcSnvVcf
     File gdcIndelVcf
+    File gdcSvVcf
+    File nygcFinalBedPe
 }
 
 
@@ -21,6 +24,7 @@ workflow GdcCompare {
         File cosmicCensus
         Array[String] listOfChroms
         
+        String vepGenomeBuild
         Array[GdcRelationship] gdcRelationships
         IndexedReference referenceFa
     }
@@ -31,10 +35,16 @@ workflow GdcCompare {
         call gdcComparePair.GdcComparePair {
             input:
                 pairId = gdcRelationship.pairId,
+                tumor = gdcRelationship.tumor,
+                normal = gdcRelationship.normal,
                 nygcVcf = gdcRelationship.nygcVcf,
                 gdcIndelVcf = gdcRelationship.gdcIndelVcf,
                 gdcSnvVcf = gdcRelationship.gdcSnvVcf,
-                referenceFa = referenceFa
+                gdcSvVcf = gdcRelationship.gdcSvVcf,
+                nygcFinalBedPe = gdcRelationship.nygcFinalBedPe,
+                listOfChroms = listOfChroms,
+                referenceFa = referenceFa,
+                vepGenomeBuild = vepGenomeBuild
         }
     }
     
@@ -45,8 +55,22 @@ workflow GdcCompare {
             outputTablePath = "~{name}.finalVcf.csv"
     }
     
+    call tests.ConcateTables as finalBedPeConcateTables {
+        input:
+            tables = GdcComparePair.finalBedTable,
+            outputTablePath = "~{name}.finalBedPe.tsv"
+    }
+    
+    call tests.ConcateTables as finalSvGenesConcateTables {
+        input:
+            tables = GdcComparePair.svGenesTable,
+            outputTablePath = "~{name}.finalSvGenes.csv"
+    }
     
     output {
+        File finalBedPeTable = finalBedPeConcateTables.outputTable
+        Array[File] finalBedpeJoined = GdcComparePair.finalBedpeJoined
+        File finalSvGenesTable = finalSvGenesConcateTables.outputTable
         File finalVcfTable = finalVcfConcateTables.outputTable
         Array[File] detailedOutputVcfTable = GdcComparePair.detailedOutputTable
 
