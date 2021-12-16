@@ -275,6 +275,7 @@ class Runtime():
         labels = all_metadata[0]['submittedFiles']['labels'] # dictionary in a string        
         # instance-level results
         task_call_names = []
+        non_alias_task_call_names = []
         workflow_names = []
         execution_statuss = []
         mem_total_gbs = []
@@ -303,6 +304,11 @@ class Runtime():
             # order   call_type, attempt, workflowName
             for workflow_id, task_call_name, call, workflow_name in self.tasks:
                 task_call_names.append(task_call_name)
+                if 'backendLabels' in call and 'wdl-task-name' in call['backendLabels']:
+                    non_alias_task_call_name = call['backendLabels']['wdl-task-name']
+                else:
+                    non_alias_task_call_name = task_call_name
+                non_alias_task_call_names.append(non_alias_task_call_name)
                 workflow_names.append(workflow_name.split('.')[-1])
                 execution_statuss.append(call['executionStatus'])
                 if 'runtimeAttributes' in call:
@@ -386,27 +392,28 @@ class Runtime():
                 inputs.append(call['inputs'])
         # output
         self.metadata = pd.DataFrame({'task_call_name' : task_call_names,
-                                'workflow_name' : workflow_names,
-                                'execution_status' : execution_statuss,
-                                'mem_total_gb' : mem_total_gbs,
-                                'cpu_count' : cpu_counts,
-                                'disk_types' : disk_types,
-                                'disk_total_gb' : disk_total_gbs,
-                                'docker_image' : docker_images,
-                                'disk_mounts' : disk_mounts,
-                                'attempt'  : attempts,
-                                'backend_status' : backend_statuss,
-                                'preemptible' : preemptibles,
-                                'instance_name' : instance_names,
-                                'zone' : zones,
-                                'project_id' : project_ids,
-                                'return_code' : return_codes,
-                                'workflow_id' : workflow_ids,
-                                'shard' : shards,
-                                'start_time' : start_times,
-                                'end_time' : end_times,
-                                'localization_m' : localization_ms,
-                                'inputs' : inputs
+                                        'non_alias_task_call_name' : non_alias_task_call_names,
+                                        'workflow_name' : workflow_names,
+                                        'execution_status' : execution_statuss,
+                                        'mem_total_gb' : mem_total_gbs,
+                                        'cpu_count' : cpu_counts,
+                                        'disk_types' : disk_types,
+                                        'disk_total_gb' : disk_total_gbs,
+                                        'docker_image' : docker_images,
+                                        'disk_mounts' : disk_mounts,
+                                        'attempt'  : attempts,
+                                        'backend_status' : backend_statuss,
+                                        'preemptible' : preemptibles,
+                                        'instance_name' : instance_names,
+                                        'zone' : zones,
+                                        'project_id' : project_ids,
+                                        'return_code' : return_codes,
+                                        'workflow_id' : workflow_ids,
+                                        'shard' : shards,
+                                        'start_time' : start_times,
+                                        'end_time' : end_times,
+                                        'localization_m' : localization_ms,
+                                        'inputs' : inputs
         })
         self.metadata = self.prune()
         self.metadata['main_workflow_name'] = main_workflow_name
@@ -465,7 +472,7 @@ class Runtime():
                     self.call_lister(attempt['subWorkflowMetadata']['calls'], 
                                      attempt['subWorkflowMetadata']['workflowName'],
                                      statement='sub',
-                                     workflow_id= workflow_id)
+                                     workflow_id=workflow_id)
                 else:
                     self.tasks.append([workflow_id, call_type, attempt, workflowName])
 
