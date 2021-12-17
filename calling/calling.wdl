@@ -1021,6 +1021,8 @@ task Bicseq2Wgs {
 
     command {
         set -e -o pipefail
+        
+        mkdir -p ~{pairName}
 
         python3 \
         /bicseq2_seg_config_writer.py \
@@ -1032,6 +1034,7 @@ task Bicseq2Wgs {
 
         perl /NBICseq-seg_v0.7.2/NBICseq-seg.pl \
         --control \
+        --tmp ~{pairName} \
         --fig=~{bicseq2PngPath} \
         --title=~{pairName} \
         --lambda=4 \
@@ -1079,7 +1082,6 @@ task GridssPreprocess {
         fasta_dir=$( dirname ~{bwaReference.fasta} )
         mv ~{sep=" " gridssAdditionalReference} $fasta_dir
 
-        mkdir -p /scratch/
         working=$( pwd )
 
         gridss.sh \
@@ -1111,7 +1113,7 @@ task GridssPreprocess {
         disks: "local-disk " + diskSize + " LOCAL"
         cpu : threads
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/gridss@sha256:0dd813126af95f511f0576045165a8c14fca46ea99fe44110df2f8e6b4febf72"
+        docker : "gcr.io/nygc-public/gridss@sha256:284c58744471089a9d0998a48a33d7cd3d1019a588a284fb99b69b547f794cac"
     }
 }
 
@@ -1188,7 +1190,7 @@ task GridssAssembleChunk {
         disks: "local-disk " + diskSize + " LOCAL"
         cpu : threads
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/gridss@sha256:0dd813126af95f511f0576045165a8c14fca46ea99fe44110df2f8e6b4febf72"
+        docker : "gcr.io/nygc-public/gridss@sha256:284c58744471089a9d0998a48a33d7cd3d1019a588a284fb99b69b547f794cac"
     }
 }
 
@@ -1273,7 +1275,7 @@ task GridssAssemble {
         disks: "local-disk " + diskSize + " LOCAL"
         cpu : threads
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/gridss@sha256:0dd813126af95f511f0576045165a8c14fca46ea99fe44110df2f8e6b4febf72"
+        docker : "gcr.io/nygc-public/gridss@sha256:284c58744471089a9d0998a48a33d7cd3d1019a588a284fb99b69b547f794cac"
     }
 }
 
@@ -1368,7 +1370,7 @@ task GridssCalling {
         disks: "local-disk " + diskSize + " LOCAL"
         cpu : threads
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/gridss@sha256:0dd813126af95f511f0576045165a8c14fca46ea99fe44110df2f8e6b4febf72"
+        docker : "gcr.io/nygc-public/gridss@sha256:284c58744471089a9d0998a48a33d7cd3d1019a588a284fb99b69b547f794cac"
     }
 }
 
@@ -1417,6 +1419,6 @@ task GridssFilter {
         disks: "local-disk " + diskSize + " HDD"
         cpu : threads
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/gridss@sha256:0dd813126af95f511f0576045165a8c14fca46ea99fe44110df2f8e6b4febf72"
+        docker : "gcr.io/nygc-public/gridss@sha256:284c58744471089a9d0998a48a33d7cd3d1019a588a284fb99b69b547f794cac"
     }
 }

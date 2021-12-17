@@ -37,9 +37,16 @@ workflow PrepMergeVcfPon {
     
     File uncompressedVcf = select_first([MergePrepSupport.prepCallerVcf, MergePrep.prepCallerVcf])
     
+    call merge_vcf.RenameVcfPon {
+        input:
+            tumor = tumor,
+            tool = tool,
+            prepCallerVcf = uncompressedVcf
+    }
+    
     call merge_vcf.CompressVcf as renameCompressVcf {
         input:
-            vcf = uncompressedVcf,
+            vcf = RenameVcfPon.renameVcf,
             memoryGb = 4
     }
     
@@ -53,13 +60,13 @@ workflow PrepMergeVcfPon {
             pairName = tumor,
             referenceFa = referenceFa,
             vcfCompressedIndexed = renameIndexVcf.vcfCompressedIndexed,
-            splitVcfPath = sub(basename(renameIndexVcf.vcfCompressedIndexed.vcf), ".rename.vcf.gz$", ".split.vcf")
+            splitVcfPath = sub(basename(renameIndexVcf.vcfCompressedIndexed.vcf, ".gz"), ".vcf$", ".split_ma.vcf")
     }
     
     call merge_vcf.SplitMnv {
         input:
             tool = tool,
-            mnvVcfPath = sub(basename(renameIndexVcf.vcfCompressedIndexed.vcf), ".rename.vcf.gz$", ".split.vcf"),
+            mnvVcfPath = sub(basename(renameIndexVcf.vcfCompressedIndexed.vcf, ".gz"), ".vcf$", ".split_mnv.vcf"),
             splitVcf = prepSplitMultiAllelic.splitVcf
             
     }
@@ -67,7 +74,7 @@ workflow PrepMergeVcfPon {
     if (tool == 'svaba') {
         call merge_vcf.RemoveContig {
             input:
-                mnvVcfPath = sub(basename(renameIndexVcf.vcfCompressedIndexed.vcf), ".rename.vcf.gz$", ".split.vcf"),
+                mnvVcfPath = sub(basename(renameIndexVcf.vcfCompressedIndexed.vcf, ".gz"), ".vcf$", ".split_no_contig.vcf"),
                 removeChromVcf = SplitMnv.mnvVcf
         }
     }
