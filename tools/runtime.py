@@ -533,6 +533,7 @@ class Runtime():
         metadata = self.load_uuid_api(uuid=self.workflow_uuid, script=script)
         if metadata['status'] != 'Succeeded':
             self.large_run = True
+            print(metadata)
             metadata = []
         return metadata
     
