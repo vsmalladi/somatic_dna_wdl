@@ -53,11 +53,10 @@ class Runtime():
             # login
             self.credentials, self.gcp_project = self.login()
             if gcp_project:
-                self.default_project = False
                 self.gcp_query_project = gcp_project
             else:
-                self.default_project = True
                 self.gcp_query_project = self.gcp_project
+            self.default_project = (self.gcp_project == self.gcp_query_project)
             self.get_sample_info()
             # gather big cloud tables
             self.bqclient = bigquery.Client(project=self.gcp_project , 
@@ -304,98 +303,97 @@ class Runtime():
         localization_ms = []
         inputs = []
         for metadata in all_metadata:
-            self.tasks = []
-            self.call_lister(metadata['calls'], 
-                             metadata['workflowName'])
-            # order   call_type, attempt, workflowName
-            for workflow_id, task_call_name, call, workflow_name in self.tasks:
-                task_call_names.append(task_call_name)
-                if 'backendLabels' in call and 'wdl-task-name' in call['backendLabels']:
-                    non_alias_task_call_name = call['backendLabels']['wdl-task-name']
-                else:
-                    non_alias_task_call_name = task_call_name
-                non_alias_task_call_names.append(non_alias_task_call_name)
-                workflow_names.append(workflow_name.split('.')[-1])
-                execution_statuss.append(call['executionStatus'])
-                if 'runtimeAttributes' in call:
-                    mem_total_gbs.append(int(call['runtimeAttributes']['memory'].split()[0]))
-                    cpu_counts.append(int(call['runtimeAttributes']['cpu']))
-                    disk_types.append(call['runtimeAttributes']['disks'].split()[-1])
-                    disk_total_gbs.append(call['runtimeAttributes']['disks'].split()[-2])
-                    docker_images.append(call['runtimeAttributes']['docker'])
-                else:
-                    mem_total_gbs.append(0)
-                    cpu_counts.append(0)
-                    disk_types.append('')
-                    disk_total_gbs.append(0)
-                    docker_images.append('')
-                attempts.append(call['attempt'])
-                disk_mounts.append('Unknown')
-                
-                if 'backendStatus' in call:
-                    with open('example_backend.json', 'w') as project_info_file:
-                        json.dump(call, project_info_file, indent=4)
-                    backend_status = call['backendStatus'] # Preempted or Failed or Success
-                elif 'callCaching' in call and call['callCaching']['hit']:
-                    backend_status = 'CacheHit'
-                else:
-                    backend_status = 'CacheHit'
-#                     backend_status = 'Error'
-                backend_statuss.append(backend_status)
-                if backend_status in ['CacheHit']:
-                    preemptibles.append(np.nan)
-                    instance_names.append(np.nan)
-                    zones.append(np.nan)
-                    project_ids.append(np.nan)
-                elif backend_status in ['Running']:
-                    preemptibles.append(call['preemptible'])
-                    instance_names.append(np.nan)
-                    zones.append(np.nan)
-                    project_ids.append(call['jes']['googleProject'])
-                else:
-                    preemptibles.append(call['preemptible'])
-                    instance_names.append(call['jes']['instanceName'])
-                    zones.append(call['jes']['zone'])
-                    project_ids.append(call['jes']['googleProject'])
-                if backend_status in ['Preempted', 'Running', 'CacheHit']:
-                    return_codes.append(np.nan)
-                elif backend_status in ['CacheHit'] and \
-                        not 'returnCode' in call:
-                    # handle PAPI errors
-                    return_codes.append(np.nan)
-                elif not 'returnCode' in call:
-                    print(backend_status)
-                    # handle PAPI errors
-                    return_codes.append(np.nan)
-                else:
-                    return_codes.append(call['returnCode'])
-                # get workflow uuid
-                if 'id' in call:
-                    workflow_ids.append(call['id'])
-                elif 'subWorkflowId' in call:
-                    workflow_ids.append(call['subWorkflowId'])
-                elif 'backendLogs' in call:
-                    workflow_ids.append(call['backendLogs']['log'].replace('/cacheCopy', '').split('/call-')[-2].split('/')[-1])
-                else:
-                    self.incomplete_uuids = True
-                    workflow_ids.append(np.nan)
-                shards.append(call['shardIndex'])
-                start_times.append(call['start'])
-                if 'end' in call:
-                    # get localization time
-                    localization_m = np.nan
-                    for event in call["executionEvents"]:
-                        start_possible, end_possible = self.get_localization(event)
-                        if start_possible:
-                            start = start_possible
-                            end = end_possible
-                            localization_m = self.sec_between(start, end) / 60.0
-                    localization_ms.append(localization_m)
-                    end_times.append(call['end'])
-                else:
-                    localization_ms.append(np.nan)
-                    end_times.append(np.nan)
-                inputs.append(call['inputs'])
+            if len(metadata.keys()) > 0:
+                self.tasks = []
+                self.call_lister(metadata['calls'], 
+                                 metadata['workflowName'])
+                # order   call_type, attempt, workflowName
+                for workflow_id, task_call_name, call, workflow_name in self.tasks:
+                    task_call_names.append(task_call_name)
+                    if 'backendLabels' in call and 'wdl-task-name' in call['backendLabels']:
+                        non_alias_task_call_name = call['backendLabels']['wdl-task-name']
+                    else:
+                        non_alias_task_call_name = task_call_name
+                    non_alias_task_call_names.append(non_alias_task_call_name)
+                    workflow_names.append(workflow_name.split('.')[-1])
+                    execution_statuss.append(call['executionStatus'])
+                    if 'runtimeAttributes' in call:
+                        mem_total_gbs.append(int(round(float(call['runtimeAttributes']['memory'].split()[0]))))
+                        cpu_counts.append(int(call['runtimeAttributes']['cpu']))
+                        disk_types.append(call['runtimeAttributes']['disks'].split()[-1])
+                        disk_total_gbs.append(call['runtimeAttributes']['disks'].split()[-2])
+                        docker_images.append(call['runtimeAttributes']['docker'])
+                    else:
+                        mem_total_gbs.append(0)
+                        cpu_counts.append(0)
+                        disk_types.append('')
+                        disk_total_gbs.append(0)
+                        docker_images.append('')
+                    attempts.append(call['attempt'])
+                    disk_mounts.append('Unknown')
+                    
+                    if 'backendStatus' in call:
+                        backend_status = call['backendStatus'] # Preempted or Failed or Success
+                    elif 'callCaching' in call and call['callCaching']['hit']:
+                        backend_status = 'CacheHit'
+                    else:
+                        backend_status = 'CacheHit'
+    #                     backend_status = 'Error'
+                    backend_statuss.append(backend_status)
+                    if backend_status in ['CacheHit']:
+                        preemptibles.append(np.nan)
+                        instance_names.append(np.nan)
+                        zones.append(np.nan)
+                        project_ids.append(np.nan)
+                    elif backend_status in ['Running']:
+                        preemptibles.append(call['preemptible'])
+                        instance_names.append(np.nan)
+                        zones.append(np.nan)
+                        project_ids.append(call['jes']['googleProject'])
+                    else:
+                        preemptibles.append(call['preemptible'])
+                        instance_names.append(call['jes']['instanceName'])
+                        zones.append(call['jes']['zone'])
+                        project_ids.append(call['jes']['googleProject'])
+                    if backend_status in ['Preempted', 'Running', 'CacheHit']:
+                        return_codes.append(np.nan)
+                    elif backend_status in ['CacheHit'] and \
+                            not 'returnCode' in call:
+                        # handle PAPI errors
+                        return_codes.append(np.nan)
+                    elif not 'returnCode' in call:
+                        print(backend_status)
+                        # handle PAPI errors
+                        return_codes.append(np.nan)
+                    else:
+                        return_codes.append(call['returnCode'])
+                    # get workflow uuid
+                    if 'id' in call:
+                        workflow_ids.append(call['id'])
+                    elif 'subWorkflowId' in call:
+                        workflow_ids.append(call['subWorkflowId'])
+                    elif 'backendLogs' in call:
+                        workflow_ids.append(call['backendLogs']['log'].replace('/cacheCopy', '').split('/call-')[-2].split('/')[-1])
+                    else:
+                        self.incomplete_uuids = True
+                        workflow_ids.append(np.nan)
+                    shards.append(call['shardIndex'])
+                    start_times.append(call['start'])
+                    if 'end' in call:
+                        # get localization time
+                        localization_m = np.nan
+                        for event in call["executionEvents"]:
+                            start_possible, end_possible = self.get_localization(event)
+                            if start_possible:
+                                start = start_possible
+                                end = end_possible
+                                localization_m = self.sec_between(start, end) / 60.0
+                        localization_ms.append(localization_m)
+                        end_times.append(call['end'])
+                    else:
+                        localization_ms.append(np.nan)
+                        end_times.append(np.nan)
+                    inputs.append(call['inputs'])
         # output
         self.metadata = pd.DataFrame({'task_call_name' : task_call_names,
                                         'non_alias_task_call_name' : non_alias_task_call_names,
@@ -486,22 +484,25 @@ class Runtime():
         '''
             return json from api
         '''
+        print('LARGE: load_from_large_api')
+        self.possibly_incomplete = False
         metadata_list = []
         # get main workflow results
         metadata = self.load_uuid_api(uuid=self.workflow_uuid, script='/get_main_metadata.sh')
-        if metadata['status'] != 'Succeeded':
-            log.error('Call to api failed')
-            print(metadata)
-            sys.exit(1)
+#         if 'status' in metadata and metadata['status'] != 'Succeeded':
+#             log.error('Call to api failed')
+# #             print(metadata)
+#             sys.exit(1)
         metadata_list.append(metadata)
         # get subworkflow results
         for uuid in self.output_info['sub_workflow_uuids']:
             if not uuid == self.workflow_uuid:
                 metadata = self.load_uuid_api(uuid=uuid, script='/get_metadata.sh')
-                if metadata['status'] != 'Succeeded':
-                    log.error('Call to api failed')
-                    print(metadata)
-                    sys.exit(1)
+                if len(metadata.keys()) == 0:
+                    log.warning('Call to api failed, using version without expanded metadata')
+                    log.warning('This may result in missing values for subworkflows of ' + uuid)
+                    self.possibly_incomplete = True
+                    metadata = self.load_uuid_api(uuid=uuid, script='/get_main_metadata.sh')
                 metadata_list.append(metadata)
         return metadata_list
     
@@ -523,24 +524,35 @@ class Runtime():
             result = subprocess.run(args,
                                     check=True,
                                     stdout=subprocess.PIPE).stdout.decode('utf-8')
+            #
+            print( ' '.join(args))
+            with open('example_raw_new.json', 'w') as input_info_file:
+                for line in result:
+                    input_info_file.write(line + '\n')
+#             with open('example.json', 'w') as input_info_file:
+#                 json.dump(result, input_info_file, indent=4)
+#         sys.exit(0)
+        #
         except subprocess.CalledProcessError as err:
             log.warning(err.output.decode('utf-8'))
             log.error('Failed to get metadata from api for workflow: ' + uuid)
             return {}
-#         with open('api_example.json', 'w') as input_info_file:
-#             json.dump(json.loads(result), input_info_file, indent=4)
         metadata = json.loads(result)
+        with open('example.json', 'w') as input_info_file:
+            json.dump(metadata, input_info_file, indent=4)
         return metadata
 
     def load_from_api(self, script='/get_metadata.sh'):
         '''
             return json from api
         '''
+        print('SMALL: load_from_api')
         metadata = self.load_uuid_api(uuid=self.workflow_uuid, script=script)
-        if metadata['status'] != 'Succeeded':
-            self.large_run = True
-            print(metadata)
-            metadata = []
+#         if 'status' in metadata and metadata['status'] != 'Succeeded':
+#             self.large_run = True
+#             print(metadata['status'])
+#             print(metadata)
+#             metadata = {}
         return metadata
     
     def format_instance_id(self):
@@ -559,7 +571,7 @@ class Runtime():
         workflow_uuids = self.metadata.dropna(subset=['workflow_id']).workflow_id.unique().tolist()
         if 'sub_workflow_uuids' in self.output_info:
             missing = list(set(self.output_info['sub_workflow_uuids']).difference(set(workflow_uuids)))
-            workflow_uuids += missing
+            workflow_uuids += [uuid for uuid in missing if not uuid == self.workflow_uuid]
         self.sub_workflow_uuid_list = self.format_query_list(workflow_uuids)
         instance_names = self.metadata.dropna(subset=['instance_name']).instance_name.unique().tolist()
         self.instance_name_list = self.format_query_list(instance_names)

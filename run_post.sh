@@ -104,7 +104,9 @@ header="${log_dir}/${project_id}.${workflow_uuid}_outputMetrics.header.txt"
 echo "Collect subworkflow uuids..."
 collect_command="time python ${wdl_dir}/tools/collect.py \
 --run-data ${run_info_json} \
---url ${url}"
+--url ${url} \
+--gcp-project ${project_id}"
+
 
 if [ ! -z "$large_run" ]; then
     collect_command="${collect_command} \
@@ -119,10 +121,18 @@ if [[ ! -f $output_info_file ]]; then
 fi
 
 echo "Gather usage metrics..."
-time python ${wdl_dir}/tools/runtime.py \
+runtime_command="time python ${wdl_dir}/tools/runtime.py \
     --output-info-file ${output_info_file} \
     --metrics-file-prefix ${log_dir}/${project_id}. \
-    --url ${url}
+    --url ${url} \
+    --gcp-project ${project_id}"
+    
+if [ ! -z "$large_run" ]; then
+    runtime_command="${runtime_command} \
+    --large-run"
+fi
+
+eval ${runtime_command}
 
 echo "Plot usage metrics..." 
 python ${wdl_dir}/tools/plot_runtime.py \

@@ -248,16 +248,14 @@ class CloudOutput():
         self.parent_dir = os.path.abspath(os.path.dirname(__file__))
         self.url = url
         self.run_data = run_data
-        self.options = run_data.options
-        # login
-        self.credentials, self.gcp_project = make_auth.login()
-        if gcp_project:
-            self.default_project = False
-            self.gcp_query_project = gcp_project
-        else:
-            self.default_project = True
-            self.gcp_query_project = self.gcp_project
         self.workflow_uuid = self.run_data.workflow_uuid
+        # login
+        results = self.get_gcp_project(gcp_project)
+        self.credentials, self.gcp_project, self.default_project, self.gcp_query_project = results
+        if 'options' in self.run_data.run_info:
+            self.options = self.run_data.run_info['options']
+        else:
+            self.options = self.get_options(uuid=self.workflow_uuid)
         # get root dir
         self.root_dir = self.read_api(goal='get_root')
         # fast get calls from API to search for uuids
@@ -286,6 +284,54 @@ class CloudOutput():
         self.run_data.run_info['outputs'] = self.named_outputs
         self.run_data.run_info['named_files'] = self.named_files
         self.run_data.run_info['unnamed_files'] = self.unnamed_files
+        
+    def get_options(self, uuid):
+        metadata = self.load_uuid_api(uuid,
+                                      script='/get_main_metadata.sh')
+        options_string = metadata['submittedFiles']['options']
+        options = json.loads(options_string)
+        return options
+        
+    @staticmethod
+    def get_gcp_project(args_gcp_project):
+        credentials, gcp_project = make_auth.login()
+        if args_gcp_project:
+            gcp_query_project = args_gcp_project
+        else:
+            gcp_query_project = gcp_project
+        default_project = (gcp_query_project == gcp_project)
+        return credentials, gcp_project, default_project, gcp_query_project
+    
+    def load_uuid_api(self, 
+                      uuid, 
+                      script='/get_main_metadata.sh'):
+        '''
+            return json from api
+        '''
+        parent_dir = os.path.abspath(os.path.dirname(__file__))
+        script = parent_dir + script
+        if self.default_project:
+            args = ['bash', script,
+                    '-u', self.url,
+                    '-w', uuid]
+        else:
+            args = ['bash', script,
+                    '-u', self.url,
+                    '-w', uuid,
+                    '-g', self.gcp_query_project]
+        try:
+            result = subprocess.run(args,
+                                    check=True,
+                                    stdout=subprocess.PIPE).stdout.decode('utf-8')
+        except subprocess.CalledProcessError as err:
+            log.warning(err.output.decode('utf-8'))
+            log.error('Failed to get metadata from api for workflow: ' + uuid)
+            return {}
+        metadata = json.loads(result)
+#         with open('example_meta.json', 'w') as input_info_file:
+#             json.dump(metadata, input_info_file, indent=4)
+        return metadata
+        
         
     def filter_by_id(self, association, pair=True, sample=False):
         '''skip object that have no files after filtering by id'''
@@ -510,7 +556,11 @@ class RunData():
     '''Load rundata from file and confirm project data schema '''
     def __init__(self, run_info):
         self.run_info = run_info
-        self.options = self.run_info['project_data']['options']
+        if 'options' in self.run_info['project_data']:
+            self.options = self.run_info['project_data']['options']
+        else:
+            self.options = {"use_relative_output_paths" : True,
+                            "final_workflow_outputs_dir": 'gs://unknown_final_workflow_outputs_dir/'}
         self.project_info = self.run_info['project_data']
         self.passed = meta.test_schema(self.project_info)
         self.workflow_uuid = self.run_info['workflow_uuid']
@@ -571,12 +621,14 @@ def main():
     output_files = []
     for run_info in run_infos:
         run_data = RunData(run_info=run_info)
-        file_out = run_data.run_info["project_data"]['project'].replace(' ', '_') + '.' +  run_data.run_info['workflow_uuid'] + '_outputInfo.json'
+        results = CloudOutput.get_gcp_project(args['gcp_project'])
+        credentials, gcp_project, default_project, gcp_query_project = results
+        file_out = gcp_query_project.replace(' ', '_') + '.' +  run_data.run_info['workflow_uuid'] + '_outputInfo.json'
         output_files.append(file_out)
         if not os.path.isfile(file_out):
             outputs = CloudOutput(run_data=run_data, 
                                   url=args['url'],
-                                  gcp_project=args['gcp_project'],
+                                  gcp_project=gcp_query_project,
                                   large_run=args['large_run'])
             with open(file_out, 'w') as project_info_file:
                 json.dump(outputs.run_data.run_info, project_info_file, indent=4)

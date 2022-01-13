@@ -86,5 +86,5 @@
         "intervalList": { "type": "string"}
     },
     
-    "required": ["library", "genome"]
+    "required": []
 }
