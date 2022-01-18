@@ -10,6 +10,6 @@
     "default_runtime_attributes": {
         "maxRetries": 1,
         "noAddress": true,
-        "preemptible": 2
+        "preemptible": 6
     }
 }
