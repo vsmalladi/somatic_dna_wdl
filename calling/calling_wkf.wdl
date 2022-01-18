@@ -129,6 +129,7 @@ workflow Calling {
             pairName = pairInfo.pairId,
             bwaReference = bwaReference,
             gridssAdditionalReference = gridssAdditionalReference,
+            listOfChroms = listOfChroms,
             normalFinalBam = pairInfo.normalFinalBam,
             tumorFinalBam = pairInfo.tumorFinalBam,
             bsGenome = bsGenome,
