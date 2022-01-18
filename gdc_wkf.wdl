@@ -55,22 +55,25 @@ workflow GdcCompare {
             outputTablePath = "~{name}.finalVcf.csv"
     }
     
-    call tests.ConcateTables as finalBedPeConcateTables {
-        input:
-            tables = GdcComparePair.finalBedTable,
-            outputTablePath = "~{name}.finalBedPe.tsv"
-    }
-    
-    call tests.ConcateTables as finalSvGenesConcateTables {
-        input:
-            tables = GdcComparePair.svGenesTable,
-            outputTablePath = "~{name}.finalSvGenes.csv"
-    }
-    
+    #Boolean runSv = false
+    #if (runSv) {
+    #    call tests.ConcateTables as finalBedPeConcateTables {
+    #        input:
+    #            tables = GdcComparePair.finalBedTable,
+    #            outputTablePath = "~{name}.finalBedPe.tsv"
+    #    }
+    #    
+    #    call tests.ConcateTables as finalSvGenesConcateTables {
+    #        input:
+    #            tables = GdcComparePair.svGenesTable,
+    #            outputTablePath = "~{name}.finalSvGenes.csv"
+    #    }
+    #}
+        
     output {
-        File finalBedPeTable = finalBedPeConcateTables.outputTable
-        Array[File] finalBedpeJoined = GdcComparePair.finalBedpeJoined
-        File finalSvGenesTable = finalSvGenesConcateTables.outputTable
+        #File finalBedPeTable = finalBedPeConcateTables.outputTable
+        #Array[File] finalBedpeJoined = GdcComparePair.finalBedpeJoined
+        #File finalSvGenesTable = finalSvGenesConcateTables.outputTable
         File finalVcfTable = finalVcfConcateTables.outputTable
         Array[File] detailedOutputVcfTable = GdcComparePair.detailedOutputTable
 
