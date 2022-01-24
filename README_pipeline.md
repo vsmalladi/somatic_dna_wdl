@@ -3,12 +3,14 @@
 ## WGS Human Somatic Pipeline v7
 - [Deliverables](#deliverables)
 - [Pre-processing](#pre_processing)
+- [Quality control](#qc)
 - [References](#references)
 
 ![NYGC Somatic Pipeline overview](diagrams/pipeline_summary.png)
 
-### Deliverables
 <a name="deliverables"></a>
+
+### Deliverables
 
 BAM alignments
 
@@ -82,7 +84,7 @@ MSI status
 HLA
 
 - Kourami results
-  - NORMAL.result
+  - NORMAL.kourami.result
  
 Mutational Signatures
 
@@ -94,28 +96,47 @@ Mutational Signatures
 - Estimated proportion of each signature in the sample
   - TUMOR--NORMAL.cosmic.v3.2.deconstructSigs.v1.9.0.signatures.highconfidence.txt
   
-### Pre-processing
 <a name="pre_processing"></a>
 
-Sequencing reads for the tumor and normal samples are aligned to the reference genome using BWA-MEM (v0.7.15) (1).
-Skewer (v0.2.2) (2) is run to trim remaining adapter contamination from reads. NYGC’s ShortAlignmentMarking (v2.1) 
+### Pre-processing
+
+Sequencing reads for the tumor and normal samples are aligned to the reference genome using BWA-MEM (v0.7.15) ([1](#1)).
+Skewer (v0.2.2) ([2](#2)) is run to trim remaining adapter contamination from reads. NYGC’s ShortAlignmentMarking (v2.1) 
 is used to mark short reads as unaligned. This tool is intended to remove spurious alignments resulting from 
 contamination (e.g. saliva sample bacterial content) or from too aggressive alignments of short reads the size of
 BWA-MEM’s 19bp minimum seed length. These spurious alignments result in pileups in certain locations of the genome
 and can lead to erroneous variant calling. 
 
-GATK (v4.1.0) (3) FixMateInformation is run to verify and fix mate-pair information, followed by Novosort 
+GATK (v4.1.0) ([3](#3)) FixMateInformation is run to verify and fix mate-pair information, followed by Novosort 
 (v1.03.01) markDuplicates to merge individual lane BAM files into a single BAM file per sample. Duplicates are 
 then sorted and marked, and GATK’s base quality score recalibration (BQSR) is performed. The final result of the 
 pre-processing pipeline is a coordinate sorted BAM file for each sample.
 
 ![Pre-processing](diagrams/WGS_preprocess.png)
 
+<a name="qc"></a>
 
-### References
+### Quality control
+
+
+Once preprocessing is complete, we compute a number of alignment quality metrics such as
+average coverage, percent mapped reads and percent duplicate reads using GATK (v4.1.0) and an
+autocorrelation metric (adapted for WGS from ([3](#3))) to check for unevenness of coverage. We also
+run Conpair ([4](#4)), a tool developed at NYGC to check the genetic concordance between the
+normal and the tumor sample and to estimate any inter-individual contamination in the samples.
+
 <a name="references"></a>
 
+### References
+
+<a name="1"></a>
 1. Li,H. (2013) Aligning sequence reads, clone sequences and assembly contigs with BWA-MEM. arXiv [q-bio.GN].
+<a name="2"></a>
 2. Jiang,H. et al.(2014) Skewer: a fast and accurate adapter trimmer for next-generation sequencing paired-end reads. BMC Bioinformatics., 15, 182.
+<a name="3"></a>
 3. McKenna,A., Hanna,M., Banks,E., Sivachenko,A., Cibulskis,K., Kernytsky,A., Garimella,K., Altshuler,D., Gabriel,S., Daly,M., et al. (2010) The Genome Analysis Toolkit: a MapReduce framework for analyzing next-generation DNA sequencing data. Genome Res., 20, 1297–1303.
+<a name="4"></a>
+4. Bergmann,E.A., Chen,B.-J., Arora,K., Vacic,V. and Zody,M.C. (2016) Conpair: concordance
+and contamination estimator for matched tumor-normal pairs. Bioinformatics, 32,
+3196–3198.
 
