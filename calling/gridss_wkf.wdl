@@ -13,6 +13,7 @@ workflow Gridss {
 
         BwaReference bwaReference
         Array[File] gridssAdditionalReference
+        Array[String]+ listOfChroms
 
         Bam normalFinalBam
         Bam tumorFinalBam
@@ -151,7 +152,21 @@ workflow Gridss {
 
     }
 
-    Int filterDiskSize = ceil( size(GridssCalling.gridssUnfilteredVcf, "GB")) + 4
+    Int lowFilterDiskSize = ceil( size(GridssCalling.gridssUnfilteredVcf, "GB")) + 4
+    if (highMem) {
+        Int highFilterDiskSize = 30
+    }
+    Int filterDiskSize = select_first([highFilterDiskSize, lowFilterDiskSize])
+
+    call calling.FilterNonChroms {
+        input:
+            diskSize = filterDiskSize,
+            memoryGb = 1,
+            pairName = pairName,
+            gridssUnfilteredVcf = GridssCalling.gridssUnfilteredVcf,
+            listOfChroms = listOfChroms
+    }
+
     call calling.GridssFilter {
         input:
             threads = threads,
@@ -159,9 +174,8 @@ workflow Gridss {
             pairName = pairName,
             bsGenome = bsGenome,
             ponTarGz = ponTarGz,
-            gridssUnfilteredVcf = GridssCalling.gridssUnfilteredVcf,
+            gridssUnfilteredVcf = FilterNonChroms.gridssUnfilteredVcfChroms,
             diskSize = filterDiskSize
-
     }
 
     output {
