@@ -125,6 +125,22 @@ autocorrelation metric (adapted for WGS from ([3](#3))) to check for unevenness 
 run Conpair ([4](#4)), a tool developed at NYGC to check the genetic concordance between the
 normal and the tumor sample and to estimate any inter-individual contamination in the samples.
 
+<a name="variant_calling"></a>
+
+### Somatic variant calling pipeline
+3.1. Variant detection
+The tumor and normal bam files are processed through NYGC’s variant calling pipeline which
+consists of MuTect2 (GATK v4.0.5.1) ([5](#5))), Strelka2 (v2.9.3) (6) and Lancet (v1.0.7) (7)] for calling
+Single Nucleotide Variants (SNVs) and short Insertion-or-Deletion (Indels), SvABA (v0.2.1) (8)
+for calling Indels and Structural variants (SVs), Manta (v1.4.0) (9) and Lumpy (v0.2.13) (10) for
+calling SVs and BIC-Seq2 (v0.2.6) (11) for calling Copy-number variants (CNVs). Manta also
+outputs a candidate set of Indels which is provided as input to Strelka2 (following the developers
+recommendation, as it improves Strelka2’s sensitivity for calling indels >20nt). Due to its
+computing requirements, in this pipeline Lancet is only run on the exonic part of the genome. It
+is also run on the +/- 250nt regions around non-exonic variants that are called by only one of the
+other callers, to add confidence to such variants. Small SVs called by Manta are also used to
+add confidence to the indel calls.
+
 <a name="references"></a>
 
 ### References
@@ -139,4 +155,16 @@ normal and the tumor sample and to estimate any inter-individual contamination i
 4. Bergmann,E.A., Chen,B.-J., Arora,K., Vacic,V. and Zody,M.C. (2016) Conpair: concordance
 and contamination estimator for matched tumor-normal pairs. Bioinformatics, 32,
 3196–3198.
+<a name="5"></a>
+5. Cibulskis,K., Lawrence,M.S., Carter,S.L., Sivachenko,A., Jaffe,D., Sougnez,C., Gabriel,S.,
+Meyerson,M., Lander,E.S. and Getz,G. (2013) Sensitive detection of somatic point
+mutations in impure and heterogeneous cancer samples. Nat. Biotechnol., 31, 213–219.
+<a name="6"></a>
+6. Kim,S., Scheffler,K., Halpern,A.L., Bekritsky,M.A., Noh,E., Källberg,M., Chen,X., Kim,Y.,
+Beyter,D., Krusche,P., et al. (2018) Strelka2: fast and accurate calling of germline and
+somatic variants. Nat. Methods, 15, 591–594.
+<a name="7"></a>
+7. Narzisi,G., Corvelo,A., Arora,K., Bergmann,E.A., Shah,M., Musunuri,R., Emde,A.-K.,
+Robine,N., Vacic,V. and Zody,M.C. (2018) Genome-wide somatic variant calling using
+localized colored de Bruijn graphs. Commun Biol, 1, 20.
 
