@@ -75,6 +75,8 @@ task GetIndex {
 
 workflow SomaticBamWorkflow {
     input {
+        Boolean local = false
+        
         BwaReference bwaReference
         IndexedReference referenceFa
         
@@ -382,6 +384,7 @@ workflow SomaticBamWorkflow {
 
         call calling.Calling {
             input:
+                local = local,
                 mantaJsonLog = mantaJsonLog,
                 lancetJsonLog = lancetJsonLog,
                 mutectJsonLog = mutectJsonLog,
