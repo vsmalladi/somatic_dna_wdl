@@ -40,6 +40,7 @@ task IndexVcf {
         Int diskSize = (ceil( size(vcfCompressed, "GB") )  * 2 ) + 4
     }
 
+    Int jvmHeap = memoryGb * 750  # Heap size in Megabytes. mem is in GB. (75% of mem)
     command {
         set -e -o pipefail
 
@@ -49,7 +50,7 @@ task IndexVcf {
 
         gatk \
         IndexFeatureFile \
-        --java-options "-XX:ParallelGCThreads=4" \
+        --java-options "-Xmx~{jvmHeap}m -XX:ParallelGCThreads=4" \
         --feature-file ~{vcfCompressedPath} \
         -O ~{vcfIndexedPath}
     }

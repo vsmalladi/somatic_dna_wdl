@@ -100,7 +100,7 @@ workflow SomaticBamWorkflow {
         File mutectJsonLog
         File mutectJsonLogFilter
         File configureStrelkaSomaticWorkflow
-        
+
         #   BicSeq2
         Int readLength
         Int coordReadLength
@@ -111,12 +111,12 @@ workflow SomaticBamWorkflow {
         Int tumorMedianInsertSize = 400
         Int normalMedianInsertSize = 400
         Int lambda = 4
-        
+
         # Gridss
         String bsGenome
         File ponTarGz
         Array[File] gridssAdditionalReference
-        
+
         # merge callers
         File intervalListBed
 
@@ -134,12 +134,12 @@ workflow SomaticBamWorkflow {
         # mantis
         File mantisBed
         File intervalListBed
-        
+
         # annotation:
         String vepGenomeBuild
         IndexedVcf cosmicCoding
         IndexedVcf cosmicNoncoding
-        
+
         # Public
         File cancerResistanceMutations
         File vepCache
@@ -147,13 +147,13 @@ workflow SomaticBamWorkflow {
         File plugins
         String vepGenomeBuild
         IndexedReference vepFastaReference
-        
+
         # NYGC-only
         IndexedVcf hgmdGene
         IndexedVcf hgmdUd10
         IndexedVcf hgmdPro
         IndexedVcf omimVcf
-        
+
         # Public
         IndexedVcf chdGenesVcf
         IndexedVcf chdEvolvingGenesVcf
@@ -161,7 +161,7 @@ workflow SomaticBamWorkflow {
         IndexedVcf deepIntronicsVcf
         IndexedVcf clinvarIntronicsVcf
         IndexedVcf masterMind
-        
+
         # annotate cnv
         File cytoBand
         File dgv
@@ -169,7 +169,7 @@ workflow SomaticBamWorkflow {
         File cosmicUniqueBed
         File cancerCensusBed
         File ensemblUniqueBed
-        
+
         # annotate sv
         String vepGenomeBuild
         # gap,DGV,1000G,PON,COSMIC
@@ -178,23 +178,23 @@ workflow SomaticBamWorkflow {
         File thousandGVcf
         File svPon
         File cosmicBedPe
-        
+
         # post annotation
         File cosmicCensus
-        
+
         File ensemblEntrez
-        
+
         # germline
-        
+
         File excludeIntervalList
         Array[File] scatterIntervalsHcs
-        
+
         IndexedVcf MillsAnd1000G
         IndexedVcf omni
         IndexedVcf hapmap
         IndexedVcf onekG
         IndexedVcf dbsnp
-        
+
         IndexedVcf whitelist
         IndexedVcf nygcAf
         IndexedVcf pgx
@@ -202,13 +202,13 @@ workflow SomaticBamWorkflow {
         IndexedVcf deepIntronicsVcf
         IndexedVcf clinvarIntronicsVcf
         IndexedVcf chdWhitelistVcf
-        
+
         # signatures
         File cosmicSigs
-        
+
         Boolean highMem = false
     }
-    
+
     scatter (normalSampleBamInfo in normalSampleBamInfos) {
         String normalSampleIds = normalSampleBamInfo.sampleId
 
@@ -220,7 +220,7 @@ workflow SomaticBamWorkflow {
                 kouramiFastaGem1Index = kouramiFastaGem1Index,
                 referenceFa = referenceFa
         }
-        
+
         call germline.Germline {
             input:
                 finalBam = normalSampleBamInfo.finalBam,
@@ -243,7 +243,7 @@ workflow SomaticBamWorkflow {
                 clinvarIntronicsVcf = clinvarIntronicsVcf,
                 highMem = highMem
         }
-        
+
         call germlineAnnotate.GermlineAnnotate as filteredGermlineAnnotate {
             input:
                 unannotatedVcf = Germline.haplotypecallerFinalFiltered,
@@ -275,9 +275,9 @@ workflow SomaticBamWorkflow {
                 # post annotation
                 cosmicCensus = cosmicCensus,
                 ensemblEntrez = ensemblEntrez,
-                library = library  
+                library = library
         }
-        
+
         call germlineAnnotate.GermlineAnnotate as unFilteredGermlineAnnotate {
             input:
                 unannotatedVcf = Germline.haplotypecallerVcf,
@@ -310,17 +310,17 @@ workflow SomaticBamWorkflow {
                 # post annotation
                 cosmicCensus = cosmicCensus,
                 ensemblEntrez = ensemblEntrez,
-                library = library  
+                library = library
         }
     }
-    
+
     scatter(pairInfo in pairInfos) {
         call GetIndex as germlineGetIndex {
             input:
                 sampleIds = normalSampleIds,
                 sampleId = pairInfo.normal
         }
-        
+
         call baf.Baf {
             input:
                 referenceFa = referenceFa,
@@ -332,12 +332,12 @@ workflow SomaticBamWorkflow {
                 listOfChroms = listOfChroms
         }
     }
-    
+
     scatter(pairInfo in pairInfos) {
-        
+
         # tumor insert size
         Int tumorDiskSize = ceil(size(pairInfo.tumorFinalBam.bam, "GB")) + 30
-                      
+
         call qc.MultipleMetrics as tumorMultipleMetrics {
             input:
                 referenceFa = referenceFa,
@@ -345,15 +345,15 @@ workflow SomaticBamWorkflow {
                 sampleId = pairInfo.tumor,
                 diskSize = tumorDiskSize
         }
-        
+
         call callingTasks.GetInsertSize as tumorGetInsertSize {
             input:
                 insertSizeMetrics = tumorMultipleMetrics.insertSizeMetrics
         }
-        
+
         # normal insert size
         Int normalDiskSize = ceil(size(pairInfo.normalFinalBam.bam, "GB")) + 30
-                      
+
         call qc.MultipleMetrics as normalMultipleMetrics {
             input:
                 referenceFa = referenceFa,
@@ -361,12 +361,12 @@ workflow SomaticBamWorkflow {
                 sampleId = pairInfo.normal,
                 diskSize = normalDiskSize
         }
-        
+
         call callingTasks.GetInsertSize as normalGetInsertSize {
             input:
                 insertSizeMetrics = normalMultipleMetrics.insertSizeMetrics
         }
-        
+
         call conpair.Conpair {
             input:
                 finalTumorBam = pairInfo.tumorFinalBam,
@@ -467,7 +467,7 @@ workflow SomaticBamWorkflow {
         }
 
         File mergedVcf = select_first([wgsMergeVcf.mergedVcf, exomeMergeVcf.mergedVcf])
-        
+
         call annotate.Annotate {
             input:
                 unannotatedVcf = mergedVcf,
@@ -500,9 +500,9 @@ workflow SomaticBamWorkflow {
                 # post annotation
                 cosmicCensus = cosmicCensus,
                 ensemblEntrez = ensemblEntrez,
-                library = library  
+                library = library
         }
-        
+
         call annotate_cnv_sv.AnnotateCnvSv {
             input:
                 tumor = pairRawVcfInfo.tumor,
@@ -514,9 +514,9 @@ workflow SomaticBamWorkflow {
                 dgv = dgv,
                 thousandG = thousandG,
                 cosmicUniqueBed = cosmicUniqueBed,
-                cancerCensusBed = cancerCensusBed, 
+                cancerCensusBed = cancerCensusBed,
                 ensemblUniqueBed = ensemblUniqueBed,
-                
+
                 filteredMantaSV = pairRawVcfInfo.filteredMantaSV,
                 svabaSv = pairRawVcfInfo.svabaSv,
                 gridssVcf = pairRawVcfInfo.gridssVcf,
@@ -527,15 +527,15 @@ workflow SomaticBamWorkflow {
                 svPon = svPon,
                 cosmicBedPe = cosmicBedPe
         }
-        
+
         call deconstructSigs.DeconstructSig {
-            input: 
+            input:
                 pairId = pairInfo.pairId,
                 mainVcf = mergedVcf,
                 cosmicSigs = cosmicSigs,
                 vepGenomeBuild = vepGenomeBuild
         }
-        
+
         FinalVcfPairInfo finalVcfPairInfo = object {
             pairId : pairInfo.pairId,
             tumor : pairInfo.tumor,
@@ -583,12 +583,12 @@ workflow SomaticBamWorkflow {
         Array[File] sig_input = DeconstructSig.sigInput
         Array[File] reconstructed = DeconstructSig.reconstructed
         Array[File] diff = DeconstructSig.diff
-        
+
         # Conpair
         Array[File] concordanceAll = Conpair.concordanceAll
         Array[File] concordanceHomoz = Conpair.concordanceHomoz
         Array[File] contamination = Conpair.contamination
-
+        Array[File] tumorPileup = Conpair.tumorPileup
+        Array[File] normalPileup = Conpair.normalPileup
     }
 }
-

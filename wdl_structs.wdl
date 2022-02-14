@@ -227,6 +227,8 @@ struct FinalWorkflowOutput {
     Array[File] concordanceAll
     Array[File] concordanceHomoz
     Array[File] contamination
+    Array[File] normalPileup
+    Array[File] tumorPileup
 
     # Germline
     Array[File?] kouramiResult
