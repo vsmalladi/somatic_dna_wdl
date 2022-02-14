@@ -354,10 +354,12 @@ microsatellite unstable if it’s Step-Wise Difference score reported by MANTIS 
 ### HLA-typing
 
 <a name="hla_typing"></a>
+https://bitbucket.nygenome.org/projects/COMPBIO/repos/hla_prep/browse
 
 We run Kourami (v0.9.6) ([27](#27)) on the matched normal sample for
-Human Leukocyte Antigen (HLA)-typing. OptiType predicts major histocompatibility complex
-(MHC) Class I alleles (HLA-A, HLA-B, HLA-C), whereas Kourami predicts both MHC Class I and
+Human Leukocyte Antigen (HLA)-typing. Kourami prep is run with a [custom prep pipeline](https://bitbucket.nygenome.org/projects/COMPBIO/repos/hla_prep/browse).
+Kourami predicts both major histocompatibility 
+complex (MHC) Class I alleles (HLA-A, HLA-B, HLA-C) and
 Class II alleles (HLA-DP, HLA-DQ, HLA-DR).
 
 ### Mutational signature analysis
