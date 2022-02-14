@@ -5,6 +5,14 @@
 - [Pre-processing](#pre_processing)
 - [Quality control](#qc)
 - [Somatic variant calling pipeline](#variant_calling)
+- [Somatic variant merging](#variant_merging)
+- [Somatic variant filtering](#variant_filtering)
+- [Somatic variant calling annotation](#variant_annotation)
+- [Germline analysis](#germline_analysis)
+- [Microsatellite Instability](#msi_detection)
+- [HLA typing](#hla_typing)
+- [Mutational signatures](#mutational_signature_analysis)
+- [Ancestry](#ancestry)
 - [References](#references)
 
 ![NYGC Somatic Pipeline overview](diagrams/pipeline_summary.png)
@@ -192,6 +200,9 @@ normal and the tumor sample and to estimate any inter-individual contamination i
 
 ### Somatic variant calling pipeline
 
+![Variant calling](diagrams/WGS_calling.png)
+
+
 #### Variant detection
 The tumor and normal bam files are processed through NYGC’s variant calling pipeline which
 consists of MuTect2 (GATK v4.0.5.1) ([5](#5))), Strelka2 (v2.9.3) ([6](#6)) and Lancet (v1.0.7) ([7](#7))] for calling
@@ -205,7 +216,12 @@ is also run on the +/- 250nt regions around non-exonic variants that are called 
 other callers, to add confidence to such variants. Small SVs called by Manta are also used to
 add confidence to the indel calls.
 
+<a name="variant_merging"></a>
+
 #### Variant merging
+
+![SNV Variant merging diagram](diagrams/WGS_postprocess.png)
+
 Next, the calls are merged by variant type (SNVs, Multi Nucleotide Variants (MNVs), Indels and
 SVs). MuTect2 and Lancet call MNVs, however Strelka2 does not, and it also does not provide
 any phasing information. So to merge such variants across callers, we first split the MNVs called
@@ -221,30 +237,7 @@ The SVs are converted to bedpe format, all SVs below 500bp are excluded and the 
 merged across callers using bedtools ([11](#11)) pairtopair (slop of 300bp, same strand orientation,
 and 50% reciprocal overlap).
 
-
-<a name="variant_annotation"></a>
-
-### Somatic variant annotation
-
-#### SNVs and Indels
-SNVs and Indels are annotated with Ensembl Variant Effect Predictor (v97) as well as databases such as COSMIC (v92)
-([12](#12)), 1000Genomes (Phase3) ([13](#13)) , ClinVar (201904) ([14](#14)), Polyphen2 (v2.2.2) ([15](#15)), SIFT (v5.2.2) ([16](#16)), FATHMM (v2.1) ([17](#17)), gnomAD (r2.0.2) ([18](#18)) and dbSNP (v150) ([19](#19)) using Variant Effect Predictor (v93.2) ([20](#20)).
-
-
-#### CNVs and SVs
-For CNVs, segments with log2 > 0.2 are categorized as amplifications, and segments with log2
-< -0.235 are categorized as deletions (corresponding to a single copy change at 30% purity in a
-diploid genome, or a 15% Variant Allele Fraction). CNVs of size less than 20Mb are denoted as
-focal and the rest are considered large-scale.
-
-We use bedtools for annotating SVs and CNVs. All predicted CNVs are annotated with
-germline variants by overlapping with known variants in 1000 Genomes and Database of
-Genomic Variants (DGV) ([21](#21)). Cancer-specific annotation includes overlap with genes from
-Ensembl ([22](#22)) and Cancer Gene Census in COSMIC, and potential effect on gene structure (e.g.
-disruptive, intronic, intergenic). If a predicted SV disrupts two genes and strand orientations are
-compatible, the SV is annotated as a putative gene fusion candidate. Note that we do not check
-reading frame at this point. Further annotations include sequence features within breakpoint
-flanking regions, e.g. mappability, simple repeat content and segmental duplications.
+<a name="variant_filtering"></a>
 
 ### Somatic variant filtering
 
@@ -281,6 +274,31 @@ In addition to the PON filtering, we remove SNVs and Indels that have minor alle
 overlap DGV and 1000Genomes (phase3). CNVs are annotated with DGV and 1000 Genomes
 but not filtered.
 
+
+<a name="variant_annotation"></a>
+
+### Somatic variant annotation
+
+#### SNVs and Indels
+SNVs and Indels are annotated with Ensembl Variant Effect Predictor (v97) as well as databases such as COSMIC (v92)
+([12](#12)), 1000Genomes (Phase3) ([13](#13)) , ClinVar (201904) ([14](#14)), Polyphen2 (v2.2.2) ([15](#15)), SIFT (v5.2.2) ([16](#16)), FATHMM (v2.1) ([17](#17)), gnomAD (r2.0.2) ([18](#18)) and dbSNP (v150) ([19](#19)) using Variant Effect Predictor (v93.2) ([20](#20)).
+
+
+#### CNVs and SVs
+For CNVs, segments with log2 > 0.2 are categorized as amplifications, and segments with log2
+< -0.235 are categorized as deletions (corresponding to a single copy change at 30% purity in a
+diploid genome, or a 15% Variant Allele Fraction). CNVs of size less than 20Mb are denoted as
+focal and the rest are considered large-scale.
+
+We use bedtools for annotating SVs and CNVs. All predicted CNVs are annotated with
+germline variants by overlapping with known variants in 1000 Genomes and Database of
+Genomic Variants (DGV) ([21](#21)). Cancer-specific annotation includes overlap with genes from
+Ensembl ([22](#22)) and Cancer Gene Census in COSMIC, and potential effect on gene structure (e.g.
+disruptive, intronic, intergenic). If a predicted SV disrupts two genes and strand orientations are
+compatible, the SV is annotated as a putative gene fusion candidate. Note that we do not check
+reading frame at this point. Further annotations include sequence features within breakpoint
+flanking regions, e.g. mappability, simple repeat content and segmental duplications.
+
 #### Allele counts
 Since our variant callsets are generated by merging calls across callers, and each of them
 reported different allele counts, we report final chosen allele counts for SNVs and indels. For
@@ -312,13 +330,21 @@ CNV changepoints are determined by overlapping BIC-Seq2 calls with the SV callse
 bedtools closest. An SV is considered to be supported by a CNV changepoint if the breakpoint
 of the CNV is within 1000bp of an SV breakpoint.
 
+<a name="germline_analysis"></a>
+
 ### Germline variant analysis
+
+![Pipeline with additional analysis shown](diagrams/WDL_Pipeline.png)
+
 We call germline SNPs and indels on the matched normal sample using GATK HaplotypeCaller
 (v4.1.8.0), which generates a single-sample GVCF. We then run GATK’s GenotypeGVCF to
 perform single sample genotype refinement and output a VCF, followed by variant quality score
 recalibration (VQSR) for variant filtering. See the "Variant annotation" section for details.
 
 ### MSI detection
+
+<a name="msi_detection"></a>
+
 We run MANTIS (v1.0.4) ([26](#26)) for Microsatellite Instability (MSI) detection in microsatellite loci
 (found using RepeatFinder, a tool included with MANTIS). A sample is considered to be
 microsatellite unstable if it’s Step-Wise Difference score reported by MANTIS is greater than 0.4
@@ -326,17 +352,26 @@ microsatellite unstable if it’s Step-Wise Difference score reported by MANTIS 
 (MSS).
 
 ### HLA-typing
+
+<a name="hla_typing"></a>
+
 We run Kourami (v0.9.6) ([27](#27)) on the matched normal sample for
 Human Leukocyte Antigen (HLA)-typing. OptiType predicts major histocompatibility complex
 (MHC) Class I alleles (HLA-A, HLA-B, HLA-C), whereas Kourami predicts both MHC Class I and
 Class II alleles (HLA-DP, HLA-DQ, HLA-DR).
 
 ### Mutational signature analysis
+
+<a name="mutational_signature_analysis"></a>
+
 We run deconstructSigs (v1.8.0) ([28](#28)) on the High Confidence somatic SNV callset within
 autosomes to estimate contribution of known COSMIC mutational signatures (v3)
 in the tumor sample.
 
 ### Ancestry
+
+<a name="ancestry"></a>
+
 Ancestry proportion is determined by the software ADMIXTURE v1.3.0 ([29](#29)), which uses a
 maximum likelihood-based method to estimate the proportion of reference population ancestries
 in a sample. We genotyped the reference markers generated from 1,964 unrelated 1000
