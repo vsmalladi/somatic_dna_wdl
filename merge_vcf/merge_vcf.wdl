@@ -41,6 +41,7 @@ task IndexVcf {
         Int diskSize = (ceil( size(vcfCompressed, "GB") )  * 2 ) + 4
     }
 
+    Int jvmHeap = memoryGb * 750  # Heap size in Megabytes. mem is in GB. (75% of mem)
     command {
         set -e -o pipefail
 
@@ -50,7 +51,7 @@ task IndexVcf {
 
         gatk \
         IndexFeatureFile \
-        --java-options "-XX:ParallelGCThreads=4" \
+        --java-options "-Xmx~{jvmHeap}m -XX:ParallelGCThreads=4" \
         --input ~{vcfCompressedPath} \
         -O ~{vcfIndexedPath}
     }
@@ -349,21 +350,21 @@ task RemoveContig {
 
     command <<<
         set -e -o pipefail
-        
+
         filename=$(basename -- "~{dollarSign}~{removeChromVcf}")
         extension="~{dollarSign}{filename##*.}"
         filename="~{dollarSign}{filename%.*}"
-        
+
         if [[ ~{dollarSign}extension == gz ]]; then
             input_path=~{dollarSign}filename
-            
+
             gunzip -c \
             ~{removeChromVcf} \
             > ~{dollarSign}input_path
         else
             input_path=~{removeChromVcf}
         fi
-        
+
         python \
         /remove_contig.py \
         ~{dollarSign}input_path \
