@@ -492,4 +492,3 @@ repair deficiencies and patterns of carcinoma evolution. Genome Biol., 17, 31.
 29. D.H. Alexander, J. Novembre, and K. Lange. (2009) Fast model-based estimation of ancestry in unrelated individuals. Genome Research, 19:1655–1664.
 <a name="30"></a>
 30.Chang CC, Chow CC, Tellier LCAM, Vattikuti S, Purcell SM, Lee JJ (2015) Second-generation PLINK: rising to the challenge of larger and richer datasets. GigaScience, 4.
-
