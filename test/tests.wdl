@@ -25,7 +25,7 @@ task FilterHighConfidence {
         mem: memoryGb + "G"
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker: "gcr.io/nygc-public/somatic_reports@sha256:ba18bd0fd7ce55af26e4d255f85529a728951bab02596e0528391b2b52d05045"
+        docker: "gcr.io/nygc-comp-s-fd4e/somatic_reports@sha256:260b0b1e1a6e194cbc51b90b781e1bd25c7cade3f772d47b52894de9345b6770"
     }
     
     meta {
@@ -59,7 +59,7 @@ task SummarizeMantis {
         mem: memoryGb + "G"
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker: "gcr.io/nygc-public/somatic_reports@sha256:ba18bd0fd7ce55af26e4d255f85529a728951bab02596e0528391b2b52d05045"
+        docker: "gcr.io/nygc-comp-s-fd4e/somatic_reports@sha256:260b0b1e1a6e194cbc51b90b781e1bd25c7cade3f772d47b52894de9345b6770"
     }
     
     meta {
@@ -93,7 +93,7 @@ task SummarizeQualityByCycle {
         mem: memoryGb + "G"
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker: "gcr.io/nygc-public/somatic_reports@sha256:ba18bd0fd7ce55af26e4d255f85529a728951bab02596e0528391b2b52d05045"
+        docker: "gcr.io/nygc-comp-s-fd4e/somatic_reports@sha256:260b0b1e1a6e194cbc51b90b781e1bd25c7cade3f772d47b52894de9345b6770"
     }
     
     meta {
@@ -129,7 +129,7 @@ task SummarizeInsertSizeMetrics {
         mem: memoryGb + "G"
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker: "gcr.io/nygc-public/somatic_reports@sha256:ba18bd0fd7ce55af26e4d255f85529a728951bab02596e0528391b2b52d05045"
+        docker: "gcr.io/nygc-comp-s-fd4e/somatic_reports@sha256:260b0b1e1a6e194cbc51b90b781e1bd25c7cade3f772d47b52894de9345b6770"
     }
     
     meta {
@@ -164,7 +164,7 @@ task SummarizeCollectWgsMetrics {
         mem: memoryGb + "G"
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker: "gcr.io/nygc-public/somatic_reports@sha256:ba18bd0fd7ce55af26e4d255f85529a728951bab02596e0528391b2b52d05045"
+        docker: "gcr.io/nygc-comp-s-fd4e/somatic_reports@sha256:260b0b1e1a6e194cbc51b90b781e1bd25c7cade3f772d47b52894de9345b6770"
     }
     
     meta {
@@ -200,7 +200,7 @@ task SummarizeSvs {
         mem: memoryGb + "G"
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker: "gcr.io/nygc-public/somatic_reports@sha256:ba18bd0fd7ce55af26e4d255f85529a728951bab02596e0528391b2b52d05045"
+        docker: "gcr.io/nygc-comp-s-fd4e/somatic_reports@sha256:260b0b1e1a6e194cbc51b90b781e1bd25c7cade3f772d47b52894de9345b6770"
     }
     
     meta {
@@ -234,7 +234,7 @@ task SummarizeFlagStat {
         mem: memoryGb + "G"
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker: "gcr.io/nygc-public/somatic_reports@sha256:ba18bd0fd7ce55af26e4d255f85529a728951bab02596e0528391b2b52d05045"
+        docker: "gcr.io/nygc-comp-s-fd4e/somatic_reports@sha256:260b0b1e1a6e194cbc51b90b781e1bd25c7cade3f772d47b52894de9345b6770"
     }
     
     meta {
@@ -243,19 +243,85 @@ task SummarizeFlagStat {
     }
 }
 
+task PrintReport {
+    input {
+        # nav
+        String pairId
+        File navCustom
+        File pandocTemplate
+        File md
+        File header
+        File htmlPrinter = "gs://nygc-comp-s-fd4e-resources/html_printer.sh"
+        String reportPath = "~{pairId}.v7.final.report.html"
+        
+        Int diskSize = 20
+        Int memoryGb = 20
+    }
+    
+    command {
+        set -e -o pipefail
+        
+        working=$( pwd )
+        
+        tar -zxvf \
+        ~{pandocTemplate}
+        
+        echo "RUN..."
+        bash ~{htmlPrinter} \
+        ~{md} \
+        $working/~{reportPath} \
+        ~{header} \
+        ~{navCustom} \
+        pandoc/
+    }
+    
+    output {
+        File report = "~{reportPath}"
+    }
+    
+    runtime {
+        mem: memoryGb + "G"
+        memory : memoryGb + "GB"
+        disks: "local-disk " + diskSize + " HDD"
+        docker: "gcr.io/nygc-public/pandoc@sha256:c8a87674b9f3d51d2f370fda9f9669f021072d32a90a376bcfb3c0394b578fdd"
+    }
+        
+    
+}
+
 task DraftSampleReport {
     input {
         String pairId
+        String normal
         Array[String] listOfChroms
         File chromLengths
-        Array[File] cnvTable
-        Array[File] cnvGenesTable
+        File karyotype
         
-        Array[File] svGenesTable
-        Array[File] svTable
+        File cnvTable
+        File cnvGenesTable
         
-        Array[File] detailedVcfTable
-        Array[File] summaryVcfTable
+        File svGenesTable
+        File svTable
+        File svHighConfidenceTable
+        
+        File detailedGermVcfTable
+        File detailedVcfTable
+        File detailedLongOutputTable
+        File summaryVcfTable
+        
+        File alleleCountsTxt
+        File kouramiResult
+        File mantisStatusFinal
+        
+        # signatures
+        File diff
+        File sig_input
+        File reconstructed
+        File sigs
+        
+        # nav
+        File navTemplate
+        String navCustomPath = "~{pairId}_nav_wgs_v7"
         
         String mdPath = "~{pairId}.v7.final.report.md"
         String headerPath = "~{pairId}.v7.final.report.header.txt"
@@ -270,71 +336,51 @@ task DraftSampleReport {
         --chrom-lengths ~{chromLengths} \
         --chroms ~{sep=" " listOfChroms} \
         --pair-id ~{pairId} \
-        --cnv-gene-tables ~{sep=" " cnvTable} \
-        --cnv-tables ~{sep=" " cnvGenesTable} \
-        --sv-gene-tables ~{sep=" " svGenesTable} \
-        --sv-tables ~{sep=" " svTable} \
-        --snv-gene-tables ~{sep=" " detailedVcfTable} \
-        --snv-summary-tables ~{sep=" " summaryVcfTable} \
+        --normal ~{normal} \
+        --cnv-gene-table ~{cnvGenesTable} \
+        --cnv-segs ~{cnvTable} \
+        --sv-gene-table ~{svGenesTable} \
+        --sv-table ~{svTable} \
+        --sv-table-high-confidence ~{svHighConfidenceTable} \
+        --germ-gene-table ~{detailedGermVcfTable} \
+        --snv-gene-table ~{detailedVcfTable} \
+        --snv-summary-table ~{summaryVcfTable} \
+        --baf-table ~{alleleCountsTxt} \
+        --long-output ~{detailedLongOutputTable} \
+        --kourami ~{kouramiResult} \
+        --mantis ~{mantisStatusFinal} \
+        --diff ~{diff} \
+        --tri-nucs ~{sig_input} \
+        --reconstructed ~{reconstructed} \
+        --signatures ~{sigs} \
+        --karyotype ~{karyotype}
+        
+        python \
+        /make_nav.py \
+        ~{pairId} \
+        ~{navTemplate} \
+        ~{navCustomPath}
     }
     
     output {
         File md = "~{mdPath}"
         File header = "~{headerPath}"
+        File navCustom = "~{navCustomPath}"
     }
     
     runtime {
         mem: memoryGb + "G"
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker: "gcr.io/nygc-public/somatic_reports@sha256:ba18bd0fd7ce55af26e4d255f85529a728951bab02596e0528391b2b52d05045"
+        docker: "gcr.io/nygc-comp-s-fd4e/somatic_reports@sha256:260b0b1e1a6e194cbc51b90b781e1bd25c7cade3f772d47b52894de9345b6770"
     }
 
-}
-
-task DescribeBaf {
-    input {            
-        String pipeline = "v7"
-        String pairId
-        File bedpe
-        File chromLengths
-        Array[String] listOfChroms
-        String svTablePath = "~{pairId}.~{pipeline}.baf.csv"
-        Int diskSize = 1
-        Int memoryGb = 1
-    }
-    
-    command {
-        python \
-        /prep_fusions.py \
-        --sv-bedpes ~{bedpe} \
-        --output ~{svTablePath} \
-        --chrom-lengths ~{chromLengths} \
-        --chroms ~{sep=" " listOfChroms} \
-        --pair-id ~{pairId}
-    }
-    
-    output {
-        File svTable = "~{svTablePath}"
-    }
-    
-    runtime {
-        mem: memoryGb + "G"
-        memory : memoryGb + "GB"
-        disks: "local-disk " + diskSize + " HDD"
-        docker: "gcr.io/nygc-public/somatic_reports@sha256:ba18bd0fd7ce55af26e4d255f85529a728951bab02596e0528391b2b52d05045"
-    }
-    
-    meta {
-        summaryTsvColumns : ["pair_id", "type", "coordinates", "log2", "chrom", "start", "end", "cumulative_start_pos", "cumulative_end_pos", "xs", "kind"]
-        internalOnly : "True, produces empty output for external BED files"
-    }
 }
 
 task DescribeBedPe {
     input {            
         String pipeline = "v7"
-        String name
+        String name = "AllSomatic"
         String pairId
         File bedpe
         File chromLengths
@@ -362,7 +408,7 @@ task DescribeBedPe {
         mem: memoryGb + "G"
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker: "gcr.io/nygc-public/somatic_reports@sha256:ba18bd0fd7ce55af26e4d255f85529a728951bab02596e0528391b2b52d05045"
+        docker: "gcr.io/nygc-comp-s-fd4e/somatic_reports@sha256:260b0b1e1a6e194cbc51b90b781e1bd25c7cade3f772d47b52894de9345b6770"
     }
     
     meta {
@@ -397,7 +443,7 @@ task DescribeBedPeGenes {
         mem: memoryGb + "G"
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker: "gcr.io/nygc-public/somatic_reports@sha256:ba18bd0fd7ce55af26e4d255f85529a728951bab02596e0528391b2b52d05045"
+        docker: "gcr.io/nygc-comp-s-fd4e/somatic_reports@sha256:260b0b1e1a6e194cbc51b90b781e1bd25c7cade3f772d47b52894de9345b6770"
     }
     
     meta {
@@ -413,6 +459,7 @@ task SummarizeFinalVcf {
         File vcf
         String detailedOutputTablePath = "~{pairId}.~{pipeline}.detailed.output.csv"
         String summaryOutputTablePath = "~{pairId}.~{pipeline}.counts.csv"
+        String detailedLongOutputTablePath = "~{pairId}.~{pipeline}.detailed.long.output.csv"
         
         Int diskSize = 10
         Int memoryGb = 20
@@ -424,19 +471,58 @@ task SummarizeFinalVcf {
         --pair-id ~{pairId} \
         --vcf ~{vcf} \
         --output ~{detailedOutputTablePath} \
-        --summary ~{summaryOutputTablePath}
+        --summary ~{summaryOutputTablePath} \
+        --long-output ~{detailedLongOutputTablePath}
     }
     
     output {
         File detailedVcfTable = "~{detailedOutputTablePath}"
         File summaryVcfTable = "~{summaryOutputTablePath}"
+        File detailedLongOutputTable = "~{detailedLongOutputTablePath}"
     }
     
     runtime {
         mem: memoryGb + "G"
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker: "gcr.io/nygc-public/somatic_reports@sha256:ba18bd0fd7ce55af26e4d255f85529a728951bab02596e0528391b2b52d05045"
+        docker: "gcr.io/nygc-comp-s-fd4e/somatic_reports@sha256:260b0b1e1a6e194cbc51b90b781e1bd25c7cade3f772d47b52894de9345b6770"
+    }
+    
+    meta {
+        summaryTsvColumns : ["Callset", "Confidence", "Count"]
+        Callsets : ["Old unique", "New unique", "Concordant"]
+        internalOnly : "False, produces output for external or internal VCF files"
+    }
+}
+
+task SummarizeFinalGermVcf {
+    input {
+        String sampleId
+        String pipeline = "v7"
+        File vcf
+        String detailedOutputTablePath = "~{sampleId}.~{pipeline}.detailed.output.csv"
+        
+        Int diskSize = 10
+        Int memoryGb = 20
+    }
+    
+    command {
+       python \
+        /summarize_germline_vcfs.py \
+        --sample-id ~{sampleId} \
+        --vcf ~{vcf} \
+        --output ~{detailedOutputTablePath}
+    }
+    
+    output {
+        File detailedVcfTable = "~{detailedOutputTablePath}"
+    }
+    
+    runtime {
+        mem: memoryGb + "G"
+        memory : memoryGb + "GB"
+        disks: "local-disk " + diskSize + " HDD"
+        docker: "gcr.io/nygc-comp-s-fd4e/somatic_reports@sha256:260b0b1e1a6e194cbc51b90b781e1bd25c7cade3f772d47b52894de9345b6770"
     }
     
     meta {
@@ -476,7 +562,7 @@ task DescribeBed {
         mem: memoryGb + "G"
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker: "gcr.io/nygc-public/somatic_reports@sha256:ba18bd0fd7ce55af26e4d255f85529a728951bab02596e0528391b2b52d05045"
+        docker: "gcr.io/nygc-comp-s-fd4e/somatic_reports@sha256:260b0b1e1a6e194cbc51b90b781e1bd25c7cade3f772d47b52894de9345b6770"
     }
     
     meta {
@@ -511,7 +597,7 @@ task DescribeBedGenes {
         mem: memoryGb + "G"
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker: "gcr.io/nygc-public/somatic_reports@sha256:ba18bd0fd7ce55af26e4d255f85529a728951bab02596e0528391b2b52d05045"
+        docker: "gcr.io/nygc-comp-s-fd4e/somatic_reports@sha256:260b0b1e1a6e194cbc51b90b781e1bd25c7cade3f772d47b52894de9345b6770"
     }
     
     meta {
@@ -550,7 +636,7 @@ task SummarizeHla {
         mem: memoryGb + "G"
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker: "gcr.io/nygc-public/somatic_reports@sha256:ba18bd0fd7ce55af26e4d255f85529a728951bab02596e0528391b2b52d05045"
+        docker: "gcr.io/nygc-comp-s-fd4e/somatic_reports@sha256:260b0b1e1a6e194cbc51b90b781e1bd25c7cade3f772d47b52894de9345b6770"
     }
 
     meta {
@@ -584,7 +670,7 @@ task CompareCnvGenes {
         mem: memoryGb + "G"
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker: "gcr.io/nygc-public/somatic_reports@sha256:ba18bd0fd7ce55af26e4d255f85529a728951bab02596e0528391b2b52d05045"
+        docker: "gcr.io/nygc-comp-s-fd4e/somatic_reports@sha256:260b0b1e1a6e194cbc51b90b781e1bd25c7cade3f772d47b52894de9345b6770"
     }
     
     meta {
@@ -618,7 +704,7 @@ task CompareSvGenes {
         mem: memoryGb + "G"
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker: "gcr.io/nygc-public/somatic_reports@sha256:ba18bd0fd7ce55af26e4d255f85529a728951bab02596e0528391b2b52d05045"
+        docker: "gcr.io/nygc-comp-s-fd4e/somatic_reports@sha256:260b0b1e1a6e194cbc51b90b781e1bd25c7cade3f772d47b52894de9345b6770"
     }
     
     meta {
@@ -685,7 +771,7 @@ task SummarizeFlagstat {
         mem: memoryGb + "G"
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker: "gcr.io/nygc-public/somatic_reports@sha256:ba18bd0fd7ce55af26e4d255f85529a728951bab02596e0528391b2b52d05045"
+        docker: "gcr.io/nygc-comp-s-fd4e/somatic_reports@sha256:260b0b1e1a6e194cbc51b90b781e1bd25c7cade3f772d47b52894de9345b6770"
     }
     
     meta {
@@ -721,7 +807,7 @@ task SummarizeMsi {
         mem: memoryGb + "G"
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker: "gcr.io/nygc-public/somatic_reports@sha256:ba18bd0fd7ce55af26e4d255f85529a728951bab02596e0528391b2b52d05045"
+        docker: "gcr.io/nygc-comp-s-fd4e/somatic_reports@sha256:260b0b1e1a6e194cbc51b90b781e1bd25c7cade3f772d47b52894de9345b6770"
     }
     
     meta {
@@ -764,7 +850,7 @@ task SummarizeVcf {
         mem: memoryGb + "G"
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker: "gcr.io/nygc-public/somatic_reports@sha256:ba18bd0fd7ce55af26e4d255f85529a728951bab02596e0528391b2b52d05045"
+        docker: "gcr.io/nygc-comp-s-fd4e/somatic_reports@sha256:260b0b1e1a6e194cbc51b90b781e1bd25c7cade3f772d47b52894de9345b6770"
     }
     
     meta {
@@ -830,7 +916,7 @@ task DraftComparison {
         mem: memoryGb + "G"
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker: "gcr.io/nygc-public/somatic_reports@sha256:ba18bd0fd7ce55af26e4d255f85529a728951bab02596e0528391b2b52d05045"
+        docker: "gcr.io/nygc-comp-s-fd4e/somatic_reports@sha256:260b0b1e1a6e194cbc51b90b781e1bd25c7cade3f772d47b52894de9345b6770"
     }
 
 }

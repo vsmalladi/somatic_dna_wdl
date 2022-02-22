@@ -49,6 +49,9 @@ workflow PipelineReports {
         String name = "project"
         File chromLengths
         File cosmicCensus
+        File karyotype
+        File navTemplate
+        File pandocTemplate
         Array[String] listOfChroms
         # normal order
         Array[String] normalSampleIds
@@ -59,11 +62,17 @@ workflow PipelineReports {
         # MSI
         Array[File] mantisStatusFinal
         # baf
+        Array[File] filteredHaplotypecallerAnnotatedVcf
         Array[File] alleleCountsTxt
         # Hla
         Array[File] kouramiResult
         # flagStat
         Array[File] flagStat
+        # Sigs
+        Array[File] diff
+        Array[File] sig_input
+        Array[File] reconstructed
+        Array[File] sigs
         # collectWgsMetrics
         Array[File] collectWgsMetrics
         # insertSizeMetrics
@@ -96,18 +105,32 @@ workflow PipelineReports {
                 cosmicCensus = cosmicCensus,
                 listOfChroms = listOfChroms,
                 referenceFa = referenceFa,
+                karyotype = karyotype,
+                pandocTemplate = pandocTemplate,
+                navTemplate = navTemplate,
+                normal = finalVcfPairInfo.normal,
                 pairId = finalVcfPairInfo.pairId,
                 
                 finalVcfPairInfo = finalVcfPairInfo,
-                
+                # Germline
+                filteredHaplotypecallerAnnotatedVcf = filteredHaplotypecallerAnnotatedVcf[normalGetIndex.index],
                 # BAF
                 alleleCountsTxt = alleleCountsTxt[pairGetIndex.index],
-                # HC
-                haplotypecallerAnnotatedVcf = haplotypecallerAnnotatedVcf[normalGetIndex.index],
                 # MSI
                 mantisStatusFinal = mantisStatusFinal[pairGetIndex.index],
                 # Hla
-                kouramiResult = kouramiResult[pairGetIndex.index]
+                kouramiResult = kouramiResult[pairGetIndex.index],
+                # Sigs
+                diff = diff[pairGetIndex.index],
+                sig_input = sig_input[pairGetIndex.index],
+                reconstructed = reconstructed[pairGetIndex.index],
+                sigs = sigs[pairGetIndex.index]
+        }
+        
+        call tests.FilterHighConfidence {
+            input:
+                vcf = finalVcfPairInfo.mainVcf,
+                filteredVcfPath = "~{finalVcfPairInfo.pairId}.snv.indel.high_confidence.v7.annotated.vcf",
         }
     }
     
@@ -179,8 +202,8 @@ workflow PipelineReports {
         Array[File] detailedVcfTable = SampleReport.detailedVcfTable
         Array[File] summaryVcfTables = SampleReport.summaryVcfTable
         
-        #File md = Reports.md
-        #File header = Reports.header
+        Array[File] report = SampleReport.report
+        Array[File] highConfidenceVcf = FilterHighConfidence.filteredVcf
     }
     
     meta {

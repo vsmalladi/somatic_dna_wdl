@@ -28,27 +28,36 @@ workflow SampleReport {
     input {
         String pipeline = "v7"
         String pairId
+        String normal
         File chromLengths
         File cosmicCensus
+        IndexedReference referenceFa
+        File karyotype
+        File navTemplate
+        File pandocTemplate
         Array[String] listOfChroms
+        
         # All calls
         FinalVcfPairInfo finalVcfPairInfo
         # BAF
         File alleleCountsTxt
         # HC
-        File haplotypecallerAnnotatedVcf
+        File filteredHaplotypecallerAnnotatedVcf
         # MSI
         File mantisStatusFinal
-        # baf
-        File alleleCountsTxt
         # Hla
         File kouramiResult
-        IndexedReference referenceFa
+        # Sigs
+        File diff
+        File sig_input
+        File reconstructed
+        File sigs
         
         Int bedDiskSize = ceil( size(finalVcfPairInfo.cnvAnnotatedSupplementalBed, "GB") * 2) + 5
         Int bedPeDiskSize = ceil( size(finalVcfPairInfo.svFinalBedPe, "GB") * 2) + 5
         Int vcfDiskSize = ceil( size(finalVcfPairInfo.mainVcf, "GB") * 2) + 5
-        Int bafDiskSize = ceil( size(alleleCountsTxt, "GB") * 2) +  ceil( size(haplotypecallerAnnotatedVcf, "GB")) + 5
+        Int germVcfDiskSize = ceil( size(filteredHaplotypecallerAnnotatedVcf, "GB") * 2) + 5
+        Int bafDiskSize = ceil( size(alleleCountsTxt, "GB") * 2) + 5
     }
     
     call tests.DescribeBed {
@@ -74,6 +83,13 @@ workflow SampleReport {
                 diskSize = vcfDiskSize
         }
         
+    call tests.SummarizeFinalGermVcf {
+            input:
+                sampleId = normal,
+                vcf = filteredHaplotypecallerAnnotatedVcf,
+                diskSize = germVcfDiskSize
+        }
+        
     call tests.DescribeBedPeGenes {
         input:
             pairId = finalVcfPairInfo.pairId,
@@ -84,7 +100,7 @@ workflow SampleReport {
     call tests.DescribeBedPe as highConfidenceDescribeBedPe {
         input:
             pairId = finalVcfPairInfo.pairId,
-            name = ".highConfidence",
+            name = "HighConfidence",
             bedpe = finalVcfPairInfo.svHighConfidenceFinalBedPe,
             chromLengths = chromLengths,
             listOfChroms = listOfChroms,
@@ -94,37 +110,60 @@ workflow SampleReport {
     call tests.DescribeBedPe as allSomaticDescribeBedPe {
         input:
             pairId = finalVcfPairInfo.pairId,
-            name = ".AllSomatic",
+            name = "AllSomatic",
             bedpe = finalVcfPairInfo.svFinalBedPe,
             chromLengths = chromLengths,
             listOfChroms = listOfChroms,
             diskSize = bedPeDiskSize
     }
     
-    #call tests.DescribeBaf {
-    #    input:
-    #        pairId = finalVcfPairInfo.pairId,
-    #        vcf = haplotypecallerAnnotatedVcf,
-    #        baf = alleleCountsTxt,
-    #        chromLengths = chromLengths,
-    #        listOfChroms = listOfChroms
-    #}
+    call tests.DraftSampleReport {
+        input:
+            listOfChroms = listOfChroms,
+            karyotype = karyotype,
+            chromLengths = chromLengths,
+            
+            pairId = finalVcfPairInfo.pairId,
+            normal = finalVcfPairInfo.normal,
     
-    #call tests.DraftSampleReport {
-    #    input:
-    #        listOfChroms = listOfChroms,
-    #        pairId = finalVcfPairInfo.pairId,
+            cnvTable = DescribeBed.cnvTable,
+            cnvGenesTable = DescribeBedGenes.cnvGenesTable,
     
-    #        cnvTable = DescribeBed.cnvTable,
-    #        cnvGenesTable = DescribeBedGenes.cnvGenesTable,
+            svGenesTable = DescribeBedPeGenes.svGenesTable,
+            svTable = allSomaticDescribeBedPe.svTable,
+            svHighConfidenceTable = highConfidenceDescribeBedPe.svTable,
     
-    #        svGenesTable = DescribeBedPeGenes.svGenesTable
-    #        svTable = DescribeBedPeGenes.svGenesTable
+            detailedGermVcfTable = SummarizeFinalGermVcf.detailedVcfTable,
+            detailedVcfTable = SummarizeFinalVcf.detailedVcfTable,
+            summaryVcfTable = SummarizeFinalVcf.summaryVcfTable,
+            detailedLongOutputTable = SummarizeFinalVcf.detailedLongOutputTable,
+            
+            alleleCountsTxt = alleleCountsTxt,
+            
+            kouramiResult = kouramiResult,
+            
+            mantisStatusFinal = mantisStatusFinal,
+            
+            diff = diff,
+            sig_input = sig_input,
+            reconstructed = reconstructed,
+            sigs = sigs,
+            
+            navTemplate=navTemplate,
+            
+            diskSize = 10
+    }
     
-    #        detailedVcfTable = SummarizeFinalVcf.detailedVcfTable,
-    #        summaryVcfTable = SummarizeFinalVcf.summaryVcfTable,
-    #        diskSize = 10
-    #}
+    call tests.PrintReport {
+        input:
+            pairId = finalVcfPairInfo.pairId,
+            md = DraftSampleReport.md,
+            header = DraftSampleReport.header,
+            navCustom = DraftSampleReport.navCustom,
+            pandocTemplate = pandocTemplate,
+            
+            diskSize = 20
+    }
     
     
     
@@ -136,11 +175,11 @@ workflow SampleReport {
         File highConfidenceSvTable = highConfidenceDescribeBedPe.svTable
         File allSomaticSvTable = allSomaticDescribeBedPe.svTable
         
+        File detailedGermVcfTable = SummarizeFinalGermVcf.detailedVcfTable
         File detailedVcfTable = SummarizeFinalVcf.detailedVcfTable
         File summaryVcfTable = SummarizeFinalVcf.summaryVcfTable
         
-        #File md = DraftSampleReport.md
-        #File header = DraftSampleReport.header
+        File report = PrintReport.report
 
     }
 }
