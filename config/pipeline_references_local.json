@@ -1,4 +1,14 @@
 {
+    "navTemplate": {
+        "type": "File",
+        "description": "v7 report template",
+        "object" : "/gpfs/commons/groups/nygcfaculty/kancero/data/v7/nav_wgs_v7"
+    },
+    "pandocTemplate": {
+        "type": "File",
+        "description": "v7 report template",
+        "object" : "/gpfs/commons/groups/nygcfaculty/kancero/data/v7/pandoc.tar.gz"
+    },
     "lancetJsonLog" : {
         "type" : "File",
         "description" : "caller command",

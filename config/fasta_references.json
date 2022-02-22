@@ -187,7 +187,11 @@
             "description" : "",
             "object" : "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/ensembl_genes_unique_sorted.final.v93.chr.sorted.bed"
         },
-
+        "karyotype" :{
+            "type": "File",
+            "description" : "Human karyotype bands and centromeres",
+            "object" : "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/karyotype.human.hg38.chr.txt"
+        },
         "cosmicSigs" :{
             "type": "File",
             "description" : "Mutational Signatures (v3.2 - March 2021) from https://cancer.sanger.ac.uk/signatures/downloads/",
@@ -300,9 +304,9 @@
             "type": "IndexedReference",
             "description": "ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/GRCh38_reference_genome/README.20150309.GRCh38_full_analysis_set_plus_decoy_hla",
             "object": {
-                "fasta": "gs://nygc-comp-s-82ed-resources/GRCh38_1000genomes/GRCh38_full_analysis_set_plus_decoy_hla.fa",
-                "dict": "gs://nygc-comp-s-82ed-resources/GRCh38_1000genomes/GRCh38_full_analysis_set_plus_decoy_hla.dict",
-                "index": "gs://nygc-comp-s-82ed-resources/GRCh38_1000genomes/GRCh38_full_analysis_set_plus_decoy_hla.fa.fai"
+                "fasta": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/GRCh38_full_analysis_set_plus_decoy_hla.fa",
+                "dict": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/GRCh38_full_analysis_set_plus_decoy_hla.dict",
+                "index": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/GRCh38_full_analysis_set_plus_decoy_hla.fa.fai"
             }
         },
         "uniqCoords": {
@@ -507,15 +511,15 @@
             "type": "BwaReference",
             "description": "ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/GRCh38_reference_genome/README.20150309.GRCh38_full_analysis_set_plus_decoy_hla",
             "object": {
-                "fasta": "gs://nygc-comp-s-82ed-resources/GRCh38_1000genomes/GRCh38_full_analysis_set_plus_decoy_hla.fa",
-                "sa": "gs://nygc-comp-s-82ed-resources/GRCh38_1000genomes/GRCh38_full_analysis_set_plus_decoy_hla.fa.sa",
-                "pac": "gs://nygc-comp-s-82ed-resources/GRCh38_1000genomes/GRCh38_full_analysis_set_plus_decoy_hla.fa.pac",
-                "bwt": "gs://nygc-comp-s-82ed-resources/GRCh38_1000genomes/GRCh38_full_analysis_set_plus_decoy_hla.fa.bwt",
-                "ann": "gs://nygc-comp-s-82ed-resources/GRCh38_1000genomes/GRCh38_full_analysis_set_plus_decoy_hla.fa.ann",
-                "alt": "gs://nygc-comp-s-82ed-resources/GRCh38_1000genomes/GRCh38_full_analysis_set_plus_decoy_hla.fa.alt",
-                "amb": "gs://nygc-comp-s-82ed-resources/GRCh38_1000genomes/GRCh38_full_analysis_set_plus_decoy_hla.fa.amb",
-                "dict": "gs://nygc-comp-s-82ed-resources/GRCh38_1000genomes/GRCh38_full_analysis_set_plus_decoy_hla.dict",
-                "index": "gs://nygc-comp-s-82ed-resources/GRCh38_1000genomes/GRCh38_full_analysis_set_plus_decoy_hla.fa.fai"
+                "fasta": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/GRCh38_full_analysis_set_plus_decoy_hla.fa",
+                "sa": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/GRCh38_full_analysis_set_plus_decoy_hla.fa.sa",
+                "pac": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/GRCh38_full_analysis_set_plus_decoy_hla.fa.pac",
+                "bwt": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/GRCh38_full_analysis_set_plus_decoy_hla.fa.bwt",
+                "ann": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/GRCh38_full_analysis_set_plus_decoy_hla.fa.ann",
+                "alt": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/GRCh38_full_analysis_set_plus_decoy_hla.fa.alt",
+                "amb": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/GRCh38_full_analysis_set_plus_decoy_hla.fa.amb",
+                "dict": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/GRCh38_full_analysis_set_plus_decoy_hla.dict",
+                "index": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/GRCh38_full_analysis_set_plus_decoy_hla.fa.fai"
 
             }
         },
@@ -935,7 +939,11 @@
             "description" : "",
             "object" : "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/ensembl_genes_unique_sorted.final.v93.chr.sorted.bed"
         },
-
+        "karyotype" :{
+            "type": "File",
+            "description" : "Human karyotype bands and centromeres",
+            "object" : "gs://nygc-comp-s-fd4e-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/karyotype.human.hg38.chr.txt"
+        },
         "cosmicSigs" :{
             "type": "File",
             "description" : "Mutational Signatures (v3.2 - March 2021) from https://cancer.sanger.ac.uk/signatures/downloads/",

@@ -1,4 +1,14 @@
 {
+    "navTemplate": {
+        "type": "File",
+        "description": "v7 report template",
+        "object" : "gs://nygc-comp-s-fd4e-resources/nav_wgs_v7"
+    },
+    "pandocTemplate": {
+        "type": "File",
+        "description": "v7 report template",
+        "object" : "gs://nygc-comp-s-fd4e-resources/pandoc.tar.gz"
+    },
     "lancetJsonLog" : {
         "type" : "File",
         "description" : "caller command",

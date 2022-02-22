@@ -187,7 +187,11 @@
             "description" : "",
             "object" : "/gpfs/commons/groups/nygcfaculty/kancero/data/v7/GRCh38_full_analysis_set_plus_decoy_hla/internal/ensembl_genes_unique_sorted.final.v93.chr.sorted.bed"
         },
-
+        "karyotype" :{
+            "type": "File",
+            "description" : "Human karyotype bands and centromeres",
+            "object" : "/gpfs/commons/groups/nygcfaculty/kancero/data/karyotype.human.hg38.chr.txt"
+        },
         "cosmicSigs" :{
             "type": "File",
             "description" : "Mutational Signatures (v3.2 - March 2021) from https://cancer.sanger.ac.uk/signatures/downloads/",
@@ -935,7 +939,11 @@
             "description" : "",
             "object" : "/gpfs/commons/groups/nygcfaculty/kancero/data/v7/GRCh38_full_analysis_set_plus_decoy_hla/internal/ensembl_genes_unique_sorted.final.v93.chr.sorted.bed"
         },
-
+        "karyotype" :{
+            "type": "File",
+            "description" : "Human karyotype bands and centromeres",
+            "object" : "/gpfs/commons/groups/nygcfaculty/kancero/data/karyotype.human.hg38.chr.txt"
+        },
         "cosmicSigs" :{
             "type": "File",
             "description" : "Mutational Signatures (v3.2 - March 2021) from https://cancer.sanger.ac.uk/signatures/downloads/",
