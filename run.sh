@@ -9,7 +9,7 @@
 #               [--samples-file SAMPLES_FILE]
 #               [--labels-file LABELS_FILE]
 #               [--interval-list {SureSelect_V6plusCOSMIC.target.GRCh38_full_analysis_set_plus_decoy_hla}]
-#               [--custom-inputs [CUSTOM_INPUTS [CUSTOM_INPUTS ...]]]
+#               [--custom-inputs CUSTOM_INPUTS]
 #               [--skip-validate]
 #               [--dry-run]
 #               [--local]
@@ -44,7 +44,7 @@ help_top="run.sh [-h] --options OPTIONS --wdl-file WDL_FILE
                [--samples-file SAMPLES_FILE]
                [--labels-file LABELS_FILE]
                [--interval-list {SureSelect_V6plusCOSMIC.target.GRCh38_full_analysis_set_plus_decoy_hla}]
-               [--custom-inputs [CUSTOM_INPUTS [CUSTOM_INPUTS ...]]]
+               [--custom-inputs CUSTOM_INPUTS]
                [--skip-validate]
                [--dry-run]
                [--local]
@@ -77,14 +77,14 @@ help_long="-h, --help            show this help message and exit
                         default (the SureSelect interval list for your genome)
                         will be used (only needed for future Exome workflows)
   --custom-inputs [CUSTOM_INPUTS]
-                        Optional JSON file with custom input variables. The
-                        name of the variable in the input file must match the
-                        name of the variable in the WDL workflow. It is not
-                        required that the input specify the workflow. By
-                        default the input will be added to the top-level
-                        workflow. Any variable defined in in this JSON will
-                        overwrite any reference variable in the the config 
-                        directory or workflow default.
+                        Optional comma separated list of JSON files with custom 
+                        input variables. The name of the variable in the input 
+                        file must match the name of the variable in the 
+                        WDL workflow. It is not required that the input 
+                        specify the workflow. By default the input will 
+                        be added to the top-level workflow. Any variable 
+                        defined in in this JSON will overwrite any reference 
+                        variable in the the config directory or workflow default.
   --labels-file         Labels json file for cromwell (not required)
   --skip-validate       Skip the step where input files are validated.
                         Otherwise all gs//: URIs will be checked to see that a
