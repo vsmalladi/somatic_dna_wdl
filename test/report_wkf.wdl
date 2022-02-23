@@ -29,6 +29,7 @@ workflow SampleReport {
         String pipeline = "v7"
         String pairId
         String normal
+        String docLink
         File chromLengths
         File cosmicCensus
         IndexedReference referenceFa
@@ -122,6 +123,7 @@ workflow SampleReport {
             listOfChroms = listOfChroms,
             karyotype = karyotype,
             chromLengths = chromLengths,
+            docLink = docLink,
             
             pairId = finalVcfPairInfo.pairId,
             normal = finalVcfPairInfo.normal,

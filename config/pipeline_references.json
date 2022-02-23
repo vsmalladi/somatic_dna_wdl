@@ -1,4 +1,9 @@
 {
+    "docLink": {
+        "type": "String",
+        "description": "v7 report current Documentation",
+        "object" : "https://bitbucket.nygenome.org/projects/COMPBIO/repos/wdl_port/browse/archive/README_pipeline.7.3.2.md"
+    },
     "navTemplate": {
         "type": "File",
         "description": "v7 report template",

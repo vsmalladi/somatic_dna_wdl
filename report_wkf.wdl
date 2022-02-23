@@ -50,6 +50,7 @@ workflow PipelineReports {
         File chromLengths
         File cosmicCensus
         File karyotype
+        String docLink
         File navTemplate
         File pandocTemplate
         Array[String] listOfChroms
@@ -104,6 +105,7 @@ workflow PipelineReports {
                 chromLengths = chromLengths,
                 cosmicCensus = cosmicCensus,
                 listOfChroms = listOfChroms,
+                docLink = docLink,
                 referenceFa = referenceFa,
                 karyotype = karyotype,
                 pandocTemplate = pandocTemplate,
