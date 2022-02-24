@@ -365,7 +365,7 @@ Class II alleles (HLA-DP, HLA-DQ, HLA-DR).
 
 <a name="mutational_signature_analysis"></a>
 
-We run deconstructSigs (v1.8.0) ([28](#28)) on the High Confidence somatic SNV callset within
+We run deconstructSigs (v1.9.0) ([28](#28)) on the High Confidence somatic SNV callset within
 autosomes to estimate contribution of known COSMIC mutational signatures (v3)
 in the tumor sample.
 
