@@ -178,7 +178,7 @@ contamination (e.g. saliva sample bacterial content) or from too aggressive alig
 BWA-MEM’s 19bp minimum seed length. These spurious alignments result in pileups in certain locations of the genome
 and can lead to erroneous variant calling. 
 
-GATK (v4.1.0) ([3](#3)) FixMateInformation is run to verify and fix mate-pair information, followed by Novosort 
+GATK (v4.1.8.0) ([3](#3)) FixMateInformation is run to verify and fix mate-pair information, followed by Novosort 
 (v1.03.01) markDuplicates to merge individual lane BAM files into a single BAM file per sample. Duplicates are 
 then sorted and marked, and GATK’s base quality score recalibration (BQSR) is performed. The final result of the 
 pre-processing pipeline is a coordinate sorted BAM file for each sample.
