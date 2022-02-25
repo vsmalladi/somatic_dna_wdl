@@ -703,6 +703,8 @@ workflow SomaticDNA {
         concordanceAll: Conpair.concordanceAll,
         concordanceHomoz: Conpair.concordanceHomoz,
         contamination: Conpair.contamination,
+        tumorPileup: Conpair.tumorPileup,
+        normalPileup: Conpair.normalPileup,
 
         # Germline
         kouramiResult: Kourami.result,

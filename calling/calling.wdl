@@ -35,10 +35,12 @@ task Gatk4MergeSortCompressVcf {
         IndexedReference referenceFa
     }
 
+    Int jvmHeap = memoryGb * 750  # Heap size in Megabytes. mem is in GB. (75% of mem)
+
     command {
         gatk \
         SortVcf \
-        --java-options "-XX:ParallelGCThreads=4" \
+        --java-options "-Xmx~{jvmHeap}m -XX:ParallelGCThreads=4" \
         -SD ~{referenceFa.dict} \
         -I ~{sep=" -I " tempChromVcfs} \
         -O ~{sortedVcfPath}
@@ -84,10 +86,11 @@ task Gatk4MergeSortVcf {
         IndexedReference referenceFa
     }
 
+    Int jvmHeap = memoryGb * 750  # Heap size in Megabytes. mem is in GB. (75% of mem)
     command {
         gatk \
         SortVcf \
-        --java-options "-XX:ParallelGCThreads=4" \
+        --java-options "-Xmx~{jvmHeap}m -XX:ParallelGCThreads=4" \
         -SD ~{referenceFa.dict} \
         -I ~{sep=" -I " tempChromVcfs} \
         -O ~{sortedVcfPath}
@@ -252,10 +255,11 @@ task FilterNonpass {
         File vcf
     }
 
+    Int jvmHeap = memoryGb * 750  # Heap size in Megabytes. mem is in GB. (75% of mem)
     command {
         gatk \
         SelectVariants \
-        --java-options "-XX:ParallelGCThreads=4" \
+        --java-options "-Xmx~{jvmHeap}m -XX:ParallelGCThreads=4" \
         -R ~{referenceFa.fasta} \
         -V ~{vcf} \
         -O ~{outVcfPath} \
@@ -426,10 +430,12 @@ task Mutect2Wgs {
         Bam tumorFinalBam
     }
 
+    Int jvmHeap = memoryGb * 750  # Heap size in Megabytes. mem is in GB. (75% of mem)
+
     command {
         gatk \
         Mutect2 \
-        --java-options "-XX:ParallelGCThreads=4" \
+        --java-options "-Xmx~{jvmHeap}m -XX:ParallelGCThreads=4" \
         --reference ~{referenceFa.fasta} \
         -L ~{chrom} \
         -I ~{tumorFinalBam.bam} \
@@ -446,7 +452,7 @@ task Mutect2Wgs {
     runtime {
         memory : memoryGb + "GB"
         docker : "us.gcr.io/broad-gatk/gatk:4.0.5.1"
-        disks: "local-disk " + diskSize + " HDD"
+        disks: "local-disk " + diskSize + " LOCAL"
     }
 }
 
@@ -461,10 +467,11 @@ task Mutect2Filter {
         File mutect2ChromRawVcf
     }
 
+    Int jvmHeap = memoryGb * 750  # Heap size in Megabytes. mem is in GB. (75% of mem)
     command {
         gatk \
         FilterMutectCalls \
-        --java-options "-XX:ParallelGCThreads=4" \
+        --java-options "-Xmx~{jvmHeap}m -XX:ParallelGCThreads=4" \
         --reference ~{referenceFa.fasta} \
         -V ~{mutect2ChromRawVcf} \
         -O ~{mutect2ChromVcfPath}

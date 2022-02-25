@@ -80,6 +80,8 @@ workflow Conpair {
     }
 
     output {
+        File tumorPileup = tumorConpairPileup.pileupsConpair
+        File normalPileup = normalConpairPileup.pileupsConpair
         File concordanceAll = VerifyConcordanceAll.concordanceAll
         File concordanceHomoz = VerifyConcordanceHomoz.concordanceHomoz
         File contamination = Contamination.contamination
