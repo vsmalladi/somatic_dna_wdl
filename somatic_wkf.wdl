@@ -674,23 +674,15 @@ workflow SomaticDNA {
 
         }
 
-
-
-
       }
     }
 
-    call labelQc.QcStatusArrayLabel {
-          input:
-              bypassQcCheck = bypassQcCheck,
-              allQcPass = SomaticQcCheck
-    }
 
     FinalWorkflowOutput workflowOutput = object {
         # alignment and calling results (calling results may not exist if qc failed)
         # SNV INDELs CNV SV and BAM output
 
-        Array[FinalPairInfo?] finalPairInfo = finalPairInfos
+        finalPairInfo:  finalPairInfos,
 
         # MSI
         mantisWxsKmerCountsFinal: Msi.mantisWxsKmerCountsFinal,

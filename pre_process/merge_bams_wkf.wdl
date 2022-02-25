@@ -57,10 +57,9 @@ workflow MergeBams {
                 # novosort uses a lot of memory and a lot of disk.
                 diskSize = ceil((SumFloats.total_size * 3))
         }
-
+    }
 
     Bam mergedDedupBam = select_first([novosort.mergedDedupBam, novosortExternal.mergedDedupBam])
-
 
     # This task runs in parallel with Bqsr38. We are missing coverage check
     # tasks. The idea is that we check coverage and if it's lower than expected
@@ -119,7 +118,7 @@ workflow MergeBams {
         File qualityByCycleMetricsPreBqsr = MultipleMetricsPreBqsr.qualityByCycleMetricsPreBqsr
         File qualityByCyclePdfPreBqsr = MultipleMetricsPreBqsr.qualityByCyclePdfPreBqsr
         File qualityDistributionMetricsPreBqsr = MultipleMetricsPreBqsr.qualityDistributionMetricsPreBqsr
-        File dedupLog = novosort.dedupLog
+        File dedupLog = select_first([novosort.dedupLog, novosortExternal.dedupLog])
   }
 }
 

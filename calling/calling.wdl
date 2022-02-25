@@ -1414,34 +1414,6 @@ task FilterNonChroms {
     }
 }
 
-task FilterNonChroms {
-    input {
-        Int diskSize
-        Int memoryGb
-        File gridssUnfilteredVcf
-        String pairName
-        String gridssUnfilteredVcfChromsPath = "~{pairName}.sv.gridss.v2.10.2.unfiltered.chroms.vcf"
-        Array[String]+ listOfChroms
-    }
-
-    command {
-        python \
-        /vcf_filter.py \
-        --vcf-file ~{gridssUnfilteredVcf} \
-        --output ~{gridssUnfilteredVcfChromsPath} \
-        --chroms ~{sep=" " listOfChroms}
-    }
-
-    output {
-        File gridssUnfilteredVcfChroms = "~{gridssUnfilteredVcfChromsPath}"
-    }
-
-    runtime {
-        disks: "local-disk " + diskSize + " HDD"
-        memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.2.0"
-    }
-}
 
 task GridssFilter {
     input {

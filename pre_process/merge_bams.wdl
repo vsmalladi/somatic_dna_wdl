@@ -8,6 +8,8 @@ task NovosortMarkDupExternal {
        Array[File]+ laneBams
        String sampleId
        String mergedDedupBamPath = "~{sampleId}.merged_dedup.bam"
+       String logDir = "."
+       String dedupLogPath = "~{logDir}/~{sampleId}.novosort_dedup.log"
        # resources
        Int memoryGb = 20
        # without a license in the docker image novosort should run with one thread
@@ -30,7 +32,7 @@ task NovosortMarkDupExternal {
             bam : mergedDedupBamPath,
             bamIndex : mergedDedupBamPath + ".bai"
         }
-        File dedupLog
+        File dedupLog = dedupLogPath
     }
 
     runtime {

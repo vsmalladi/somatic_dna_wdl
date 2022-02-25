@@ -153,8 +153,6 @@ workflow Gridss {
     }
 
 
-
-
     call calling.FilterNonChroms {
         input:
             diskSize = filterDiskSize,
