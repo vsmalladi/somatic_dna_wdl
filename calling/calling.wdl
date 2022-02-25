@@ -247,7 +247,7 @@ task FilterNonpass {
         Int memoryGb = 8
         Int diskSize
         String pairName
-        String outVcfPath = "~{pairName}.manta.v1.4.0.filtered.unorder.vcf"
+        String outVcfPath = "~{pairName}.manta.filtered.unorder.vcf"
         IndexedReference referenceFa
         File vcf
     }
@@ -335,7 +335,7 @@ task LancetWGSRegional {
         Int memoryGb
         String pairName
         String chrom
-        String lancetChromVcfPath = "~{pairName}_~{chrom}.lancet.v1.0.7.vcf"
+        String lancetChromVcfPath = "~{pairName}_~{chrom}.lancet.vcf"
         IndexedReference referenceFa
         File chromBed
         Bam normalFinalBam
@@ -377,7 +377,7 @@ task LancetExome {
         Int memoryGb
         String pairName
         String chrom
-        String lancetChromVcfPath = "~{pairName}_~{chrom}.lancet.v1.0.7.vcf"
+        String lancetChromVcfPath = "~{pairName}_~{chrom}.lancet.vcf"
         IndexedReference referenceFa
         File chromBed
         Bam normalFinalBam
@@ -420,7 +420,7 @@ task Mutect2Wgs {
         String tumor
         String normal
         String pairName
-        String mutect2ChromRawVcfPath = "~{pairName}_~{chrom}.mutect2.v4.0.5.1.raw.vcf"
+        String mutect2ChromRawVcfPath = "~{pairName}_~{chrom}.mutect2.raw.vcf"
         IndexedReference referenceFa
         Bam normalFinalBam
         Bam tumorFinalBam
@@ -456,7 +456,7 @@ task Mutect2Filter {
         Int diskSize = 5
         String pairName
         String chrom
-        String mutect2ChromVcfPath = "~{pairName}_~{chrom}.mutect2.v4.0.5.1.vcf"
+        String mutect2ChromVcfPath = "~{pairName}_~{chrom}.mutect2.vcf"
         IndexedReference referenceFa
         File mutect2ChromRawVcf
     }
@@ -614,8 +614,8 @@ task Bicseq2Wgs {
     input {
         Int memoryGb
         String pairName
-        String bicseq2PngPath = "~{pairName}.bicseq2.v0.2.6.png"
-        String bicseq2Path = "~{pairName}.bicseq2.v0.2.6.txt"
+        String bicseq2PngPath = "~{pairName}.bicseq2.png"
+        String bicseq2Path = "~{pairName}.bicseq2.txt"
         Array[File] tempTumorNorms
         Array[File] tempNormalNorms
         File bicseq2SegConfigFile
@@ -645,8 +645,8 @@ task Bicseq2Wgs {
     }
 
     output {
-        File bicseq2Png = "~{pairName}.bicseq2.v0.2.6.png"
-        File bicseq2 = "~{pairName}.bicseq2.v0.2.6.txt"
+        File bicseq2Png = "~{pairName}.bicseq2.png"
+        File bicseq2 = "~{pairName}.bicseq2.txt"
     }
 
     runtime {
@@ -882,7 +882,7 @@ task GridssCalling {
         Int diskSize = 700
         String pairName
         String gridssassemblyBamPath = "~{pairName}.gridssassembly.bam"
-        String gridssUnfilteredVcfPath = "~{pairName}.sv.gridss.v2.10.2.unfiltered.vcf"
+        String gridssUnfilteredVcfPath = "~{pairName}.sv.gridss.unfiltered.vcf"
         BwaReference bwaReference
         Array[File] gridssAdditionalReference
         Array[File] downsampled
@@ -957,7 +957,7 @@ task GridssCalling {
     }
 
     output {
-        File gridssUnfilteredVcf = "~{pairName}.sv.gridss.v2.10.2.unfiltered.vcf"
+        File gridssUnfilteredVcf = "~{pairName}.sv.gridss.unfiltered.vcf"
     }
 
     runtime {
@@ -974,7 +974,7 @@ task FilterNonChroms {
         Int memoryGb
         File gridssUnfilteredVcf
         String pairName
-        String gridssUnfilteredVcfChromsPath = "~{pairName}.sv.gridss.v2.10.2.unfiltered.chroms.vcf"
+        String gridssUnfilteredVcfChromsPath = "~{pairName}.sv.gridss.unfiltered.chroms.vcf"
         Array[String]+ listOfChroms
     }
 
@@ -1005,8 +1005,8 @@ task GridssFilter {
         String bsGenome
         String pairName
         File ponTarGz
-        String gridssVcfPath = "~{pairName}.sv.gridss.v2.10.2.vcf"
-        String gridssVcfPathOut = "~{pairName}.sv.gridss.v2.10.2.vcf.bgz"
+        String gridssVcfPath = "~{pairName}.sv.gridss.vcf"
+        String gridssVcfPathOut = "~{pairName}.sv.gridss.vcf.bgz"
         String tumourordinal = 2
         File gridssUnfilteredVcf
     }

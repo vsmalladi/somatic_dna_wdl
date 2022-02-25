@@ -571,7 +571,7 @@ task VerifyConcordanceAll {
         File pileupsNormalConpair
         File markerTxtFile
         String pairName
-        String concordanceAllPath = "~{pairName}.concordance.all.conpair-0.1.txt"
+        String concordanceAllPath = "~{pairName}.concordance.all.conpair.txt"
     }
 
     command {
@@ -604,7 +604,7 @@ task VerifyConcordanceHomoz {
         File pileupsNormalConpair
         File markerTxtFile
         String pairName
-        String concordanceHomozPath = "~{pairName}.concordance.homoz.conpair-0.1.txt"
+        String concordanceHomozPath = "~{pairName}.concordance.homoz.conpair.txt"
     }
 
     command {
@@ -639,7 +639,7 @@ task Contamination {
         File pileupsNormalConpair
         File markerTxtFile
         String pairName
-        String contaminationPath = "~{pairName}.contamination.conpair-0.1.txt"
+        String contaminationPath = "~{pairName}.contamination.conpair.txt"
     }
 
     command {
