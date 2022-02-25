@@ -53,7 +53,7 @@ workflow Baf {
         call tests.ConcateTables {
             input:
                 tables = CalcBaf.bafTxt,
-                outputTablePath = "~{pairName}.haplotypecaller.gatk.v4.1.8.0.alleles.txt"
+                outputTablePath = "~{pairName}.haplotypecaller.gatk.baf.txt"
         }
     }
     

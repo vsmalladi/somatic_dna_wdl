@@ -10,7 +10,7 @@ workflow GermlineAnnotate {
         String normal
         String sampleId = "~{normal}"
         IndexedVcf unannotatedVcf
-        String haplotypecallerAnnotatedVcfPath = "~{normal}.haplotypecaller.gatk.v4.1.8.0.annotated.vcf"
+        String haplotypecallerAnnotatedVcfPath = "~{normal}.haplotypecaller.gatk.annotated.vcf"
         Boolean production = true
 
         Array[String]+ listOfChroms

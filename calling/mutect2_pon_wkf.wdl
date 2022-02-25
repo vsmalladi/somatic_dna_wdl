@@ -61,7 +61,7 @@ workflow Mutect2Pon {
     # filtered
     call calling.Gatk4MergeSortVcf as filteredGatk4MergeSortVcf {
         input:
-            sortedVcfPath = "~{tumor}.mutect2.v4.0.5.1.sorted.vcf",
+            sortedVcfPath = "~{tumor}.mutect2.sorted.vcf",
             tempChromVcfs = Mutect2Filter.mutect2ChromVcf,
             referenceFa = referenceFa,
             memoryGb = 8,

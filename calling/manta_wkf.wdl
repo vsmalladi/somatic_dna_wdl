@@ -16,8 +16,8 @@ workflow Manta {
         Bam tumorFinalBam
         # reorder columns
         String pairName
-        String mantaPath = "~{pairName}.manta.v1.4.0.vcf"
-        String filteredMantafPath = "~{pairName}.manta.v1.4.0.filtered.vcf"
+        String mantaPath = "~{pairName}.manta.vcf"
+        String filteredMantafPath = "~{pairName}.manta.filtered.vcf"
         # resources
         Int diskSize = ceil( size(tumorFinalBam.bam, "GB") + size(normalFinalBam.bam, "GB")) + 20
         Int memoryGb = 64

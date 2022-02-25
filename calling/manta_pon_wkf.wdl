@@ -13,8 +13,8 @@ workflow MantaPon {
         IndexedTable callRegions
         Bam tumorFinalBam
         # reorder columns
-        String mantaPath = "~{tumor}.manta.v1.4.0.vcf"
-        String filteredMantafPath = "~{tumor}.manta.v1.4.0.filtered.vcf"
+        String mantaPath = "~{tumor}.manta.vcf"
+        String filteredMantafPath = "~{tumor}.manta.filtered.vcf"
         # resources
         Int diskSize = ceil( size(tumorFinalBam.bam, "GB")) + 20
         Int memoryGb = 64
@@ -51,7 +51,7 @@ workflow MantaPon {
             pairName = tumor,
             vcf = MantaWgsPon.tumorSV,
             memoryGb = 8,
-            outVcfPath = "~{tumor}.manta.v1.4.0.filtered.vcf",
+            outVcfPath = "~{tumor}.manta.filtered.vcf",
             threads = 4,
             diskSize = 10
 

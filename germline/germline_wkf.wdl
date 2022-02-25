@@ -103,7 +103,7 @@ workflow Germline {
 
     call calling.Gatk4MergeSortVcf as genotypedFilteredMergeSortVcf {
         input:
-            sortedVcfPath = "~{normal}.haplotypecaller.gatk.v4.1.8.0.filtered.genotypedGVCFs.vcf",
+            sortedVcfPath = "~{normal}.haplotypecaller.gatk.filtered.genotypedGVCFs.vcf",
             tempChromVcfs = haplotypecallerFilteredGenoVcfs,
             referenceFa = referenceFa,
             memoryGb = 16,

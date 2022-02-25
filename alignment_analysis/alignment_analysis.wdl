@@ -416,7 +416,7 @@ task Kourami {
     }
 
     output {
-        File result = "~{sampleId}.result"
+        File result = "~{sampleId}.kourami.result"
     }
 
     runtime {
