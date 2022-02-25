@@ -31,9 +31,9 @@ task BedtoolsIntersect {
 task MantisExome {
     input {
         String pairName
-        String mantisExomeTxtPath = "~{pairName}.mantis.v1.0.4.WGS-targeted.txt"
-        String mantisWxsKmerCountsPath = "~{pairName}.mantis.v1.0.4.WGS-targeted.kmer_counts.txt"
-
+        String mantisExomeTxtPath = "~{pairName}.mantis.WGS-targeted.txt"
+        String mantisWxsKmerCountsPath = "~{pairName}.mantis.WGS-targeted.kmer_counts.txt"
+        
         Bam tumorFinalBam
         Bam normalFinalBam
         String tumorFinalBamPath = basename(tumorFinalBam.bam)
@@ -97,8 +97,8 @@ task MantisExome {
 
     output {
         File mantisWxsKmerCountsFinal = "~{mantisWxsKmerCountsPath}"
-        File mantisWxsKmerCountsFiltered = "~{pairName}.mantis.v1.0.4.WGS-targeted.kmer_counts_filtered.txt"
-        File mantisWxsStatus = "~{pairName}.mantis.v1.0.4.WGS-targeted.txt.status"
+        File mantisWxsKmerCountsFiltered = "~{pairName}.mantis.WGS-targeted.kmer_counts_filtered.txt"
+        File mantisWxsStatus = "~{pairName}.mantis.WGS-targeted.txt.status"
         File mantisExomeTxt = "~{mantisExomeTxtPath}"
     }
 
@@ -113,7 +113,7 @@ task MantisExome {
 task MantisRethreshold {
     input {
         String pairName
-        String mantisStatusFinalPath = "~{pairName}.mantis.v1.0.4.WGS-targeted.status.final.tsv"
+        String mantisStatusFinalPath = "~{pairName}.mantis.WGS-targeted.status.final.tsv"
         String normal
         File mantisWxsStatus
     }
@@ -405,7 +405,7 @@ task Kourami {
     }
 
     output {
-        File result = "~{sampleId}.result"
+        File result = "~{sampleId}.kourami.result"
     }
 
     runtime {

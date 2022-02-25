@@ -5,7 +5,7 @@ import "../wdl_structs.wdl"
 task FilterForHetSnps {
     input {
         String sampleId
-        String hetVcfPath = "~{sampleId}.haplotypecaller.gatk.v4.1.8.0.het.vcf"
+        String hetVcfPath = "~{sampleId}.haplotypecaller.gatk.het.vcf"
         String sellectionString = "'vc.getGenotype(\"~{sampleId}\").isHet()'"
         IndexedReference referenceFa
         # require file!
@@ -47,7 +47,7 @@ task FilterForHetSnps {
 task FilterBaf {
     input {
         String sampleId
-        String knownHetVcfPath = "~{sampleId}.haplotypecaller.gatk.v4.1.8.0.known.het.vcf"
+        String knownHetVcfPath = "~{sampleId}.haplotypecaller.gatk.known.het.vcf"
         File hetVcf
         Int memoryGb = 4
         Int diskSize = (ceil( size(hetVcf, "GB") )  * 2 )
@@ -74,7 +74,7 @@ task FilterBaf {
 task AlleleCounts {
     input {
         String pairName
-        String alleleCountsChromTxtPath = "~{pairName}.~{chrom}.haplotypecaller.gatk.v4.1.8.0.alleles.txt"
+        String alleleCountsChromTxtPath = "~{pairName}.~{chrom}.haplotypecaller.gatk.alleles.txt"
         IndexedReference referenceFa
         Bam normalFinalBam
         File knownHetVcf
@@ -110,7 +110,7 @@ task AlleleCounts {
 task CalcBaf {
     input {
         String pairName
-        String bafTxtPath = "~{pairName}.haplotypecaller.gatk.v4.1.8.0.baf.txt"
+        String bafTxtPath = "~{pairName}.haplotypecaller.gatk.baf.txt"
         File alleleCountsTxt
         Int memoryGb = 4
         Int diskSize = (ceil( size(alleleCountsTxt, "GB") )  * 2 ) + 1

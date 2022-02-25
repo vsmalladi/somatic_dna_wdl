@@ -6,7 +6,7 @@ import "../wdl_structs.wdl"
 task Deconstructsig {
     input {
         String pairId
-        String outputPrefix = "~{pairId}.cosmic.v3.2.deconstructSigs.v1.9.0.signatures.highconfidence"
+        String outputPrefix = "~{pairId}.cosmic.v3.2.deconstructSigs.signatures.highconfidence"
         File mainVcf
         String vepGenomeBuild
         String highConf = "TRUE"

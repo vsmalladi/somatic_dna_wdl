@@ -67,7 +67,7 @@ workflow Mutect2 {
     # filtered
     call calling.Gatk4MergeSortVcf as filteredGatk4MergeSortVcf {
         input:
-            sortedVcfPath = "~{pairName}.mutect2.v4.0.5.1.sorted.vcf",
+            sortedVcfPath = "~{pairName}.mutect2.sorted.vcf",
             tempChromVcfs = Mutect2Filter.mutect2ChromVcf,
             referenceFa = referenceFa,
             memoryGb = 8,
@@ -87,7 +87,7 @@ workflow Mutect2 {
             tumor = tumor,
             normal = normal,
             rawVcf = filteredAddVcfCommand.outVcf,
-            orderedVcfPath = "~{pairName}.mutect2.v4.0.5.1.vcf",
+            orderedVcfPath = "~{pairName}.mutect2.vcf",
             memoryGb = 4,
             diskSize = 10
     }
@@ -95,7 +95,7 @@ workflow Mutect2 {
     # unfiltered
     call calling.Gatk4MergeSortVcf as unfilteredGatk4MergeSortVcf {
         input:
-            sortedVcfPath = "~{pairName}.mutect2.v4.0.5.1.unfiltered.sorted.vcf",
+            sortedVcfPath = "~{pairName}.mutect2.unfiltered.sorted.vcf",
             tempChromVcfs = Mutect2Wgs.mutect2ChromRawVcf,
             referenceFa = referenceFa,
             memoryGb = 8,
@@ -115,7 +115,7 @@ workflow Mutect2 {
             tumor = tumor,
             normal = normal,
             rawVcf = unfilteredAddVcfCommand.outVcf,
-            orderedVcfPath = "~{pairName}.mutect2.v4.0.5.1.unfiltered.vcf",
+            orderedVcfPath = "~{pairName}.mutect2.unfiltered.vcf",
             memoryGb = 4,
             diskSize = 10
     }
