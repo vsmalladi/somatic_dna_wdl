@@ -54,7 +54,7 @@ workflow Conpair {
             pairName = pairName,
             memoryGb = memoryGb,
             threads = threads,
-            concordanceAllPath = "Sample_~{tumor}/qc/~{pairName}.concordance.all.conpair-0.1.txt"
+            concordanceAllPath = "Sample_~{tumor}/qc/~{pairName}.concordance.all.conpair.txt"
     }
 
     call qc.VerifyConcordanceHomoz {
@@ -65,7 +65,7 @@ workflow Conpair {
             pairName = pairName,
             memoryGb = memoryGb,
             threads = threads,
-            concordanceHomozPath = "Sample_~{tumor}/qc/~{pairName}.concordance.homoz.conpair-0.1.txt"
+            concordanceHomozPath = "Sample_~{tumor}/qc/~{pairName}.concordance.homoz.conpair.txt"
     }
 
     call qc.Contamination {
@@ -76,7 +76,7 @@ workflow Conpair {
             pairName = pairName,
             memoryGb = memoryGb,
             threads = threads,
-            contaminationPath = "Sample_~{tumor}/qc/~{pairName}.contamination.conpair-0.1.txt"
+            contaminationPath = "Sample_~{tumor}/qc/~{pairName}.contamination.conpair.txt"
     }
 
     output {

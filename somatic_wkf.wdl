@@ -337,7 +337,7 @@ workflow SomaticDNA {
             call germlineAnnotate.GermlineAnnotate as unFilteredGermlineAnnotate {
                 input:
                     unannotatedVcf = Germline.haplotypecallerVcf,
-                    haplotypecallerAnnotatedVcfPath = "~{sampleInfoObj.sampleId}.haplotypecaller.gatk.v4.1.8.0.annotated.unfiltered.vcf",
+                    haplotypecallerAnnotatedVcfPath = "~{sampleInfoObj.sampleId}.haplotypecaller.gatk.annotated.unfiltered.vcf",
                     production = production,
                     referenceFa = referenceFa,
                     normal = sampleInfoObj.sampleId,
@@ -451,9 +451,6 @@ workflow SomaticDNA {
                     concordanceFile = Conpair.concordanceAll,
                     contaminationFile = Conpair.contamination
             }
-
-
-
         }
 
         Boolean SomaticQcCheck = select_first([SomaticQcCheck.qcPass, bypassQcCheck])
@@ -644,9 +641,12 @@ workflow SomaticDNA {
                     vepGenomeBuild = vepGenomeBuild
           }
 
+<<<<<<< HEAD
 
 
 
+=======
+>>>>>>> versionless
           FinalVcfPairInfo finalPairInfos = object {
                 pairId : pairRelationship.pairId,
                 tumor : pairRelationship.tumor,
@@ -673,16 +673,26 @@ workflow SomaticDNA {
                 svHighConfidenceSupplementalBedPe : AnnotateCnvSv.svHighConfidenceSupplementalBedPe,
 
         }
+<<<<<<< HEAD
 
       }
     }
 
+=======
+
+      }
+    }
+>>>>>>> versionless
 
     FinalWorkflowOutput workflowOutput = object {
         # alignment and calling results (calling results may not exist if qc failed)
         # SNV INDELs CNV SV and BAM output
+<<<<<<< HEAD
 
         finalPairInfo:  finalPairInfos,
+=======
+        finalPairInfo: finalPairInfos,
+>>>>>>> versionless
 
         # MSI
         mantisWxsKmerCountsFinal: Msi.mantisWxsKmerCountsFinal,
@@ -732,8 +742,11 @@ workflow SomaticDNA {
         concordanceAll: Conpair.concordanceAll,
         concordanceHomoz: Conpair.concordanceHomoz,
         contamination: Conpair.contamination,
+<<<<<<< HEAD
         tumorPileup: Conpair.tumorPileup,
         normalPileup: Conpair.normalPileup,
+=======
+>>>>>>> versionless
 
         # Germline
         kouramiResult: Kourami.result,
@@ -745,7 +758,10 @@ workflow SomaticDNA {
     }
 
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> versionless
     File tmpFile = write_json(workflowOutput)
     call dataTransfer.LabelAndTransfer {
         input:
@@ -754,7 +770,10 @@ workflow SomaticDNA {
             allQcPass = SomaticQcCheck
     }
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> versionless
     output {
        FinalWorkflowOutput finalOutput = workflowOutput
     }
