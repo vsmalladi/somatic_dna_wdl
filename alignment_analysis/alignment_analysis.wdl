@@ -401,7 +401,7 @@ task AlignToPanel {
 
 task Kourami {
     input {
-        Int threads = 16
+        Int threads = 1
         Int memoryGb = 8
         String sampleId
         File kouramiBam

@@ -238,7 +238,7 @@ task SplitMultiAllelic {
         String splitVcfPath
         IndexedReference referenceFa
         IndexedVcf vcfCompressedIndexed
-        Int threads = 16
+        Int threads = 8
         Int memoryGb = 16
         Int diskSize = (ceil( size(vcfCompressedIndexed.vcf, "GB") )  * 2 ) + 10
     }
@@ -276,7 +276,7 @@ task SplitMultiAllelicRegions {
         IndexedReference referenceFa
         IndexedVcf vcfCompressedIndexed
         Array[String]+ listOfChroms
-        Int threads = 16
+        Int threads = 8
         Int memoryGb = 16
         Int diskSize = (ceil( size(vcfCompressedIndexed.vcf, "GB") )  * 3 ) + 10
     }
@@ -431,7 +431,7 @@ task MergeCallers {
         String mergedChromVcfPath = "~{pairName}.merged_supported.v7.~{chrom}.vcf"
         Array[IndexedVcf] allVcfCompressed
         Array[File] allVcfCompressedList
-        Int threads = 16
+        Int threads = 8
         Int memoryGb = 16
         Int diskSize = 20
     }
@@ -570,7 +570,7 @@ task LancetConfirm {
         Bam normalFinalBam
         File candidateChromBed
         Bam tumorFinalBam
-        Int threads = 16
+        Int threads = 8
         Int memoryGb = 16
         Int diskSize = (ceil( size(tumorFinalBam.bam, "GB") + size(normalFinalBam.bam, "GB")) ) + 10
     }
@@ -613,7 +613,7 @@ task LancetConfirm {
 
 task IntersectVcfs {
     input {
-        Int threads = 16
+        Int threads = 8
         Int memoryGb = 16
         Int diskSize = 4
         String pairName
