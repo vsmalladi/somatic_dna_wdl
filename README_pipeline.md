@@ -387,7 +387,7 @@ in the tumor sample.
 
 <a name="ancestry"></a>
 
-Ancestry proportion is determined by the software ADMIXTURE v1.3.0 ([29](#29)), which uses a
+Ancestry proportion is determined by the software ADMIXTURE v1.3.0 ([31](#31)), which uses a
 maximum likelihood-based method to estimate the proportion of reference population ancestries
 in a sample. We genotyped the reference markers generated from 1,964 unrelated 1000
 Genomes project samples directly on the RNASeq samples using GATK pileup. Individuals from
@@ -395,7 +395,7 @@ populations MXL (Mexican Ancestry from Los Angeles USA), ACB (African Caribbean 
 Barbados), and ASW (African Ancestry in Southwest US) were excluded from the reference due
 to being putatively admixed. The reference was further filtered by using only SNP markers with a
 minimum minor allele frequency (MAF) of 0.01 overall and 0.05 in at least one 1000 genomes
-superpopulation. Variants are additionally linkage disequilibrium (LD) pruned using PLINK v1.9 ([30](#30))
+superpopulation. Variants are additionally linkage disequilibrium (LD) pruned using PLINK v1.9 ([32](#32))
 with a window size of 500kb, a step size of 250kb and r2 threshold of 0.2, resulting in 122377
 markers remaining. The analysis results in a proportional breakdown of each sample into 5
 superpopulations (AFR, AMR, EAS, EUR, SAS) and 23 subpopulations 
