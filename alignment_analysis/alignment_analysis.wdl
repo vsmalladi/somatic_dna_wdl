@@ -414,7 +414,7 @@ task Kourami {
         -Xmx~{jvmHeap}m -XX:ParallelGCThreads=4 \
         -jar /Kourami.jar \
         -d /kourami-0.9.6/db/ \
-        -o ~{sampleId} \
+        -o ~{sampleId}.kourami \
         ~{kouramiBam}
     }
 

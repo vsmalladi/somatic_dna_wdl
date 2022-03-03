@@ -518,8 +518,8 @@ workflow SomaticDNA {
                 svabaIndel : Calling.svabaIndel,
                 tumor : pairRelationship.tumor,
                 normal : pairRelationship.normal,
-                tumorFinalBam : pairRelationship.tumorFinalBam,
-                normalFinalBam : pairRelationship.normalFinalBam
+                tumorFinalBam : Preprocess.finalBam[tumorGetIndex.index],
+                normalFinalBam : Preprocess.finalBam[normalGetIndex.index]
 
             }
 
@@ -641,12 +641,6 @@ workflow SomaticDNA {
                     vepGenomeBuild = vepGenomeBuild
           }
 
-<<<<<<< HEAD
-
-
-
-=======
->>>>>>> versionless
           FinalVcfPairInfo finalPairInfos = object {
                 pairId : pairRelationship.pairId,
                 tumor : pairRelationship.tumor,
@@ -673,26 +667,17 @@ workflow SomaticDNA {
                 svHighConfidenceSupplementalBedPe : AnnotateCnvSv.svHighConfidenceSupplementalBedPe,
 
         }
-<<<<<<< HEAD
+
 
       }
     }
 
-=======
-
-      }
-    }
->>>>>>> versionless
 
     FinalWorkflowOutput workflowOutput = object {
         # alignment and calling results (calling results may not exist if qc failed)
         # SNV INDELs CNV SV and BAM output
-<<<<<<< HEAD
 
-        finalPairInfo:  finalPairInfos,
-=======
         finalPairInfo: finalPairInfos,
->>>>>>> versionless
 
         # MSI
         mantisWxsKmerCountsFinal: Msi.mantisWxsKmerCountsFinal,
@@ -742,11 +727,9 @@ workflow SomaticDNA {
         concordanceAll: Conpair.concordanceAll,
         concordanceHomoz: Conpair.concordanceHomoz,
         contamination: Conpair.contamination,
-<<<<<<< HEAD
         tumorPileup: Conpair.tumorPileup,
         normalPileup: Conpair.normalPileup,
-=======
->>>>>>> versionless
+
 
         # Germline
         kouramiResult: Kourami.result,
@@ -758,10 +741,6 @@ workflow SomaticDNA {
     }
 
 
-<<<<<<< HEAD
-
-=======
->>>>>>> versionless
     File tmpFile = write_json(workflowOutput)
     call dataTransfer.LabelAndTransfer {
         input:
@@ -770,10 +749,6 @@ workflow SomaticDNA {
             allQcPass = SomaticQcCheck
     }
 
-<<<<<<< HEAD
-
-=======
->>>>>>> versionless
     output {
        FinalWorkflowOutput finalOutput = workflowOutput
     }
