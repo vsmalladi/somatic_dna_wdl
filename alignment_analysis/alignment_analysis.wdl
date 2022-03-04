@@ -358,9 +358,9 @@ task SortFastqs {
 
 task AlignToPanel {
     input {
-        Int threads = 82
-        Int bwaThreads = 80
-        Int samtoolsSortThreads = 2
+        Int threads = 8
+        Int bwaThreads = 4
+        Int samtoolsSortThreads = 4
         Int memoryGb = 4
         Int diskSize = 4
         String sampleId
