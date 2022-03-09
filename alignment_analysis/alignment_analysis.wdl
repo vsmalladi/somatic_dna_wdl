@@ -405,18 +405,25 @@ task Kourami {
         Int memoryGb = 8
         String sampleId
         File kouramiBam
+        String originalResultPath = "~{sampleId}.result"
+        String resultPath = "~{sampleId}.kourami.result"
     }
 
     command {
+        set -e -o pipefail
+        
         java \
         -jar /Kourami.jar \
         -d /kourami-0.9.6/db/ \
         -o ~{sampleId} \
         ~{kouramiBam}
+        
+        mv ~{originalResultPath} \
+        ~{resultPath}
     }
 
     output {
-        File result = "~{sampleId}.kourami.result"
+        File result = "~{resultPath}"
     }
 
     runtime {
