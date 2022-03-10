@@ -114,10 +114,12 @@ task vepSvnIndel {
     }
 
     runtime {
+        mem: memoryGb + "G"
+        cpus: threads
         cpu : threads
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " LOCAL"
-        docker: "ensemblorg/ensembl-vep:release_97.4"
+        docker: "gcr.io/nygc-public/ensemblorg/ensembl-vep@sha256:7c99fadb332d65fc913844ce93aaee89dac5516afb68179304f1973a9e270196"
     }
 
     output {
@@ -134,11 +136,6 @@ task vepPublicSvnIndel {
         # Somatic
         IndexedVcf cosmicCoding
         IndexedVcf cosmicNoncoding
-
-        # NYGC-only
-        IndexedVcf hgmdGene
-        IndexedVcf hgmdUd10
-        IndexedVcf hgmdPro
 
         # Public
         File vepCache
@@ -208,9 +205,6 @@ task vepPublicSvnIndel {
         --custom ensembl_vep/annotations/gnomad_genomes_subset_final.vcf.gz,GnomadGenomes,vcf,exact,0,AF,nhomalt \
         --custom ~{cosmicCoding.vcf},CosmicCoding,vcf,exact,0,GENOMIC_ID,LEGACY_ID,CNT,CDS,AA \
         --custom ~{cosmicNoncoding.vcf},CosmicNonCoding,vcf,exact,0,GENOMIC_ID,LEGACY_ID,CNT,CDS,AA \
-        --custom ~{hgmdPro.vcf},HGMD,vcf,exact,0,CLASS,PHEN,DNA \
-        --custom ~{hgmdUd10.vcf},HGMDUD10,vcf,overlap,0,CLASS,PHEN \
-        --custom ~{hgmdGene.vcf},_,vcf,overlap,0,HGMD_PHENO \
         --custom ~{chdGenesVcf.vcf},CHD_GENES,vcf,overlap,0,GENE \
         --custom ~{chdEvolvingGenesVcf.vcf},CHD_EVOLVING,vcf,overlap,0,GENE \
         --custom ~{deepIntronicsVcf.vcf},INTRONIC,vcf,exact,0,INTRONIC \
@@ -235,10 +229,12 @@ task vepPublicSvnIndel {
     }
 
     runtime {
+        mem: memoryGb + "G"
+        cpus: threads
         cpu : threads
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " LOCAL"
-        docker: "ensemblorg/ensembl-vep:release_97.4"
+        docker: "gcr.io/nygc-public/ensemblorg/ensembl-vep@sha256:7c99fadb332d65fc913844ce93aaee89dac5516afb68179304f1973a9e270196"
     }
 
     output {

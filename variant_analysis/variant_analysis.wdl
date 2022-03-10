@@ -35,8 +35,9 @@ task Deconstructsig {
     }
 
     runtime {
+        mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/deconstructsigs:1.9.0.nygc.1"
+        docker : "gcr.io/nygc-public/deconstructsigs@sha256:009ddb6ed3ec2a0290a88b1e7027dd3caac1a2f5f3df3e8f68f410481d9323a3"
     }
 }

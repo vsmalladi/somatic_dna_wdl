@@ -25,7 +25,9 @@ workflow MergeVcf {
     #   merge and filter raw VCFs
     #   annotate
     input {
-        Array[PairRawVcfInfo]+ pairRawVcfInfos
+        Boolean external = false
+        Array[PreMergedPairVcfInfo]+ preMergedPairVcfInfos
+        
         IndexedReference referenceFa
         Array[String]+ listOfChroms
         
@@ -39,24 +41,25 @@ workflow MergeVcf {
         IndexedVcf germFile
     }
     
-    scatter(pairRawVcfInfo in pairRawVcfInfos) {
+    scatter(preMergedPairVcfInfo in preMergedPairVcfInfos) {
         if (library == 'WGS') {
             call mergeVcf.MergeVcf as wgsMergeVcf {
                 input:
-                    pairRawVcfInfo = pairRawVcfInfo,
+                    external = external,
+                    preMergedPairVcfInfo = preMergedPairVcfInfo,
                     referenceFa = referenceFa,
                     listOfChroms = listOfChroms,
                     intervalListBed = intervalListBed,
                     ponFile = ponWGSFile,
                     germFile = germFile
-                    
             }
         }
         
         if (library == 'Exome') {
             call mergeVcf.MergeVcf as exomeMergeVcf {
                 input:
-                    pairRawVcfInfo = pairRawVcfInfo,
+                    external = external,
+                    preMergedPairVcfInfo = preMergedPairVcfInfo,
                     referenceFa = referenceFa,
                     listOfChroms = listOfChroms,
                     intervalListBed = intervalListBed,

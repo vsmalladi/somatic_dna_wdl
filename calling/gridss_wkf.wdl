@@ -152,11 +152,6 @@ workflow Gridss {
 
     }
 
-    Int lowFilterDiskSize = ceil( size(GridssCalling.gridssUnfilteredVcf, "GB")) + 4
-    if (highMem) {
-        Int highFilterDiskSize = 30
-    }
-    Int filterDiskSize = select_first([highFilterDiskSize, lowFilterDiskSize])
 
     call calling.FilterNonChroms {
         input:
@@ -166,6 +161,15 @@ workflow Gridss {
             gridssUnfilteredVcf = GridssCalling.gridssUnfilteredVcf,
             listOfChroms = listOfChroms
     }
+
+
+
+    Int lowFilterDiskSize = ceil( size(GridssCalling.gridssUnfilteredVcf, "GB")) + 4
+    if (highMem) {
+        Int highFilterDiskSize = ceil( size(GridssCalling.gridssUnfilteredVcf, "GB")) + 30
+    }
+    Int filterDiskSize = select_first([highFilterDiskSize, lowFilterDiskSize])
+
 
     call calling.GridssFilter {
         input:

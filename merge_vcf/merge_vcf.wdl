@@ -24,9 +24,10 @@ task CompressVcf {
     }
 
     runtime {
+        mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/samtools:1.9.1"
+        docker : "gcr.io/nygc-public/samtools@sha256:963b0b2f24908832efab8ddccb7a7f3ba5dca9803bc099be7cf3a455766610fd"
     }
 }
 
@@ -51,7 +52,7 @@ task IndexVcf {
         gatk \
         IndexFeatureFile \
         --java-options "-Xmx~{jvmHeap}m -XX:ParallelGCThreads=4" \
-        --feature-file ~{vcfCompressedPath} \
+        --input ~{vcfCompressedPath} \
         -O ~{vcfIndexedPath}
     }
 
@@ -63,10 +64,12 @@ task IndexVcf {
     }
 
     runtime {
+        mem: memoryGb + "G"
+        cpus: threads
         cpu : threads
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "us.gcr.io/broad-gatk/gatk:4.1.1.0"
+        docker : "gcr.io/nygc-public/broadinstitute/gatk:4.1.8.0"
     }
 }
 
@@ -96,9 +99,10 @@ task RenameMetadata {
     }
 
     runtime {
+        mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
+        docker : "gcr.io/nygc-public/somatic_tools@sha256:9ae77f7d96a3c100319cf0fac2429f8f84301003480b7b7eb72994ca9f358512"
     }
 }
 
@@ -126,9 +130,10 @@ task MergePrepSupport {
     }
 
     runtime {
+        mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
+        docker : "gcr.io/nygc-public/somatic_tools@sha256:9ae77f7d96a3c100319cf0fac2429f8f84301003480b7b7eb72994ca9f358512"
     }
 }
 
@@ -136,7 +141,7 @@ task MergePrep {
     input {
         String pairName
         File renameMetaVcf
-        String prepCallerVcfPath = sub(basename(renameMetaVcf), ".rename_metadata.vcf$", ".merge_prep.vcf")
+        String prepCallerVcfPath = sub(basename(renameMetaVcf, ".gz"), ".rename_metadata.vcf$", ".merge_prep.vcf")
         String tool
         Int memoryGb = 16
         Int diskSize = (ceil( size(renameMetaVcf, "GB") )  * 2 ) + 4
@@ -155,9 +160,10 @@ task MergePrep {
     }
 
     runtime {
+        mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
+        docker : "gcr.io/nygc-public/somatic_tools@sha256:9ae77f7d96a3c100319cf0fac2429f8f84301003480b7b7eb72994ca9f358512"
     }
 }
 
@@ -165,7 +171,7 @@ task RenameVcf {
     input {
         File prepCallerVcf
         String pairName
-        String renameVcfPath = sub(basename(prepCallerVcf), ".merge_prep.vcf$", ".rename.vcf")
+        String renameVcfPath = sub(basename(prepCallerVcf, ".gz"), ".merge_prep.vcf$", ".rename.vcf")
         String normal
         String tumor
         String tool
@@ -188,9 +194,42 @@ task RenameVcf {
     }
 
     runtime {
+        mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
+        docker : "gcr.io/nygc-public/somatic_tools@sha256:9ae77f7d96a3c100319cf0fac2429f8f84301003480b7b7eb72994ca9f358512"
+    }
+}
+
+task RenameVcfPon {
+    input {
+        File prepCallerVcf
+        String renameVcfPath = sub(basename(prepCallerVcf, ".gz"), ".vcf$", ".rename.vcf")
+        String tumor
+        String tool
+        File renameVcfPon = "gs://nygc-comp-s-fd4e-input/scripts/rename_vcf_pon.py"
+        Int memoryGb = 16
+        Int diskSize = (ceil( size(prepCallerVcf, "GB") )  * 2 ) + 4
+    }
+
+    command {
+        python \
+        ~{renameVcfPon} \
+        ~{prepCallerVcf} \
+        ~{renameVcfPath} \
+        ~{tumor} \
+        ~{tool}
+    }
+
+    output {
+        File renameVcf = "~{renameVcfPath}"
+    }
+
+    runtime {
+        mem: memoryGb + "G"
+        disks: "local-disk " + diskSize + " HDD"
+        memory : memoryGb + "GB"
+        docker : "gcr.io/nygc-public/somatic_tools@sha256:46ab81b8dc09d6f8cf90c81f7d5692f23d73c134df6dbcd5298abde7f414dce3"
     }
 }
 
@@ -222,10 +261,12 @@ task SplitMultiAllelic {
     }
 
     runtime {
+        mem: memoryGb + "G"
+        cpus: threads
         cpu : threads
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/bcftools:1.5"
+        docker : "gcr.io/nygc-public/bcftools@sha256:d9b84254b8cc29fcae76b728a5a9a9a0ef0662ee52893d8d82446142876fb400"
     }
 }
 
@@ -259,10 +300,12 @@ task SplitMultiAllelicRegions {
     }
 
     runtime {
+        mem: memoryGb + "G"
+        cpus: threads
         cpu : threads
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/bcftools:1.5"
+        docker : "gcr.io/nygc-public/bcftools@sha256:d9b84254b8cc29fcae76b728a5a9a9a0ef0662ee52893d8d82446142876fb400"
     }
 }
 
@@ -288,9 +331,10 @@ task SplitMnv {
     }
 
     runtime {
+        mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
+        docker : "gcr.io/nygc-public/somatic_tools@sha256:9ae77f7d96a3c100319cf0fac2429f8f84301003480b7b7eb72994ca9f358512"
     }
 }
 
@@ -299,25 +343,43 @@ task RemoveContig {
         String mnvVcfPath
         String removeChromVcfPath = "~{mnvVcfPath}"
         File removeChromVcf
+        String dollarSign = "$"
         Int memoryGb = 16
         Int diskSize = (ceil( size(removeChromVcf, "GB") )  * 2 ) + 4
     }
 
-    command {
+    command <<<
+        set -e -o pipefail
+
+        filename=$(basename -- "~{dollarSign}~{removeChromVcf}")
+        extension="~{dollarSign}{filename##*.}"
+        filename="~{dollarSign}{filename%.*}"
+
+        if [[ ~{dollarSign}extension == gz ]]; then
+            input_path=~{dollarSign}filename
+
+            gunzip -c \
+            ~{removeChromVcf} \
+            > ~{dollarSign}input_path
+        else
+            input_path=~{removeChromVcf}
+        fi
+
         python \
         /remove_contig.py \
-        ~{removeChromVcf} \
+        ~{dollarSign}input_path \
         ~{removeChromVcfPath}
-    }
+    >>>
 
     output {
         File removeContigVcf = "~{removeChromVcfPath}"
     }
 
     runtime {
+        mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
+        docker : "gcr.io/nygc-public/somatic_tools@sha256:9ae77f7d96a3c100319cf0fac2429f8f84301003480b7b7eb72994ca9f358512"
     }
 }
 
@@ -352,10 +414,12 @@ task Gatk4MergeSortVcf {
     }
 
     runtime {
+        mem: memoryGb + "G"
+        cpus: threads
         cpu : threads
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "us.gcr.io/broad-gatk/gatk:4.1.1.0"
+        docker : "gcr.io/nygc-public/broadinstitute/gatk:4.1.8.0"
     }
 }
 
@@ -393,10 +457,12 @@ task MergeCallers {
     }
 
     runtime {
+        mem: memoryGb + "G"
+        cpus: threads
         cpu : threads
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/bcftools:1.5"
+        docker : "gcr.io/nygc-public/bcftools@sha256:d9b84254b8cc29fcae76b728a5a9a9a0ef0662ee52893d8d82446142876fb400"
     }
 }
 
@@ -427,9 +493,10 @@ task StartCandidates {
     }
 
     runtime {
+        mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/bedtools:v2.26.0"
+        docker : "gcr.io/nygc-public/bedtools@sha256:9e737f5c96c00cf3b813d419d7a7b474c4013c9aa9dfe704eb36417570c6474e"
     }
 }
 
@@ -455,9 +522,10 @@ task GetCandidates {
     }
 
     runtime {
+        mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
+        docker : "gcr.io/nygc-public/somatic_tools@sha256:9ae77f7d96a3c100319cf0fac2429f8f84301003480b7b7eb72994ca9f358512"
     }
 }
 
@@ -487,9 +555,10 @@ task VcfToBed {
     }
 
     runtime {
+        mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
+        docker : "gcr.io/nygc-public/somatic_tools@sha256:9ae77f7d96a3c100319cf0fac2429f8f84301003480b7b7eb72994ca9f358512"
     }
 }
 
@@ -536,9 +605,10 @@ task LancetConfirm {
     }
 
     runtime {
+        mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/lancet:v1.0.7"
+        docker : "gcr.io/nygc-public/lancet@sha256:25169d34b41de9564e03f02ebcbfb4655cf536449592b0bd58773195f9376e61"
     }
 }
 
@@ -571,10 +641,12 @@ task IntersectVcfs {
     }
 
     runtime {
+        mem: memoryGb + "G"
+        cpus: threads
         cpu : threads
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/bcftools:1.5"
+        docker : "gcr.io/nygc-public/bcftools@sha256:d9b84254b8cc29fcae76b728a5a9a9a0ef0662ee52893d8d82446142876fb400"
     }
 }
 
@@ -604,9 +676,41 @@ task MergeColumns {
     }
 
     runtime {
+        mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
+        docker : "gcr.io/nygc-public/somatic_tools@sha256:9ae77f7d96a3c100319cf0fac2429f8f84301003480b7b7eb72994ca9f358512"
+    }
+}
+
+task MergeColumnsPon {
+    input {
+        String chrom
+        String tumor
+        String columnChromVcfPath = "~{tumor}.single_column.v7.~{chrom}.vcf"
+        File supportedChromVcf
+        Int memoryGb = 16
+        Int diskSize = 4
+        File MergeColumnsPon = "gs://nygc-comp-s-fd4e-input/scripts/merge_columns_pon.py"
+    }
+
+    command {
+        python \
+        ~{MergeColumnsPon} \
+        ~{supportedChromVcf} \
+        ~{columnChromVcfPath} \
+        ~{tumor}
+    }
+
+    output {
+        File columnChromVcf = "~{columnChromVcfPath}"
+    }
+
+    runtime {
+        mem: memoryGb + "G"
+        disks: "local-disk " + diskSize + " HDD"
+        memory : memoryGb + "GB"
+        docker : "gcr.io/nygc-public/somatic_tools@sha256:9ae77f7d96a3c100319cf0fac2429f8f84301003480b7b7eb72994ca9f358512"
     }
 }
 
@@ -638,9 +742,10 @@ task AddNygcAlleleCountsToVcf {
     }
 
     runtime {
+        mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
+        docker : "gcr.io/nygc-public/somatic_tools@sha256:9ae77f7d96a3c100319cf0fac2429f8f84301003480b7b7eb72994ca9f358512"
     }
 }
 
@@ -666,9 +771,10 @@ task AddFinalAlleleCountsToVcf {
     }
 
     runtime {
+        mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
+        docker : "gcr.io/nygc-public/somatic_tools@sha256:9ae77f7d96a3c100319cf0fac2429f8f84301003480b7b7eb72994ca9f358512"
     }
 }
 
@@ -697,9 +803,10 @@ task FilterPon {
     }
 
     runtime {
+        mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
+        docker : "gcr.io/nygc-public/somatic_tools@sha256:9ae77f7d96a3c100319cf0fac2429f8f84301003480b7b7eb72994ca9f358512"
     }
 }
 
@@ -727,9 +834,10 @@ task FilterVcf {
     }
 
     runtime {
+        mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
+        docker : "gcr.io/nygc-public/somatic_tools@sha256:9ae77f7d96a3c100319cf0fac2429f8f84301003480b7b7eb72994ca9f358512"
     }
 }
 
@@ -755,8 +863,9 @@ task SnvstomnvsCountsbasedfilterAnnotatehighconf {
     }
 
     runtime {
+        mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
+        docker : "gcr.io/nygc-public/somatic_tools@sha256:9ae77f7d96a3c100319cf0fac2429f8f84301003480b7b7eb72994ca9f358512"
     }
 }

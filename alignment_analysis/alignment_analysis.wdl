@@ -7,6 +7,7 @@ task BedtoolsIntersect {
         String mantisBedByIntervalListPath
         File mantisBed
         File intervalListBed
+        Int memoryGb = 1
     }
 
     command {
@@ -23,7 +24,9 @@ task BedtoolsIntersect {
     }
 
     runtime {
-        docker : "gcr.io/nygc-public/bedtools:v2.26.0"
+        mem: memoryGb + "G"
+        memory : memoryGb + "GB"
+        docker : "gcr.io/nygc-public/bedtools@sha256:9e737f5c96c00cf3b813d419d7a7b474c4013c9aa9dfe704eb36417570c6474e"
     }
 }
 
@@ -103,10 +106,12 @@ task MantisExome {
     }
 
     runtime {
+        mem: memoryGb + "G"
+        cpus: threads
         cpu : threads
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/mantis:1.0.4"
+        docker : "gcr.io/nygc-public/mantis@sha256:9cf1311c5198b8fa5fecff387a50dfa9408707f7b914a99dc548c6eb14f42c19"
     }
 }
 
@@ -131,7 +136,7 @@ task MantisRethreshold {
     }
 
     runtime {
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
+        docker : "gcr.io/nygc-public/somatic_tools@sha256:9ae77f7d96a3c100319cf0fac2429f8f84301003480b7b7eb72994ca9f358512"
     }
 }
 
@@ -151,9 +156,10 @@ task GetChr6Contigs {
     }
 
     runtime {
+        mem: memoryGb + "G"
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker : "gcr.io/nygc-internal-tools/hla_prep:3.4.0"
+        docker : "gcr.io/nygc-public/hla_prep@sha256:a490cf449eeb98b997f0dd87ff1c23ff77d724c7c2072b6c44f75a713ecc2d36"
     }
 }
 
@@ -216,10 +222,12 @@ task GemSelect {
     }
 
     runtime {
+        mem: memoryGb + "G"
+        cpus: threads
         cpu : threads
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker : "gcr.io/nygc-internal-tools/hla_prep:3.3.0"
+        docker : "gcr.io/nygc-public/hla_prep@sha256:a490cf449eeb98b997f0dd87ff1c23ff77d724c7c2072b6c44f75a713ecc2d36"
     }
 }
 
@@ -253,9 +261,10 @@ task LookUpMates {
     }
 
     runtime {
+        mem: memoryGb + "G"
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker : "gcr.io/nygc-internal-tools/hla_prep:3.3.0"
+        docker : "gcr.io/nygc-public/hla_prep@sha256:a490cf449eeb98b997f0dd87ff1c23ff77d724c7c2072b6c44f75a713ecc2d36"
     }
 }
 
@@ -298,10 +307,12 @@ task GetMates {
     }
 
     runtime {
+        mem: memoryGb + "G"
+        cpus: threads
         cpu : threads
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/hla_prep:3.3.0"
+        docker : "gcr.io/nygc-public/hla_prep@sha256:a490cf449eeb98b997f0dd87ff1c23ff77d724c7c2072b6c44f75a713ecc2d36"
     }
 }
 
@@ -338,9 +349,10 @@ task SortFastqs {
     }
 
     runtime {
+        mem: memoryGb + "G"
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker : "gcr.io/nygc-internal-tools/hla_prep:3.3.0"
+        docker : "gcr.io/nygc-public/hla_prep@sha256:a490cf449eeb98b997f0dd87ff1c23ff77d724c7c2072b6c44f75a713ecc2d36"
     }
 }
 
@@ -378,10 +390,12 @@ task AlignToPanel {
     }
 
     runtime {
+        mem: memoryGb + "G"
+        cpus: threads
         cpu : threads
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/bwa-kit:0.7.15"
+        docker : "gcr.io/nygc-public/bwa-kit@sha256:0642151a32fe8f90ece70cde3bd61a03c7421314c37c1de2c0ee5e368d2bfc7a"
     }
 }
 
@@ -400,7 +414,7 @@ task Kourami {
         -Xmx~{jvmHeap}m -XX:ParallelGCThreads=4 \
         -jar /Kourami.jar \
         -d /kourami-0.9.6/db/ \
-        -o ~{sampleId} \
+        -o ~{sampleId}.kourami \
         ~{kouramiBam}
     }
 
@@ -409,8 +423,10 @@ task Kourami {
     }
 
     runtime {
+        mem: memoryGb + "G"
+        cpus: threads
         cpu : threads
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/kourami:v0.9.6"
+        docker : "gcr.io/nygc-public/kourami@sha256:d4b906b979c24ee4669fdbf7ee1dfbdeb5c89d0e34b4b4aaf21ee070e988d74b"
     }
 }

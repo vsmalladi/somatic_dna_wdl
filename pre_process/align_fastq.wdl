@@ -13,7 +13,7 @@ task Skewer {
         String fastqOutR2Path = sub(basename(fastqs.fastqR1), ".\\.f.*q\\.gz$", "-trimmed-pair2.fastq.gz")
         # resources
         Int threads = 16
-        Int mem = 24
+        Int memoryGb = 24
         Int diskSize
     }
 
@@ -35,9 +35,11 @@ task Skewer {
     }
 
     runtime {
+        mem: memoryGb + "G"
+        cpus: threads
         cpu : threads
-        memory : mem + " GB"
-        docker : "gcr.io/nygc-public/skewer:v0.2.2"
+        memory : memoryGb + " GB"
+        docker : "gcr.io/nygc-public/skewer@sha256:31cb01e3deab46a7a7e9e93e789ab68e66d5b660b7d0b8967c096da6fd38c5e9"
         disks: "local-disk " + diskSize + " HDD"
     }
 }
@@ -51,7 +53,7 @@ task AlignBwaMem {
         BwaReference bwaReference
         String laneBamPath = "~{fastqs.readgroupId}.readgroup.bam"
         # resources
-        Int mem
+        Int memoryGb
         Int threads
         Int bwaThreads
         Int totalThreads = 80
@@ -87,10 +89,12 @@ task AlignBwaMem {
     }
 
     runtime {
+        mem: memoryGb + "G"
+        cpus: totalThreads
         cpu : totalThreads
-        memory : mem + " GB"
+        memory : memoryGb + " GB"
         disks: "local-disk " + diskSize + " LOCAL"
-        docker : "gcr.io/nygc-public/bwa-kit:0.7.15"
+        docker : "gcr.io/nygc-public/bwa-kit@sha256:0642151a32fe8f90ece70cde3bd61a03c7421314c37c1de2c0ee5e368d2bfc7a"
     }
 }
 
@@ -101,8 +105,9 @@ task ShortAlignMark {
         String bamBase
         String laneBamMarkPath = "~{bamBase}.readgroup_mark.bam"
         # resources
-        Int mem = 16
+        Int memoryGb = 16
         Int diskSize
+        Int preemptible = 3
     }
 
     command {
@@ -123,10 +128,11 @@ task ShortAlignMark {
     }
 
     runtime {
-        memory : mem + " GB"
-        docker : "gcr.io/nygc-public/nygc-short-alignment-marking:v2.1"
+        mem: memoryGb + "G"
+        memory : memoryGb + " GB"
+        docker : "gcr.io/nygc-public/nygc-short-alignment-marking@sha256:8adc1ac0417d080cb6d6dd8901a5282c3cca497cff1b9800c2f51b0058b15bde"
         disks: "local-disk " + diskSize + " HDD"
-        preemptible: 1
+        preemptible: preemptible
     }
 }
 
@@ -137,11 +143,11 @@ task Fixmate {
         String bamBase
         String laneFixmateBamPath = "~{bamBase}.readgroup_fixmate.bam"
         # resources
-        Int mem = 8
+        Int memoryGb = 8
         Int diskSize
     }
 
-    Int jvmHeap = mem * 750  # Heap size in Megabytes. mem is in GB. (75% of mem)
+    Int jvmHeap = memoryGb * 750  # Heap size in Megabytes. mem is in GB. (75% of mem)
 
     command {
         gatk \
@@ -160,8 +166,9 @@ task Fixmate {
     }
 
     runtime {
-        memory : mem + " GB"
-        docker : "us.gcr.io/broad-gatk/gatk:4.1.1.0"
+        mem: memoryGb + "G"
+        memory : memoryGb + " GB"
+        docker : "gcr.io/nygc-public/broadinstitute/gatk:4.1.8.0"
         disks: "local-disk " + diskSize + " HDD"
     }
 }

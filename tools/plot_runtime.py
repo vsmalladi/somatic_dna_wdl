@@ -79,18 +79,35 @@ class PlotRuntime():
                                       button=True,
                                       x="workflow_name",
                                       ys=["sample_task_core_h", 
-                                          "max_mem_g", 
+                                          "max_mem_used_gb", 
                                           "sample_task_run_time_h"],
                                       color="task_call_name",
                                       hover_data=['id'],
                                       color_discrete_sequence=self.colors_set2,
-                                      title='Tasks: resource usage summary plot',
-                                      labels={'sample_task_run_time_h' : 'Max Task runtime(h)',
-                                              'max_mem_g' : 'Mem (G)',
+                                      title='<b>Tasks: resource usage summary plot</b>',
+                                      labels={'sample_task_run_time_h' : 'Task runtime(h)',
+                                              'max_mem_used_gb' : 'Mem (G)',
                                               'sample_task_core_h' : 'Task core hours',
                                               'workflow_name' : 'Sub-workflow',
                                               'task_call_name' : 'Task'},
                                       x_title="Pipeline subworkflows")
+        '''self.fig_nonpreemptible = self.plot_by_steps(data_steps=self.metadata[self.metadata.preemptible == False],
+                                      non_retry_data_steps=self.non_retry_metadata[self.non_retry_metadata.preemptible == False],
+                                      button=True,
+                                      x="workflow_name",
+                                      ys=["sample_task_core_h", 
+                                          "max_mem_used_gb", 
+                                          "sample_task_run_time_h"],
+                                      color="task_call_name",
+                                      hover_data=['id'],
+                                      color_discrete_sequence=self.colors_set2,
+                                      title='<b>Tasks: run on non-preemptible instances</b>',
+                                      labels={'sample_task_run_time_h' : 'Task runtime(h)',
+                                              'max_mem_used_gb' : 'Mem (G)',
+                                              'sample_task_core_h' : 'Task core hours',
+                                              'workflow_name' : 'Sub-workflow',
+                                              'task_call_name' : 'Task'},
+                                      x_title="Pipeline subworkflows")'''
         self.fig2 = self.plot_by_steps(data_steps=self.metadata,
                                        non_retry_data_steps=self.non_retry_metadata,
                                        button=False,
@@ -101,12 +118,12 @@ class PlotRuntime():
                                        color="workflow_name",
                                        hover_data=['id'],
                                        color_discrete_sequence=self.colors_set1,
-                                       labels={'sample_subworkflow_run_time_h' : 'Max sub-workflow runtime(h)',
+                                       labels={'sample_subworkflow_run_time_h' : 'sub-workflow runtime(h)',
                                               'subworkflow_max_mem_g' : 'Mem (G)',
                                               'sample_subworkflow_core_h' : 'Sub-workflow core hours',
                                               'workflow_name' : 'Sub-workflow',
                                               'task_call_name' : 'Task'},
-                                       title='Subworkflows: resource usage summary plot',
+                                       title='<b>Subworkflows: resource usage summary plot</b>',
                                        x_title="Pipeline subworkflows")
         self.fig3 = self.plot_by_steps(data_steps=self.metadata,
                                        non_retry_data_steps=self.non_retry_metadata,
@@ -118,28 +135,28 @@ class PlotRuntime():
                                        color="id",
                                        hover_data=['id'],
                                        color_discrete_sequence=self.colors,
-                                       labels={'sample_workflow_run_time_h' : 'Max workflow runtime(h)',
+                                       labels={'sample_workflow_run_time_h' : 'workflow runtime(h)',
                                               'workflow_max_mem_g' : 'Mem (G)',
                                               'sample_workflow_core_h' : 'Workflow core hours',
                                               'workflow_name' : 'Sub-workflow',
                                               'task_call_name' : 'Task'},
-                                       title='Workflows: resource usage summary plot',
+                                       title='<b>Workflows: resource usage summary plot</b>',
                                        x_title="Full pipeline")
         self.fig4, self.fig5, self.fig6 = self.custom_by_steps(data_steps=self.metadata,
                                                               non_retry_data_steps=self.non_retry_metadata,
                                                               button=True,                                      
                                                               x="workflow_name",
                                                               top_ys=["mem_total_gb", "disk_total_gb", ""],
-                                                              central_ys=["max_mem_g", "disk_used_gb", "sample_task_run_time_h"],
+                                                              central_ys=["max_mem_used_gb", "max_disk_used_gb", "sample_task_run_time_h"],
                                                               color="task_call_name",
                                                               hover_data=['id'],
                                                               color_discrete_sequence=self.colors,
-                                                              title='Tasks: resources used vs available',
-                                                              labels={'disk_used_gb' : 'Disk used (G)',
+                                                              title='<b>Tasks: resources used vs available</b>',
+                                                              labels={'max_disk_used_gb' : 'Disk used (G)',
                                                                       'disk_total_gb' : 'Available disk (G)',
                                                                       'mem_total_gb' : 'Available mem (G)',
-                                                                      'sample_task_run_time_h' : 'Max Task runtime(h)',
-                                                                      'max_mem_g' : 'Mem (G)',
+                                                                      'sample_task_run_time_h' : 'Task runtime(h)',
+                                                                      'max_mem_used_gb' : 'Mem (G)',
                                                                       'sample_task_core_h' : 'Task core hours',
                                                                       'workflow_name' : 'Sub-workflow',
                                                                       'task_call_name' : 'Task'},
@@ -163,18 +180,18 @@ class PlotRuntime():
     
     def gather_summary(self):
         '''Add details about percent of instances that are preemptible'''
-        self.metadata = self.metadata.dropna(subset=['preemptible'])
+        self.metadata = self.metadata[~(self.metadata.backend_status.isin(['Running', 'CacheHit']))].copy()
         # exit status of non-zero exits
         exit_status = self.metadata[['task_call_name', 
-                                     'execution_status']].value_counts().to_frame().reset_index()
-        self.exit_status = exit_status[exit_status.execution_status != 'Done']
+                                     'backend_status']].value_counts().to_frame().reset_index()
+        self.exit_status = exit_status[exit_status.backend_status != 'Success']
         self.exit_status.columns = ['Task', 'Exit status', 'Count']
         # preemptible percentage
         self.preemptible_percent = self.metadata[self.metadata.preemptible].shape[0] / float(self.metadata.shape[0])
         # disk type
         self.metadata['disk_type']= self.metadata.apply(lambda row: row.disk_types.replace('[\'', '').replace('\']', ''), axis=1)
-        self.disk_type = self.metadata.groupby(['id', 'disk_type']).sample_task_run_time_h.sum().reset_index()
-        self.disk_type.columns = ['Id', 'Disk type', 'Wall clock (h)']
+        self.disk_type = self.metadata.groupby(['task_call_name', 'id', 'instance_name', 'disk_type']).sample_task_run_time_h.sum().reset_index()
+        self.disk_type.columns = ['Task', 'Id', 'Instance name', 'Disk type', 'Wall clock (h)']
         
     def add_button(self, fig):
         fig.update_layout(updatemenus=[{'type' : 'buttons',
@@ -210,13 +227,13 @@ class PlotRuntime():
     def plot_summary(self):
         fig = px.box(self.disk_type, x='Disk type', y='Wall clock (h)', points="all",
                           color_discrete_sequence=self.colors_set2,
-                          color='Id',
+                          color='Task',
                           height=300)
         for trace in fig.data:
             trace['showlegend'] = True
             trace['pointpos'] = 0
         fig.update_layout(xaxis_type='category',
-                          title_text='Runtime by disk type')
+                          title_text='<b>Runtime by disk type</b>')
         fig.update_xaxes(title_text='')
         fig.update_yaxes(title_text="Wall clock (h)")
         self.disk_type_plot = ploter.Fig(fig)
@@ -236,6 +253,7 @@ class PlotRuntime():
     def get_table(self):
         '''Make workflow resource usage summary table'''
         table_data = self.metadata[['id', 'sample_workflow_run_time_h']].copy()
+        table_data = table_data.dropna(subset=['sample_workflow_run_time_h'])
         table_data = table_data.sort_values(['sample_workflow_run_time_h']).copy()
         table_data.columns = ['Id', 'Wallclock (h)']
         summary_table = ploter.make_html_table(table_data.drop_duplicates(),
@@ -251,7 +269,7 @@ class PlotRuntime():
                           button=False,
                           x="workflow_name",
                           top_ys=["mem_total_gb", "disk_total_gb", ""],
-                          central_ys=["max_mem_g", "disk_used_gb", "sample_task_run_time_h"],
+                          central_ys=["max_mem_used_gb", "max_disk_used_gb", "sample_task_run_time_h"],
                           color="task_call_name",
                           hover_data=['id'],
                           color_discrete_sequence=False,
@@ -273,39 +291,53 @@ class PlotRuntime():
                 category_orders[y] = grouped[y].agg(['max']).reset_index().sort_values('max')[x].unique().tolist()
         # plot total vs max mem
         max_color = '#C0FF02'
-        print(data_steps.shape[0])
         max_colors = [max_color] * data_steps.shape[0]
         fig1 = px.box(data_steps, x=x, y=central_ys[0], points="all",
                       hover_data=['id', top_ys[0], central_ys[0]],
                       color_discrete_sequence=color_discrete_sequence,
                       labels=labels,
+                      boxmode='overlay',
                       color=color, category_orders=category_orders)
+        for trace in fig1.data:
+            trace['pointpos'] = 0
         fig1.add_trace(go.Scatter(
             x=data_steps[x], y=data_steps[top_ys[0]],
             text=data_steps['task_call_name'],
             mode='markers',
+            name='Mem requested',
             marker_color=max_color
             ))
         # plot total vs max disk used
         fig2 = px.box(data_steps, x=x, y=central_ys[1], points="all",
                       hover_data=['id', top_ys[1], central_ys[1]],
                       labels=labels,
+                      boxmode='overlay',
                       color_discrete_sequence=color_discrete_sequence,
                       color=color, category_orders=category_orders)
+        for trace in fig2.data:
+            trace['pointpos'] = 0
         fig2.add_trace(go.Scatter(
             x=data_steps[x], y=data_steps[top_ys[1]],
             text=data_steps['task_call_name'],
             mode='markers',
+            name='Disk requested',
             marker_color=max_color
             ))
         # plot stacked bar of task persample summed runtime [x, 'id']
-        fig3 = px.bar(data_steps, x='task per id', y=central_ys[2],
+        data_steps['Result set'] = 'All runs'
+        non_preemptible_data_steps = data_steps[data_steps.preemptible == False].copy()
+        non_preemptible_data_steps['Result set'] = 'Non-preemptible runs'
+        plot_data = pd.concat([data_steps, non_preemptible_data_steps], ignore_index=True)
+        fig3 = px.bar(plot_data, x='task per id', y=central_ys[2],
                       hover_data=['id', 'task per id', central_ys[2], 'preemptible'],
                       labels=labels,
+                      facet_row='Result set',
+                      title='<b>Cumulative runtime per ID</b>',
                       color_discrete_sequence=color_discrete_sequence,
                       color=color, category_orders=category_orders)
         fig3.update_traces(marker=dict(line=dict(width=0)))
         fig3.update_xaxes(tickangle=45)
+        fig3.update_xaxes(matches='x')
         if x.lower() in ['task per id', 'id']:
             fig.update_xaxes(tickfont={'size' : 5})
         return ploter.Fig(fig1), ploter.Fig(fig2), ploter.Fig(fig3)
@@ -365,7 +397,7 @@ class PlotRuntime():
             self.non_retry_levels = len(fig4.data) + len(fig5.data) + len(fig6.data)
         fig = make_subplots(rows=1,
                             cols=3,
-                            subplot_titles=("CPU", "Mem", "Wall clock"))
+                            subplot_titles=("", " ", " "))
         # All instances
         for trace in fig1.data:
             trace['showlegend'] = False
@@ -430,7 +462,7 @@ class PlotRuntime():
                          categoryarray=category_orders[ys[0]],
                          categoryorder='array',
                          row=1, col=1)
-        fig.update_xaxes(title_text=x_title,
+        fig.update_xaxes(title_text="",
                          categoryarray=category_orders[ys[1]],
                          categoryorder='array',
                          row=1, col=2)
@@ -557,7 +589,7 @@ def make_files(results, appendix=False):
         #  =======================
         #  Disk types
         #  =======================
-        section_content = ''.join(['Disk type by runtime.'])
+        section_content = ''.join(['Disk type by runtime for each task in the run.'])
         lines = [contents.add_line(content=section_content,
                                     libraries=['WGS', 'Exome'],
                                     types=['tumor_only', 'paired'],

@@ -71,6 +71,21 @@ struct SampleBamInfo {
     Bam finalBam
 }
 
+struct PreMergedPairVcfInfo {
+    String pairId
+    File filteredMantaSV
+    File strelka2Snv
+    File strelka2Indel
+    File mutect2
+    File lancet
+    File svabaSv
+    File svabaIndel
+    String tumor
+    String normal
+    Bam tumorFinalBam
+    Bam normalFinalBam
+}
+
 struct PairRawVcfInfo {
     String pairId
     File? mergedVcf

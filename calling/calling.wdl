@@ -22,7 +22,7 @@ task GetInsertSize {
     }
 
     runtime {
-        docker: "ubuntu:latest"
+        docker: "gcr.io/nygc-public/python@sha256:9b7d62026be68c2e91c17fb4e0499454e41ebf498ef345f9ad6e100a67e4b697"
     }
 }
 
@@ -71,9 +71,10 @@ task Gatk4MergeSortCompressVcf {
     }
 
     runtime {
+        mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "us.gcr.io/broad-gatk/gatk:4.1.1.0"
+        docker : "gcr.io/nygc-public/broadinstitute/gatk:4.1.8.0"
     }
 }
 
@@ -121,9 +122,49 @@ task Gatk4MergeSortVcf {
     }
 
     runtime {
+        mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "us.gcr.io/broad-gatk/gatk:4.1.1.0"
+        docker : "gcr.io/nygc-public/broadinstitute/gatk:4.1.8.0"
+    }
+}
+
+task AddCommandReorderColumnsVcf {
+    input {
+        Int diskSize
+        Int memoryGb
+        String normal
+        String tumor
+        File inVcf
+        String orderedVcfPath
+        String outVcfPath = sub(sub(basename(inVcf), ".gz$", ""), ".vcf$", "_w_command.vcf")
+        File jsonLog
+    }
+
+    command {
+
+        python \
+        /add_command.py \
+        ~{inVcf} \
+        ~{outVcfPath} \
+        ~{jsonLog}
+
+        python \
+        /reorder_vcf.py \
+        ~{outVcfPath} \
+        ~{orderedVcfPath} \
+        ~{normal} ~{tumor}
+    }
+
+    output {
+        File orderedVcf = "~{orderedVcfPath}"
+    }
+
+    runtime {
+        mem: memoryGb + "G"
+        disks: "local-disk " + diskSize + " HDD"
+        memory : memoryGb + "GB"
+        docker : "gcr.io/nygc-public/somatic_tools@sha256:9ae77f7d96a3c100319cf0fac2429f8f84301003480b7b7eb72994ca9f358512"
     }
 }
 
@@ -150,9 +191,10 @@ task ReorderVcfColumns {
     }
 
     runtime {
+        mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
+        docker : "gcr.io/nygc-public/somatic_tools@sha256:9ae77f7d96a3c100319cf0fac2429f8f84301003480b7b7eb72994ca9f358512"
     }
 }
 
@@ -178,9 +220,10 @@ task AddVcfCommand {
     }
 
     runtime {
+        mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-internal-tools/somatic_tools:v1.1.2"
+        docker : "gcr.io/nygc-public/somatic_tools@sha256:9ae77f7d96a3c100319cf0fac2429f8f84301003480b7b7eb72994ca9f358512"
     }
 }
 
@@ -237,10 +280,59 @@ task MantaWgs {
     }
 
     runtime {
+        mem: memoryGb + "G"
+        cpus: threads
         cpu : threads
         disks: "local-disk " + diskSize + " LOCAL"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/manta:1.4.0"
+        docker : "gcr.io/nygc-public/manta@sha256:e171112cccf6758693b7a8aab80000fe6121d6969ce83e14a4e15fbc5f2f3662"
+    }
+}
+
+task MantaWgsPon {
+    input {
+        Int threads = 8
+        Int memoryGb = 4
+        Int diskSize
+        String sampleId
+        String intHVmem = "unlimited"
+        IndexedReference referenceFa
+        IndexedTable callRegions
+        Bam tumorFinalBam
+    }
+
+    command {
+        set -e -o pipefail
+
+        mkdir ~{sampleId}.MantaRaw
+
+        configManta.py \
+        --tumorBam ~{tumorFinalBam.bam} \
+        --referenceFasta ~{referenceFa.fasta} \
+        --callRegions ~{callRegions.table} \
+        --runDir ~{sampleId}.MantaRaw
+
+        "~{sampleId}.MantaRaw/runWorkflow.py" \
+        --mode local \
+        --job ~{threads} \
+        --memGb ~{intHVmem}
+    }
+
+    output {
+        IndexedVcf tumorSV = object {
+                vcf : "~{sampleId}.MantaRaw/results/variants/tumorSV.vcf.gz",
+                index : "~{sampleId}.MantaRaw/results/variants/tumorSV.vcf.gz.tbi"
+            }
+
+    }
+
+    runtime {
+        mem: memoryGb + "G"
+        cpus: threads
+        cpu : threads
+        disks: "local-disk " + diskSize + " LOCAL"
+        memory : memoryGb + "GB"
+        docker : "gcr.io/nygc-public/manta@sha256:e171112cccf6758693b7a8aab80000fe6121d6969ce83e14a4e15fbc5f2f3662"
     }
 }
 
@@ -271,10 +363,47 @@ task FilterNonpass {
     }
 
     runtime {
-        cpu : 4
+        mem: memoryGb + "G"
+        cpus: threads
+        cpu : threads
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "us.gcr.io/broad-gatk/gatk:4.1.1.0"
+        docker : "gcr.io/nygc-public/broadinstitute/gatk:4.1.8.0"
+    }
+}
+
+task FilterNonpassPon {
+    input {
+        Int threads = 4
+        Int memoryGb = 8
+        Int diskSize
+        String pairName
+        String outVcfPath = "~{pairName}.manta.v1.4.0.filtered.unorder.vcf"
+        IndexedReference referenceFa
+        IndexedVcf vcf
+    }
+
+    command {
+        gatk \
+        SelectVariants \
+        --java-options "-XX:ParallelGCThreads=4" \
+        -R ~{referenceFa.fasta} \
+        -V ~{vcf.vcf} \
+        -O ~{outVcfPath} \
+        --exclude-filtered
+    }
+
+    output {
+        File outVcf = "~{outVcfPath}"
+    }
+
+    runtime {
+        mem: memoryGb + "G"
+        cpus: threads
+        cpu : threads
+        disks: "local-disk " + diskSize + " HDD"
+        memory : memoryGb + "GB"
+        docker : "gcr.io/nygc-public/broadinstitute/gatk:4.1.8.0"
     }
 }
 
@@ -325,10 +454,12 @@ task Strelka2 {
     }
 
     runtime {
+        mem: memoryGb + "G"
+        cpus: threads
         cpu : threads
         disks: "local-disk " + diskSize + " LOCAL"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/strelka:v2.9.3"
+        docker : "gcr.io/nygc-public/strelka@sha256:eb71db1fbe25d67c025251823ae5d5e9dbf5a6861a98298b47ecd722dfa5bd14"
     }
 }
 
@@ -367,10 +498,12 @@ task LancetWGSRegional {
     }
 
     runtime {
+        mem: memoryGb + "G"
+        cpus: threads
         cpu : threads
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/lancet:v1.0.7"
+        docker : "gcr.io/nygc-public/lancet@sha256:25169d34b41de9564e03f02ebcbfb4655cf536449592b0bd58773195f9376e61"
     }
 }
 
@@ -409,10 +542,12 @@ task LancetExome {
     }
 
     runtime {
+        mem: memoryGb + "G"
+        cpus: threads
         cpu : threads
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/lancet:v1.0.7"
+        docker : "gcr.io/nygc-public/lancet@sha256:25169d34b41de9564e03f02ebcbfb4655cf536449592b0bd58773195f9376e61"
     }
 }
 
@@ -450,8 +585,43 @@ task Mutect2Wgs {
     }
 
     runtime {
+        mem: memoryGb + "G"
         memory : memoryGb + "GB"
-        docker : "us.gcr.io/broad-gatk/gatk:4.0.5.1"
+        docker : "gcr.io/nygc-public/broadinstitute/gatk@sha256:d78b14aa86b42638fe2844def82816d002a134cc19154a21dac7067ecb3c7e06"
+        disks: "local-disk " + diskSize + " LOCAL"
+    }
+}
+
+task Mutect2WgsPon {
+    input {
+        Int memoryGb = 4
+        Int diskSize
+        String chrom
+        String tumor
+        String mutect2ChromRawVcfPath = "~{tumor}_~{chrom}.mutect2.v4.0.5.1.raw.vcf"
+        IndexedReference referenceFa
+        Bam tumorFinalBam
+    }
+
+    command {
+        gatk \
+        Mutect2 \
+        --java-options "-XX:ParallelGCThreads=4" \
+        --reference ~{referenceFa.fasta} \
+        -L ~{chrom} \
+        -I ~{tumorFinalBam.bam} \
+        -tumor ~{tumor} \
+        -O ~{mutect2ChromRawVcfPath}
+    }
+
+    output {
+        File mutect2ChromRawVcf = "~{mutect2ChromRawVcfPath}"
+    }
+
+    runtime {
+        mem: memoryGb + "G"
+        memory : memoryGb + "GB"
+        docker : "gcr.io/nygc-public/broadinstitute/gatk@sha256:d78b14aa86b42638fe2844def82816d002a134cc19154a21dac7067ecb3c7e06"
         disks: "local-disk " + diskSize + " LOCAL"
     }
 }
@@ -482,8 +652,9 @@ task Mutect2Filter {
     }
 
     runtime {
+        mem: memoryGb + "G"
         memory : memoryGb + "GB"
-        docker : "us.gcr.io/broad-gatk/gatk:4.0.5.1"
+        docker : "gcr.io/nygc-public/broadinstitute/gatk@sha256:d78b14aa86b42638fe2844def82816d002a134cc19154a21dac7067ecb3c7e06"
         disks: "local-disk " + diskSize + " HDD"
     }
 }
@@ -499,6 +670,7 @@ task SvabaWgs {
         File dbsnpIndels
         Bam tumorFinalBam
         Int diskSize
+        Int preemptible = 3
     }
 
     command {
@@ -522,11 +694,232 @@ task SvabaWgs {
     }
 
     runtime {
+        mem: memoryGb + "G"
+        cpus: threads
         cpu : threads
         disks: "local-disk " + diskSize + " LOCAL"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/svaba:1.1.3-c4d7b571"
-        preemptible: 0
+        docker : "gcr.io/nygc-public/svaba@sha256:48f6bd86e933ca88fd74d8effc66e93eee5b40945ee37612b80d7edaadc567f3"
+        preemptible: preemptible
+    }
+}
+
+task PopulateCache {
+    input {
+        Int memoryGb = 16
+        BwaReference bwaReference
+        String refCacheDirPath = "ref_cache"
+        String refCachePath = "ref_cache.tar.gz"
+        Int diskSize = 10
+    }
+
+    command {
+        set -e -o pipefail
+
+        /samtools-1.4.1/misc/seq_cache_populate.pl \
+        -root ~{refCacheDirPath} \
+        ~{bwaReference.fasta}
+
+        tar -czvf \
+        ~{refCachePath} \
+        ~{refCacheDirPath}
+    }
+
+    output {
+        File refCache = "~{refCachePath}"
+    }
+
+    runtime {
+        mem: memoryGb + "G"
+        disks: "local-disk " + diskSize + " LOCAL"
+        memory : memoryGb + "GB"
+        docker : "gcr.io/nygc-public/samtools@sha256:e1149e965e8379f4a75b120d832b84e87dbb97bd5510ed581113400f768e5940"
+    }
+}
+
+task SvabaIndex {
+    input {
+        Int memoryGb = 16
+        BwaReference bwaReference
+        String svabaIndexedReferencePath = basename(bwaReference.fasta)
+        Int diskSize = 16
+    }
+
+    command {
+        set -e -o pipefail
+
+        cp ~{bwaReference.fasta} \
+        ~{svabaIndexedReferencePath}
+
+        /svaba/SeqLib/bwa/bwa \
+        index \
+        ~{svabaIndexedReferencePath}
+    }
+
+    output {
+        BwaReference svabaIndexedReference = object {
+                fasta : "~{svabaIndexedReferencePath}",
+                sa : "~{svabaIndexedReferencePath}.sa",
+                pac : "~{svabaIndexedReferencePath}.pac",
+                bwt : "~{svabaIndexedReferencePath}.bwt",
+                ann : "~{svabaIndexedReferencePath}.ann",
+                amb : "~{svabaIndexedReferencePath}.amb"
+            }
+    }
+
+    runtime {
+        mem: memoryGb + "G"
+        disks: "local-disk " + diskSize + " LOCAL"
+        memory : memoryGb + "GB"
+        docker : "gcr.io/nygc-public/svaba@sha256:48f6bd86e933ca88fd74d8effc66e93eee5b40945ee37612b80d7edaadc567f3"
+    }
+}
+
+task SvabaWgsPon {
+    input {
+        Int threads = 4
+        Int memoryGb = 16
+        String sampleId
+        IndexedTable callRegions
+        BwaReference svabaIndexedReference
+        File dbsnpIndels
+        File refCache
+        Bam tumorFinalBam
+        String refCacheDirPath = sub(basename(refCache), ".tar.gz$", "")
+        Int diskSize
+        Int verbose = 0
+        Int preemptible = 3
+    }
+
+    command {
+        set -e -o pipefail
+
+        tar -xzf \
+        ~{refCache}
+
+        export REF_PATH=./~{refCacheDirPath}/%2s/%2s/%s
+        export REF_CACHE=./~{refCacheDirPath}/%2s/%2s/%s
+
+        svaba \
+        run \
+        --verbose ~{verbose} \
+        -t ~{tumorFinalBam.bam} \
+        -p ~{threads} \
+        -L 100000 \
+        --region ~{callRegions.table} \
+        -D ~{dbsnpIndels} \
+        -a ~{sampleId} \
+        -G ~{svabaIndexedReference.fasta} \
+        -z on
+    }
+
+    output {
+        File svabaIndelGz = "~{sampleId}.svaba.indel.vcf.gz"
+        File svabaGz = "~{sampleId}.svaba.sv.vcf.gz"
+    }
+
+    runtime {
+        mem: memoryGb + "G"
+        cpus: threads
+        cpu : threads
+        disks: "local-disk " + diskSize + " HDD"
+        memory : memoryGb + "GB"
+        docker : "gcr.io/nygc-public/svaba@sha256:48f6bd86e933ca88fd74d8effc66e93eee5b40945ee37612b80d7edaadc567f3"
+        preemptible: preemptible
+    }
+}
+
+task SvabaWgsPonNoL {
+    input {
+        Int threads = 4
+        Int memoryGb = 16
+        String sampleId
+        IndexedTable callRegions
+        BwaReference svabaIndexedReference
+        File dbsnpIndels
+        File refCache
+        Bam tumorFinalBam
+        String refCacheDirPath = sub(basename(refCache), ".tar.gz$", "")
+        Int diskSize
+        Int verbose = 0
+        Int preemptible = 3
+    }
+
+    command {
+        set -e -o pipefail
+
+        tar -xzf \
+        ~{refCache}
+
+        export REF_PATH=./~{refCacheDirPath}/%2s/%2s/%s
+        export REF_CACHE=./~{refCacheDirPath}/%2s/%2s/%s
+
+        svaba \
+        run \
+        --verbose ~{verbose} \
+        -t ~{tumorFinalBam.bam} \
+        -p ~{threads} \
+        --region ~{callRegions.table} \
+        -D ~{dbsnpIndels} \
+        -a ~{sampleId} \
+        -G ~{svabaIndexedReference.fasta} \
+        -z on
+    }
+
+    output {
+        File svabaIndelGz = "~{sampleId}.svaba.indel.vcf.gz"
+        File svabaGz = "~{sampleId}.svaba.sv.vcf.gz"
+    }
+
+    runtime {
+        mem: memoryGb + "G"
+        cpus: threads
+        cpu : threads
+        disks: "local-disk " + diskSize + " HDD"
+        memory : memoryGb + "GB"
+        docker : "gcr.io/nygc-public/svaba@sha256:48f6bd86e933ca88fd74d8effc66e93eee5b40945ee37612b80d7edaadc567f3"
+        preemptible: preemptible
+    }
+}
+
+task ReheaderVcf {
+    input {
+        Array[String] sampleIds
+        String outVcfPath
+        IndexedReference referenceFa
+        File inVcf
+        String outType = "v"
+        Int memoryGb = 16
+        Int diskSize = (ceil( size(inVcf, "GB") )  * 2 ) + 1
+    }
+
+    command {
+        set -e -o pipefail
+
+        for id in ~{sep=" " sampleIds} ; do
+            echo $id >> sample_list.txt
+        done
+
+        bcftools \
+        reheader \
+        --samples sample_list.txt \
+        ~{inVcf} \
+        | bcftools \
+        convert \
+        -O ~{outType} \
+        --output ~{outVcfPath} \
+        -
+    }
+
+    output {
+        File reheaderedVcf = "~{outVcfPath}"
+    }
+
+    runtime {
+        mem: memoryGb + "G"
+        disks: "local-disk " + diskSize + " HDD"
+        memory : memoryGb + "GB"
+        docker : "gcr.io/nygc-public/bcftools@sha256:d9b84254b8cc29fcae76b728a5a9a9a0ef0662ee52893d8d82446142876fb400"
     }
 }
 
@@ -553,9 +946,10 @@ task UniqReads {
     }
 
     runtime {
+        mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " LOCAL"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/bicseq2:seg_v0.7.2"
+        docker : "gcr.io/nygc-public/bicseq2@sha256:3d110b672df0385f761fb64fcf63e98685e6d810c5560043efed5ab94961f3a9"
     }
 }
 
@@ -610,9 +1004,10 @@ task Bicseq2Norm {
     }
 
     runtime {
+        mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " LOCAL"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/bicseq2:seg_v0.7.2"
+        docker : "gcr.io/nygc-public/bicseq2@sha256:3d110b672df0385f761fb64fcf63e98685e6d810c5560043efed5ab94961f3a9"
     }
 }
 
@@ -634,6 +1029,8 @@ task Bicseq2Wgs {
     command {
         set -e -o pipefail
 
+        mkdir -p ~{pairName}
+
         python3 \
         /bicseq2_seg_config_writer.py \
         --tumor-norms ~{sep=" " tempTumorNorms} \
@@ -644,6 +1041,7 @@ task Bicseq2Wgs {
 
         perl /NBICseq-seg_v0.7.2/NBICseq-seg.pl \
         --control \
+        --tmp ~{pairName} \
         --fig=~{bicseq2PngPath} \
         --title=~{pairName} \
         --lambda=4 \
@@ -657,9 +1055,10 @@ task Bicseq2Wgs {
     }
 
     runtime {
+        mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " LOCAL"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/bicseq2:seg_v0.7.2"
+        docker : "gcr.io/nygc-public/bicseq2@sha256:3d110b672df0385f761fb64fcf63e98685e6d810c5560043efed5ab94961f3a9"
     }
 }
 
@@ -690,7 +1089,6 @@ task GridssPreprocess {
         fasta_dir=$( dirname ~{bwaReference.fasta} )
         mv ~{sep=" " gridssAdditionalReference} $fasta_dir
 
-        mkdir -p /scratch/
         working=$( pwd )
 
         gridss.sh \
@@ -717,10 +1115,12 @@ task GridssPreprocess {
     }
 
     runtime {
+        mem: memoryGb + "G"
+        cpus: threads
         disks: "local-disk " + diskSize + " LOCAL"
         cpu : threads
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/gridss:2.11.1-3"
+        docker : "gcr.io/nygc-public/gridss@sha256:284c58744471089a9d0998a48a33d7cd3d1019a588a284fb99b69b547f794cac"
     }
 }
 
@@ -792,10 +1192,13 @@ task GridssAssembleChunk {
     }
 
     runtime {
+        mem: memoryGb + "G"
+        cpus: threads
         disks: "local-disk " + diskSize + " LOCAL"
         cpu : threads
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/gridss:2.11.1-3"
+        docker : "gcr.io/nygc-public/gridss@sha256:284c58744471089a9d0998a48a33d7cd3d1019a588a284fb99b69b547f794cac"
+
     }
 }
 
@@ -875,10 +1278,12 @@ task GridssAssemble {
     }
 
     runtime {
+        mem: memoryGb + "G"
+        cpus: threads
         disks: "local-disk " + diskSize + " LOCAL"
         cpu : threads
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/gridss:2.11.1-3"
+        docker : "gcr.io/nygc-public/gridss@sha256:284c58744471089a9d0998a48a33d7cd3d1019a588a284fb99b69b547f794cac"
     }
 }
 
@@ -968,10 +1373,13 @@ task GridssCalling {
     }
 
     runtime {
+        mem: memoryGb + "G"
+        cpus: threads
         disks: "local-disk " + diskSize + " LOCAL"
         cpu : threads
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/gridss:2.11.1-3"
+        docker : "gcr.io/nygc-public/gridss@sha256:284c58744471089a9d0998a48a33d7cd3d1019a588a284fb99b69b547f794cac"
+
     }
 }
 
@@ -1044,9 +1452,13 @@ task GridssFilter {
     }
 
     runtime {
+        mem: memoryGb + "G"
+        cpus: threads
         disks: "local-disk " + diskSize + " HDD"
         cpu : threads
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/gridss:2.11.1-3"
+
+        docker : "gcr.io/nygc-public/gridss@sha256:284c58744471089a9d0998a48a33d7cd3d1019a588a284fb99b69b547f794cac"
+
     }
 }

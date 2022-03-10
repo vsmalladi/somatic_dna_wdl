@@ -2,41 +2,41 @@
     "lancetJsonLog" : {
         "type" : "File",
         "description" : "caller command",
-        "object" : "gs://nygc-comp-s-82ed-resources/SomaticWorkflowMisc/lancet_1.0.7_LancetWGSRegional.json"
+        "object" : "gs://nygc-resources-public/SomaticWorkflowMisc/lancet_1.0.7_LancetWGSRegional.json"
     },
     "mantaJsonLog" : {
         "type" : "File",
         "description" : "caller command",
-        "object" : "gs://nygc-comp-s-82ed-resources/SomaticWorkflowMisc/manta_1.4.0_MantaWgs.json"
+        "object" : "gs://nygc-resources-public/SomaticWorkflowMisc/manta_1.4.0_MantaWgs.json"
     },
     "strelkaJsonLog" : {
         "type" : "File",
         "description" : "caller command",
-        "object" : "gs://nygc-comp-s-82ed-resources/SomaticWorkflowMisc/strelka_v2.9.3_Strelka2.json"
+        "object" : "gs://nygc-resources-public/SomaticWorkflowMisc/strelka_v2.9.3_Strelka2.json"
     },
     "mutectJsonLog" : {
         "type" : "File",
         "description" : "caller command",
-        "object" : "gs://nygc-comp-s-82ed-resources/SomaticWorkflowMisc/gatk_4.0.5.1_Mutect2Wgs.json"
+        "object" : "gs://nygc-resources-public/SomaticWorkflowMisc/gatk_4.0.5.1_Mutect2Wgs.json"
     },
     "mutectJsonLogFilter" : {
         "type" : "File",
         "description" : "caller command",
-        "object" : "gs://nygc-comp-s-82ed-resources/SomaticWorkflowMisc/gatk_4.0.5.1_Mutect2Wgs_Mutect2Filter.json"
+        "object" : "gs://nygc-resources-public/SomaticWorkflowMisc/gatk_4.0.5.1_Mutect2Wgs_Mutect2Filter.json"
     },
     "svabaJsonLog" : {
         "type" : "File",
         "description" : "caller command",
-        "object" : "gs://nygc-comp-s-82ed-resources/SomaticWorkflowMisc/svaba_1.1.3-c4d7b571_SvabaWgs.json"
+        "object" : "gs://nygc-resources-public/SomaticWorkflowMisc/svaba_1.1.3-c4d7b571_SvabaWgs.json"
     },
     "configureStrelkaSomaticWorkflow" : {
         "type" : "File",
         "description" : "caller command",
-        "object" : "gs://nygc-comp-s-82ed-resources/SomaticWorkflowMisc/configureStrelkaSomaticWorkflow.py.ini"
+        "object" : "gs://nygc-resources-public/SomaticWorkflowMisc/configureStrelkaSomaticWorkflow.py.ini"
     },
     "adaptersFa" : {
         "type" : "File",
         "description" : "caller command",
-        "object" : "gs://nygc-comp-s-82ed-resources/SomaticWorkflowMisc/adapters.fa"
+        "object" : "gs://nygc-resources-public/SomaticWorkflowMisc/adapters.fa"
     }
 }

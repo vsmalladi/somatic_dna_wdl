@@ -53,12 +53,11 @@ def git_log(program):
     commit = commit.split('\n')[0].split()[-1]
     return commit, tag.split('\n')[0], uniq_tag.split('\n')[0], branch
 
-
 def read(file):
     with open(file) as project_info_file:
         project_info = json.load(project_info_file)
         return project_info
-    
+
 def load_pairs(file):
     pairs = pd.read_csv(file)
     assert 'tumor' in pairs.columns and 'normal' in pairs.columns, 'Error: can not find tumor and normal columns in pairs file: ' + ' '.join(pairs.columns)
@@ -71,57 +70,6 @@ def load_sample_ids(file):
     assert 'sampleId' in sample_ids.columns , 'Error: can not find "sampleId" columns in samples file: ' + ' '.join(sample_ids.columns)
     return sample_ids.sampleId.unique().tolist()
 
-def load_bam(row, pair_info, kind):
-    '''temp version to add bam file replace once GCP file manifest format is known'''
-    if kind == 'tumor':
-        bam = {"bam" : "gs://nygc-comp-s-82ed-input/WGS/CA-103/CA-0103T-D-W.25x.bam",
-               "bamIndex" : "gs://nygc-comp-s-82ed-input/WGS/CA-103/CA-0103T-D-W.25x.bai"}
-    if kind == 'normal':
-        bam = {"bam" : "gs://nygc-comp-s-82ed-input/WGS/CA-103/CA-0103N-D-W.15x.bam",
-               "bamIndex" : "gs://nygc-comp-s-82ed-input/WGS/CA-103/CA-0103N-D-W.15x.bai"}
-    return bam
- 
-def load_sample_info(sample_id):
-    '''temp version to add FASTQ file replace once GCP file manifest format is known'''
-    if sample_id == 'CA-0103N-D-W':
-        sample_info = {"sampleId" : sample_id}
-        fastq_pair = {'fastqR1': "gs://nygc-comp-s-82ed-input/WGS/CA-103/fastq/CA-0103N-D-W_CCGAAGTA_HYVLCCCXX_L001_001.R1.fastq.gz",
-                       'fastqR2': "gs://nygc-comp-s-82ed-input/WGS/CA-103/fastq/CA-0103N-D-W_CCGAAGTA_HYVLCCCXX_L001_001.R2.fastq.gz",
-                       'readgroupId': 'CA-0110N-D-W_AAGGTACA_HY7KNCCXX_L001',
-                       'flowcell': 'HY7KNCCXX',
-                       'lane': 'L001',
-                       'sampleId' : sample_id,
-                       'rgpu': 'HY7KNCCXX.L002.AAGGTACA',
-                       'barcode': 'AAGGTACA'}
-        fastq_pair2 = {'fastqR1': "gs://nygc-comp-s-82ed-input/WGS/CA-103/fastq/CA-0103N-D-W_CCGAAGTA_HYVLCCCXX_L002_001.R1.fastq.gz",
-                       'fastqR2': "gs://nygc-comp-s-82ed-input/WGS/CA-103/fastq/CA-0103N-D-W_CCGAAGTA_HYVLCCCXX_L002_001.R2.fastq.gz",
-                       'readgroupId': 'CA-0110N-D-W_AAGGTACA_HY7KNCCXX_L001',
-                       'flowcell': 'HY7KNCCXX',
-                       'lane': 'L002',
-                       'sampleId' : sample_id,
-                       'rgpu': 'HY7KNCCXX.L002.AAGGTACA',
-                       'barcode': 'AAGGTACA'}
-    else:
-        sample_info = {"sampleId" : sample_id}
-        fastq_pair = {'fastqR1': "gs://nygc-comp-s-82ed-input/WGS/CA-103/fastq/CA-0103T-D-W_AGATCGCA_HYVLCCCXX_L005_001.R1.fastq.gz",
-                       'fastqR2': "gs://nygc-comp-s-82ed-input/WGS/CA-103/fastq/CA-0103T-D-W_AGATCGCA_HYVLCCCXX_L005_001.R2.fastq.gz",
-                       'readgroupId': 'CA-0103T-D-W_AGATCGCA_HY7KNCCXX_L005',
-                       'flowcell': 'HY7KNCCXX',
-                       'lane': 'L005',
-                       'sampleId' : sample_id,
-                       'rgpu': 'HYVLCCCXX.L005.AGATCGCA',
-                       'barcode': 'AGATCGCA'}
-        fastq_pair2 = {'fastqR1': "gs://nygc-comp-s-82ed-input/WGS/CA-103/fastq/CA-0103T-D-W_AGATCGCA_HYVLCCCXX_L006_001.R1.fastq.gz",
-                       'fastqR2': "gs://nygc-comp-s-82ed-input/WGS/CA-103/fastq/CA-0103T-D-W_AGATCGCA_HYVLCCCXX_L006_001.R2.fastq.gz",
-                       'readgroupId': 'CA-0103T-D-W_AGATCGCA_HY7KNCCXX_L006',
-                       'flowcell': 'HY7KNCCXX',
-                       'lane': 'L006',
-                       'sampleId' : sample_id,
-                       'rgpu': 'HYVLCCCXX.L006.AGATCGCA',
-                       'barcode': 'AGATCGCA'}
-    sample_info['listOfFastqPairs']  = [fastq_pair, fastq_pair2]
-    return sample_info
-
 def fill_pair_relationship(row):
     '''Add pair and sample level info to object
     PairRelationship '''
@@ -130,29 +78,15 @@ def fill_pair_relationship(row):
     pair_relationship['tumor'] = row['tumor']
     return pair_relationship      
 
-def fill_pair(row):
-    '''Add pair and sample level info to object'''
-    pair_info = {"pairId" : row.pairId}
-    if load_bam(row, pair_info, kind='tumor') and load_bam(row, pair_info, kind='normal'):
-        pair_info['tumorFinalBam'] = load_bam(row, pair_info, kind='tumor')
-        pair_info['normalFinalBam'] = load_bam(row, pair_info, kind='normal')
-    pair_info['normal'] = row['normal']
-    pair_info['tumor'] = row['tumor']
-    return pair_info
-
-def fill_sample(sample_id):
-    '''Add sample level info to object'''
-    sample_info = load_sample_info(sample_id)
-    return sample_info
-
-def note_updates(key, args_key, project_info):
+def note_updates(key, new_value, project_info):
     ''' Add/replace value in project_info with value from flag'''
-    if args_key:
+    if new_value:
         if key in project_info:
-            if not project_info[key] == args_key:
-                log.warning('Note that the value for ' + key + ' differs in the --project-info file:\n' + str(project_info[key]) + '\n from the value indicated with the flag:\n' + str(args_key) + '\nThe value from the flag supersedes the file value')
-        project_info[key] = args_key
+            if not project_info[key] == new_value:
+                log.warning('Note ' + key + ' is already defined and differs from flag value:\n' + str(project_info[key]) + '\n from the value indicated with the flag:\n' + str(new_value) + '\nThe value from the flag supersedes the previous value')
+        project_info[key] = new_value
     return project_info
+
 
 def note_custom_updates(key, alt_project_info, project_info):
     ''' Add/replace value in project_info with value from custom inputs json'''
@@ -163,6 +97,7 @@ def note_custom_updates(key, alt_project_info, project_info):
         project_info[key] = alt_project_info[match[0]]
     return project_info
 
+
 def verify_required(key, args, project_info):
     '''Verify a required key'''
     in_project_info = key in project_info and project_info[key]
@@ -172,54 +107,39 @@ def verify_required(key, args, project_info):
         sys.exit(1)
     return True
 
+
 def fill_in_pair_info(project_info, full_pairs, suffix='.bai'):
+    '''
+    Read from input pairs CSV file
+    REPLACE later with step to ingest standard sample sheet
+    '''
     pair_infos = []
     normal_sample_infos = []
-    if 'tumor_bam' in full_pairs and 'normal_bam' in full_pairs:
+    if 'tumorBam' in full_pairs and 'normalBam' in full_pairs:
         for info in project_info['listOfPairRelationships']:
             match = full_pairs[(full_pairs.tumor == info['tumor']) &
                                (full_pairs.normal == info['normal'])]
             pair_infos.append({'normal' : info['normal'],
                                'tumor' : info['tumor'],
                                'pairId' : info['pairId'],
-                               'tumorFinalBam' : {'bam': match.tumor_bam.tolist()[0],
-                                                  'bamIndex' : match.tumor_bam.tolist()[0].replace('.bam', suffix)},
-                               'normalFinalBam' : {'bam': match.normal_bam.tolist()[0],
-                                                   'bamIndex' : match.normal_bam.tolist()[0].replace('.bam', suffix)}
+                               'tumorFinalBam' : {'bam': match.tumorBam.tolist()[0],
+                                                  'bamIndex' : match.tumorBam.tolist()[0].replace('.bam', suffix)},
+                               'normalFinalBam' : {'bam': match.normalBam.tolist()[0],
+                                                   'bamIndex' : match.normalBam.tolist()[0].replace('.bam', suffix)}
                                })
             normal_sample_infos.append({'sampleId' : info['normal'],
-                                        'finalBam' : {'bam': match.normal_bam.tolist()[0],
-                                                      'bamIndex' : match.normal_bam.tolist()[0].replace('.bam', suffix)}
+                                        'finalBam' : {'bam': match.normalBam.tolist()[0],
+                                                      'bamIndex' : match.normalBam.tolist()[0].replace('.bam', suffix)}
                                })
-    else:
-        for info in project_info['listOfPairRelationships']:
-            pair_infos.append({'normal' : info['normal'],
-                               'tumor' : info['tumor'],
-                               'pairId' : info['pairId']})
-            normal_sample_infos.append({'sampleId' : info['normal']})
-    project_info = note_updates(key='pairInfos', args_key=pair_infos, project_info=project_info)
-    project_info = note_updates(key='normalSampleBamInfos', args_key=normal_sample_infos, project_info=project_info)
-    return project_info
-
-def fill_in_sample_info(project_info):
-    sample_infos = []
-    normal_sample_infos = []
-    for sample_id in project_info['sampleIds']:
-        sample_infos.append({'sampleId' : sample_id})
-        if sample_id in project_info['normals']:
-            normal_sample_infos.append({'sampleId' : sample_id})
-    project_info = note_updates(key='sampleInfos', args_key=sample_infos, project_info=project_info)
-    project_info = note_updates(key='normalSampleInfos', args_key=normal_sample_infos, project_info=project_info)
+            project_info = note_updates(key='pairInfos', new_value=pair_infos, project_info=project_info)
+            project_info = note_updates(key='normalSampleBamInfos', new_value=normal_sample_infos, project_info=project_info)
     return project_info
         
     
-def repopulate(args):
-    '''Ammend the dictionary of project and sample related metadata 
+def populate(args):
+    '''Update the dictionary of project, run and sample related metadata (project_info)
     where a new argument has been specified'''
-    if args['project_data']:
-        project_info = read(args['project_data'])
-    else:
-        project_info = {}
+    project_info = {}
     project_info['options'] = read(args['options'])
     # update wdl pipeline version
     commit, tag, uniq_tag, branch = git_log(__file__)
@@ -229,101 +149,83 @@ def repopulate(args):
     project_info['uniq_tag'] = uniq_tag
     # update as needed
     verify_required(key='library', args=args, project_info=project_info)
-    project_info = note_updates(key='library', args_key=args['library'], project_info=project_info)
+    project_info = note_updates(key='library', new_value=args['library'], project_info=project_info)
     verify_required(key='genome', args=args, project_info=project_info)
-    project_info = note_updates(key='genome', args_key=args['genome'], project_info=project_info)
+    project_info = note_updates(key='genome', new_value=args['genome'], project_info=project_info)
     verify_required(key='project', args=args, project_info=project_info)
-    project_info = note_updates(key='project', args_key=args['project'], project_info=project_info)
+    project_info = note_updates(key='project', new_value=args['project'], project_info=project_info)
     if args['library'] == 'WGS':
         project_info['intervalList'] = 'default'
     else:
         verify_required(key='intervalList', args=args, project_info=project_info)
-        project_info = note_updates(key='intervalList', args_key=args['intervalList'], project_info=project_info)
-    if args['pairs_file'] and not args['project_data']:
+        project_info = note_updates(key='intervalList', new_value=args['intervalList'], project_info=project_info)
+    if args['pairs_file']:
         pairs, full_pairs = load_pairs(args['pairs_file'])
         pair_info = []
         pair_info_relationships = []
+        # update basic pairing information with tumor, normal and pairId from pairs file
         for index, row in pairs.iterrows():
-            # add test pairInfo
-            if args['test_data']:
-                current_pair_info = fill_pair(row)
-                pair_info.append(current_pair_info)
             # add pairRelationship
             current_pair_info_relationship = fill_pair_relationship(row)
             pair_info_relationships.append(current_pair_info_relationship)   
-        # pair-only         
-        project_info = note_updates(key='listOfPairRelationships', args_key=pair_info_relationships, project_info=project_info)
-        if args['test_data']:
-            project_info = note_updates(key='pairInfos', args_key=pair_info, project_info=project_info)
-            project_info = note_updates(key='normalSampleBamInfos', args_key=pair_info, project_info=project_info)
-        else:
-            if args['custom_inputs']:
-                for alt_project_info_file in args['custom_inputs']:
-                    alt_project_info = read(alt_project_info_file)
-                    project_info = note_custom_updates(key='pairInfos', alt_project_info=alt_project_info, project_info=project_info)
-                    project_info = note_custom_updates(key='normalSampleBamInfos', alt_project_info=alt_project_info, project_info=project_info)
-            if not 'pairInfos' in project_info:
+        project_info = note_updates(key='listOfPairRelationships', new_value=pair_info_relationships, project_info=project_info)
+        # update BAM objects in project_info from custom inputs JSON (if pairInfos and normalSampleBamInfos  are in the custom json)
+        if args['custom_inputs']:
+            for alt_project_info_file in args['custom_inputs']:
+                alt_project_info = read(alt_project_info_file)
+                project_info = note_custom_updates(key='pairInfos', alt_project_info=alt_project_info, project_info=project_info)
+                project_info = note_custom_updates(key='normalSampleBamInfos', alt_project_info=alt_project_info, project_info=project_info)
+        # update BAM objects in project_info from sample sheet (if pairs file is a sample sheet)
+        if not 'pairInfos' in project_info:
+            if 'tumorBam' in full_pairs and 'normalBam' in full_pairs:
                 project_info = fill_in_pair_info(project_info, full_pairs)
-            assert 'pairInfos' in project_info, 'pairInfos needed but no entry found for key in --custom-inputs file\n'
+        # update pairing objects in project_info
         pair_ids = list(set([info['pairId'] for info in project_info['listOfPairRelationships']]))
-        project_info = note_updates(key='pairId', args_key=pair_ids, project_info=project_info)
-        
+        project_info = note_updates(key='pairIds', new_value=pair_ids, project_info=project_info)
         normals = list(set([info['normal'] for info in project_info['listOfPairRelationships']]))
-        project_info = note_updates(key='normals', args_key=normals, project_info=project_info)
-        
+        project_info = note_updates(key='normals', new_value=normals, project_info=project_info)
         tumors = list(set([info['tumor'] for info in project_info['listOfPairRelationships']]))
-        project_info = note_updates(key='tumors', args_key=tumors, project_info=project_info)
+        project_info = note_updates(key='tumors', new_value=tumors, project_info=project_info)
     # fill in list of samples
-    if args['samples_file'] and not args['project_data']:
+    if args['samples_file']:
         sample_ids = load_sample_ids(args['samples_file'])
     else:
         sample_ids = list(set(project_info['normals'] + project_info['tumors']))
-    project_info = note_updates(key='sampleIds', args_key=sample_ids, project_info=project_info)
-    if args['test_data']:
-        sample_info = []
-        normal_sample_info = []
-        for sample_id in sample_ids:
-            # add mock fastq files for now (will be replaced later by custom input if made available)
-            if sample_id in project_info['normals']:
-                normal_sample_info.append(fill_sample(sample_id))
-            current_sample_id_info = fill_sample(sample_id)
-            sample_info.append(current_sample_id_info)
-        project_info = note_updates(key='normalSampleInfos', args_key=normal_sample_info, project_info=project_info)
-        project_info = note_updates(key='sampleInfos', args_key=sample_info, project_info=project_info)
-    else:
-        if args['custom_inputs']:
-            for alt_project_info_file in args['custom_inputs']:
-                    alt_project_info = read(alt_project_info_file)
-                    project_info = note_custom_updates(key='normalSampleInfos', alt_project_info=alt_project_info, project_info=project_info)
-                    project_info = note_custom_updates(key='sampleInfos', alt_project_info=alt_project_info, project_info=project_info)
-                    if not 'sampleInfos' in project_info:
-                        project_info = fill_in_sample_info(project_info)
-                    assert 'sampleInfos' in project_info, 'sampleInfos needed but no entry found for key in --custom-inputs file\n'
+    project_info = note_updates(key='sampleIds', new_value=sample_ids, project_info=project_info)
+    if args['custom_inputs']:
+        for alt_project_info_file in args['custom_inputs']:
+                alt_project_info = read(alt_project_info_file)
+                project_info = note_custom_updates(key='normalSampleInfos', alt_project_info=alt_project_info, project_info=project_info)
+                project_info = note_custom_updates(key='sampleInfos', alt_project_info=alt_project_info, project_info=project_info)
     return project_info
 
-def write_wdl_json(args, project_info, project_info_file):
+def write_wdl_json(args, project_info, local=False):
     parent_dir = os.path.abspath(os.path.dirname(__file__))
-    pipeline_input = parent_dir + '/../config/pipeline_references.json'
-    interval_input = parent_dir + '/../config/interval_references.json'
-    genome_input = parent_dir + '/../config/fasta_references.json'
+    if local:
+        pipeline_input = parent_dir + '/../config/pipeline_references_local.json'
+        interval_input = parent_dir + '/../config/interval_references_local.json'
+        genome_input = parent_dir + '/../config/fasta_references_local.json'
+    else:
+        pipeline_input = parent_dir + '/../config/pipeline_references.json'
+        interval_input = parent_dir + '/../config/interval_references.json'
+        genome_input = parent_dir + '/../config/fasta_references.json'
     input = parse.Wdl(args['wdl_file'], 
                       genome_input=genome_input,
                       interval_input=interval_input,
                       pipeline_input=pipeline_input,
                       genome=args['genome'],
-                      read_length=args['read_length'],
                       custom_inputs=args['custom_inputs'],
                       validate=not args['skip_validate'],
-                      project_info_file=project_info_file)
+                      project_info=project_info,
+                      local=args['local'])
     file_out = os.path.basename(args['wdl_file']).replace('.wdl', '') + 'Input.json'
     with open(file_out, 'w') as input_info_file:
-        json.dump(input.inputs, input_info_file, indent=4)
+        json.dump(input.final_inputs, input_info_file, indent=4)
             
             
 def write_json(args, project_info, file_out):
-    if not args['project_data']:
-        with open(file_out, 'w') as project_info_file:
-            json.dump(project_info, project_info_file, indent=4)
+    with open(file_out, 'w') as project_info_file:
+        json.dump(project_info, project_info_file, indent=4)
                 
                 
 def test_schema(json_data):
@@ -345,12 +247,22 @@ def test_schema(json_data):
 def get_args():
     '''Parse input flags
         Need to add optional task-specific input json
+        
+    If "production" or "external" inputs are true this triggers the skipping of internal-only files 
+        (the steps that run with these also are written to skip tasks that localize these files 
+        so any inability to read these files will not negatively affect the run
     '''
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--test-data',
-                        help='Add FASTQ and BAM objects to run as test data',
-                        action='store_true'
-                       )
+    parser = argparse.ArgumentParser(description='Program uses the WDL to determine which variables are required. '
+                                                 'Creation of input JSON: \n'  
+                                                 'The WDL is used to determine which variables are required. '
+                                                 'Required or optional variables are defined from custom inputs JSON. '
+                                                 'Any required variable not defined in the custom inputs JSON will be defined from the '
+                                                 'reference JSONs in the config directory (as long as the variable names are identical).'
+                                                 'The pairing/sample info CSVs (--pairs-file/--samples-file) are used to create pairRelationships and '
+                                                 '(if columns named tumorBam and normalBam exist) map BAMs to pairs. '
+                                                 'If "production" or "external" inputs are true then validation of NYGC internal-only files is skipped '
+                                                 'The pipelines are written to skip tasks that localize these files if "production" or "external" are true '
+                                                 'so any inability to read these files will not negatively affect the run.')
     parser.add_argument('--options',
                         help='Options json file (required)',
                             required=True
@@ -382,13 +294,15 @@ def get_args():
                         )
     parser.add_argument('--pairs-file',
                         help='JSON file with items that are required to have '
-                        '"tumor", "normal" sample_ids defined. If not supplied '
-                        'define pairing using --project-data',
+                        '"tumor", "normal", "pairId"sample_ids defined '
+                        'Optionally, include "tumorBam", "normalBam" columns to create '
+                        '"pairInfos" and "normalSampleBamInfos" automatically.'
+                        ,
                         required=False
                         )
     parser.add_argument('--samples-file',
                         help='Not generally required. '
-                        'If steps run only require sample_id and do not use pairing '
+                        'If steps run only require sampleId and do not use pairing '
                         'information sample info can be populated with a CSV file. '
                         'The CSV file requires a columns named ["sampleId"]. If not supplied '
                         'define samples using --project-data',
@@ -401,16 +315,6 @@ def get_args():
                         dest='intervalList',
                         choices=['SureSelect_V6plusCOSMIC.target.GRCh38_full_analysis_set_plus_decoy_hla'],
                         required=False
-                        )
-    parser.add_argument('--project-data',
-                        help='Optional JSON file with project pairing, sample, '
-                        'genome build, library and interval list information',
-                        required=False
-                        )
-    parser.add_argument('--read-length',
-                        help='Required only for steps like BiqSeq2 that use read_length as input',
-                        required=False,
-                        dest='read_length'
                         )
     parser.add_argument('--custom-inputs',
                         help='Optional JSON file with custom input variables. '
@@ -435,20 +339,27 @@ def get_args():
                         required=False,
                         action='store_true'
                         )
+    parser.add_argument('--local',
+                        help='Use local path for all files and run on cluster.',
+                        required=False,
+                        action='store_true'
+                        )
     args_namespace = parser.parse_args()
     return args_namespace.__dict__
 
 def main():
     args = get_args()
-    project_info = repopulate(args)
+    # project, run and sample related metadata (project_info)
+    project_info = populate(args)
     passed = test_schema(project_info)
     if passed:
         file_out = args['project'].replace(' ', '_') + '_projectInfo.json'
+        # print project json
         write_json(args, project_info,
                    file_out=file_out)
-        if args['wdl_file']:
-            write_wdl_json(args, project_info, 
-                           project_info_file=file_out)
+        # create/print WDL inputs JSON
+        write_wdl_json(args, project_info, 
+                       local=args['local'])
 
 if __name__ == "__main__":
     main()       

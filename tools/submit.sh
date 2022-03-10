@@ -1,5 +1,5 @@
 #!/bin/bash
-# USAGE: uuid=$( submit.sh -u CROMWELL_URL -w WORKFLOW -o OPTIONS_JSON -i INPUTS -d DEPENDENCIES -p PROJECT_DATA )
+# USAGE: uuid=$( submit.sh -u CROMWELL_URL -w WORKFLOW -o OPTIONS_JSON -i INPUTS -d DEPENDENCIES -p PROJECT_DATA [-l LABLES] )
 # DESCRIPTION: submit workflow to cromwell.
 # Script requires jq, cromwell-tools, gcloud to be in the path
 # Script returns the workflow uuid.
@@ -7,7 +7,7 @@
 # in the STDERR stream
 
 print_help() {
-  echo "USAGE: uuid=\$( submit.sh -u URL -w WORKFLOW -o OPTIONS_JSON -i INPUTS -d DEPENDENCIES -p PROJECT_DATA )"
+  echo "USAGE: uuid=\$( submit.sh -u URL -w WORKFLOW -o OPTIONS_JSON -i INPUTS -d DEPENDENCIES -p PROJECT_DATA [-l LABLES])"
   echo "DESCRIPTION: submit workflow to cromwell."
   echo "Script requires jq, cromwell-tools, gcloud to be in the path."
   echo "Script returns the workflow uuid."
@@ -17,11 +17,11 @@ print_help() {
 }
 
 print_usage() {
-  echo "USAGE: uuid=\$( submit.sh -u URL -w WORKFLOW -o OPTIONS_JSON -i INPUTS -d DEPENDENCIES -p PROJECT_DATA )" >&2
+  echo "USAGE: uuid=\$( submit.sh -u URL -w WORKFLOW -o OPTIONS_JSON -i INPUTS -d DEPENDENCIES -p PROJECT_DATA [-l LABLES] )" >&2
   exit 1
 }
 
-while getopts 'u:w:o:d:p:i:h' flag; do
+while getopts 'u:w:o:d:p:i:lh' flag; do
   case "${flag}" in
     u) url="${OPTARG}" ;;
     w) workflow="${OPTARG}" ;;
@@ -29,6 +29,7 @@ while getopts 'u:w:o:d:p:i:h' flag; do
     d) dependencies="${OPTARG}" ;;
     p) project_data="${OPTARG}" ;;
     i) inputs="${OPTARG}" ;;
+    l) labels="${OPTARG}" ;;
     h) print_help ;;
     \?) print_usage; echo "Unknown option: $OPTARG" >&2 ;;
     :) print_usage; echo "Missing option argument for option: $OPTARG" >&2 ;;
@@ -54,6 +55,11 @@ cmd="cromwell-tools submit --url ${url} \
 --password $(gcloud secrets versions access latest --secret="cromwell_password") \
 -w ${workflow} -i ${inputs} -o ${options} -d ${dependencies}"
 
+if [ ! -z "$labels" ]; then
+    cmd="${cmd} \
+    -l ${labels}"
+fi
+
 # submit submission...
 # run workflow...
 # echo $cmd >&2
@@ -63,13 +69,13 @@ response=$( eval $cmd )
 uuid=$( echo ${response}  | jq -r ".id")
 
 # display submission status check command...
-echo "To print the current status of the run: " >&2
+echo "# To print the current status of the run: " >&2
 echo "cromwell-tools status --url ${url} \
 --username $(gcloud secrets versions access latest --secret="cromwell_username") \
 --password $(gcloud secrets versions access latest --secret="cromwell_password") \
 --uuid ${uuid}" >&2
 
-echo "To print a detailed description of the run: " >&2
+echo "# To print a detailed description of the run: " >&2
 echo "cromwell-tools metadata --url ${url} \
 --username $(gcloud secrets versions access latest --secret="cromwell_username") \
 --password $(gcloud secrets versions access latest --secret="cromwell_password") \

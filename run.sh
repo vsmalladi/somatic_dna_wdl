@@ -4,14 +4,15 @@
 #               --url URL --log-dir LOG_DIR
 #               --project PROJECT 
 #               [--library {WGS,Exome}]
-#               [--genome {Human_GRCh38_full_analysis_set_plus_decoy_hla}]
-#               [--read-length READ_LENGTH]
+#               [--genome {Human_GRCh38_full_analysis_set_plus_decoy_hla, Human_GRCh38_tcga}]
 #               [--pairs-file PAIRS_FILE]
 #               [--samples-file SAMPLES_FILE]
+#               [--labels-file LABELS_FILE]
 #               [--interval-list {SureSelect_V6plusCOSMIC.target.GRCh38_full_analysis_set_plus_decoy_hla}]
 #               [--custom-inputs [CUSTOM_INPUTS [CUSTOM_INPUTS ...]]]
 #               [--skip-validate]
 #               [--dry-run]
+#               [--local]
 # DESCRIPTION: validate workflow, create input json and submit workflow to cromwell.
 # Script requires jq, cromwell-tools, gcloud to be in the path
 # Script returns the workflow uuid.
@@ -38,56 +39,61 @@ help_top="run.sh [-h] --options OPTIONS --wdl-file WDL_FILE
                --url URL --log-dir LOG_DIR
                --project PROJECT 
                [--library {WGS,Exome}]
-               [--genome {Human_GRCh38_full_analysis_set_plus_decoy_hla}]
-               [--read-length READ_LENGTH]
+               [--genome {Human_GRCh38_full_analysis_set_plus_decoy_hla, Human_GRCh38_tcga}]
                [--pairs-file PAIRS_FILE]
                [--samples-file SAMPLES_FILE]
+               [--labels-file LABELS_FILE]
                [--interval-list {SureSelect_V6plusCOSMIC.target.GRCh38_full_analysis_set_plus_decoy_hla}]
                [--custom-inputs [CUSTOM_INPUTS [CUSTOM_INPUTS ...]]]
                [--skip-validate]
                [--dry-run]
+               [--local]
 "
 
 help_long="-h, --help            show this help message and exit
   --url URL             Cromwell server URL (required)
   --log-dir LOG_DIR     Output directory for all logs and reports
                         related to this workflow UUID (required)
-  --options OPTIONS     Options json file (required)
+  --options OPTIONS     Options json file for cromwell (required)
   --wdl-file WDL_FILE   WDL workflow. An input JSON that matches this
                         WDL workflow will be created (required)
   --library {WGS,Exome}
                         Sequence library type.
-  --genome {Human_GRCh38_full_analysis_set_plus_decoy_hla}
+  --genome {Human_GRCh38_full_analysis_set_plus_decoy_hla, Human_GRCh38_tcga}
                         Genome key to use for pipeline.
   --project PROJECT     Project name associated with account.
-  --read-length READ_LENGTH     Required only for steps like BiqSeq2 that 
-                        use read_length as input.
   --pairs-file PAIRS_FILE
-                        JSON file with items that are required to have
-                        \"tumor\", \"normal\" sample_ids defined.
+                        CSV file with items that are required to have
+                        \"tumor\", \"normal\" and \"pairId\" in the columns.
+                        Optionally, include \"tumorBam\", \"normalBam\" columns to create 
+                        \"pairInfos\" and \"normalSampleBamInfos\" automatically.
   --samples-file [SAMPLES_FILE]
-                        Not generally required. If steps run only require
-                        sample_id and do not use pairing information sample
+                        Not generally required. If tasks only require
+                        sampleId and do not use pairing information sample
                         info can be populated with a CSV file. The CSV file
                         requires a columns named [\"sampleId\"].
   --interval-list {SureSelect_V6plusCOSMIC.target.GRCh38_full_analysis_set_plus_decoy_hla}
                         File basename for interval list.If not supplied the
                         default (the SureSelect interval list for your genome)
-                        will be used
+                        will be used (only needed for future Exome workflows)
   --custom-inputs [CUSTOM_INPUTS]
                         Optional JSON file with custom input variables. The
                         name of the variable in the input file must match the
                         name of the variable in the WDL workflow. It is not
                         required that the input specify the workflow. By
                         default the input will be added to the top-level
-                        workflow.
+                        workflow. Any variable defined in in this JSON will
+                        overwrite any reference variable in the the config 
+                        directory or workflow default.
+  --labels-file         Labels json file for cromwell (not required)
   --skip-validate       Skip the step where input files are validated.
                         Otherwise all gs//: URIs will be checked to see that a
-                        file exists. Disable with caution.Cromwell will launch
+                        file exists. Disable with caution. Cromwell will launch
                         instances and run without checking. Test a small pairs
                         file to ensure all references exist and at least some
                         sample input files can be read by the current user.
   --dry-run             Skip the step where the job is submitted to cromwell-tools.
+  --local               Submit to local cromwell server.
 "
 
 print_help() {
@@ -96,6 +102,17 @@ print_help() {
     echo "Script requires jq, cromwell-tools, gcloud to be in the path."
     echo "Script shows submission command and command to check status"
     echo "in the STDERR stream."
+  
+    echo 'Creation of input JSON:'  
+    echo 'The WDL is used to determine which variables are required. '
+    echo  'Required or optional variables are defined from custom inputs JSON. '
+    echo  'Any required variable not defined in the custom inputs JSON will be defined from the '
+    echo  'reference JSONs in the config directory (as long as the variable names are identical).'
+    echo  'The pairing/sample info CSVs (--pairs-file/--samples-file) are used to create pairRelationships and '
+    echo  '(if columns named tumorBam and normalBam exist) map BAMs to pairs. '
+    echo  'If "production" or "external" inputs are true then validation of NYGC internal-only files is skipped '
+    echo  'The pipelines are written to skip tasks that localize these files if "production" or "external" are true '
+    echo  'so any inability to read these files will not negatively affect the run.'
     echo "${help_long}"
     exit 1
 }
@@ -132,11 +149,6 @@ for arg in "$@"; do
         shift # Remove argument name from processing
         shift # Remove argument value from processing
         ;;
-        -r|--read-length)
-        read_length="$2"
-        shift # Remove argument name from processing
-        shift # Remove argument value from processing
-        ;;
         -o|--options)
         options="$2"
         shift # Remove argument name from processing
@@ -157,6 +169,11 @@ for arg in "$@"; do
         shift # Remove argument name from processing
         shift # Remove argument value from processing
         ;;
+        -z|--labels-file)
+        labels_file="$2"
+        shift # Remove argument name from processing
+        shift # Remove argument value from processing
+        ;;
         -w|--wdl-file)
         workflow="$2"
         shift # Remove argument name from processing
@@ -173,6 +190,10 @@ for arg in "$@"; do
         ;;
         -x|--dry-run)
         dry_run=1
+        shift # Remove --initialize from processing
+        ;;
+        -y|--local)
+        local=1
         shift # Remove --initialize from processing
         ;;
         -h|--help)
@@ -223,10 +244,6 @@ meta_command="python ${script_dir}/tools/meta.py \
     --genome ${genome} \
     --wdl-file ${workflow} \
     --options ${options}"
-if [ ! -z "$read_length" ]; then
-    meta_command="${meta_command} \
-    --read-length ${read_length}"
-fi
 if [ ! -z "$custom_inputs" ]; then
     meta_command="${meta_command} \
     --custom-inputs ${custom_inputs}"
@@ -248,6 +265,10 @@ if [ ! -z "$skip_validate" ]; then
     --skip-validate"
 fi
 
+if [ ! -z "$local" ]; then
+    meta_command="${meta_command} \
+    --local"
+fi
 eval ${meta_command}
 
 # zip dependencies
@@ -266,14 +287,21 @@ ${workflow}
 if [ -z "$dry_run" ]; then
     # start run:
     echo "Submit run and write log..." >&2
-    cd ${log_dir}
-    uuid=$( bash ${script_dir}/tools/submit.sh \
+    
+    submit_command="bash ${script_dir}/tools/submit.sh \
         -u ${url} \
         -w ${workflow} \
         -o ${options} \
         -d ${script_dir}/dependencies.zip \
         -p ${log_dir}/${project_id}_projectInfo.json \
-        -i ${workflow_name}Input.json )
+        -i ${workflow_name}Input.json"
+        
+    if [ ! -z "$labels_file" ]; then
+        submit_command="${submit_command} \
+        -l ${labels_file}"
+    fi
+    cd ${log_dir}
+    uuid=$( ${submit_command} )
 fi
 
 echo "Done" >&2

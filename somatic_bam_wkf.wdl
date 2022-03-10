@@ -68,16 +68,19 @@ task GetIndex {
     }
 
     runtime {
-        docker: "gcr.io/nygc-internal-tools/workflow_utils:2.0"
+        docker: "gcr.io/nygc-public/workflow_utils@sha256:b7269061a4620c6565566cbeaf61b1a58d49d26c382fa12f05f41b0e5f2e4807"
     }
 }
 
 
 workflow SomaticBamWorkflow {
     input {
+        Boolean local = false
+        
         BwaReference bwaReference
         IndexedReference referenceFa
         
+        Boolean external = false
         Boolean production = true
 
         Array[pairInfo]+ pairInfos
@@ -381,6 +384,7 @@ workflow SomaticBamWorkflow {
 
         call calling.Calling {
             input:
+                local = local,
                 mantaJsonLog = mantaJsonLog,
                 lancetJsonLog = lancetJsonLog,
                 mutectJsonLog = mutectJsonLog,
@@ -420,6 +424,22 @@ workflow SomaticBamWorkflow {
                 tumorFinalBam = pairInfo.tumorFinalBam,
                 normalFinalBam = pairInfo.normalFinalBam
         }
+        
+        PreMergedPairVcfInfo preMergedPairVcfInfo = object {
+            pairId : pairInfo.pairId,
+            filteredMantaSV : Calling.filteredMantaSV,
+            strelka2Snv : Calling.strelka2Snv,
+            strelka2Indel : Calling.strelka2Indel,
+            mutect2 : Calling.mutect2,
+            lancet : Calling.lancet,
+            svabaSv : Calling.svabaSv,
+            svabaIndel : Calling.svabaIndel,
+            tumor : pairInfo.tumor,
+            normal : pairInfo.normal,
+            tumorFinalBam : pairInfo.tumorFinalBam,
+            normalFinalBam : pairInfo.normalFinalBam
+
+        }
 
         PairRawVcfInfo pairRawVcfInfo = object {
             pairId : pairInfo.pairId,
@@ -443,7 +463,8 @@ workflow SomaticBamWorkflow {
         if (library == 'WGS') {
             call mergeVcf.MergeVcf as wgsMergeVcf {
                 input:
-                    pairRawVcfInfo = pairRawVcfInfo,
+                    external = external,
+                    preMergedPairVcfInfo = preMergedPairVcfInfo,
                     referenceFa = referenceFa,
                     listOfChroms = listOfChroms,
                     intervalListBed = intervalListBed,
@@ -456,7 +477,8 @@ workflow SomaticBamWorkflow {
         if (library == 'Exome') {
             call mergeVcf.MergeVcf as exomeMergeVcf {
                 input:
-                    pairRawVcfInfo = pairRawVcfInfo,
+                    external = external,
+                    preMergedPairVcfInfo = preMergedPairVcfInfo,
                     referenceFa = referenceFa,
                     listOfChroms = listOfChroms,
                     intervalListBed = intervalListBed,

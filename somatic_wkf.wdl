@@ -15,7 +15,6 @@ import "germline/germline_wkf.wdl" as germline
 import "annotate/germline_annotate_wkf.wdl" as germlineAnnotate
 import "baf/baf_wkf.wdl" as baf
 import "variant_analysis/deconstruct_sigs_wkf.wdl" as deconstructSigs
-import "widdleware/tasks/label_and_transfer.wdl" as dataTransfer
 
 # ================== COPYRIGHT ================================================
 # New York Genome Center
@@ -69,13 +68,15 @@ task GetIndex {
     }
 
     runtime {
-        docker: "gcr.io/nygc-internal-tools/workflow_utils:2.0"
+        docker: "gcr.io/nygc-public/workflow_utils@sha256:b7269061a4620c6565566cbeaf61b1a58d49d26c382fa12f05f41b0e5f2e4807"
     }
 }
 
 
 workflow SomaticDNA {
     input {
+        Boolean external = false
+
         BwaReference bwaReference
         IndexedReference referenceFa
         File adaptersFa
@@ -222,6 +223,7 @@ workflow SomaticDNA {
     scatter (sampleInfoObj in sampleInfos) {
         call preProcess.Preprocess {
             input:
+                external = external,
                 listOfFastqPairs = sampleInfoObj.listOfFastqPairs,
                 trim = trim,
                 adaptersFa = adaptersFa,
@@ -450,8 +452,8 @@ workflow SomaticDNA {
             }
         }
 
-        Boolean SomaticQcCheck = select_first([SomaticQcCheck.qcPass, bypassQcCheck])
-        if (SomaticQcCheck) {
+        Boolean somaticQcPass = select_first([SomaticQcCheck.qcPass, bypassQcCheck])
+        if (somaticQcPass) {
             call callingTasks.GetInsertSize as tumorGetInsertSize {
                 input:
                     insertSizeMetrics = Preprocess.insertSizeMetrics[tumorGetIndex.index]
@@ -504,6 +506,22 @@ workflow SomaticDNA {
                     normalFinalBam=Preprocess.finalBam[normalGetIndex.index]
             }
 
+            PreMergedPairVcfInfo preMergedPairVcfInfo = object {
+                pairId : pairRelationship.pairId,
+                filteredMantaSV : Calling.filteredMantaSV,
+                strelka2Snv : Calling.strelka2Snv,
+                strelka2Indel : Calling.strelka2Indel,
+                mutect2 : Calling.mutect2,
+                lancet : Calling.lancet,
+                svabaSv : Calling.svabaSv,
+                svabaIndel : Calling.svabaIndel,
+                tumor : pairRelationship.tumor,
+                normal : pairRelationship.normal,
+                tumorFinalBam : Preprocess.finalBam[tumorGetIndex.index],
+                normalFinalBam : Preprocess.finalBam[normalGetIndex.index]
+
+            }
+
             PairRawVcfInfo pairRawVcfInfo = object {
                 pairId : pairRelationship.pairId,
                 filteredMantaSV : Calling.filteredMantaSV,
@@ -526,7 +544,8 @@ workflow SomaticDNA {
             if (library == 'WGS') {
                 call mergeVcf.MergeVcf as wgsMergeVcf {
                     input:
-                        pairRawVcfInfo = pairRawVcfInfo,
+                        external = external,
+                        preMergedPairVcfInfo = preMergedPairVcfInfo,
                         referenceFa = referenceFa,
                         listOfChroms = listOfChroms,
                         intervalListBed = intervalListBed,
@@ -539,7 +558,8 @@ workflow SomaticDNA {
             if (library == 'Exome') {
                 call mergeVcf.MergeVcf as exomeMergeVcf {
                     input:
-                        pairRawVcfInfo = pairRawVcfInfo,
+                        external = external,
+                        preMergedPairVcfInfo = preMergedPairVcfInfo,
                         referenceFa = referenceFa,
                         listOfChroms = listOfChroms,
                         intervalListBed = intervalListBed,
@@ -650,6 +670,7 @@ workflow SomaticDNA {
       }
     }
 
+
     FinalWorkflowOutput workflowOutput = object {
         # alignment and calling results (calling results may not exist if qc failed)
         # SNV INDELs CNV SV and BAM output
@@ -697,7 +718,6 @@ workflow SomaticDNA {
         qualityByCycleMetricsPreBqsr: Preprocess.qualityByCycleMetricsPreBqsr,
         qualityByCyclePdfPreBqsr: Preprocess.qualityByCyclePdfPreBqsr,
         qualityDistributionMetricsPreBqsr: Preprocess.qualityDistributionMetricsPreBqsr,
-        dedupLog: Preprocess.dedupLog,
 
         # Conpair
         concordanceAll: Conpair.concordanceAll,
@@ -715,17 +735,9 @@ workflow SomaticDNA {
         alleleCountsTxt: Baf.alleleCountsTxt
     }
 
-
-    File tmpFile = write_json(workflowOutput)
-    call dataTransfer.LabelAndTransfer {
-        input:
-            workflowOutput = read_string(tmpFile),
-            bypassQcCheck = bypassQcCheck,
-            allQcPass = SomaticQcCheck
-    }
-
     output {
        FinalWorkflowOutput finalOutput = workflowOutput
+       Array[Boolean] allQcPass = somaticQcPass
     }
 
 }
@@ -745,7 +757,7 @@ task BamQcCheck {
     }
 
     runtime {
-        docker: "gcr.io/nygc-internal-tools/workflow_utils:3.0"
+        docker: "gcr.io/nygc-public/workflow_utils@sha256:b7269061a4620c6565566cbeaf61b1a58d49d26c382fa12f05f41b0e5f2e4807"
     }
 }
 
@@ -779,6 +791,6 @@ task SomaticQcCheck {
     }
 
     runtime {
-        docker: "gcr.io/nygc-internal-tools/workflow_utils:3.0"
+        docker: "gcr.io/nygc-public/workflow_utils@sha256:b7269061a4620c6565566cbeaf61b1a58d49d26c382fa12f05f41b0e5f2e4807"
     }
 }
