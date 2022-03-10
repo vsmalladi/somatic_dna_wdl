@@ -15,7 +15,6 @@ import "germline/germline_wkf.wdl" as germline
 import "annotate/germline_annotate_wkf.wdl" as germlineAnnotate
 import "baf/baf_wkf.wdl" as baf
 import "variant_analysis/deconstruct_sigs_wkf.wdl" as deconstructSigs
-import "widdleware/tasks/label_and_transfer.wdl" as dataTransfer
 
 # ================== COPYRIGHT ================================================
 # New York Genome Center
@@ -453,8 +452,8 @@ workflow SomaticDNA {
             }
         }
 
-        Boolean SomaticQcCheck = select_first([SomaticQcCheck.qcPass, bypassQcCheck])
-        if (SomaticQcCheck) {
+        Boolean somaticQcPass = select_first([SomaticQcCheck.qcPass, bypassQcCheck])
+        if (somaticQcPass) {
             call callingTasks.GetInsertSize as tumorGetInsertSize {
                 input:
                     insertSizeMetrics = Preprocess.insertSizeMetrics[tumorGetIndex.index]
@@ -668,7 +667,6 @@ workflow SomaticDNA {
 
         }
 
-
       }
     }
 
@@ -676,7 +674,6 @@ workflow SomaticDNA {
     FinalWorkflowOutput workflowOutput = object {
         # alignment and calling results (calling results may not exist if qc failed)
         # SNV INDELs CNV SV and BAM output
-
         finalPairInfo: finalPairInfos,
 
         # MSI
@@ -721,7 +718,6 @@ workflow SomaticDNA {
         qualityByCycleMetricsPreBqsr: Preprocess.qualityByCycleMetricsPreBqsr,
         qualityByCyclePdfPreBqsr: Preprocess.qualityByCyclePdfPreBqsr,
         qualityDistributionMetricsPreBqsr: Preprocess.qualityDistributionMetricsPreBqsr,
-        dedupLog: Preprocess.dedupLog,
 
         # Conpair
         concordanceAll: Conpair.concordanceAll,
@@ -729,7 +725,6 @@ workflow SomaticDNA {
         contamination: Conpair.contamination,
         tumorPileup: Conpair.tumorPileup,
         normalPileup: Conpair.normalPileup,
-
 
         # Germline
         kouramiResult: Kourami.result,
@@ -740,17 +735,9 @@ workflow SomaticDNA {
         alleleCountsTxt: Baf.alleleCountsTxt
     }
 
-
-    File tmpFile = write_json(workflowOutput)
-    call dataTransfer.LabelAndTransfer {
-        input:
-            workflowOutput = read_string(tmpFile),
-            bypassQcCheck = bypassQcCheck,
-            allQcPass = SomaticQcCheck
-    }
-
     output {
        FinalWorkflowOutput finalOutput = workflowOutput
+       Array[Boolean] allQcPass = somaticQcPass
     }
 
 }
