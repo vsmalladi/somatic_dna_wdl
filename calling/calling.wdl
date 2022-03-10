@@ -330,7 +330,7 @@ task MantaWgsPon {
         mem: memoryGb + "G"
         cpus: threads
         cpu : threads
-        disks: "local-disk " + diskSize + " LOCAL"
+        disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/manta@sha256:e171112cccf6758693b7a8aab80000fe6121d6969ce83e14a4e15fbc5f2f3662"
     }
@@ -622,7 +622,7 @@ task Mutect2WgsPon {
         mem: memoryGb + "G"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/broadinstitute/gatk@sha256:d78b14aa86b42638fe2844def82816d002a134cc19154a21dac7067ecb3c7e06"
-        disks: "local-disk " + diskSize + " LOCAL"
+        disks: "local-disk " + diskSize + " HDD"
     }
 }
 
