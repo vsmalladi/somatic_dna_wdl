@@ -10,6 +10,9 @@ workflow MergeCallersPon {
         String tumor
         Array[String]+ listOfChroms
         Array[IndexedVcf]+ allVcfCompressed
+        
+        # Script
+        File mergeColumnsPon
     }
 
     scatter(vcfCompressed in allVcfCompressed) {
@@ -23,7 +26,7 @@ workflow MergeCallersPon {
                 chrom = chrom,
                 pairName = tumor,
                 allVcfCompressed = allVcfCompressed,
-                allVcfCompressedList = allVcfCompressedList
+                allVcfCompressedList = allVcfCompressedList,
         }
 
         #  =================================================================
@@ -34,7 +37,8 @@ workflow MergeCallersPon {
             input:
                 chrom = chrom,
                 tumor = tumor,
-                supportedChromVcf = allMergeCallers.mergedChromVcf
+                supportedChromVcf = allMergeCallers.mergedChromVcf,
+                MergeColumnsPon = mergeColumnsPon
         }
     }
 
