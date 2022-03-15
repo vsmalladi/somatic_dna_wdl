@@ -71,8 +71,8 @@ workflow PonWrapper {
     SampleBamInfo tumorInfo = object {
        sampleId : sampleId,
        finalBam :  {
-            "bam": downloadFiles.bam[0],
-            "bamIndex": downloadFiles.bai[0]
+            "bam": downloadFiles.bam,
+            "bamIndex": downloadFiles.bai
         }
     }
 
@@ -148,17 +148,20 @@ task downloadFiles {
         String bamPath
         String baiPath
         String project
+        String baseName = basename(bamPath)
     }
 
     command {
         set -e
-        gsutil -u ~{project} -m cp ~{bamPath} .
-        gsutil -u ~{project} -m cp ~{baiPath} .
+        mkdir output
+        gsutil -u ~{project} -m cp ~{bamPath} output/
+        gsutil -u ~{project} -m cp ~{baiPath} output/
+
     }
 
     output {
-        Array[File] bam = glob("*.cram")
-        Array[File] bai = glob("*.crai")
+        File bam = "output/~{baseName}"
+        File bai = "output/~{baseName}.crai"
     }
 
   runtime {
