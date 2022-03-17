@@ -565,9 +565,6 @@ class RunData():
         self.run_info = run_info
         if 'options' in self.run_info['project_data']:
             self.options = self.run_info['project_data']['options']
-        else:
-            self.options = {"use_relative_output_paths" : True,
-                            "final_workflow_outputs_dir": 'gs://unknown_final_workflow_outputs_dir/'}
         self.project_info = self.run_info['project_data']
         self.passed = meta.test_schema(self.project_info)
         self.workflow_uuid = self.run_info['workflow_uuid']
@@ -577,7 +574,7 @@ class RunData():
     def read(file):
         with open(file) as project_info_file:
             project_info = json.load(project_info_file)
-            return project_info
+        return project_info
 
 
 def get_args():
@@ -591,21 +588,15 @@ def get_args():
                         'genome build, library and interval list information',
                         required=True
                         )
-    parser.add_argument('--multi',
-                        help='Records for multiple runs are stored in the JSON file with RunInfo.',
-                        required=False,
-                        action='store_true'
-                        )
     parser.add_argument('--large-run',
                         help='Query one subworkflow at a time to avoid timeouts.',
                         required=False,
                         action='store_true'
                         )
-    parser.add_argument('--name',
-                        default='nygc_pipeline',
-                        help='Use with the --multi flag to name the output.',
-                        required=False
-                        )
+    parser.add_argument('--output-info-file',
+                    help='Output file name *_outputInfo.json',
+                    required=True
+                    )
     parser.add_argument('--url',
                         help='URL for cromwell server.',
                         required=True
@@ -622,27 +613,18 @@ def get_args():
 
 def main():
     args = get_args()
-    run_infos = RunData.read(args['run_data'])
-    if not args['multi']:
-        run_infos = [run_infos]
-    output_files = []
-    for run_info in run_infos:
-        run_data = RunData(run_info=run_info)
-        results = CloudOutput.get_gcp_project(args['gcp_project'])
-        credentials, gcp_project, default_project, gcp_query_project = results
-        file_out = gcp_query_project.replace(' ', '_') + '.' +  run_data.run_info['workflow_uuid'] + '_outputInfo.json'
-        output_files.append(file_out)
-        if not os.path.isfile(file_out):
-            outputs = CloudOutput(run_data=run_data, 
-                                  url=args['url'],
-                                  gcp_project=gcp_query_project,
-                                  large_run=args['large_run'])
-            with open(file_out, 'w') as project_info_file:
-                json.dump(outputs.run_data.run_info, project_info_file, indent=4)
-    if args['multi']:
-        with open(args['name'] + '_outputInfoManifest.txt', 'w') as out:
-            for file in output_files:
-                out.write(file + '\n')
+    run_info = RunData.read(args['run_data'])
+    run_data = RunData(run_info=run_info)
+    results = CloudOutput.get_gcp_project(args['gcp_project'])
+    credentials, gcp_project, default_project, gcp_query_project = results
+    file_out = args['output_info_file']
+    if not os.path.isfile(file_out):
+        outputs = CloudOutput(run_data=run_data,
+                              url=args['url'],
+                              gcp_project=gcp_query_project,
+                              large_run=args['large_run'])
+        with open(file_out, 'w') as project_info_file:
+            json.dump(outputs.run_data.run_info, project_info_file, indent=4)
 
 
 if __name__ == "__main__":
