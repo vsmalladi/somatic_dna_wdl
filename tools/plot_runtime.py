@@ -187,9 +187,13 @@ class PlotRuntime():
         self.exit_status = exit_status[exit_status.backend_status != 'Success']
         self.exit_status.columns = ['Task', 'Exit status', 'Count']
         # preemptible percentage
-        self.preemptible_percent = self.metadata[self.metadata.preemptible].shape[0] / float(self.metadata.shape[0])
+        print(self.metadata.preemptible.unique())
+#         print(self.metadata.shape)
+        testable = self.metadata.dropna(subset=['preemptible'])
+        self.preemptible_percent = testable[testable.preemptible].shape[0] / float(testable.shape[0])
         # disk type
-        self.metadata['disk_type']= self.metadata.apply(lambda row: row.disk_types.replace('[\'', '').replace('\']', ''), axis=1)
+        self.metadata['disk_type']= self.metadata.apply(lambda row: row.disk_types.replace('[\'', '').replace('\']', '') 
+                                                        if str(row.disk_types) != 'nan' else '', axis=1)
         self.disk_type = self.metadata.groupby(['task_call_name', 'id', 'instance_name', 'disk_type']).sample_task_run_time_h.sum().reset_index()
         self.disk_type.columns = ['Task', 'Id', 'Instance name', 'Disk type', 'Wall clock (h)']
         

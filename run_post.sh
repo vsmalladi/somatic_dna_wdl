@@ -126,11 +126,6 @@ runtime_command="time python ${wdl_dir}/tools/runtime.py \
     --metrics-file-prefix ${log_dir}/${project_id}. \
     --url ${url} \
     --gcp-project ${project_id}"
-    
-if [ ! -z "$large_run" ]; then
-    runtime_command="${runtime_command} \
-    --large-run"
-fi
 
 eval ${runtime_command}
 

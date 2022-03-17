@@ -252,18 +252,20 @@ class CloudOutput():
         # login
         results = self.get_gcp_project(gcp_project)
         self.credentials, self.gcp_project, self.default_project, self.gcp_query_project = results
+        self.metadata = self.read_api(goal='get_main_metadata')
         if 'options' in self.run_data.run_info:
             self.options = self.run_data.run_info['options']
         else:
-            self.options = self.get_options(uuid=self.workflow_uuid)
+            self.options = self.get_options(self.metadata)
+        self.status = self.metadata['status']
         # get root dir
-        self.root_dir = self.read_api(goal='get_root')
+        self.root_dir = self.metadata['workflowRoot']
         # fast get calls from API to search for uuids
         self.uri_list = self.list_uris()
         self.all_sub_workflow_uuids = list(set([uri for uri in self.get_uuid_from_uri(self.uri_list)]))
         self.run_data.run_info['sub_workflow_uuids'] = self.all_sub_workflow_uuids
         # get API outputs section
-        self.raw_outputs = self.read_api()
+        self.raw_outputs = self.metadata['outputs']
         # get files (named and unnamed) from API outputs section
         self.parse_block()
         self.unnamed_files = self.gather_unnamed()
@@ -278,19 +280,22 @@ class CloudOutput():
         if not 'run_date' in self.run_data.project_info:
             run_date = self.get_run_date()
             self.run_data.project_info['run_date'] = run_date
+        self.run_data.run_info['status'] = self.status
         self.run_data.run_info['run_date'] = self.run_data.project_info['run_date']
         self.run_data.run_info['pair_association'] = self.pair_association
         self.run_data.run_info['sample_association'] = self.sample_association
         self.run_data.run_info['outputs'] = self.named_outputs
         self.run_data.run_info['named_files'] = self.named_files
         self.run_data.run_info['unnamed_files'] = self.unnamed_files
+        self.run_data.run_info['options'] = self.options
         
-    def get_options(self, uuid):
-        metadata = self.load_uuid_api(uuid,
-                                      script='/get_main_metadata.sh')
-        options_string = metadata['submittedFiles']['options']
-        options = json.loads(options_string)
-        return options
+    def get_options(self, metadata):
+#         metadata = self.load_uuid_api(uuid,
+#                                       script='/get_main_metadata.sh')
+        if metadata:
+            options_string = metadata['submittedFiles']['options']
+            options = json.loads(options_string)
+            return options
         
     @staticmethod
     def get_gcp_project(args_gcp_project):
@@ -432,7 +437,7 @@ class CloudOutput():
         '''
         Get all top level sub workflow uuids
         '''
-        run_date = self.read_api(goal='get_run_date')
+        run_date = self.metadata['start']
         run_date = run_date.replace('"', '').split('T')[0]
         return run_date
         
@@ -528,6 +533,8 @@ class CloudOutput():
             script = self.parent_dir + '/get_root.sh'
         elif goal == 'get_uuids':
             script = self.parent_dir + '/get_uuids.sh'
+        elif goal == 'get_main_metadata':
+            script = self.parent_dir + '/get_main_metadata.sh'
         else:
             log.error("unknown read_api task: " + str(goal))
             sys.exit(1)
