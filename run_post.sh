@@ -1,5 +1,5 @@
 #!/bin/bash
-# USAGE: run_post.sh -u URL -p PROJECT_ID -d LOG_DIR [-r RUNINFO_JSON] [-l]
+# USAGE: run_post.sh -u URL -p PROJECT_NAME -g GCP_PROJECT -d LOG_DIR [-r RUNINFO_JSON] [-l]
 # DESCRIPTION: submit workflow to cromwell.
 # Use -l for large jobs that may timeout.
 # Script requires jq, cromwell-tools, gcloud to be in the path
@@ -20,6 +20,7 @@
 #    Minita Shah (mshah@nygenome.org)
 #    Timothy Chu (tchu@nygenome.org)
 #    Will Hooper (whooper@nygenome.org)
+#    James Roche (jroche@nygenome.org)
 #
 # ================== /COPYRIGHT ===============================================
 
@@ -29,7 +30,7 @@ wdl_dir=$( pwd )
 
     
 print_help() {
-  echo "USAGE: run_post.sh -u URL -p PROJECT_ID -d LOG_DIR [-r RUNINFO_JSON] [-l]" >&2
+  echo "USAGE: run_post.sh -u URL -p PROJECT_NAME -g GCP_PROJECT -d LOG_DIR [-r RUNINFO_JSON] [-l]" >&2
   echo "DESCRIPTION: submit workflow to cromwell." >&2
   echo "Use -l for large jobs that may timeout." >&2
   echo "Script requires jq, cromwell-tools, gcloud to be in the path." >&2
@@ -41,16 +42,17 @@ print_help() {
 }
 
 print_usage() {
-  echo "USAGE: run_post.sh -u URL -p PROJECT_ID -d log_dir [-r RUNINFO_JSON] [-l]" >&2
+  echo "USAGE: run_post.sh -u URL -p PROJECT_NAME -g GCP_PROJECT -d log_dir [-r RUNINFO_JSON] [-l]" >&2
   exit 1
 }
 
 
-while getopts 'u:p:d:r:lh' flag; do
+while getopts 'u:p:g:d:r:lh' flag; do
   case "${flag}" in
     l) large_run="true" ;;
     u) url="${OPTARG}" ;;
-    p) project_id="${OPTARG}" ;;
+    p) project_name="${OPTARG}" ;;
+    g) gcp_project="${OPTARG}" ;;
     r) run_info_json="${OPTARG}" ;;
     d) log_dir="${OPTARG}" ;;
     h) print_help ;;
@@ -71,8 +73,8 @@ if [ -z "$url" ]; then
     exit 1
 fi
 
-if [ -z "$project_id" ]; then
-    echo "Error: Missing required value for -p project_id" >&2
+if [ -z "$project_name" ]; then
+    echo "Error: Missing required value for -p project_name" >&2
     print_usage
     exit 1
 fi
@@ -90,22 +92,23 @@ set -o pipefail
 cd ${log_dir}
 workflow_uuid=$( cat ${run_info_json} | jq .workflow_uuid | sed 's/"//g' )
 
-output_info_file="${log_dir}/${project_id}.${workflow_uuid}_outputInfo.json"
-metrics_file="${log_dir}/${project_id}.${workflow_uuid}_outputMetrics.csv"
-non_retried_metrics_file="${log_dir}/${project_id}.${workflow_uuid}_outputMetrics.non_retried.csv"
-plot_file="${log_dir}/${project_id}.${workflow_uuid}_outputMetrics.html"
+output_info_file="${log_dir}/${project_name}.${workflow_uuid}_outputInfo.json"
+metrics_file="${log_dir}/${project_name}.${workflow_uuid}_outputMetrics.csv"
+non_retried_metrics_file="${log_dir}/${project_name}.${workflow_uuid}_outputMetrics.non_retried.csv"
+plot_file="${log_dir}/${project_name}.${workflow_uuid}_outputMetrics.html"
 nav="${wdl_dir}/pandoc/nav_wgs_v7"
 pandoc_dir="${wdl_dir}/pandoc/"
-md="${log_dir}/${project_id}.${workflow_uuid}_outputMetrics.md"
-html="${log_dir}/${project_id}.${workflow_uuid}_outputMetrics.html"
-header="${log_dir}/${project_id}.${workflow_uuid}_outputMetrics.header.txt"
+md="${log_dir}/${project_name}.${workflow_uuid}_outputMetrics.md"
+html="${log_dir}/${project_name}.${workflow_uuid}_outputMetrics.html"
+header="${log_dir}/${project_name}.${workflow_uuid}_outputMetrics.header.txt"
 
 
 echo "Collect subworkflow uuids..."
 collect_command="time python ${wdl_dir}/tools/collect.py \
 --run-data ${run_info_json} \
 --url ${url} \
---gcp-project ${project_id}"
+--output-info-file ${output_info_file} \
+--gcp-project ${gcp_project}"
 
 
 if [ ! -z "$large_run" ]; then
@@ -123,15 +126,15 @@ fi
 echo "Gather usage metrics..."
 runtime_command="time python ${wdl_dir}/tools/runtime.py \
     --output-info-file ${output_info_file} \
-    --metrics-file-prefix ${log_dir}/${project_id}. \
+    --metrics-file-prefix ${log_dir}/${project_name}. \
     --url ${url} \
-    --gcp-project ${project_id}"
+    --gcp-project ${gcp_project}"
 
 eval ${runtime_command}
 
 echo "Plot usage metrics..." 
 python ${wdl_dir}/tools/plot_runtime.py \
-    --name ${project_id} \
+    --name ${project_name} \
     --output-info ${output_info_file} \
     --metrics ${metrics_file} \
     --non-retry-metrics ${non_retried_metrics_file} \
