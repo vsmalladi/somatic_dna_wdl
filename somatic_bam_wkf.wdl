@@ -284,7 +284,7 @@ workflow SomaticBamWorkflow {
         call germlineAnnotate.GermlineAnnotate as unFilteredGermlineAnnotate {
             input:
                 unannotatedVcf = Germline.haplotypecallerVcf,
-                haplotypecallerAnnotatedVcfPath = "~{normalSampleBamInfo.sampleId}.haplotypecaller.gatk.v4.1.8.0.annotated.unfiltered.vcf",
+                haplotypecallerAnnotatedVcfPath = "~{normalSampleBamInfo.sampleId}.haplotypecaller.gatk.annotated.unfiltered.vcf",
                 production = production,
                 referenceFa = referenceFa,
                 normal = normalSampleBamInfo.sampleId,
@@ -384,7 +384,6 @@ workflow SomaticBamWorkflow {
 
         call calling.Calling {
             input:
-                local = local,
                 mantaJsonLog = mantaJsonLog,
                 lancetJsonLog = lancetJsonLog,
                 mutectJsonLog = mutectJsonLog,

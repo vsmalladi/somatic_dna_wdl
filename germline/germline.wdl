@@ -60,8 +60,8 @@ task GentotypeGvcfsGatk4 {
         IndexedVcf sortedVcf
         String sampleId
         String index
-        String haplotypecallerGenoVcfPath = "~{sampleId}.~{index}.haplotypecaller.gatk.v4.1.8.0.genotypedGVCFs.vcf.gz"
-        String haplotypecallerFilteredGenoVcfPath = "~{sampleId}.~{index}.haplotypecaller.gatk.v4.1.8.0.filtered.genotypedGVCFs.vcf.gz"
+        String haplotypecallerGenoVcfPath = "~{sampleId}.~{index}.haplotypecaller.gatk.genotypedGVCFs.vcf.gz"
+        String haplotypecallerFilteredGenoVcfPath = "~{sampleId}.~{index}.haplotypecaller.gatk.filtered.genotypedGVCFs.vcf.gz"
         File scatterIntervalsHc
 
         ## Inputs for haplotypecaller
@@ -137,8 +137,8 @@ task genotypeRefinementWorkflow {
     input {
         String sampleId
         IndexedVcf genotypedGatk4
-        String haplotypecallerAfVcfPath = "~{sampleId}.haplotypecaller.gatk.v4.1.8.0.af.vcf.gz"
-        String haplotypecallerAfGqFilteredVcfPath = "~{sampleId}.haplotypecaller.gatk.v4.1.8.0.af-gq-filtered.vcf.gz"
+        String haplotypecallerAfVcfPath = "~{sampleId}.haplotypecaller.gatk.af.vcf.gz"
+        String haplotypecallerAfGqFilteredVcfPath = "~{sampleId}.haplotypecaller.gatk.af-gq-filtered.vcf.gz"
         IndexedReference referenceFa
         Int memoryGb = 16
         Int diskSize = (ceil( size(genotypedGatk4.vcf, "GB") ) * 4 ) + 20
@@ -209,7 +209,7 @@ task filterHO {
             IndexedVcf chdWhitelistVcf
             IndexedVcf deepIntronicsVcf
             IndexedVcf clinvarIntronicsVcf
-            String haplotypecallerFinalFilteredPath = "~{sampleId}.haplotypecaller.gatk.v4.1.8.0.final.filtered.vcf.gz"
+            String haplotypecallerFinalFilteredPath = "~{sampleId}.haplotypecaller.gatk.final.filtered.vcf.gz"
             Int diskSize = 100
             Int threads = 2
             Int memoryGb = 8

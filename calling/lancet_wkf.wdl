@@ -40,7 +40,7 @@ workflow Lancet {
 
     call calling.Gatk4MergeSortVcf {
         input:
-            sortedVcfPath = "~{pairName}.lancet.v1.0.7.sorted.vcf",
+            sortedVcfPath = "~{pairName}.lancet.sorted.vcf",
             tempChromVcfs = LancetWGSRegional.lancetChromVcf,
             referenceFa = referenceFa,
             memoryGb = 8,
@@ -60,7 +60,7 @@ workflow Lancet {
             tumor = tumor,
             normal = normal,
             rawVcf = lancetAddVcfCommand.outVcf,
-            orderedVcfPath = "~{pairName}.lancet.v1.0.7.vcf",
+            orderedVcfPath = "~{pairName}.lancet.vcf",
             memoryGb = 4,
             diskSize = 10
     }

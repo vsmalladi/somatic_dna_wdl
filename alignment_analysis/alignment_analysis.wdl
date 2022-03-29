@@ -136,7 +136,7 @@ task MantisRethreshold {
     }
 
     runtime {
-        docker : "gcr.io/nygc-public/somatic_tools@sha256:46ab81b8dc09d6f8cf90c81f7d5692f23d73c134df6dbcd5298abde7f414dce3"
+        docker : "gcr.io/nygc-public/somatic_tools@sha256:9ae77f7d96a3c100319cf0fac2429f8f84301003480b7b7eb72994ca9f358512"
     }
 }
 
@@ -358,9 +358,9 @@ task SortFastqs {
 
 task AlignToPanel {
     input {
-        Int threads = 10
-        Int bwaThreads = 8
-        Int samtoolsSortThreads = 2
+        Int threads = 8
+        Int bwaThreads = 4
+        Int samtoolsSortThreads = 4
         Int memoryGb = 4
         Int diskSize = 4
         String sampleId
@@ -401,22 +401,29 @@ task AlignToPanel {
 
 task Kourami {
     input {
-        Int threads = 16
+        Int threads = 1
         Int memoryGb = 8
         String sampleId
         File kouramiBam
+        String originalResultPath = "~{sampleId}.result"
+        String resultPath = "~{sampleId}.kourami.result"
     }
 
     command {
+        set -e -o pipefail
+        
         java \
         -jar /Kourami.jar \
         -d /kourami-0.9.6/db/ \
         -o ~{sampleId} \
         ~{kouramiBam}
+        
+        mv ~{originalResultPath} \
+        ~{resultPath}
     }
 
     output {
-        File result = "~{sampleId}.result"
+        File result = "~{resultPath}"
     }
 
     runtime {

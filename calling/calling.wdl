@@ -161,7 +161,7 @@ task AddCommandReorderColumnsVcf {
         mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/somatic_tools@sha256:46ab81b8dc09d6f8cf90c81f7d5692f23d73c134df6dbcd5298abde7f414dce3"
+        docker : "gcr.io/nygc-public/somatic_tools@sha256:9ae77f7d96a3c100319cf0fac2429f8f84301003480b7b7eb72994ca9f358512"
     }
 }
 
@@ -191,7 +191,7 @@ task ReorderVcfColumns {
         mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/somatic_tools@sha256:46ab81b8dc09d6f8cf90c81f7d5692f23d73c134df6dbcd5298abde7f414dce3"
+        docker : "gcr.io/nygc-public/somatic_tools@sha256:9ae77f7d96a3c100319cf0fac2429f8f84301003480b7b7eb72994ca9f358512"
     }
 }
 
@@ -220,7 +220,7 @@ task AddVcfCommand {
         mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/somatic_tools@sha256:46ab81b8dc09d6f8cf90c81f7d5692f23d73c134df6dbcd5298abde7f414dce3"
+        docker : "gcr.io/nygc-public/somatic_tools@sha256:9ae77f7d96a3c100319cf0fac2429f8f84301003480b7b7eb72994ca9f358512"
     }
 }
 
@@ -327,7 +327,7 @@ task MantaWgsPon {
         mem: memoryGb + "G"
         cpus: threads
         cpu : threads
-        disks: "local-disk " + diskSize + " LOCAL"
+        disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/manta@sha256:e171112cccf6758693b7a8aab80000fe6121d6969ce83e14a4e15fbc5f2f3662"
     }
@@ -339,7 +339,7 @@ task FilterNonpass {
         Int memoryGb = 8
         Int diskSize
         String pairName
-        String outVcfPath = "~{pairName}.manta.v1.4.0.filtered.unorder.vcf"
+        String outVcfPath = "~{pairName}.manta.filtered.unorder.vcf"
         IndexedReference referenceFa
         File vcf
     }
@@ -374,7 +374,7 @@ task FilterNonpassPon {
         Int memoryGb = 8
         Int diskSize
         String pairName
-        String outVcfPath = "~{pairName}.manta.v1.4.0.filtered.unorder.vcf"
+        String outVcfPath = "~{pairName}.manta.filtered.unorder.vcf"
         IndexedReference referenceFa
         IndexedVcf vcf
     }
@@ -466,7 +466,7 @@ task LancetWGSRegional {
         Int memoryGb
         String pairName
         String chrom
-        String lancetChromVcfPath = "~{pairName}_~{chrom}.lancet.v1.0.7.vcf"
+        String lancetChromVcfPath = "~{pairName}_~{chrom}.lancet.vcf"
         IndexedReference referenceFa
         File chromBed
         Bam normalFinalBam
@@ -510,7 +510,7 @@ task LancetExome {
         Int memoryGb
         String pairName
         String chrom
-        String lancetChromVcfPath = "~{pairName}_~{chrom}.lancet.v1.0.7.vcf"
+        String lancetChromVcfPath = "~{pairName}_~{chrom}.lancet.vcf"
         IndexedReference referenceFa
         File chromBed
         Bam normalFinalBam
@@ -555,7 +555,7 @@ task Mutect2Wgs {
         String tumor
         String normal
         String pairName
-        String mutect2ChromRawVcfPath = "~{pairName}_~{chrom}.mutect2.v4.0.5.1.raw.vcf"
+        String mutect2ChromRawVcfPath = "~{pairName}_~{chrom}.mutect2.raw.vcf"
         IndexedReference referenceFa
         Bam normalFinalBam
         Bam tumorFinalBam
@@ -592,7 +592,7 @@ task Mutect2WgsPon {
         Int diskSize
         String chrom
         String tumor
-        String mutect2ChromRawVcfPath = "~{tumor}_~{chrom}.mutect2.v4.0.5.1.raw.vcf"
+        String mutect2ChromRawVcfPath = "~{tumor}_~{chrom}.mutect2.raw.vcf"
         IndexedReference referenceFa
         Bam tumorFinalBam
     }
@@ -616,7 +616,7 @@ task Mutect2WgsPon {
         mem: memoryGb + "G"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/broadinstitute/gatk@sha256:d78b14aa86b42638fe2844def82816d002a134cc19154a21dac7067ecb3c7e06"
-        disks: "local-disk " + diskSize + " LOCAL"
+        disks: "local-disk " + diskSize + " HDD"
     }
 }
 
@@ -626,7 +626,7 @@ task Mutect2Filter {
         Int diskSize = 5
         String pairName
         String chrom
-        String mutect2ChromVcfPath = "~{pairName}_~{chrom}.mutect2.v4.0.5.1.vcf"
+        String mutect2ChromVcfPath = "~{pairName}_~{chrom}.mutect2.vcf"
         IndexedReference referenceFa
         File mutect2ChromRawVcf
     }
@@ -1009,8 +1009,8 @@ task Bicseq2Wgs {
     input {
         Int memoryGb
         String pairName
-        String bicseq2PngPath = "~{pairName}.bicseq2.v0.2.6.png"
-        String bicseq2Path = "~{pairName}.bicseq2.v0.2.6.txt"
+        String bicseq2PngPath = "~{pairName}.bicseq2.png"
+        String bicseq2Path = "~{pairName}.bicseq2.txt"
         Array[File] tempTumorNorms
         Array[File] tempNormalNorms
         File bicseq2SegConfigFile
@@ -1043,8 +1043,8 @@ task Bicseq2Wgs {
     }
 
     output {
-        File bicseq2Png = "~{pairName}.bicseq2.v0.2.6.png"
-        File bicseq2 = "~{pairName}.bicseq2.v0.2.6.txt"
+        File bicseq2Png = "~{pairName}.bicseq2.png"
+        File bicseq2 = "~{pairName}.bicseq2.txt"
     }
 
     runtime {
@@ -1286,7 +1286,7 @@ task GridssCalling {
         Int diskSize = 700
         String pairName
         String gridssassemblyBamPath = "~{pairName}.gridssassembly.bam"
-        String gridssUnfilteredVcfPath = "~{pairName}.sv.gridss.v2.10.2.unfiltered.vcf"
+        String gridssUnfilteredVcfPath = "~{pairName}.sv.gridss.unfiltered.vcf"
         BwaReference bwaReference
         Array[File] gridssAdditionalReference
         Array[File] downsampled
@@ -1361,7 +1361,7 @@ task GridssCalling {
     }
 
     output {
-        File gridssUnfilteredVcf = "~{pairName}.sv.gridss.v2.10.2.unfiltered.vcf"
+        File gridssUnfilteredVcf = "~{pairName}.sv.gridss.unfiltered.vcf"
     }
 
     runtime {
@@ -1374,6 +1374,35 @@ task GridssCalling {
     }
 }
 
+task FilterNonChroms {
+    input {
+        Int diskSize
+        Int memoryGb
+        File gridssUnfilteredVcf
+        String pairName
+        String gridssUnfilteredVcfChromsPath = "~{pairName}.sv.gridss.unfiltered.chroms.vcf"
+        Array[String]+ listOfChroms
+    }
+
+    command {
+        python \
+        /vcf_filter.py \
+        --vcf-file ~{gridssUnfilteredVcf} \
+        --output ~{gridssUnfilteredVcfChromsPath} \
+        --chroms ~{sep=" " listOfChroms}
+    }
+
+    output {
+        File gridssUnfilteredVcfChroms = "~{gridssUnfilteredVcfChromsPath}"
+    }
+
+    runtime {
+        disks: "local-disk " + diskSize + " HDD"
+        memory : memoryGb + "GB"
+        docker : "gcr.io/nygc-public/somatic_tools@sha256:9ae77f7d96a3c100319cf0fac2429f8f84301003480b7b7eb72994ca9f358512"
+    }
+}
+
 task GridssFilter {
     input {
         Int threads
@@ -1382,8 +1411,8 @@ task GridssFilter {
         String bsGenome
         String pairName
         File ponTarGz
-        String gridssVcfPath = "~{pairName}.sv.gridss.v2.10.2.vcf"
-        String gridssVcfPathOut = "~{pairName}.sv.gridss.v2.10.2.vcf.bgz"
+        String gridssVcfPath = "~{pairName}.sv.gridss.vcf"
+        String gridssVcfPathOut = "~{pairName}.sv.gridss.vcf.bgz"
         String tumourordinal = 2
         File gridssUnfilteredVcf
     }

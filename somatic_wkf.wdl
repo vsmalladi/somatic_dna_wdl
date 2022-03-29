@@ -336,7 +336,7 @@ workflow SomaticDNA {
             call germlineAnnotate.GermlineAnnotate as unFilteredGermlineAnnotate {
                 input:
                     unannotatedVcf = Germline.haplotypecallerVcf,
-                    haplotypecallerAnnotatedVcfPath = "~{sampleInfoObj.sampleId}.haplotypecaller.gatk.v4.1.8.0.annotated.unfiltered.vcf",
+                    haplotypecallerAnnotatedVcfPath = "~{sampleInfoObj.sampleId}.haplotypecaller.gatk.annotated.unfiltered.vcf",
                     production = production,
                     referenceFa = referenceFa,
                     normal = sampleInfoObj.sampleId,
