@@ -47,17 +47,43 @@ print_usage() {
 }
 
 
-while getopts 'u:p:g:d:r:lh' flag; do
-  case "${flag}" in
-    l) large_run="true" ;;
-    u) url="${OPTARG}" ;;
-    p) project_name="${OPTARG}" ;;
-    g) gcp_project="${OPTARG}" ;;
-    r) run_info_json="${OPTARG}" ;;
-    d) log_dir="${OPTARG}" ;;
-    h) print_help ;;
-    \?) print_usage; echo "Unknown option: $OPTARG" >&2 ;;
-    *) print_usage; echo "Unimplemented option: $OPTARG" >&2 ;;
+
+for arg in "$@"; do
+  case $arg in
+    -l|--large-run)
+        large_run="$2"
+        shift # Remove argument name from processing
+        shift # Remove argument value from processing
+        ;;
+    -u|--url)
+        url="$2"
+        shift # Remove argument name from processing
+        shift # Remove argument value from processing
+        ;;
+    -n|--project-name)
+        project_name="$2"
+        shift # Remove argument name from processing
+        shift # Remove argument value from processing
+        ;;
+    -g|--gcp-project)
+        gcp_project="$2"
+        shift # Remove argument name from processing
+        shift # Remove argument value from processing
+        ;;
+    -r|--run-info-json)
+        run_info_json="$2"
+        shift # Remove argument name from processing
+        shift # Remove argument value from processing
+        ;;
+    -d|--log-dir)
+        log_dir="$2"
+        shift # Remove argument name from processing
+        shift # Remove argument value from processing
+        ;;
+    -h|--help)
+        print_help
+        shift # Remove --initialize from processing
+        ;;
   esac
 done
 
