@@ -2,7 +2,7 @@
 
 # USAGE: run.sh [-h] --options OPTIONS --wdl-file WDL_FILE
 #               --url URL --log-dir LOG_DIR
-#               --project PROJECT 
+#               --project-name PROJECT_NAME 
 #               [--library {WGS,Exome}]
 #               [--genome {Human_GRCh38_full_analysis_set_plus_decoy_hla, Human_GRCh38_tcga}]
 #               [--pairs-file PAIRS_FILE]
@@ -37,7 +37,7 @@
 
 help_top="run.sh [-h] --options OPTIONS --wdl-file WDL_FILE
                --url URL --log-dir LOG_DIR
-               --project PROJECT 
+               --project-name PROJECT_NAME 
                [--library {WGS,Exome}]
                [--genome {Human_GRCh38_full_analysis_set_plus_decoy_hla, Human_GRCh38_tcga}]
                [--pairs-file PAIRS_FILE]
@@ -61,7 +61,7 @@ help_long="-h, --help            show this help message and exit
                         Sequence library type.
   --genome {Human_GRCh38_full_analysis_set_plus_decoy_hla, Human_GRCh38_tcga}
                         Genome key to use for pipeline.
-  --project PROJECT     Project name associated with account.
+  --project-name PROJECT_NAME Project name associated with account.
   --pairs-file PAIRS_FILE
                         CSV file with items that are required to have
                         \"tumor\", \"normal\" and \"pairId\" in the columns.
@@ -144,8 +144,8 @@ for arg in "$@"; do
         shift # Remove argument name from processing
         shift # Remove argument value from processing
         ;;
-        -n|--project)
-        project_id="$2"
+        -n|--project-name)
+        project_name="$2"
         shift # Remove argument name from processing
         shift # Remove argument value from processing
         ;;
@@ -217,8 +217,8 @@ if [ -z "$url" ]; then
     exit 1
 fi
 
-if [ -z "$project_id" ]; then
-    echo "Error: Missing required value for -p project_id" >&2
+if [ -z "$project_name" ]; then
+    echo "Error: Missing required value for -p project_name" >&2
     print_help
     exit 1
 fi
@@ -239,7 +239,7 @@ ${workflow} \
 # create input json
 echo "Create input json and confirm files exist..." >&2
 meta_command="python ${script_dir}/tools/meta.py \
-    --project ${project_id} \
+    --project-name ${project_name} \
     --library ${library} \
     --genome ${genome} \
     --wdl-file ${workflow} \
@@ -293,7 +293,7 @@ if [ -z "$dry_run" ]; then
         -w ${workflow} \
         -o ${options} \
         -d ${script_dir}/dependencies.zip \
-        -p ${log_dir}/${project_id}_projectInfo.json \
+        -p ${log_dir}/${project_name}_projectInfo.json \
         -i ${workflow_name}Input.json"
         
     if [ ! -z "$labels_file" ]; then
