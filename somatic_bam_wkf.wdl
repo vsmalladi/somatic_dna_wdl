@@ -384,7 +384,6 @@ workflow SomaticBamWorkflow {
 
         call calling.Calling {
             input:
-                local = local,
                 mantaJsonLog = mantaJsonLog,
                 lancetJsonLog = lancetJsonLog,
                 mutectJsonLog = mutectJsonLog,

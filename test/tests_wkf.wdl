@@ -75,7 +75,7 @@ workflow Tests {
     }
     
     scatter (kouramiResult in zip(newkouramiResult, oldkouramiResult)) {
-        String sampleIdKourami = basename(kouramiResult.left, ".result") 
+        String sampleIdKourami = basename(kouramiResult.left, ".kourami.result") 
         call tests.SummarizeHla {
             input:
                 sampleId = sampleIdKourami,

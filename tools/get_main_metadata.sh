@@ -1,15 +1,15 @@
 #!/bin/bash
 # USAGE: get_uuids.sh -u CROMWELL_URL -w WORKFLOW [-h]
-# DESCRIPTION: get outputs objects from a cromwell workflow.
+# DESCRIPTION: get metadata objects from a cromwell workflow.
 # Script requires jq, cromwell-tools to be in the path
-# Script returns the workflow outputs.
+# Script returns the workflow metadata.
 
 
 print_help() {
-  echo "USAGE: get_uuids.sh -u URL -w WORKFLOW [-h])"
-  echo "DESCRIPTION: get outputs objects from a cromwell workflow."
+  echo "USAGE: get_metadata.sh -u URL -w WORKFLOW [-h])"
+  echo "DESCRIPTION: get metadata objects from a cromwell workflow."
   echo "Script requires jq, cromwell-tools to be in the path."
-  echo "Script returns the workflow outputs."
+  echo "Script returns the workflow metadata."
   exit 0
 }
 
@@ -54,7 +54,7 @@ else
     password=$(gcloud secrets versions access latest --project=${gcp_project} --secret="readonly_cromwell_password")
 fi
 
-curl -X GET "${url}/api/workflows/v1/${uuid}/metadata?expandSubWorkflows=true&includeKey=outputs" \
+curl -X GET "${url}/api/workflows/v1/${uuid}/metadata" \
 -u ${username}:${password} \
-| jq ".outputs"
+| jq .
 

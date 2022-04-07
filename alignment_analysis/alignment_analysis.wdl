@@ -358,9 +358,9 @@ task SortFastqs {
 
 task AlignToPanel {
     input {
-        Int threads = 82
-        Int bwaThreads = 80
-        Int samtoolsSortThreads = 2
+        Int threads = 8
+        Int bwaThreads = 4
+        Int samtoolsSortThreads = 4
         Int memoryGb = 4
         Int diskSize = 4
         String sampleId
@@ -405,17 +405,24 @@ task Kourami {
         Int memoryGb = 8
         String sampleId
         File kouramiBam
+        String originalResultPath = "~{sampleId}.result"
+        String resultPath = "~{sampleId}.kourami.result"
     }
 
     Int jvmHeap = memoryGb * 750  # Heap size in Megabytes. mem is in GB. (75% of mem)
 
     command {
+        set -e -o pipefail
+        
         java \
         -Xmx~{jvmHeap}m -XX:ParallelGCThreads=4 \
         -jar /Kourami.jar \
         -d /kourami-0.9.6/db/ \
         -o ~{sampleId}.kourami \
         ~{kouramiBam}
+        
+        mv ~{originalResultPath} \
+        ~{resultPath}
     }
 
     output {

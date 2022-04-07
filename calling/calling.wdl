@@ -378,7 +378,7 @@ task FilterNonpassPon {
         Int memoryGb = 8
         Int diskSize
         String pairName
-        String outVcfPath = "~{pairName}.manta.v1.4.0.filtered.unorder.vcf"
+        String outVcfPath = "~{pairName}.manta.filtered.unorder.vcf"
         IndexedReference referenceFa
         IndexedVcf vcf
     }
@@ -598,7 +598,7 @@ task Mutect2WgsPon {
         Int diskSize
         String chrom
         String tumor
-        String mutect2ChromRawVcfPath = "~{tumor}_~{chrom}.mutect2.v4.0.5.1.raw.vcf"
+        String mutect2ChromRawVcfPath = "~{tumor}_~{chrom}.mutect2.raw.vcf"
         IndexedReference referenceFa
         Bam tumorFinalBam
     }
