@@ -26,13 +26,13 @@ workflow Mutect2 {
 
     }
     
-    Int lowCallMemoryGb = 4
-    Int lowFilterMemoryGb = 4
+    Int lowCallMemoryGb = 20
+    Int lowFilterMemoryGb = 20
     Int lowFilterDiskSize = 5
     
     if (highMem) {
-        Int highCallMemoryGb = 8
-        Int highFilterMemoryGb = 4
+        Int highCallMemoryGb = 40
+        Int highFilterMemoryGb = 20
         Int highFilterDiskSize = 10
     }
     
@@ -64,7 +64,7 @@ workflow Mutect2 {
                 referenceFa = referenceFa,
                 # mutect2ChromRawVcf = select_first([Mutect2Wgs.mutect2ChromRawVcf, Mutect2Exome.mutect2ChromRawVcf])
                 mutect2ChromRawVcf = Mutect2Wgs.mutect2ChromRawVcf,
-                memoryGb = callMemoryGb,
+                memoryGb = filterMemoryGb,
                 diskSize = filterDiskSize
         }
     }
