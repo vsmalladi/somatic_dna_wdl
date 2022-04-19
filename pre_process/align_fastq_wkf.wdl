@@ -33,15 +33,12 @@ workflow AlignFastq {
                     diskSize = diskSize
             }
         }
-        
-        File fastqR1 = select_first([Skewer.fastqOutR1, fastqs.fastqR1])
-        File fastqR2 = select_first([Skewer.fastqOutR2, fastqs.fastqR2])
-        
+
+        Fastqs fastqsAlign = select_first([Skewer.skewerFastqs, fastqs])
+
         call alignFastq.AlignBwaMem {
             input:
-                fastqs = fastqs,
-                fastqR1 = fastqR1,
-                fastqR2 = fastqR2,
+                fastqsAlign = fastqsAlign,
                 bwaReference = bwaReference,
                 memoryGb = bwaMem,
                 threads = threads,
