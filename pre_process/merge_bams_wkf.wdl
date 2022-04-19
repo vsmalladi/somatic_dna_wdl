@@ -11,7 +11,6 @@ workflow MergeBams {
         Boolean external = false
         #    command merge flowcell
         Array[File] laneFixmateBams
-        Array[Int] sample_bam_sizes
         String sampleId
         IndexedVcf MillsAnd1000G
         IndexedVcf Indels
@@ -67,7 +66,7 @@ workflow MergeBams {
             collectWgsMetricsPath = "~{qcDir}/~{sampleId}.CollectWgsMetrics.dedup.txt",
             referenceFa = referenceFa,
             randomIntervals = randomIntervals,
-            diskSize = diskSize
+            diskSize = ceil(size(mergedDedupBam.bam, "GB")) + 10
     }
 
     call qc.MultipleMetricsPreBqsr {
@@ -76,14 +75,14 @@ workflow MergeBams {
             mergedDedupBam = mergedDedupBam,
             outputDir = qcDir,
             sampleId = sampleId,
-            diskSize = diskSize
+            diskSize = ceil(size(mergedDedupBam.bam, "GB")) + 10
     }
 
     call mergeBams.Downsample {
         input:
             mergedDedupBam = mergedDedupBam,
             sampleId = sampleId,
-            diskSize = diskSize
+            diskSize = ceil(size(mergedDedupBam.bam, "GB") * 1.5)
     }
     call mergeBams.Bqsr38 {
         input:
@@ -94,7 +93,7 @@ workflow MergeBams {
             dbsnp = dbsnp,
             callRegions = callRegions,
             sampleId = sampleId,
-            diskSize = diskSize
+            diskSize = ceil(size(Downsample.downsampleMergedDedupBam.bam, "GB")) + 20
     }
 
     call mergeBams.PrintReads {
