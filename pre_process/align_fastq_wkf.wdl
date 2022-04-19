@@ -17,20 +17,22 @@ workflow AlignFastq {
         Int bwaThreads
     }
 
-    Int additionalDiskSize = 100
+    Int additionalDiskSize = 10
     scatter(fastqs in listOfFastqPairs) {
         Int fastqsSize = ceil(size(fastqs.fastqR1, "GB") + size (fastqs.fastqR2, "GB"))
 
         # Assumption: The bam will be about the same size as the input fastqs. So double
         # the size to account for input and output.
-        Int diskSize = fastqsSize * 2 + additionalDiskSize
+        Int skewerDiskSize = (2 * fastqsSize) + additionalDiskSize
+        Int alignDiskSize = (3 * fastqsSize) + additionalDiskSize
+        Int fixmateDiskSize = (4 * fastqsSize) + additionalDiskSize
         
         if (trim) {
             call alignFastq.Skewer {
                 input:
                     fastqs = fastqs,
                     adaptersFa = adaptersFa,
-                    diskSize = diskSize
+                    diskSize = skewerDiskSize
             }
         }
 
@@ -43,7 +45,7 @@ workflow AlignFastq {
                 memoryGb = bwaMem,
                 threads = threads,
                 bwaThreads = bwaThreads,
-                diskSize = diskSize
+                diskSize = alignDiskSize
         }
 
         call alignFastq.ShortAlignMark {
@@ -51,7 +53,7 @@ workflow AlignFastq {
                 laneBam = AlignBwaMem.laneBam,
                 bamBase = fastqs.readgroupId,
                 memoryGb = 16,
-                diskSize = diskSize
+                diskSize = alignDiskSize
         }
 
         call alignFastq.Fixmate {
@@ -59,7 +61,7 @@ workflow AlignFastq {
                 laneBamMark = ShortAlignMark.laneBamMark,
                 bamBase = fastqs.readgroupId,
                 memoryGb = 8,
-                diskSize = diskSize
+                diskSize = fixmateDiskSize
         }
         Int fixmate_bam_size = ceil(size(Fixmate.laneFixmateBam, "GB"))
     }
