@@ -53,7 +53,6 @@ workflow Preprocess {
         input:
             external = external,
             laneFixmateBams = AlignFastq.laneFixmateBam,
-            sample_bam_sizes = AlignFastq.laneFixmateBamSizes,
             sampleId = sampleId,
             MillsAnd1000G = MillsAnd1000G,
             Indels = Indels,

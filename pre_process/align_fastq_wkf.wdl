@@ -63,11 +63,9 @@ workflow AlignFastq {
                 memoryGb = 8,
                 diskSize = fixmateDiskSize
         }
-        Int fixmate_bam_size = ceil(size(Fixmate.laneFixmateBam, "GB"))
     }
 
     output {
         Array[File] laneFixmateBam = Fixmate.laneFixmateBam
-        Array[Int] laneFixmateBamSizes = fixmate_bam_size
     }
 }
