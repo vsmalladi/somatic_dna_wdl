@@ -102,7 +102,7 @@ workflow MergeBams {
             mergedDedupBam = mergedDedupBam,
             recalGrp = Bqsr38.recalGrp,
             sampleId = sampleId,
-            diskSize = (3 * laneFixmateBamsSize)
+            diskSize = (3 * laneFixmateBamsSize) + 10
     }
 
     output {
