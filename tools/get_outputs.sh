@@ -47,15 +47,12 @@ set -e
 set -o pipefail
 
 if [ -z "$gcp_project" ]; then
-    cromwell-tools metadata --url ${url} \
-    --username $(gcloud secrets versions access latest --secret="cromwell_username") \
-    --password $(gcloud secrets versions access latest --secret="cromwell_password") \
-    --uuid ${uuid} \
-    | jq ".outputs"
+    username=$(gcloud secrets versions access latest --secret="cromwell_username")
+    password=$(gcloud secrets versions access latest --secret="cromwell_password")
 else
-    cromwell-tools metadata --url ${url} \
-    --username $(gcloud secrets versions access latest --project=${gcp_project} --secret="readonly_cromwell_username") \
-    --password $(gcloud secrets versions access latest --project=${gcp_project} --secret="readonly_cromwell_password") \
-    --uuid ${uuid} \
-    | jq ".outputs"
+    username=$(gcloud secrets versions access latest --project=${gcp_project} --secret="readonly_cromwell_username")
+    password=$(gcloud secrets versions access latest --project=${gcp_project} --secret="readonly_cromwell_password")
 fi
+
+curl -X GET "${url}/api/workflows/v1/${uuid}/outputs" \
+-u ${username}:${password} | jq ".outputs"

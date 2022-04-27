@@ -16,6 +16,8 @@ workflow Calling {
     #   merge and filter raw VCFs
     #   annotate
     input {
+        Boolean local = false
+        
         pairInfo pairInfo
         #   mutect2
         Array[String]+ listOfChroms
@@ -56,6 +58,7 @@ workflow Calling {
     }
     call mutect2.Mutect2 {
         input:
+            local = local,
             mutectJsonLogFilter = mutectJsonLogFilter,
             mutectJsonLog = mutectJsonLog,
             tumor = pairInfo.tumor,

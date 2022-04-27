@@ -7,6 +7,7 @@ workflow Mutect2 {
     # command
     #   run Mutect2 caller
     input {
+        Boolean local = false
         String tumor
         String normal
         Array[String]+ listOfChroms
@@ -34,7 +35,11 @@ workflow Mutect2 {
         Int highFilterMemoryGb = 4
         Int highFilterDiskSize = 10
     }
-    Int callMemoryGb = select_first([highCallMemoryGb, lowCallMemoryGb])
+    
+    if (local) {
+        Int localCallMemoryGb = 48
+    }
+    Int callMemoryGb = select_first([localCallMemoryGb, highCallMemoryGb, lowCallMemoryGb])
     Int filterMemoryGb = select_first([highFilterMemoryGb, lowFilterMemoryGb])
     Int filterDiskSize = select_first([highFilterDiskSize, lowFilterDiskSize])
 

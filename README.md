@@ -123,7 +123,7 @@ In addition to submitting the command, this will create an output file that you 
 wdl_port/run.sh -h
 run.sh [-h] --options OPTIONS --wdl-file WDL_FILE
                --url URL --log-dir LOG_DIR
-               --project PROJECT
+               --project-name PROJECT_NAME
                [--library {WGS,Exome}]
                [--genome {Human_GRCh38_full_analysis_set_plus_decoy_hla, Human_GRCh38_tcga}]
                [--pairs-file PAIRS_FILE]
@@ -158,7 +158,7 @@ DESCRIPTION: validate workflow, create input json and submit workflow to cromwel
                         Sequence library type.
   --genome {Human_GRCh38_full_analysis_set_plus_decoy_hla, Human_GRCh38_tcga}
                         Genome key to use for pipeline.
-  --project PROJECT     Project name associated with account.
+  --project-name PROJECT Project name associated with account.
   --pairs-file PAIRS_FILE
                         CSV file with items that are required to have
                         "tumor", "normal" and "pairId" in the columns.
@@ -200,7 +200,7 @@ cd ${working-dir}
 ../wdl_port/run.sh \
 --log-dir ${working-dir} \
 --url ${url} \
---project ${lab_quote_number} \
+--project-name ${lab_quote_number} \
 --pairs-file ${tumor_normal_pairs_csv} \
 --library WGS \
 --genome Human_GRCh38_full_analysis_set_plus_decoy_hla \
