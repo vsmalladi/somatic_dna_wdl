@@ -1,7 +1,7 @@
 {
   "AlignFastq.mem": "8 GB",
   "AlignFastq.threads": 8,
-  "AlignFastq.bwaDockerImage": "gcr.io/nygc-public/genome-utils:v8",
+  "AlignFastq.minimapDockerImage": "gcr.io/nygc-comp-s-fd4e/minimap2:2.24",
   "AlignFastq.shortAlignDockerImage": "gcr.io/nygc-public/nygc-short-alignment-marking:v2.1",
   "AlignFastq.gatkDockerImage":"us.gcr.io/broad-gatk/gatk:4.1.1.0",
   "AlignFastq.bwaReference": {

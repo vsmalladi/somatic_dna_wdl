@@ -12,9 +12,9 @@ workflow AlignFastq {
         File adaptersFa
         Boolean trim = true
         # resources
-        Int bwaMem
+        Int minimapMem
         Int threads
-        Int bwaThreads
+        Int minimapThreads
     }
 
     Int additionalDiskSize = 10
@@ -38,19 +38,29 @@ workflow AlignFastq {
 
         Fastqs fastqsAlign = select_first([Skewer.skewerFastqs, fastqs])
 
-        call alignFastq.AlignBwaMem {
+        # call alignFastq.AlignBwaMem {
+        #     input:
+        #         fastqsAlign = fastqsAlign,
+        #         bwaReference = bwaReference,
+        #         memoryGb = bwaMem,
+        #         threads = threads,
+        #         bwaThreads = bwaThreads,
+        #         diskSize = alignDiskSize
+        # }
+
+        call alignFastq.AlignMinimap2 {
             input:
                 fastqsAlign = fastqsAlign,
                 bwaReference = bwaReference,
-                memoryGb = bwaMem,
+                memoryGb = minimapMem,
                 threads = threads,
-                bwaThreads = bwaThreads,
+                minimapThreads = minimapThreads,
                 diskSize = alignDiskSize
         }
 
         call alignFastq.ShortAlignMark {
             input:
-                laneBam = AlignBwaMem.laneBam,
+                laneBam = AlignMinimap2.laneBam,
                 bamBase = fastqs.readgroupId,
                 memoryGb = 16,
                 diskSize = alignDiskSize

@@ -15,7 +15,7 @@
   "Preprocess.mem": "16",
   "Preprocess.threads": "8",
   "Preprocess.gatkDockerImage": "broadinstitute/gatk:4.1.0.0",
-  "Preprocess.bwaDockerImage": "nygc_bwa_0.7.15.tar",
+  "Preprocess.minimapDockerImage": "gcr.io/nygc-comp-s-fd4e/minimap2:2.24",
   "Preprocess.shortAlignDockerImage": "",
   "Preprocess.gatkDockerImage": "broadinstitute/gatk:4.1.0.0",
   "Preprocess.indexedReference" : {"fasta" : "/gpfs/commons/datasets/old-nygc-resources/GRCh38_1000genomes/GRCh38_full_analysis_set_plus_decoy_hla.fa",
