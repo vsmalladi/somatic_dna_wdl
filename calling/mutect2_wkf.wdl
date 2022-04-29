@@ -18,7 +18,6 @@ workflow Mutect2 {
         # Map[String, File] chromBeds
         Bam tumorFinalBam
         Int diskSize = ceil( size(tumorFinalBam.bam, "GB") + size(normalFinalBam.bam, "GB")) + 20
-        Int memoryGb = 8
         File mutectJsonLog
         File mutectJsonLogFilter
         

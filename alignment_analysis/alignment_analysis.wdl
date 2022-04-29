@@ -405,8 +405,7 @@ task Kourami {
         Int memoryGb = 8
         String sampleId
         File kouramiBam
-        String originalResultPath = "~{sampleId}.result"
-        String resultPath = "~{sampleId}.kourami.result"
+        String resultPrefix = "~{sampleId}.kourami"
     }
 
     Int jvmHeap = memoryGb * 750  # Heap size in Megabytes. mem is in GB. (75% of mem)
@@ -418,15 +417,13 @@ task Kourami {
         -Xmx~{jvmHeap}m -XX:ParallelGCThreads=4 \
         -jar /Kourami.jar \
         -d /kourami-0.9.6/db/ \
-        -o ~{sampleId}.kourami \
+        -o ~{resultPrefix} \
         ~{kouramiBam}
         
-        mv ~{originalResultPath} \
-        ~{resultPath}
     }
 
     output {
-        File result = "~{sampleId}.kourami.result"
+        File result = "~{resultPrefix}.result"
     }
 
     runtime {

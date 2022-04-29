@@ -18,7 +18,7 @@ workflow Conpair {
 
         Int threads=1
         Int memoryGb=4
-        Int qcDir = "Sample_~{tumor}/qc"
+        String qcDir = "Sample_~{tumor}/qc"
     }
 
     Int additionalDiskSize = 10
