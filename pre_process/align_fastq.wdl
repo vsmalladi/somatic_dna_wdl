@@ -30,8 +30,13 @@ task Skewer {
     }
 
     output {
-        File fastqOutR1 = "~{fastqOutR1Path}"
-        File fastqOutR2 = "~{fastqOutR2Path}"
+        Fastqs skewerFastqs = object {
+            fastqR1 : fastqOutR1Path,
+            fastqR2 : fastqOutR2Path,
+            sampleId: fastqs.sampleId,
+            readgroupId: fastqs.readgroupId,
+            rgpu: fastqs.rgpu
+        }
     }
 
     runtime {
@@ -47,11 +52,9 @@ task Skewer {
 task AlignBwaMem {
     input {
         # command
-        Fastqs fastqs
-        File fastqR1
-        File fastqR2
+        Fastqs fastqsAlign
         BwaReference bwaReference
-        String laneBamPath = "~{fastqs.readgroupId}.readgroup.bam"
+        String laneBamPath = "~{fastqsAlign.readgroupId}.readgroup.bam"
         # resources
         Int memoryGb
         Int threads
@@ -73,10 +76,10 @@ task AlignBwaMem {
         -Y \
         -K 100000000 \
         -t ~{bwaThreads} \
-        -R '@RG\tID:~{fastqs.readgroupId}\tPL:~{platform}\tPM:~{machineType}\tLB:~{fastqs.sampleId}\tDS:hg38\tSM:~{fastqs.sampleId}\tCN:~{center}\tPU:${fastqs.rgpu}' \
+        -R '@RG\tID:~{fastqsAlign.readgroupId}\tPL:~{platform}\tPM:~{machineType}\tLB:~{fastqsAlign.sampleId}\tDS:hg38\tSM:~{fastqsAlign.sampleId}\tCN:~{center}\tPU:${fastqsAlign.rgpu}' \
         ~{bwaReference.fasta} \
-        ~{fastqR1} \
-        ~{fastqR2} \
+        ~{fastqsAlign.fastqR1} \
+        ~{fastqsAlign.fastqR2} \
         | samtools view \
         -@ ~{threads} \
         -Shb \
