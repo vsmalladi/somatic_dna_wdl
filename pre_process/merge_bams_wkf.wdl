@@ -21,39 +21,38 @@ workflow MergeBams {
         File randomIntervals
         String qcDir = '.'       # To pass to the two QC tasks.
         # resources
-        Int memoryGb
+        Int novosortMem
         Int threads
 
     }
 
     Int laneFixmateBamsSize = ceil(size(laneFixmateBams, "GB"))
 
-    if (!external) { 
+    if (!external) {
         call mergeBams.NovosortMarkDup as novosort {
             input:
                 laneBams = laneFixmateBams,
                 sampleId = sampleId,
-                memoryGb = 20,
+                memoryGb = novosortMem,
                 threads = threads,
                 # novosort uses a lot of memory and a lot of disk.
                 diskSize = (3 * laneFixmateBamsSize)
         }
     }
-    
-    if (external) { 
+
+    if (external) {
         call mergeBams.NovosortMarkDupExternal as novosortExternal {
             input:
                 laneBams = laneFixmateBams,
                 sampleId = sampleId,
-                memoryGb = 20,
+                memoryGb = novosortMem,
                 threads = 1,
                 # novosort uses a lot of memory and a lot of disk.
                 diskSize = (3 * laneFixmateBamsSize)
         }
     }
-    
+
     Bam mergedDedupBam = select_first([novosort.mergedDedupBam, novosortExternal.mergedDedupBam])
-    
 
     # This task runs in parallel with Bqsr38. We are missing coverage check
     # tasks. The idea is that we check coverage and if it's lower than expected
@@ -112,5 +111,6 @@ workflow MergeBams {
         File qualityByCycleMetricsPreBqsr = MultipleMetricsPreBqsr.qualityByCycleMetricsPreBqsr
         File qualityByCyclePdfPreBqsr = MultipleMetricsPreBqsr.qualityByCyclePdfPreBqsr
         File qualityDistributionMetricsPreBqsr = MultipleMetricsPreBqsr.qualityDistributionMetricsPreBqsr
+        File dedupLog = select_first([novosort.dedupLog, novosortExternal.dedupLog])
   }
 }

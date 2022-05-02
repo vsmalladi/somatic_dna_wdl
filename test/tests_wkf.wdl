@@ -64,7 +64,8 @@ workflow Tests {
     }
     
     scatter (mantisStatusFinal in zip(newmantisStatusFinal, oldmantisStatusFinal)) {
-        String sampleIdMantis = basename(mantisStatusFinal.left, ".mantis.v1.0.4.WGS-targeted.status.final.tsv") 
+
+        String sampleId = basename(mantisStatusFinal.left, ".mantis.WGS-targeted.status.final.tsv") 
         call tests.SummarizeMsi {
             input:
                 sampleId = sampleIdMantis,

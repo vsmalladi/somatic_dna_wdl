@@ -78,6 +78,10 @@ workflow CallingPon {
         IndexedVcf deepIntronicsVcf
         IndexedVcf clinvarIntronicsVcf
         IndexedVcf masterMind
+
+        # Scripts
+        File mergeColumnsPon
+        File renameVcfPon
         
         Int vepDiskSize = ceil(size(vepCache, "GB") + size(plugins, "GB") + size(annotations, "GB") + size(chdGenesVcf.vcf, "GB") + size(chdEvolvingGenesVcf.vcf, "GB") + size(chdWhitelistVcf.vcf, "GB") + size(deepIntronicsVcf.vcf, "GB") + size(clinvarIntronicsVcf.vcf, "GB") + size(masterMind.vcf, "GB")) + 200
         
@@ -126,7 +130,10 @@ workflow CallingPon {
                         svabaIndel = SvabaPon.svabaIndel,
                         
                         referenceFa = referenceFa,
-                        listOfChroms = listOfChroms
+                        listOfChroms = listOfChroms,
+                        
+                        renameVcfPon = renameVcfPon,
+                        mergeColumnsPon = mergeColumnsPon
         }
         
         call mergeVcf.CompressVcf as unannotatedCompressVcf {

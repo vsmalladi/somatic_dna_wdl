@@ -32,10 +32,10 @@ task BedtoolsIntersect {
 
 
 task MantisExome {
-    input {        
+    input {
         String pairName
-        String mantisExomeTxtPath = "~{pairName}.mantis.v1.0.4.WGS-targeted.txt"
-        String mantisWxsKmerCountsPath = "~{pairName}.mantis.v1.0.4.WGS-targeted.kmer_counts.txt"
+        String mantisExomeTxtPath = "~{pairName}.mantis.WGS-targeted.txt"
+        String mantisWxsKmerCountsPath = "~{pairName}.mantis.WGS-targeted.kmer_counts.txt"
         
         Bam tumorFinalBam
         Bam normalFinalBam
@@ -43,47 +43,47 @@ task MantisExome {
         String tumorFinalBamIndexPath = basename(tumorFinalBam.bamIndex)
         String normalFinalBamPath = basename(normalFinalBam.bam)
         String normalFinalBamIndexPath = basename(normalFinalBam.bamIndex)
-        
+
         File mantisBedByIntervalList
         IndexedReference referenceFa
         Int threads = 8
         Int memoryGb = 4
         Int diskSize = ceil( size(tumorFinalBam.bam, "GB") + size(normalFinalBam.bam, "GB")) + 30
-        
+
     }
 
     command {
         set -e -o pipefail
-        
+
         # make a .bam.bai index available
         # normal
         ln -s \
         ~{normalFinalBam.bam} \
         ~{normalFinalBamPath}
-        
+
         ln -s \
         ~{normalFinalBam.bamIndex} \
         ~{normalFinalBamIndexPath}
-        
+
         ln -s \
         ~{normalFinalBamIndexPath} \
-        ~{normalFinalBamPath}.bai 
-        
+        ~{normalFinalBamPath}.bai
+
         # tumor
         ln -s \
         ~{tumorFinalBam.bam} \
         ~{tumorFinalBamPath}
-        
+
         ln -s \
         ~{tumorFinalBam.bamIndex} \
         ~{tumorFinalBamIndexPath}
-        
+
         ln -s \
         ~{tumorFinalBamIndexPath} \
-        ~{tumorFinalBamPath}.bai 
-        
-        ls -thl 
-        
+        ~{tumorFinalBamPath}.bai
+
+        ls -thl
+
         python \
         /MANTIS-1.0.4/mantis.py \
         --bedfile ~{mantisBedByIntervalList} \
@@ -100,8 +100,8 @@ task MantisExome {
 
     output {
         File mantisWxsKmerCountsFinal = "~{mantisWxsKmerCountsPath}"
-        File mantisWxsKmerCountsFiltered = "~{pairName}.mantis.v1.0.4.WGS-targeted.kmer_counts_filtered.txt"
-        File mantisWxsStatus = "~{pairName}.mantis.v1.0.4.WGS-targeted.txt.status"
+        File mantisWxsKmerCountsFiltered = "~{pairName}.mantis.WGS-targeted.kmer_counts_filtered.txt"
+        File mantisWxsStatus = "~{pairName}.mantis.WGS-targeted.txt.status"
         File mantisExomeTxt = "~{mantisExomeTxtPath}"
     }
 
@@ -118,7 +118,7 @@ task MantisExome {
 task MantisRethreshold {
     input {
         String pairName
-        String mantisStatusFinalPath = "~{pairName}.mantis.v1.0.4.WGS-targeted.status.final.tsv"
+        String mantisStatusFinalPath = "~{pairName}.mantis.WGS-targeted.status.final.tsv"
         String normal
         File mantisWxsStatus
     }
@@ -146,15 +146,15 @@ task GetChr6Contigs {
         Int diskSize
         Int memoryGb = 2
     }
-    
+
     command {
         /lookup_contigs.py ~{referenceFa.fasta}
     }
-    
+
     output {
         String chr6Contigs = read_string(stdout())
     }
-    
+
     runtime {
         mem: memoryGb + "G"
         memory : memoryGb + "GB"
@@ -184,7 +184,7 @@ task GemSelect {
 
     command {
         set -e -o pipefail
-        
+
         samtools view \
         --threads ~{samtoolsThreads} \
         -h \
@@ -242,7 +242,7 @@ task LookUpMates {
         File r2MappedFastq
         File r1File
         File r1MappedFastq
-        
+
     }
 
     command {
@@ -285,7 +285,7 @@ task GetMates {
 
     command {
         set -e -o pipefail
-        
+
         samtools view \
         --threads ~{samtoolsThreads} \
         -h \
@@ -329,7 +329,7 @@ task SortFastqs {
 
     command {
         set -e -o pipefail
-        
+
         cat \
         ~{chr6MappedFastq} \
         ~{chr6MappedMatesFastq} \
@@ -373,7 +373,7 @@ task AlignToPanel {
 
     command {
         set -e -o pipefail
-        
+
         bwa mem \
         -t ~{bwaThreads} \
         ~{kouramiReference.fasta} \
@@ -405,25 +405,25 @@ task Kourami {
         Int memoryGb = 8
         String sampleId
         File kouramiBam
-        String originalResultPath = "~{sampleId}.result"
-        String resultPath = "~{sampleId}.kourami.result"
+        String resultPrefix = "~{sampleId}.kourami"
     }
+
+    Int jvmHeap = memoryGb * 750  # Heap size in Megabytes. mem is in GB. (75% of mem)
 
     command {
         set -e -o pipefail
         
         java \
+        -Xmx~{jvmHeap}m -XX:ParallelGCThreads=4 \
         -jar /Kourami.jar \
         -d /kourami-0.9.6/db/ \
-        -o ~{sampleId} \
+        -o ~{resultPrefix} \
         ~{kouramiBam}
         
-        mv ~{originalResultPath} \
-        ~{resultPath}
     }
 
     output {
-        File result = "~{resultPath}"
+        File result = "~{resultPrefix}.result"
     }
 
     runtime {
@@ -434,5 +434,3 @@ task Kourami {
         docker : "gcr.io/nygc-public/kourami@sha256:d4b906b979c24ee4669fdbf7ee1dfbdeb5c89d0e34b4b4aaf21ee070e988d74b"
     }
 }
-
-

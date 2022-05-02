@@ -18,6 +18,7 @@ workflow Conpair {
 
         Int threads=1
         Int memoryGb=4
+        String qcDir = "Sample_~{tumor}/qc"
     }
 
     Int additionalDiskSize = 10
@@ -54,6 +55,7 @@ workflow Conpair {
             pairName = pairName,
             memoryGb = memoryGb,
             threads = threads,
+            concordanceAllPath = "~{qcDir}/~{pairName}.concordance.all.conpair.txt"
     }
 
     call qc.VerifyConcordanceHomoz {
@@ -64,6 +66,7 @@ workflow Conpair {
             pairName = pairName,
             memoryGb = memoryGb,
             threads = threads,
+            concordanceHomozPath = "~{qcDir}/~{pairName}.concordance.homoz.conpair.txt"
     }
 
     call qc.Contamination {
@@ -74,9 +77,12 @@ workflow Conpair {
             pairName = pairName,
             memoryGb = memoryGb,
             threads = threads,
+            contaminationPath = "~{qcDir}/~{pairName}.contamination.conpair.txt"
     }
 
     output {
+        File tumorPileup = tumorConpairPileup.pileupsConpair
+        File normalPileup = normalConpairPileup.pileupsConpair
         File concordanceAll = VerifyConcordanceAll.concordanceAll
         File concordanceHomoz = VerifyConcordanceHomoz.concordanceHomoz
         File contamination = Contamination.contamination

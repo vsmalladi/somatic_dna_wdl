@@ -21,6 +21,9 @@ workflow MergeVcfPon {
         IndexedReference referenceFa
         Array[String]+ listOfChroms
 
+        # Script
+        File renameVcfPon
+        File mergeColumnsPon
     }
     
     call prepMergeVcfPon.PrepMergeVcfPon as filteredMantaSVPrepMergeVcfPon {
@@ -28,6 +31,7 @@ workflow MergeVcfPon {
             callerVcf=filteredMantaSV,
             tumor=tumor,
             tool='manta',
+            renameVcfPon = renameVcfPon,
             referenceFa=referenceFa
             
     }
@@ -37,6 +41,7 @@ workflow MergeVcfPon {
             callerVcf=mutect2,
             tumor=tumor,
             tool='mutect2',
+            renameVcfPon = renameVcfPon,
             referenceFa=referenceFa
             
     }
@@ -46,6 +51,7 @@ workflow MergeVcfPon {
             callerVcf=svabaIndel,
             tumor=tumor,
             tool='svaba',
+            renameVcfPon = renameVcfPon,
             referenceFa=referenceFa
             
     }
@@ -57,7 +63,8 @@ workflow MergeVcfPon {
         input:
             tumor = tumor,
             listOfChroms = listOfChroms,
-            allVcfCompressed = allVcfCompressed
+            allVcfCompressed = allVcfCompressed,
+            mergeColumnsPon = mergeColumnsPon
         
     }
     
