@@ -64,7 +64,6 @@ class Cost():
         self.get_times()
         log.info('lookup costs')
         self.load_cost()
-        print(self.cost.head())
         if not self.test:
             log.info('write metrics')
             cost_file = self.out_file_prefix + '_outputCosts.csv'
@@ -134,7 +133,6 @@ LIMIT 1000
     order by cost desc
     LIMIT ''' + self.limit + '''
         '''
-        print(query_string)
         if self.test:
             print(query_string)
         else:

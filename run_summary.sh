@@ -220,11 +220,12 @@ else
     echo "Skipping plot usage metrics because no monitoring image was declared in options json"
 fi
 
+    
 if [ ! -z "$billing_export" ]; then
     echo "Adding cost per instance id to metrics..."
     python ${wdl_dir}/tools/cost.py \
     --output-metrics "${metrics_file}" \
-    --gcp-project "${gcp-project}" \
+    --gcp-project "${gcp_project}" \
     --url "${url}"  \
     --billing-export "${billing_export}" \
     --out-file-prefix "${log_dir}/${project_name}.${workflow_uuid}"
