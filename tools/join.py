@@ -5,7 +5,6 @@ import sys
 
 def add_cost(kind, row, map, costs):
     '''add various costs from table'''
-    print('costs.columns', costs.columns)
     options = ['capacity_cost', 'core_cost', 'ram_cost', 'egress_cost']
     cost_keys = [key for key in map if map[key]['cost'] == kind]
     if row.main_workflow_name.lower() == row.sub_workflow_name:

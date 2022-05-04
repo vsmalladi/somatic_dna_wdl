@@ -105,7 +105,9 @@ SELECT
     (SELECT value from UNNEST(labels) where key = 'cromwell-workflow-id' limit 1) as workflow_id,
     (SELECT value from UNNEST(labels) where key = 'cromwell-sub-workflow-name' limit 1) as sub_workflow_name,
     (SELECT value from UNNEST(labels) where key = 'wdl-task-name' limit 1) as wdl_task_name,
-    sum(cost) as cost
+    sum(cost) as cost,
+    sku.description as service_type
+FROM `fin-admin-328417.billing_export.gcp_billing_export_v1_01F75B_F18B56_39F532`
 FROM `fin-admin-328417.billing_export.gcp_billing_export_v1_01F75B_F18B56_39F532` 
 WHERE DATE(_PARTITIONTIME) > "2021-10-01"
     AND project.id = "nygc-comp-p-12d3"
@@ -121,7 +123,8 @@ LIMIT 1000
     (SELECT value from UNNEST(labels) where key = 'cromwell-workflow-id' limit 1) as workflow_id,
     (SELECT value from UNNEST(labels) where key = 'cromwell-sub-workflow-name' limit 1) as sub_workflow_name,
     (SELECT value from UNNEST(labels) where key = 'wdl-task-name' limit 1) as wdl_task_name,
-    sum(cost) as cost
+    sum(cost) as cost,
+    sku.description as service_type
     FROM `''' + self.billing_export + '''` 
     WHERE DATE(_PARTITIONTIME) >= "''' + self.run_date + '''"
         AND DATE(_PARTITIONTIME) <= "''' +self.end_date + '''"
@@ -129,7 +132,7 @@ LIMIT 1000
         AND sku.description != "Network Google Ingress from Americas to Americas"
         AND cost > 0
         AND EXISTS (SELECT 1 FROM UNNEST(labels) WHERE key = 'cromwell-workflow-id' and value in ("cromwell-''' + self.workflow_uuid + '''"))
-    group by sub_workflow_name, wdl_task_name, workflow_id
+    group by sub_workflow_name, wdl_task_name, workflow_id, sku.description
     order by cost desc
     LIMIT ''' + self.limit + '''
         '''

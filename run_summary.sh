@@ -144,7 +144,6 @@ fi
 set -e 
 set -o pipefail
 
-mkdir -p ${log_dir}/tmp/
 cd ${log_dir}
 # Define variables
 if [[ $start_from_uuid == 'True' ]]; then
@@ -174,7 +173,7 @@ pandoc_dir="${wdl_dir}/pandoc/"
 md="${log_dir}/${project_name}.${workflow_uuid}_outputMetrics.md"
 html="${log_dir}/${project_name}.${workflow_uuid}_outputMetrics.html"
 header="${log_dir}/${project_name}.${workflow_uuid}_outputMetrics.header.txt"
-cost_request_file="${log_dir}/tmp/cost_request.csv"
+costs_file="${log_dir}/${project_name}.${workflow_uuid}_outputCosts.csv"
 
 echo "Collect output files..."
 collect_command="time python ${wdl_dir}/tools/collect.py \
@@ -231,7 +230,7 @@ if [ ! -z "$billing_export" ]; then
     --out-file-prefix "${log_dir}/${project_name}.${workflow_uuid}"
     
     python ${wdl_dir}/tools/join.py \
-    ${uuid} \
+    ${workflow_uuid} \
     ${costs_file} \
     ${metrics_file} \
     "${log_dir}/${project_name}.${workflow_uuid}"
