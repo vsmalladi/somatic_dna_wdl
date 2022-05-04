@@ -30,7 +30,7 @@ class JsonModify():
                  sample_id=False, 
                  pair_id=False,
                  dir=False,
-#                  pair_ids=False,
+                 use_relative_output_paths=False,
                  all_pair_ids=False,
                  all_sample_ids=False,
                  uri_list=False,
@@ -56,6 +56,7 @@ class JsonModify():
             self.json_obj = copy.deepcopy(inputs)
             self.final_json_obj = copy.deepcopy(inputs)
         self.dir = dir
+        self.use_relative_output_paths = use_relative_output_paths
         self.files = []
         self.sub_workflow_uuids = []
         # create list of all other pair/sample ids in project
@@ -156,7 +157,10 @@ class JsonModify():
             return string
         else:
             uri = string
-            basename = '/'.join(uri.replace('/cacheCopy', '').split('/call-')[-1].split('/')[1:])
+            if self.use_relative_output_paths:
+                basename = '/'.join(uri.replace('/cacheCopy', '').split('/call-')[-1].split('/')[1:])
+            else:
+                basename = '/'.join(uri.split('/')[3:])
             if self.dir.endswith('/'):
                 new_uri = self.dir + basename
             else:
@@ -243,8 +247,8 @@ class JsonModify():
                     
                     
 class CloudOutput():
-    def __init__(self, run_data, url, gcp_project, large_run=False):
-        self.large_run = large_run
+    def __init__(self, run_data, url, gcp_project):
+#        self.large_run = large_run
         self.parent_dir = os.path.abspath(os.path.dirname(__file__))
         self.url = url
         self.run_data = run_data
@@ -260,21 +264,18 @@ class CloudOutput():
         self.status = self.metadata['status']
         # get root dir
         self.root_dir = self.metadata['workflowRoot']
-        # fast get calls from API to search for uuids
-        self.uri_list = self.list_uris()
-        self.all_sub_workflow_uuids = list(set([uri for uri in self.get_uuid_from_uri(self.uri_list)]))
-        self.run_data.run_info['sub_workflow_uuids'] = self.all_sub_workflow_uuids
         # get API outputs section
         self.raw_outputs = self.metadata['outputs']
         # get files (named and unnamed) from API outputs section
         self.parse_block()
-        self.unnamed_files = self.gather_unnamed()
+#        self.unnamed_files = self.gather_unnamed()
         # Find only files with the pair or the sample in the 
         # filename with . or _ after the name
         self.divide_by_id()
         # Find only task uuids for files with the pair or the sample in the 
         # filename with . or _ after the name
-        if len(self.unnamed_files) == 0 and len(self.named_files) == 0:
+#        if len(self.unnamed_files) == 0 and len(self.named_files) == 0:
+        if len(self.named_files) == 0:
             log.warning('No output files created')
         # Add in if needed
         if not 'run_date' in self.run_data.project_info:
@@ -286,12 +287,10 @@ class CloudOutput():
         self.run_data.run_info['sample_association'] = self.sample_association
         self.run_data.run_info['outputs'] = self.named_outputs
         self.run_data.run_info['named_files'] = self.named_files
-        self.run_data.run_info['unnamed_files'] = self.unnamed_files
+        self.run_data.run_info['status'] = self.metadata['status']
         self.run_data.run_info['options'] = self.options
         
     def get_options(self, metadata):
-#         metadata = self.load_uuid_api(uuid,
-#                                       script='/get_main_metadata.sh')
         if metadata:
             options_string = metadata['submittedFiles']['options']
             options = json.loads(options_string)
@@ -306,36 +305,6 @@ class CloudOutput():
             gcp_query_project = gcp_project
         default_project = (gcp_query_project == gcp_project)
         return credentials, gcp_project, default_project, gcp_query_project
-    
-    def load_uuid_api(self, 
-                      uuid, 
-                      script='/get_main_metadata.sh'):
-        '''
-            return json from api
-        '''
-        parent_dir = os.path.abspath(os.path.dirname(__file__))
-        script = parent_dir + script
-        if self.default_project:
-            args = ['bash', script,
-                    '-u', self.url,
-                    '-w', uuid]
-        else:
-            args = ['bash', script,
-                    '-u', self.url,
-                    '-w', uuid,
-                    '-g', self.gcp_query_project]
-        try:
-            result = subprocess.run(args,
-                                    check=True,
-                                    stdout=subprocess.PIPE).stdout.decode('utf-8')
-        except subprocess.CalledProcessError as err:
-            log.warning(err.output.decode('utf-8'))
-            log.error('Failed to get metadata from api for workflow: ' + uuid)
-            return {}
-        metadata = json.loads(result)
-#         with open('example_meta.json', 'w') as input_info_file:
-#             json.dump(metadata, input_info_file, indent=4)
-        return metadata
         
         
     def filter_by_id(self, association, pair=True, sample=False):
@@ -408,30 +377,25 @@ class CloudOutput():
                                                               if not len(self.pair_association[pair_id][object][i]) == 0]
 
     def out_path(self):
-        if self.options["use_relative_output_paths"]:
-            dir = self.options["final_workflow_outputs_dir"]
-            return dir
+        dir = self.options["final_workflow_outputs_dir"]
+        if 'use_relative_output_paths' in self.options \
+                and self.options["use_relative_output_paths"]:
+            use_relative_output_paths = True
+            return dir, use_relative_output_paths
         else:
-            log.error('Not tested for non-relative paths')
-            sys.exit(1)
+            use_relative_output_paths = False
+            return dir, use_relative_output_paths
         
     def parse_block(self):
         '''get files (named and unnamed) from API outputs section'''
-        self.out_dir =  self.out_path()
+        self.out_dir, self.use_relative_output_paths =  self.out_path()
         outputs = JsonModify(inputs=self.raw_outputs,
                              workflow_uuid=self.workflow_uuid,
                              dir=self.out_dir,
+                             use_relative_output_paths=self.use_relative_output_paths,
                              tool='convert_path')
         self.named_outputs = outputs.final_json_obj
         self.named_files = outputs.files
-        
-    def gather_unnamed(self):
-        '''Some (generally undelivered outputs) have a list of files
-        too long for the log file'''
-        all_files = self.ls_gsutil()
-        unnamed_files = list(set(all_files).difference(set(self.named_files)))
-        unnamed_files = [unnamed_file for unnamed_file in unnamed_files if not unnamed_file.endswith('/rc')]
-        return unnamed_files
     
     def get_run_date(self):
         '''
@@ -440,89 +404,6 @@ class CloudOutput():
         run_date = self.metadata['start']
         run_date = run_date.replace('"', '').split('T')[0]
         return run_date
-        
-    def fake_get_uuid_from_uri(self, uri):
-        sub_workflow_uuid = uri.replace('/cacheCopy', '').split('/call-')[-2].split('/')[-1]
-        match = re.match(uuid_compiled, sub_workflow_uuid)
-        if match != None:
-            return sub_workflow_uuid
-    
-    def get_uuid_from_uri(self, uris):
-        sub_workflow_uuids = []
-        for uri in uris:
-            for possible in uri.replace('/cacheCopy', '').split('/call-')[1::-1]:
-                sub_workflow_uuid = possible.split('/')[-1]
-                match = re.match(uuid_compiled, sub_workflow_uuid)
-                if match != None:
-                    yield sub_workflow_uuid
-    
-    def list_uris(self):
-        '''
-        Get all top level sub workflow uuids
-        '''
-        self.uri_list = []
-        if not self.large_run:
-            calls = self.read_api(goal='get_uuids')
-            self.uri_list = []
-            for line in str(calls).split('\n'):
-                for strings in line.split():
-                    for string in strings.split("'"):
-                        if string.startswith("gs://") and 'call-' in string:
-                            uri = string
-                            self.uri_list.append(uri)
-                        elif string.startswith("gs://"):
-                            pass
-                            #log.warning('potential skipped uri : ' + string)
-            self.uri_list = list(set(self.uri_list))
-        # get any uris for steps that have failed
-        uris = self.ls_gsutil()
-        self.uri_list += uris
-        return list(set(self.uri_list))
-    
-    def list_project(self):
-        '''slow way to get all uris
-            
-        '''
-        skip = [':', '/',
-                 '/gcs_delocalization.sh', '/rc', 
-                '/gcs_localization.sh', '/gcs_transfer.sh',
-                '/script', '/stderr', '/stdout']
-        log.info('Retrieve uuids for run...')
-        try:
-            uris = subprocess.run(['gsutil', 'ls', 
-                                   '-R',
-                                   self.root_dir
-                                   ],
-                                   check=True,
-                                   stdout=subprocess.PIPE).stdout.decode('utf-8')
-        except subprocess.CalledProcessError as err:
-            log.error(err.output.decode('utf-8'))
-            log.error('Failed to recursively list directories')
-            return False
-        final_uris = []
-        for uri in [uri for uri in uris.split('\n') if not uri == '']:
-            failed = any([uri.endswith(end) for end in skip])
-            if not failed:
-                final_uris.append(uri)
-        return final_uris
-       
-    def ls_gsutil(self):
-        '''
-            return empty list if no URLs are found
-        '''
-        script = self.parent_dir + '/get_failed_uuids.sh'
-        args = ['bash', script,
-                '-w', self.workflow_uuid,
-                '-g', self.gcp_query_project]
-        try:
-            result = subprocess.run(args,
-                                    check=True,
-                                    stdout=subprocess.PIPE).stdout.decode('utf-8')
-        except subprocess.CalledProcessError as err:
-            log.warning(err.output.decode('utf-8'))
-            log.warning('Failed to run: ' + ' '.join([str(a) for a in args]))
-            return []
-        return [file for file in result.split('\n') if not file == '']
                     
     def read_api(self, goal='get_outputs'):
         if goal == 'get_run_date':
@@ -588,11 +469,6 @@ def get_args():
                         'genome build, library and interval list information',
                         required=True
                         )
-    parser.add_argument('--large-run',
-                        help='Query one subworkflow at a time to avoid timeouts.',
-                        required=False,
-                        action='store_true'
-                        )
     parser.add_argument('--output-info-file',
                     help='Output file name *_outputInfo.json',
                     required=True
@@ -621,8 +497,7 @@ def main():
     if not os.path.isfile(file_out):
         outputs = CloudOutput(run_data=run_data,
                               url=args['url'],
-                              gcp_project=gcp_query_project,
-                              large_run=args['large_run'])
+                              gcp_project=gcp_query_project)
         with open(file_out, 'w') as project_info_file:
             json.dump(outputs.run_data.run_info, project_info_file, indent=4)
 

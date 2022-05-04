@@ -293,8 +293,8 @@ def get_args():
                         required=False
                         )
     parser.add_argument('--pairs-file',
-                        help='JSON file with items that are required to have '
-                        '"tumor", "normal", "pairId"sample_ids defined '
+                        help='CSV file with items that are required to have '
+                        '"tumor", "normal", "pairId" as columns '
                         'Optionally, include "tumorBam", "normalBam" columns to create '
                         '"pairInfos" and "normalSampleBamInfos" automatically.'
                         ,

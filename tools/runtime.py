@@ -70,6 +70,11 @@ class Runtime():
             self.loaded = self.load_metadata_api()
             if not self.loaded:
                 log.warning('No endtime found for workflow: ' + output_info['workflow_uuid'])
+            elif not 'monitoring_image' in output_info['options'] :
+                log.info('write metrics')
+                self.metadata = self.load_plot_metrics(self.metadata)
+                self.metadata.to_csv(self.metrics_file, index=False, float_format='{:f}'.format,
+                                     encoding='utf-8')
             else:
                 self.load_runtime()
                 # check for UUIDs that were missed in the metadata api call
@@ -140,7 +145,7 @@ class Runtime():
         https://google-auth.readthedocs.io/en/latest/reference/google.auth.html#google.auth.default.'''
         credentials, gcp_project = google.auth.default()
         return credentials, gcp_project
-                    
+    
     def add_custom_cols(self):
         '''Add per instance id values from metrics to metadata'''
         self.metrics['row_max_cpu_percent'] = self.metrics['cpu_used_percent'].apply(max)
@@ -155,16 +160,6 @@ class Runtime():
         self.metadata = pd.merge(self.metadata, self.metrics[['instance_id', 
                                                               'max_mem_used_gb']].drop_duplicates(subset=['instance_id']), 
                                  on='instance_id', how='left')
-        '''
-        # or simplify the whole thing to single groupby-merge (untested)
-        self.metrics['row_max_cpu_percent'] = self.metrics['cpu_used_percent'].apply(max)
-        self.metrics['row_max_disk_used_gb'] = self.metrics['disk_used_gb'].apply(max)
-        grouped_metrics = self.metrics.groupby('instance_id').agg(max_cpu_used_percent=('row_max_cpu_percent', 'max'),
-                                                                  max_disk_used_gb=('row_max_disk_used_gb', 'max'),
-                                                                  max_mem_used_gb=('mem_used_gb', 'max')
-                                                                  ).reset_index()
-        self.metadata = pd.merge(self.metadata, grouped_metrics, on='instance_id', how='left')
-        '''
 
     @staticmethod
     def read(file):
@@ -219,8 +214,9 @@ class Runtime():
         # sub workflows wallclock time from start to finish
         metadata = self.get_flow_runtime(metadata, ids=['id', 'workflow_name'], 
                                          col='sample_subworkflow_run_time_h').copy()
-        metadata['subworkflow_max_mem_g'] = metadata.groupby(['id', 
-                                                              'workflow_name']).max_mem_used_gb.transform(max)
+        if 'max_mem_used_gb' in metadata.columns:
+            metadata['subworkflow_max_mem_g'] = metadata.groupby(['id',
+                                                                  'workflow_name']).max_mem_used_gb.transform(max)
 
         # ============================
         #       workflows
@@ -232,7 +228,8 @@ class Runtime():
                                                                       aggfunc=sum)).reset_index()
         metadata = pd.merge(metadata, sub_metadata, on=['id'], how='left')
         metadata = self.get_flow_runtime(metadata, ids=['id'], col='sample_workflow_run_time_h').copy()
-        metadata['workflow_max_mem_g'] = metadata.groupby(['id']).max_mem_used_gb.transform(max)
+        if 'max_mem_used_gb' in metadata.columns:
+            metadata['workflow_max_mem_g'] = metadata.groupby(['id']).max_mem_used_gb.transform(max)
         log.info('Done calculating runtime metrics...')
         return metadata
     
@@ -583,9 +580,6 @@ class Runtime():
         '''
         log.info('Loading Runtime...')
         workflow_uuids = self.metadata.dropna(subset=['workflow_id']).workflow_id.unique().tolist()
-        if 'sub_workflow_uuids' in self.output_info:
-            missing = list(set(self.output_info['sub_workflow_uuids']).difference(set(workflow_uuids)))
-            workflow_uuids += missing
         self.sub_workflow_uuid_list = self.format_query_list(workflow_uuids)
         instance_names = self.metadata.dropna(subset=['instance_name']).instance_name.unique().tolist()
         self.instance_name_list = self.format_query_list(instance_names)
@@ -595,9 +589,6 @@ class Runtime():
             AND DATE(start_time) <= "''' + self.end_date + '''"
             AND (workflow_id IN ''' + self.sub_workflow_uuid_list + '''
             OR instance_name IN ''' + self.instance_name_list  + ')'
-#             LIMIT ''' + self.limit + '''
-#         '''
-        # why the AND on instance_name and LIMIT? Seems like that would just lead to missing stuff. Isn't workflow ids enough?
         self.runtime = (
             self.bqclient.query(query_string)
             .result()

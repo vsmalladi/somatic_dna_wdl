@@ -5,6 +5,7 @@ import sys
 
 def add_cost(kind, row, map, costs):
     '''add various costs from table'''
+    print('costs.columns', costs.columns)
     options = ['capacity_cost', 'core_cost', 'ram_cost', 'egress_cost']
     cost_keys = [key for key in map if map[key]['cost'] == kind]
     if row.main_workflow_name.lower() == row.sub_workflow_name:
@@ -127,52 +128,3 @@ total = pd.DataFrame({'workflow_uuid' : [uuid],
                       'cost' : [costs.cost.sum()]})
 total.to_csv(output_prefix + '.outputMetrics.total.csv', index=False)
 
-    
-# output_dir = '/gpfs/commons/projects/TCGA/gdc-awg/ALCHEMIST/WGS/analysis/v7/gcp/tmp/'
-# # Ataq seq
-# cost_glob = '/gpfs/internal/sweng/wdl_cost/cost_test/*_outputCosts.csv'
-# input_glob = '/gpfs/commons/home/jroche/RND300/outputMetrics_expandMetadata/*'
-# output_dir = '/gpfs/commons/projects/TCGA/gdc-awg/ALCHEMIST/WGS/analysis/v7/gcp/tmp/'
-# # output = output_dir + 'ataq_seq.outputMetrics.cost.csv'
-# # dfs= [] 
-# # all_costs = []   
-# # for file in glob.glob(cost_glob):
-# #     uuid = file.split('/')[-1].replace('_outputCosts.csv', '')
-# #     costs = pd.read_csv(file)
-# #     runtime_file = glob.glob('/gpfs/commons/home/jroche/RND300/outputMetrics_expandMetadata/*' + uuid +  '_outputMetrics.csv')[0]
-# #     runtime = load_runtime(runtime_file, costs, uuid)
-# #     dfs.append(runtime)
-# #     all_costs.append(costs)
-# # all = pd.concat(dfs, ignore_index=True)
-# # all.to_csv(output, index=False)
-# # all_cost = pd.concat(all_costs, ignore_index=True)
-# # all_cost.to_csv(output_dir + 'ataq_seq.cost.csv')
-# #  
-# # alchemist
-# cost_glob = '/gpfs/internal/sweng/wdl_cost/cost_test_1/*_outputCosts.csv'
-# output_dir = '/gpfs/commons/projects/TCGA/gdc-awg/ALCHEMIST/WGS/analysis/v7/gcp/tmp/'
-# output = output_dir + 'alchemist.outputMetrics.cost.csv'
-# dfs = []
-# for file in glob.glob(cost_glob):
-#     uuid = file.split('/')[-1].replace('_outputCosts.csv', '')
-#     costs = pd.read_csv(file)
-#     runtime_file = glob.glob('/gpfs/commons/projects/TCGA/gdc-awg/ALCHEMIST/WGS/analysis/v7/gcp/ALCHEMIST.*' + uuid +  '_outputMetrics.csv')[0]
-#     runtime = load_runtime(runtime_file, costs, uuid)
-#     dfs.append(runtime)
-# all = pd.concat(dfs, ignore_index=True)
-# all.to_csv(output, index=False)
-# 
-# 
-# # alchemist meta
-# output = output_dir + 'alchemist.outputMetrics.cost.csv'
-# cost = pd.read_csv(output)
-# file = '/gpfs/commons/projects/TCGA/gdc-awg/ALCHEMIST/metadata/manifest_map.csv'
-# metadata = pd.read_csv(file)
-# type_and_cov_file = '/gpfs/commons/projects/TCGA/gdc-awg/ALCHEMIST/metadata/pairs_with_type.csv'
-# type_and_cov = pd.read_csv(type_and_cov_file)
-# type_and_cov['is_ffpe'] = type_and_cov.apply(lambda row: row.tumor, axis=1)
-#pon
-
-#  runtime[(runtime.wdl_task_name == 'svabawgs') &
-#          (runtime.sub_workflow_name == 'svaba')]
-#     
