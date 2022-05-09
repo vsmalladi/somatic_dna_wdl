@@ -234,26 +234,46 @@ After workflow finishes and the status is `SUCCEEDED` run:
 ```
 cd ${working-dir}
 
-bash ../wdl_port/run_post.sh \
+bash ../wdl_port/run_summary.sh \
 -u ${url} \
 -d ${log_dir} \
--p ${project_id}
+-p ${gcp_project} \
+-n ${project_name}
+
+# optionally add -r ${run_info} or the script will use the most recent *RunInfo.json file in the ${log_dir}
+```
+
+If you do not have a `*RunInfo.json` you can start with the workflow uuid and optionally a sample or pair csv file
+
+```
+bash \
+../wdl_port/run_summary.sh \
+-u ${url} \
+-d ${log_dir} \
+-b ${billing_export} \
+-n ${project_name} \
+-g ${gcp_project} \
+--uuid ${uuid} \
+--samples-file ${sample_id_list}
+```
+
+NOTE: Optionally add (where `${billing_export}` is the name of the table for the SQL query) to add cost per instance_id to results:
+```
+-b ${billing_export}
 ```
 
 #### Output:
-If the workflow finishes and the status is `SUCCEEDED` and you have run `run_post.sh`. It will output several log files:
+If the workflow finishes and the status is `SUCCEEDED` and you have run `run_summary.sh`. It will output several log files:
 
 `${lab_quote_number}<WORKFLOW_UUID>_outputInfo.json` :
 
 In addition to the content of `${lab_quote_number}_project.<DATE>.RunInfo.json` the file includes:
 
   - `outputs`: map between workflow output object-name and object (including the file URIs)
-  - `unnamed`: list of files in the output bucket that are not from this workflow
-  - `pair_association` : map of pair_ids to the `outputs` map for just that pair 
-  - `sample_association` : map of sample_ids to the `outputs` map for just that sample 
-  - `sub_workflow_uuids`: map of sample/pair ids to the `sub_workflow_uuids` for that id
+  - `pair_association` : map of pair_ids to the `outputs` map for just that pair (searches for the pair_id followed by . _ or / )
+  - `sample_association` : map of sample_ids to the `outputs` map for just that sample (searches for the sample_id followed by . _ or / )
 
-Note: Pair association only works if the pair_id is used in the filename followed by a `.` or a `_`. Sample association only works if the sample_id is used in the filename followed by a `.` or a `_`. 
+Note: Pair association only works if the pair_id is used in the filename followed by a `.`, `/` or a `_`. Sample association only works if the sample_id is used in the filename followed by a `.` or a `_`. 
 
 
 `${lab_quote_number}<WORKFLOW_UUID>_outputMetrics.csv`
