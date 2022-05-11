@@ -22,7 +22,7 @@ task GetInsertSize {
     }
 
     runtime {
-        docker: "gcr.io/nygc-public/python@sha256:9b7d62026be68c2e91c17fb4e0499454e41ebf498ef345f9ad6e100a67e4b697"
+        docker : "gcr.io/nygc-public/python@sha256:9b7d62026be68c2e91c17fb4e0499454e41ebf498ef345f9ad6e100a67e4b697"
     }
 }
 
@@ -587,7 +587,7 @@ task Mutect2Wgs {
     runtime {
         mem: memoryGb + "G"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/broadinstitute/gatk@sha256:d78b14aa86b42638fe2844def82816d002a134cc19154a21dac7067ecb3c7e06"
+        docker : "gcr.io/nygc-public/broadinstitute/gatk4@sha256:b3bde7bc74ab00ddce342bd511a9797007aaf3d22b9cfd7b52f416c893c3774c"
         disks: "local-disk " + diskSize + " LOCAL"
     }
 }
@@ -621,7 +621,7 @@ task Mutect2WgsPon {
     runtime {
         mem: memoryGb + "G"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/broadinstitute/gatk@sha256:d78b14aa86b42638fe2844def82816d002a134cc19154a21dac7067ecb3c7e06"
+        docker : "gcr.io/nygc-public/broadinstitute/gatk4@sha256:b3bde7bc74ab00ddce342bd511a9797007aaf3d22b9cfd7b52f416c893c3774c"
         disks: "local-disk " + diskSize + " HDD"
     }
 }
@@ -654,7 +654,7 @@ task Mutect2Filter {
     runtime {
         mem: memoryGb + "G"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/broadinstitute/gatk@sha256:d78b14aa86b42638fe2844def82816d002a134cc19154a21dac7067ecb3c7e06"
+        docker : "gcr.io/nygc-public/broadinstitute/gatk4@sha256:b3bde7bc74ab00ddce342bd511a9797007aaf3d22b9cfd7b52f416c893c3774c"
         disks: "local-disk " + diskSize + " HDD"
     }
 }
@@ -1091,10 +1091,10 @@ task GridssPreprocess {
 
         working=$( pwd )
 
-        gridss.sh \
+        gridss \
         --steps preprocess \
         --reference ~{bwaReference.fasta} \
-        --jar /opt/gridss/gridss-2.11.1-gridss-jar-with-dependencies.jar \
+        --jar /opt/gridss/gridss-2.13.2-gridss-jar-with-dependencies.jar \
         --threads ~{threads} \
         --workingdir $working \
         --picardoptions VALIDATION_STRINGENCY=LENIENT \
@@ -1105,7 +1105,7 @@ task GridssPreprocess {
     output {
         Bam svBam = object {
             bam : svBamPath,
-            bamIndex : sub(svBamPath, ".bam$", ".bam.bai")
+            bamIndex : sub(svBamPath, ".bam$", ".bam.csi")
         }
         File cigarMetrics = "~{cigarMetricsPath}"
         File idsvMetrics = "~{idsvMetricsPath}"
@@ -1120,7 +1120,7 @@ task GridssPreprocess {
         disks: "local-disk " + diskSize + " LOCAL"
         cpu : threads
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/gridss@sha256:284c58744471089a9d0998a48a33d7cd3d1019a588a284fb99b69b547f794cac"
+        docker : "gcr.io/nygc-public/gridss@sha256:bf4a0367accd33911a5658491e42e5ee52440cd196ea96e538511e88a71dee1f"
     }
 }
 
@@ -1171,10 +1171,10 @@ task GridssAssembleChunk {
 
         working=$( pwd )
 
-        bash gridss.sh \
+        bash gridss \
         --steps assemble \
         --reference ~{bwaReference.fasta} \
-        --jar /opt/gridss/gridss-2.11.1-gridss-jar-with-dependencies.jar \
+        --jar /opt/gridss/gridss-2.13.2-gridss-jar-with-dependencies.jar \
         --threads ~{threads} \
         --workingdir $working \
         --assembly ~{gridssassemblyBamPath} \
@@ -1197,8 +1197,7 @@ task GridssAssembleChunk {
         disks: "local-disk " + diskSize + " LOCAL"
         cpu : threads
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/gridss@sha256:284c58744471089a9d0998a48a33d7cd3d1019a588a284fb99b69b547f794cac"
-
+        docker : "gcr.io/nygc-public/gridss@sha256:bf4a0367accd33911a5658491e42e5ee52440cd196ea96e538511e88a71dee1f"
     }
 }
 
@@ -1257,10 +1256,10 @@ task GridssAssemble {
 
         working=$( pwd )
 
-        bash gridss.sh \
+        bash gridss \
         --steps assemble \
         --reference ~{bwaReference.fasta} \
-        --jar /opt/gridss/gridss-2.11.1-gridss-jar-with-dependencies.jar \
+        --jar /opt/gridss/gridss-2.13.2-gridss-jar-with-dependencies.jar \
         --threads ~{threads} \
         --workingdir $working \
         --assembly ~{gridssassemblyBamPath} \
@@ -1283,7 +1282,7 @@ task GridssAssemble {
         disks: "local-disk " + diskSize + " LOCAL"
         cpu : threads
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/gridss@sha256:284c58744471089a9d0998a48a33d7cd3d1019a588a284fb99b69b547f794cac"
+        docker : "gcr.io/nygc-public/gridss@sha256:bf4a0367accd33911a5658491e42e5ee52440cd196ea96e538511e88a71dee1f"
     }
 }
 
@@ -1355,10 +1354,10 @@ task GridssCalling {
 
         working=$( pwd )
 
-        bash gridss.sh \
+        bash gridss \
         --steps call \
         --reference ~{bwaReference.fasta} \
-        --jar /opt/gridss/gridss-2.11.1-gridss-jar-with-dependencies.jar \
+        --jar /opt/gridss/gridss-2.13.2-gridss-jar-with-dependencies.jar \
         --threads ~{threads} \
         --workingdir $working \
         --assembly ~{gridssassemblyBamPath} \
@@ -1378,8 +1377,7 @@ task GridssCalling {
         disks: "local-disk " + diskSize + " LOCAL"
         cpu : threads
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/gridss@sha256:284c58744471089a9d0998a48a33d7cd3d1019a588a284fb99b69b547f794cac"
-
+        docker: "gcr.io/nygc-public/gridss@sha256:bf4a0367accd33911a5658491e42e5ee52440cd196ea96e538511e88a71dee1f"
     }
 }
 
@@ -1433,7 +1431,7 @@ task GridssFilter {
 
         working=$( pwd )
 
-        Rscript /opt/gridss/gridss_somatic_filter.R \
+        Rscript /opt/gridss/gridss_somatic_filter \
         --ref ~{bsGenome} \
         --input ~{gridssUnfilteredVcf} \
         --output ~{gridssVcfPath} \
@@ -1457,8 +1455,6 @@ task GridssFilter {
         disks: "local-disk " + diskSize + " HDD"
         cpu : threads
         memory : memoryGb + "GB"
-
-        docker : "gcr.io/nygc-public/gridss@sha256:284c58744471089a9d0998a48a33d7cd3d1019a588a284fb99b69b547f794cac"
-
+        docker : "gcr.io/nygc-public/gridss@sha256:bf4a0367accd33911a5658491e42e5ee52440cd196ea96e538511e88a71dee1f"
     }
 }
