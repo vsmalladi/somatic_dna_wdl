@@ -51,6 +51,7 @@ class Runtime():
         self.non_retried_metrics_file = metrics_file_prefix + self.workflow_uuid + '_outputMetrics.non_retried.csv'
         if os.path.isfile(self.metrics_file):
             self.loaded = True
+            log.warning('Metrics file (*outputMetrics.csv) exists. Reading from original metrics file.')
         else:
             # find relevant project info
             self.limit = str(limit)

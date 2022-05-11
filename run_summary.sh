@@ -200,7 +200,7 @@ eval ${runtime_command}
 
 #skip if monitoring_image not in options
 monitored=$( cat ${output_info_file} | jq ".options.monitoring_image")
-if [ -z "$monitored" ]; then
+if [ ! -z "$monitored" ]; then
     echo "Plot usage metrics..."
     python ${wdl_dir}/tools/plot_runtime.py \
         --name ${project_name} \

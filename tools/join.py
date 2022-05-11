@@ -2,6 +2,7 @@ import glob
 import pandas as pd
 import numpy as np
 import sys
+import logging as log
 
 def add_cost(kind, row, map, costs):
     '''add various costs from table'''
@@ -11,11 +12,11 @@ def add_cost(kind, row, map, costs):
         match = costs[(costs.wdl_task_name == row.wdl_task_name) &
                       (costs.workflow_id == row.costs_workflow_id) &
                       (costs.service_type.isin(cost_keys))].copy()
-    else:
+    if match.empty:
         match = costs[(costs.sub_workflow_name == row.sub_workflow_name) &
-                      (costs.wdl_task_name == row.wdl_task_name) &
-                      (costs.workflow_id == row.costs_workflow_id) &
-                      (costs.service_type.isin(cost_keys))].copy()
+              (costs.wdl_task_name == row.wdl_task_name) &
+              (costs.workflow_id == row.costs_workflow_id) &
+              (costs.service_type.isin(cost_keys))].copy()
     if not match.empty:
         # preemptible doesn't matter
         if kind in ['capacity_cost', 'egress_cost']:
@@ -66,7 +67,7 @@ def load_runtime(file, costs, uuid):
            'SSD backed Local Storage attached to Spot Preemptible VMs': {'cost' : 'capacity_cost',
                                       'type' : 'ssd_local_attached_spot_capacity',
                                       'preemptible' : np.nan},
-            'SSD backed PD Capacity': {'cost' : 'capacity_cost',
+           'SSD backed PD Capacity': {'cost' : 'capacity_cost',
                                       'type' : 'ssd_pd_capacity',
                                       'preemptible' : np.nan},
            'Custom Instance Core running in Americas': {'cost' : 'core_cost',
@@ -84,21 +85,52 @@ def load_runtime(file, costs, uuid):
            'Storage PD Capacity': {'cost' : 'capacity_cost',
                                    'type' : 'storage_pd_capacity',
                                    'preemptible' : np.nan},
+           'N1 Predefined Instance Core running in Americas': {'cost' : 'core_cost',
+                                                                    'type' : 'N1_predefined',
+                                                                    'preemptible' : False},
+           'N1 Predefined Instance Ram running in Americas': {'cost' : 'ram_cost',
+                                                                    'type' : 'N1_predefined',
+                                                                    'preemptible' : False},
+           'N2 Instance Core running in Americas': {'cost' : 'core_cost',
+                                                                    'type' : 'N1_predefined',
+                                                                    'preemptible' : False},
+           'N2 Instance Ram running in Americas': {'cost' : 'ram_cost',
+                                                                    'type' : 'N1_predefined',
+                                                                    'preemptible' : False},
            'Preemptible N1 Predefined Instance Core running in Americas': {'cost' : 'core_cost',
                                                                     'type' : 'N1_predefined',
                                                                     'preemptible' : True},
            'Preemptible N1 Predefined Instance Ram running in Americas': {'cost' : 'ram_cost',
                                                                     'type' : 'N1_predefined',
                                                                     'preemptible' : True},
+           'Spot Preemptible N2 Instance Core running in Americas': {'cost' : 'core_cost',
+                                                                    'type' : 'spot_N2',
+                                                                    'preemptible' : True},
+           'Spot Preemptible N2 Instance Ram running in Americas': {'cost' : 'ram_cost',
+                                                                    'type' : 'spot_N2',
+                                                                    'preemptible' : True},
+           'Preemptible N2 Instance Core running in Americas': {'cost' : 'core_cost',
+                                                                    'type' : 'N2',
+                                                                    'preemptible' : True},
+           'Preemptible N2 Instance Ram running in Americas': {'cost' : 'ram_cost',
+                                                                    'type' : 'N2',
+                                                                    'preemptible' : True},
            'Network Internet Egress from Americas to Americas': {'cost' : 'egress_cost',
                                                                  'type' : 'network_egress',
-                                                                 'preemptible' : np.nan}
+                                                                 'preemptible' : np.nan},
+           'Network Inter Zone Egress': {'cost' : 'egress_cost',
+                                         'type' : 'network_inter_zone_egress',
+                                         'preemptible' : np.nan}
            }
     runtime['main_workflow_id'] = runtime.apply(lambda row: uuid, axis=1)
     runtime['costs_workflow_id'] = runtime.apply(lambda row: 'cromwell-' + row.main_workflow_id, axis=1)
     runtime['sub_workflow_name'] = runtime.apply(lambda row: row.workflow_name.lower(), axis=1)
     runtime['wdl_task_name'] = runtime.apply(lambda row: row.non_alias_task_call_name.split('.')[-1].lower(), axis=1)
     options = ['capacity_cost', 'core_cost', 'ram_cost', 'egress_cost']
+    missing = [service_type for service_type in costs.service_type if service_type not in map]
+    if len(missing) > 0:
+        log.warning('Following service_types are not yet described in map. Add them to join.py: ')
+        log.warning(', '.join(missing))
     for option in options:
         runtime['total_' + option] = runtime.apply(lambda row: add_cost(option, row, map, costs), axis=1)
         runtime['count_' + option] = runtime.groupby(['main_workflow_id', 
