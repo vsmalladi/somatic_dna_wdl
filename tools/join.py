@@ -4,6 +4,11 @@ import numpy as np
 import sys
 import logging as log
 
+try:
+    import Colorer
+except ImportError:
+    pass
+
 def add_cost(kind, row, map, costs):
     '''add various costs from table'''
     options = ['capacity_cost', 'core_cost', 'ram_cost', 'egress_cost']
