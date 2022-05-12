@@ -8,6 +8,7 @@ workflow PrepMergeVcfPon {
         String tumor
         String tool
         File callerVcf
+        File renameVcfPon
         IndexedReference referenceFa
     }
     
@@ -41,7 +42,8 @@ workflow PrepMergeVcfPon {
         input:
             tumor = tumor,
             tool = tool,
-            prepCallerVcf = uncompressedVcf
+            prepCallerVcf = uncompressedVcf,
+            renameVcfPon = renameVcfPon
     }
     
     call merge_vcf.CompressVcf as renameCompressVcf {

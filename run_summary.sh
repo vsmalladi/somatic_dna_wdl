@@ -1,5 +1,5 @@
 #!/bin/bash
-# USAGE: run_post.sh -u URL -p PROJECT_NAME -g GCP_PROJECT -d LOG_DIR [-r RUNINFO_JSON] [-l]
+# USAGE: run_summary.sh -u URL -n PROJECT_NAME -g GCP_PROJECT -d log_dir [-r RUNINFO_JSON] [-i UUID] [-b BILLING EXPORT] [-p PAIRS_FILE] [-s SAMPLES_FILE]
 # DESCRIPTION: submit workflow to cromwell.
 # Use -l for large jobs that may timeout.
 # Script requires jq, cromwell-tools, gcloud to be in the path
@@ -30,7 +30,7 @@ wdl_dir=$( pwd )
 
     
 print_help() {
-  echo "USAGE: run_post.sh -u URL -p PROJECT_NAME -g GCP_PROJECT -d LOG_DIR [-r RUNINFO_JSON] [-l]" >&2
+  echo "USAGE: run_summary.sh -u URL -n PROJECT_NAME -g GCP_PROJECT -d log_dir [-r RUNINFO_JSON] [-i UUID] [-b BILLING EXPORT] [-p PAIRS_FILE] [-s SAMPLES_FILE]" >&2
   echo "DESCRIPTION: submit workflow to cromwell." >&2
   echo "Use -l for large jobs that may timeout." >&2
   echo "Script requires jq, cromwell-tools, gcloud to be in the path." >&2
@@ -42,7 +42,7 @@ print_help() {
 }
 
 print_usage() {
-  echo "USAGE: run_post.sh -u URL -p PROJECT_NAME -g GCP_PROJECT -d log_dir [-r RUNINFO_JSON] [-l]" >&2
+  echo "USAGE: run_summary.sh -u URL -n PROJECT_NAME -g GCP_PROJECT -d log_dir [-r RUNINFO_JSON] [-i UUID] [-b BILLING EXPORT] [-p PAIRS_FILE] [-s SAMPLES_FILE]" >&2
   exit 1
 }
 
@@ -50,8 +50,8 @@ print_usage() {
 
 for arg in "$@"; do
   case $arg in
-    -l|--large-run)
-        large_run="$2"
+    -b|--billing-export)
+        billing_export="$2"
         shift # Remove argument name from processing
         shift # Remove argument value from processing
         ;;
@@ -72,6 +72,21 @@ for arg in "$@"; do
         ;;
     -r|--run-info-json)
         run_info_json="$2"
+        shift # Remove argument name from processing
+        shift # Remove argument value from processing
+        ;;
+    -i|--uuid)
+        uuid="$2"
+        shift # Remove argument name from processing
+        shift # Remove argument value from processing
+        ;;
+    -p|--pairs-file)
+        pairs_file="$2"
+        shift # Remove argument name from processing
+        shift # Remove argument value from processing
+        ;;
+    -s|--samples-file)
+        samples_file="$2"
         shift # Remove argument name from processing
         shift # Remove argument value from processing
         ;;
@@ -105,18 +120,49 @@ if [ -z "$project_name" ]; then
     exit 1
 fi
 
+# runs from either a run_info_json or a uuid
+if [ -z "$uuid" ]; then
+    if [ -z "$run_info_json" ]; then
+        # get most recent file if none provided
+        echo "Looking up the most recent RunInfo.json file..."
+        cd ${log_dir}
+        run_info_json=$( find . -name "*.RunInfo.json" -print0 | xargs -r -0 ls -1 -t | head -1)
+    fi
+fi
 
-if [ -z "$run_info_json" ]; then
-    # get most recent file if none provided
-    cd ${log_dir}
-    run_info_json=$( find . -name "*.RunInfo.json" -print0 | xargs -r -0 ls -1 -t | head -1)
+start_from_uuid="True"
+if [ -z "$uuid" ]; then
+    if [ -z "$run_info_json" ]; then
+            echo "Error: Missing value for -i uuid and no RunInfo.json file is specified or in the current directory" >&2
+            print_usage
+    else
+        start_from_uuid="False"
+    fi
+    
 fi
 
 set -e 
 set -o pipefail
 
 cd ${log_dir}
-workflow_uuid=$( cat ${run_info_json} | jq .workflow_uuid | sed 's/"//g' )
+# Define variables
+if [[ $start_from_uuid == 'True' ]]; then
+    workflow_uuid=${uuid}
+    command="python ${wdl_dir}/tools/create_run_info.py --uuid ${uuid} --project-name ${project_name}"
+    if [ ! -z "$pairs_file" ]; then
+        command="${command} \
+        --pairs-file ${pairs_file}"
+    fi
+    if [ ! -z "$samples_file" ]; then
+        command="${command} \
+        --samples-file ${samples_file}"
+    fi
+    echo "Make relevant input json..."
+    eval ${command}
+    run_info_json="${project_name}.${workflow_uuid}.RunInfo.json"
+else
+    workflow_uuid=$( cat ${run_info_json} | jq .workflow_uuid | sed 's/"//g')
+fi
 
 output_info_file="${log_dir}/${project_name}.${workflow_uuid}_outputInfo.json"
 metrics_file="${log_dir}/${project_name}.${workflow_uuid}_outputMetrics.csv"
@@ -127,20 +173,14 @@ pandoc_dir="${wdl_dir}/pandoc/"
 md="${log_dir}/${project_name}.${workflow_uuid}_outputMetrics.md"
 html="${log_dir}/${project_name}.${workflow_uuid}_outputMetrics.html"
 header="${log_dir}/${project_name}.${workflow_uuid}_outputMetrics.header.txt"
+costs_file="${log_dir}/${project_name}.${workflow_uuid}_outputCosts.csv"
 
-
-echo "Collect subworkflow uuids..."
+echo "Collect output files..."
 collect_command="time python ${wdl_dir}/tools/collect.py \
 --run-data ${run_info_json} \
 --url ${url} \
 --output-info-file ${output_info_file} \
 --gcp-project ${gcp_project}"
-
-
-if [ ! -z "$large_run" ]; then
-    collect_command="${collect_command} \
-    --large-run"
-fi
 
 eval ${collect_command}
 
@@ -158,18 +198,45 @@ runtime_command="time python ${wdl_dir}/tools/runtime.py \
 
 eval ${runtime_command}
 
-echo "Plot usage metrics..." 
-python ${wdl_dir}/tools/plot_runtime.py \
-    --name ${project_name} \
-    --output-info ${output_info_file} \
-    --metrics ${metrics_file} \
-    --non-retry-metrics ${non_retried_metrics_file} \
-    --plot ${plot_file} 
+#skip if monitoring_image not in options
+monitored=$( cat ${output_info_file} | jq ".options.monitoring_image")
+if [ ! -z "$monitored" ]; then
+    echo "Plot usage metrics..."
+    python ${wdl_dir}/tools/plot_runtime.py \
+        --name ${project_name} \
+        --output-info ${output_info_file} \
+        --metrics ${metrics_file} \
+        --non-retry-metrics ${non_retried_metrics_file} \
+        --plot ${plot_file}
+        
+    time bash ${wdl_dir}/tools/html_printer.sh \
+        ${md} \
+        ${html} \
+        ${header} \
+        ${nav} \
+        ${pandoc_dir}
+else
+    echo "Skipping plot usage metrics because no monitoring image was declared in options json"
+fi
+
     
-time bash ${wdl_dir}/tools/html_printer.sh \
-    ${md} \
-    ${html} \
-    ${header} \
-    ${nav} \
-    ${pandoc_dir}
+if [ ! -z "$billing_export" ]; then
+    echo "Adding cost per instance id to metrics..."
+    python ${wdl_dir}/tools/cost.py \
+    --output-metrics "${metrics_file}" \
+    --gcp-project "${gcp_project}" \
+    --url "${url}"  \
+    --billing-export "${billing_export}" \
+    --out-file-prefix "${log_dir}/${project_name}.${workflow_uuid}"
+    
+    python ${wdl_dir}/tools/join.py \
+    ${workflow_uuid} \
+    ${costs_file} \
+    ${metrics_file} \
+    "${log_dir}/${project_name}.${workflow_uuid}"
+else
+    echo "Skipping adding cost per instance id to metrics because no --billing-export flag was used"
+
+
+fi
 

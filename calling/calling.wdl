@@ -35,10 +35,12 @@ task Gatk4MergeSortCompressVcf {
         IndexedReference referenceFa
     }
 
+    Int jvmHeap = memoryGb * 750  # Heap size in Megabytes. mem is in GB. (75% of mem)
+
     command {
         gatk \
         SortVcf \
-        --java-options "-XX:ParallelGCThreads=4" \
+        --java-options "-Xmx~{jvmHeap}m -XX:ParallelGCThreads=4" \
         -SD ~{referenceFa.dict} \
         -I ~{sep=" -I " tempChromVcfs} \
         -O ~{sortedVcfPath}
@@ -85,10 +87,11 @@ task Gatk4MergeSortVcf {
         IndexedReference referenceFa
     }
 
+    Int jvmHeap = memoryGb * 750  # Heap size in Megabytes. mem is in GB. (75% of mem)
     command {
         gatk \
         SortVcf \
-        --java-options "-XX:ParallelGCThreads=4" \
+        --java-options "-Xmx~{jvmHeap}m -XX:ParallelGCThreads=4" \
         -SD ~{referenceFa.dict} \
         -I ~{sep=" -I " tempChromVcfs} \
         -O ~{sortedVcfPath}
@@ -139,13 +142,13 @@ task AddCommandReorderColumnsVcf {
     }
 
     command {
-    
+
         python \
         /add_command.py \
         ~{inVcf} \
         ~{outVcfPath} \
         ~{jsonLog}
-        
+
         python \
         /reorder_vcf.py \
         ~{outVcfPath} \
@@ -161,7 +164,7 @@ task AddCommandReorderColumnsVcf {
         mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/somatic_tools@sha256:46ab81b8dc09d6f8cf90c81f7d5692f23d73c134df6dbcd5298abde7f414dce3"
+        docker : "gcr.io/nygc-public/somatic_tools@sha256:9ae77f7d96a3c100319cf0fac2429f8f84301003480b7b7eb72994ca9f358512"
     }
 }
 
@@ -191,7 +194,7 @@ task ReorderVcfColumns {
         mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/somatic_tools@sha256:46ab81b8dc09d6f8cf90c81f7d5692f23d73c134df6dbcd5298abde7f414dce3"
+        docker : "gcr.io/nygc-public/somatic_tools@sha256:9ae77f7d96a3c100319cf0fac2429f8f84301003480b7b7eb72994ca9f358512"
     }
 }
 
@@ -220,7 +223,7 @@ task AddVcfCommand {
         mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/somatic_tools@sha256:46ab81b8dc09d6f8cf90c81f7d5692f23d73c134df6dbcd5298abde7f414dce3"
+        docker : "gcr.io/nygc-public/somatic_tools@sha256:9ae77f7d96a3c100319cf0fac2429f8f84301003480b7b7eb72994ca9f358512"
     }
 }
 
@@ -327,7 +330,7 @@ task MantaWgsPon {
         mem: memoryGb + "G"
         cpus: threads
         cpu : threads
-        disks: "local-disk " + diskSize + " LOCAL"
+        disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/manta@sha256:e171112cccf6758693b7a8aab80000fe6121d6969ce83e14a4e15fbc5f2f3662"
     }
@@ -339,15 +342,16 @@ task FilterNonpass {
         Int memoryGb = 8
         Int diskSize
         String pairName
-        String outVcfPath = "~{pairName}.manta.v1.4.0.filtered.unorder.vcf"
+        String outVcfPath = "~{pairName}.manta.filtered.unorder.vcf"
         IndexedReference referenceFa
         File vcf
     }
 
+    Int jvmHeap = memoryGb * 750  # Heap size in Megabytes. mem is in GB. (75% of mem)
     command {
         gatk \
         SelectVariants \
-        --java-options "-XX:ParallelGCThreads=4" \
+        --java-options "-Xmx~{jvmHeap}m -XX:ParallelGCThreads=4" \
         -R ~{referenceFa.fasta} \
         -V ~{vcf} \
         -O ~{outVcfPath} \
@@ -374,7 +378,7 @@ task FilterNonpassPon {
         Int memoryGb = 8
         Int diskSize
         String pairName
-        String outVcfPath = "~{pairName}.manta.v1.4.0.filtered.unorder.vcf"
+        String outVcfPath = "~{pairName}.manta.filtered.unorder.vcf"
         IndexedReference referenceFa
         IndexedVcf vcf
     }
@@ -466,7 +470,7 @@ task LancetWGSRegional {
         Int memoryGb
         String pairName
         String chrom
-        String lancetChromVcfPath = "~{pairName}_~{chrom}.lancet.v1.0.7.vcf"
+        String lancetChromVcfPath = "~{pairName}_~{chrom}.lancet.vcf"
         IndexedReference referenceFa
         File chromBed
         Bam normalFinalBam
@@ -497,7 +501,7 @@ task LancetWGSRegional {
         mem: memoryGb + "G"
         cpus: threads
         cpu : threads
-        disks: "local-disk " + diskSize + " LOCAL"
+        disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/lancet@sha256:25169d34b41de9564e03f02ebcbfb4655cf536449592b0bd58773195f9376e61"
     }
@@ -510,7 +514,7 @@ task LancetExome {
         Int memoryGb
         String pairName
         String chrom
-        String lancetChromVcfPath = "~{pairName}_~{chrom}.lancet.v1.0.7.vcf"
+        String lancetChromVcfPath = "~{pairName}_~{chrom}.lancet.vcf"
         IndexedReference referenceFa
         File chromBed
         Bam normalFinalBam
@@ -541,7 +545,7 @@ task LancetExome {
         mem: memoryGb + "G"
         cpus: threads
         cpu : threads
-        disks: "local-disk " + diskSize + " LOCAL"
+        disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/lancet@sha256:25169d34b41de9564e03f02ebcbfb4655cf536449592b0bd58773195f9376e61"
     }
@@ -555,16 +559,18 @@ task Mutect2Wgs {
         String tumor
         String normal
         String pairName
-        String mutect2ChromRawVcfPath = "~{pairName}_~{chrom}.mutect2.v4.0.5.1.raw.vcf"
+        String mutect2ChromRawVcfPath = "~{pairName}_~{chrom}.mutect2.raw.vcf"
         IndexedReference referenceFa
         Bam normalFinalBam
         Bam tumorFinalBam
     }
 
+    Int jvmHeap = memoryGb * 750  # Heap size in Megabytes. mem is in GB. (75% of mem)
+
     command {
         gatk \
         Mutect2 \
-        --java-options "-XX:ParallelGCThreads=4" \
+        --java-options "-Xmx~{jvmHeap}m -XX:ParallelGCThreads=4" \
         --reference ~{referenceFa.fasta} \
         -L ~{chrom} \
         -I ~{tumorFinalBam.bam} \
@@ -592,7 +598,7 @@ task Mutect2WgsPon {
         Int diskSize
         String chrom
         String tumor
-        String mutect2ChromRawVcfPath = "~{tumor}_~{chrom}.mutect2.v4.0.5.1.raw.vcf"
+        String mutect2ChromRawVcfPath = "~{tumor}_~{chrom}.mutect2.raw.vcf"
         IndexedReference referenceFa
         Bam tumorFinalBam
     }
@@ -616,7 +622,7 @@ task Mutect2WgsPon {
         mem: memoryGb + "G"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/broadinstitute/gatk@sha256:d78b14aa86b42638fe2844def82816d002a134cc19154a21dac7067ecb3c7e06"
-        disks: "local-disk " + diskSize + " LOCAL"
+        disks: "local-disk " + diskSize + " HDD"
     }
 }
 
@@ -626,15 +632,16 @@ task Mutect2Filter {
         Int diskSize = 5
         String pairName
         String chrom
-        String mutect2ChromVcfPath = "~{pairName}_~{chrom}.mutect2.v4.0.5.1.vcf"
+        String mutect2ChromVcfPath = "~{pairName}_~{chrom}.mutect2.vcf"
         IndexedReference referenceFa
         File mutect2ChromRawVcf
     }
 
+    Int jvmHeap = memoryGb * 750  # Heap size in Megabytes. mem is in GB. (75% of mem)
     command {
         gatk \
         FilterMutectCalls \
-        --java-options "-XX:ParallelGCThreads=4" \
+        --java-options "-Xmx~{jvmHeap}m -XX:ParallelGCThreads=4" \
         --reference ~{referenceFa.fasta} \
         -V ~{mutect2ChromRawVcf} \
         -O ~{mutect2ChromVcfPath}
@@ -708,11 +715,11 @@ task PopulateCache {
 
     command {
         set -e -o pipefail
-        
+
         /samtools-1.4.1/misc/seq_cache_populate.pl \
         -root ~{refCacheDirPath} \
         ~{bwaReference.fasta}
-        
+
         tar -czvf \
         ~{refCachePath} \
         ~{refCacheDirPath}
@@ -740,10 +747,10 @@ task SvabaIndex {
 
     command {
         set -e -o pipefail
-        
+
         cp ~{bwaReference.fasta} \
         ~{svabaIndexedReferencePath}
-        
+
         /svaba/SeqLib/bwa/bwa \
         index \
         ~{svabaIndexedReferencePath}
@@ -786,13 +793,13 @@ task SvabaWgsPon {
 
     command {
         set -e -o pipefail
-        
+
         tar -xzf \
         ~{refCache}
-        
+
         export REF_PATH=./~{refCacheDirPath}/%2s/%2s/%s
         export REF_CACHE=./~{refCacheDirPath}/%2s/%2s/%s
-        
+
         svaba \
         run \
         --verbose ~{verbose} \
@@ -840,13 +847,13 @@ task SvabaWgsPonNoL {
 
     command {
         set -e -o pipefail
-        
+
         tar -xzf \
         ~{refCache}
-        
+
         export REF_PATH=./~{refCacheDirPath}/%2s/%2s/%s
         export REF_CACHE=./~{refCacheDirPath}/%2s/%2s/%s
-        
+
         svaba \
         run \
         --verbose ~{verbose} \
@@ -888,11 +895,11 @@ task ReheaderVcf {
 
     command {
         set -e -o pipefail
-    
-        for id in ~{sep=" " sampleIds} ; do 
+
+        for id in ~{sep=" " sampleIds} ; do
             echo $id >> sample_list.txt
         done
-        
+
         bcftools \
         reheader \
         --samples sample_list.txt \
@@ -1009,8 +1016,8 @@ task Bicseq2Wgs {
     input {
         Int memoryGb
         String pairName
-        String bicseq2PngPath = "~{pairName}.bicseq2.v0.2.6.png"
-        String bicseq2Path = "~{pairName}.bicseq2.v0.2.6.txt"
+        String bicseq2PngPath = "~{pairName}.bicseq2.png"
+        String bicseq2Path = "~{pairName}.bicseq2.txt"
         Array[File] tempTumorNorms
         Array[File] tempNormalNorms
         File bicseq2SegConfigFile
@@ -1021,7 +1028,7 @@ task Bicseq2Wgs {
 
     command {
         set -e -o pipefail
-        
+
         mkdir -p ~{pairName}
 
         python3 \
@@ -1043,8 +1050,8 @@ task Bicseq2Wgs {
     }
 
     output {
-        File bicseq2Png = "~{pairName}.bicseq2.v0.2.6.png"
-        File bicseq2 = "~{pairName}.bicseq2.v0.2.6.txt"
+        File bicseq2Png = "~{pairName}.bicseq2.png"
+        File bicseq2 = "~{pairName}.bicseq2.txt"
     }
 
     runtime {
@@ -1191,6 +1198,7 @@ task GridssAssembleChunk {
         cpu : threads
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/gridss@sha256:284c58744471089a9d0998a48a33d7cd3d1019a588a284fb99b69b547f794cac"
+
     }
 }
 
@@ -1286,7 +1294,7 @@ task GridssCalling {
         Int diskSize = 700
         String pairName
         String gridssassemblyBamPath = "~{pairName}.gridssassembly.bam"
-        String gridssUnfilteredVcfPath = "~{pairName}.sv.gridss.v2.10.2.unfiltered.vcf"
+        String gridssUnfilteredVcfPath = "~{pairName}.sv.gridss.unfiltered.vcf"
         BwaReference bwaReference
         Array[File] gridssAdditionalReference
         Array[File] downsampled
@@ -1329,7 +1337,7 @@ task GridssCalling {
         ln -s \
         ~{gridssassemblyBam} \
         ~{gridssassemblyBamPath}
-        
+
 
         # link chunk assembly results
         sub_dir=~{gridssassemblyBamPath}.gridss.working/
@@ -1361,7 +1369,7 @@ task GridssCalling {
     }
 
     output {
-        File gridssUnfilteredVcf = "~{pairName}.sv.gridss.v2.10.2.unfiltered.vcf"
+        File gridssUnfilteredVcf = "~{pairName}.sv.gridss.unfiltered.vcf"
     }
 
     runtime {
@@ -1371,6 +1379,36 @@ task GridssCalling {
         cpu : threads
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/gridss@sha256:284c58744471089a9d0998a48a33d7cd3d1019a588a284fb99b69b547f794cac"
+
+    }
+}
+
+task FilterNonChroms {
+    input {
+        Int diskSize
+        Int memoryGb
+        File gridssUnfilteredVcf
+        String pairName
+        String gridssUnfilteredVcfChromsPath = "~{pairName}.sv.gridss.unfiltered.chroms.vcf"
+        Array[String]+ listOfChroms
+    }
+
+    command {
+        python \
+        /vcf_filter.py \
+        --vcf-file ~{gridssUnfilteredVcf} \
+        --output ~{gridssUnfilteredVcfChromsPath} \
+        --chroms ~{sep=" " listOfChroms}
+    }
+
+    output {
+        File gridssUnfilteredVcfChroms = "~{gridssUnfilteredVcfChromsPath}"
+    }
+
+    runtime {
+        disks: "local-disk " + diskSize + " HDD"
+        memory : memoryGb + "GB"
+        docker : "gcr.io/nygc-public/somatic_tools@sha256:9ae77f7d96a3c100319cf0fac2429f8f84301003480b7b7eb72994ca9f358512"
     }
 }
 
@@ -1382,8 +1420,8 @@ task GridssFilter {
         String bsGenome
         String pairName
         File ponTarGz
-        String gridssVcfPath = "~{pairName}.sv.gridss.v2.10.2.vcf"
-        String gridssVcfPathOut = "~{pairName}.sv.gridss.v2.10.2.vcf.bgz"
+        String gridssVcfPath = "~{pairName}.sv.gridss.vcf"
+        String gridssVcfPathOut = "~{pairName}.sv.gridss.vcf.bgz"
         String tumourordinal = 2
         File gridssUnfilteredVcf
     }
@@ -1419,6 +1457,8 @@ task GridssFilter {
         disks: "local-disk " + diskSize + " HDD"
         cpu : threads
         memory : memoryGb + "GB"
+
         docker : "gcr.io/nygc-public/gridss@sha256:284c58744471089a9d0998a48a33d7cd3d1019a588a284fb99b69b547f794cac"
+
     }
 }

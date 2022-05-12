@@ -64,7 +64,8 @@ workflow Tests {
     }
     
     scatter (mantisStatusFinal in zip(newmantisStatusFinal, oldmantisStatusFinal)) {
-        String sampleIdMantis = basename(mantisStatusFinal.left, ".mantis.v1.0.4.WGS-targeted.status.final.tsv") 
+
+        String sampleIdMantis = basename(mantisStatusFinal.left, ".mantis.WGS-targeted.status.final.tsv") 
         call tests.SummarizeMsi {
             input:
                 sampleId = sampleIdMantis,
@@ -74,7 +75,7 @@ workflow Tests {
     }
     
     scatter (kouramiResult in zip(newkouramiResult, oldkouramiResult)) {
-        String sampleIdKourami = basename(kouramiResult.left, ".result") 
+        String sampleIdKourami = basename(kouramiResult.left, ".kourami.result") 
         call tests.SummarizeHla {
             input:
                 sampleId = sampleIdKourami,

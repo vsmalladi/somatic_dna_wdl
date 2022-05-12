@@ -5,7 +5,7 @@ import "../wdl_structs.wdl"
 task FilterForHetSnps {
     input {
         String sampleId
-        String hetVcfPath = "~{sampleId}.haplotypecaller.gatk.v4.1.8.0.het.vcf"
+        String hetVcfPath = "~{sampleId}.haplotypecaller.gatk.het.vcf"
         String sellectionString = "'vc.getGenotype(\"~{sampleId}\").isHet()'"
         IndexedReference referenceFa
         # require file!
@@ -48,7 +48,7 @@ task FilterForHetSnps {
 task FilterBaf {
     input {
         String sampleId
-        String knownHetVcfPath = "~{sampleId}.haplotypecaller.gatk.v4.1.8.0.known.het.vcf"
+        String knownHetVcfPath = "~{sampleId}.haplotypecaller.gatk.known.het.vcf"
         File hetVcf
         Int memoryGb = 4
         Int diskSize = (ceil( size(hetVcf, "GB") )  * 2 )
@@ -69,14 +69,14 @@ task FilterBaf {
         mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/somatic_tools@sha256:46ab81b8dc09d6f8cf90c81f7d5692f23d73c134df6dbcd5298abde7f414dce3"
+        docker : "gcr.io/nygc-public/somatic_tools@sha256:9ae77f7d96a3c100319cf0fac2429f8f84301003480b7b7eb72994ca9f358512"
     }
 }
 
 task AlleleCounts {
     input {
         String pairName
-        String alleleCountsChromTxtPath = "~{pairName}.~{chrom}.haplotypecaller.gatk.v4.1.8.0.alleles.txt"
+        String alleleCountsChromTxtPath = "~{pairName}.~{chrom}.haplotypecaller.gatk.alleles.txt"
         IndexedReference referenceFa
         Bam normalFinalBam
         File knownHetVcf
@@ -106,14 +106,14 @@ task AlleleCounts {
         mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/somatic_tools@sha256:46ab81b8dc09d6f8cf90c81f7d5692f23d73c134df6dbcd5298abde7f414dce3"
+        docker : "gcr.io/nygc-public/somatic_tools@sha256:9ae77f7d96a3c100319cf0fac2429f8f84301003480b7b7eb72994ca9f358512"
     }
 }
 
 task CalcBaf {
     input {
         String pairName
-        String bafTxtPath = "~{pairName}.haplotypecaller.gatk.v4.1.8.0.baf.txt"
+        String bafTxtPath = "~{pairName}.haplotypecaller.gatk.baf.txt"
         File alleleCountsTxt
         Int memoryGb = 4
         Int diskSize = (ceil( size(alleleCountsTxt, "GB") )  * 2 ) + 1
@@ -134,6 +134,6 @@ task CalcBaf {
         mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/somatic_tools@sha256:46ab81b8dc09d6f8cf90c81f7d5692f23d73c134df6dbcd5298abde7f414dce3"
+        docker : "gcr.io/nygc-public/somatic_tools@sha256:9ae77f7d96a3c100319cf0fac2429f8f84301003480b7b7eb72994ca9f358512"
     }
 }

@@ -56,5 +56,5 @@ fi
 
 curl -X GET "${url}/api/workflows/v1/${uuid}/metadata?expandSubWorkflows=true&includeKey=outputs" \
 -u ${username}:${password} \
-| jq .
+| jq ".outputs"
 

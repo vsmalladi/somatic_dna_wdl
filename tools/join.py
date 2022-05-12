@@ -1,6 +1,13 @@
 import glob
 import pandas as pd
 import numpy as np
+import sys
+import logging as log
+
+try:
+    import Colorer
+except ImportError:
+    pass
 
 def add_cost(kind, row, map, costs):
     '''add various costs from table'''
@@ -10,11 +17,11 @@ def add_cost(kind, row, map, costs):
         match = costs[(costs.wdl_task_name == row.wdl_task_name) &
                       (costs.workflow_id == row.costs_workflow_id) &
                       (costs.service_type.isin(cost_keys))].copy()
-    else:
+    if match.empty:
         match = costs[(costs.sub_workflow_name == row.sub_workflow_name) &
-                      (costs.wdl_task_name == row.wdl_task_name) &
-                      (costs.workflow_id == row.costs_workflow_id) &
-                      (costs.service_type.isin(cost_keys))].copy()
+              (costs.wdl_task_name == row.wdl_task_name) &
+              (costs.workflow_id == row.costs_workflow_id) &
+              (costs.service_type.isin(cost_keys))].copy()
     if not match.empty:
         # preemptible doesn't matter
         if kind in ['capacity_cost', 'egress_cost']:
@@ -65,7 +72,7 @@ def load_runtime(file, costs, uuid):
            'SSD backed Local Storage attached to Spot Preemptible VMs': {'cost' : 'capacity_cost',
                                       'type' : 'ssd_local_attached_spot_capacity',
                                       'preemptible' : np.nan},
-            'SSD backed PD Capacity': {'cost' : 'capacity_cost',
+           'SSD backed PD Capacity': {'cost' : 'capacity_cost',
                                       'type' : 'ssd_pd_capacity',
                                       'preemptible' : np.nan},
            'Custom Instance Core running in Americas': {'cost' : 'core_cost',
@@ -83,21 +90,52 @@ def load_runtime(file, costs, uuid):
            'Storage PD Capacity': {'cost' : 'capacity_cost',
                                    'type' : 'storage_pd_capacity',
                                    'preemptible' : np.nan},
+           'N1 Predefined Instance Core running in Americas': {'cost' : 'core_cost',
+                                                                    'type' : 'N1_predefined',
+                                                                    'preemptible' : False},
+           'N1 Predefined Instance Ram running in Americas': {'cost' : 'ram_cost',
+                                                                    'type' : 'N1_predefined',
+                                                                    'preemptible' : False},
+           'N2 Instance Core running in Americas': {'cost' : 'core_cost',
+                                                                    'type' : 'N1_predefined',
+                                                                    'preemptible' : False},
+           'N2 Instance Ram running in Americas': {'cost' : 'ram_cost',
+                                                                    'type' : 'N1_predefined',
+                                                                    'preemptible' : False},
            'Preemptible N1 Predefined Instance Core running in Americas': {'cost' : 'core_cost',
                                                                     'type' : 'N1_predefined',
                                                                     'preemptible' : True},
            'Preemptible N1 Predefined Instance Ram running in Americas': {'cost' : 'ram_cost',
                                                                     'type' : 'N1_predefined',
                                                                     'preemptible' : True},
+           'Spot Preemptible N2 Instance Core running in Americas': {'cost' : 'core_cost',
+                                                                    'type' : 'spot_N2',
+                                                                    'preemptible' : True},
+           'Spot Preemptible N2 Instance Ram running in Americas': {'cost' : 'ram_cost',
+                                                                    'type' : 'spot_N2',
+                                                                    'preemptible' : True},
+           'Preemptible N2 Instance Core running in Americas': {'cost' : 'core_cost',
+                                                                    'type' : 'N2',
+                                                                    'preemptible' : True},
+           'Preemptible N2 Instance Ram running in Americas': {'cost' : 'ram_cost',
+                                                                    'type' : 'N2',
+                                                                    'preemptible' : True},
            'Network Internet Egress from Americas to Americas': {'cost' : 'egress_cost',
                                                                  'type' : 'network_egress',
-                                                                 'preemptible' : np.nan}
+                                                                 'preemptible' : np.nan},
+           'Network Inter Zone Egress': {'cost' : 'egress_cost',
+                                         'type' : 'network_inter_zone_egress',
+                                         'preemptible' : np.nan}
            }
     runtime['main_workflow_id'] = runtime.apply(lambda row: uuid, axis=1)
     runtime['costs_workflow_id'] = runtime.apply(lambda row: 'cromwell-' + row.main_workflow_id, axis=1)
     runtime['sub_workflow_name'] = runtime.apply(lambda row: row.workflow_name.lower(), axis=1)
     runtime['wdl_task_name'] = runtime.apply(lambda row: row.non_alias_task_call_name.split('.')[-1].lower(), axis=1)
     options = ['capacity_cost', 'core_cost', 'ram_cost', 'egress_cost']
+    missing = [service_type for service_type in costs.service_type if service_type not in map]
+    if len(missing) > 0:
+        log.warning('Following service_types are not yet described in map. Add them to join.py: ')
+        log.warning(', '.join(missing))
     for option in options:
         runtime['total_' + option] = runtime.apply(lambda row: add_cost(option, row, map, costs), axis=1)
         runtime['count_' + option] = runtime.groupby(['main_workflow_id', 
@@ -110,51 +148,19 @@ def load_runtime(file, costs, uuid):
         runtime = runtime[remain]
     runtime['service_type'] = runtime.apply(lambda row: add_type(row, map, costs), axis=1)
     return runtime
-output_dir = '/gpfs/commons/projects/TCGA/gdc-awg/ALCHEMIST/WGS/analysis/v7/gcp/tmp/'
-# Ataq seq
-cost_glob = '/gpfs/internal/sweng/wdl_cost/cost_test/*_outputCosts.csv'
-input_glob = '/gpfs/commons/home/jroche/RND300/outputMetrics_expandMetadata/*'
-output_dir = '/gpfs/commons/projects/TCGA/gdc-awg/ALCHEMIST/WGS/analysis/v7/gcp/tmp/'
-# output = output_dir + 'ataq_seq.outputMetrics.cost.csv'
-# dfs= [] 
-# all_costs = []   
-# for file in glob.glob(cost_glob):
-#     uuid = file.split('/')[-1].replace('_outputCosts.csv', '')
-#     costs = pd.read_csv(file)
-#     runtime_file = glob.glob('/gpfs/commons/home/jroche/RND300/outputMetrics_expandMetadata/*' + uuid +  '_outputMetrics.csv')[0]
-#     runtime = load_runtime(runtime_file, costs, uuid)
-#     dfs.append(runtime)
-#     all_costs.append(costs)
-# all = pd.concat(dfs, ignore_index=True)
-# all.to_csv(output, index=False)
-# all_cost = pd.concat(all_costs, ignore_index=True)
-# all_cost.to_csv(output_dir + 'ataq_seq.cost.csv')
-#  
-# alchemist
-cost_glob = '/gpfs/internal/sweng/wdl_cost/cost_test_1/*_outputCosts.csv'
-output_dir = '/gpfs/commons/projects/TCGA/gdc-awg/ALCHEMIST/WGS/analysis/v7/gcp/tmp/'
-output = output_dir + 'alchemist.outputMetrics.cost.csv'
-dfs = []
-for file in glob.glob(cost_glob):
-    uuid = file.split('/')[-1].replace('_outputCosts.csv', '')
-    costs = pd.read_csv(file)
-    runtime_file = glob.glob('/gpfs/commons/projects/TCGA/gdc-awg/ALCHEMIST/WGS/analysis/v7/gcp/ALCHEMIST.*' + uuid +  '_outputMetrics.csv')[0]
-    runtime = load_runtime(runtime_file, costs, uuid)
-    dfs.append(runtime)
-all = pd.concat(dfs, ignore_index=True)
-all.to_csv(output, index=False)
 
+#get ${uuid}
+uuid = sys.argv[1]
+# get ${uuid}_outputCosts.csv file
+costs_file = sys.argv[2]
+# get ${project_name}.${uuid}_outputMetrics.csv
+runtime_file = sys.argv[3]
+output_prefix = sys.argv[4]
+# process
+costs = pd.read_csv(costs_file)
+runtime = load_runtime(runtime_file, costs, uuid)
+runtime.to_csv(output_prefix + '.outputMetrics.cost.csv', index=False)
+total = pd.DataFrame({'workflow_uuid' : [uuid],
+                      'cost' : [costs.cost.sum()]})
+total.to_csv(output_prefix + '.outputMetrics.total.csv', index=False)
 
-# alchemist meta
-output = output_dir + 'alchemist.outputMetrics.cost.csv'
-cost = pd.read_csv(output)
-file = '/gpfs/commons/projects/TCGA/gdc-awg/ALCHEMIST/metadata/manifest_map.csv'
-metadata = pd.read_csv(file)
-type_and_cov_file = '/gpfs/commons/projects/TCGA/gdc-awg/ALCHEMIST/metadata/pairs_with_type.csv'
-type_and_cov = pd.read_csv(type_and_cov_file)
-type_and_cov['is_ffpe'] = type_and_cov.apply(lambda row: row.tumor, axis=1)
-#pon
-
-#  runtime[(runtime.wdl_task_name == 'svabawgs') &
-#          (runtime.sub_workflow_name == 'svaba')]
-#     

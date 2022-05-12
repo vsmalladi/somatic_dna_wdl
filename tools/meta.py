@@ -152,8 +152,8 @@ def populate(args, custom_inputs):
     project_info = note_updates(key='library', new_value=args['library'], project_info=project_info)
     verify_required(key='genome', args=args, project_info=project_info)
     project_info = note_updates(key='genome', new_value=args['genome'], project_info=project_info)
-    verify_required(key='project', args=args, project_info=project_info)
-    project_info = note_updates(key='project', new_value=args['project'], project_info=project_info)
+    verify_required(key='project_name', args=args, project_info=project_info)
+    project_info = note_updates(key='project_name', new_value=args['project_name'], project_info=project_info)
     if args['library'] == 'WGS':
         project_info['intervalList'] = 'default'
     else:
@@ -288,14 +288,14 @@ def get_args():
                                  'Human_GRCh38_tcga'],
                         required=False
                         )
-    parser.add_argument('--project',
+    parser.add_argument('--project-name',
                         help='Project name associated with account. If not supplied '
                         'define genome using --project-data',
                         required=False
                         )
     parser.add_argument('--pairs-file',
-                        help='JSON file with items that are required to have '
-                        '"tumor", "normal", "pairId"sample_ids defined '
+                        help='CSV file with items that are required to have '
+                        '"tumor", "normal", "pairId" as columns '
                         'Optionally, include "tumorBam", "normalBam" columns to create '
                         '"pairInfos" and "normalSampleBamInfos" automatically.'
                         ,
@@ -356,7 +356,7 @@ def main():
     project_info = populate(args, custom_inputs)
     passed = test_schema(project_info)
     if passed:
-        file_out = args['project'].replace(' ', '_') + '_projectInfo.json'
+        file_out = args['project_name'].replace(' ', '_') + '_projectInfo.json'
         # print project json
         write_json(args, project_info,
                    file_out=file_out)

@@ -66,26 +66,28 @@ workflow GdcComparePair {
             listOfChroms = listOfChroms
     }
     
-    call tests.CompareBedPe as finalCompareBedPe {
-        input:
-            pairId = pairId,
-            oldBedpe = VcfToBedPe.outFileBedpe,
-            newBedpe = nygcFinalBedPe
-    }
+    Boolean runSv = false
+    if (runSv) {
     
-    call tests.CompareSvGenes as finalCompareSvGenes {
-        input:
-            pairId = pairId,
-            name = name,
-            concordanceBedPe = finalCompareBedPe.outFileBedpe
+        call tests.CompareBedPe as finalCompareBedPe {
+            input:
+                pairId = pairId,
+                oldBedpe = VcfToBedPe.outFileBedpe,
+                newBedpe = nygcFinalBedPe
+        }
+        
+        call tests.CompareSvGenes as finalCompareSvGenes {
+            input:
+                pairId = pairId,
+                name = name,
+                concordanceBedPe = finalCompareBedPe.outFileBedpe
+        }
     }
 
-    
-    
     output {
-        File finalBedTable = finalCompareBedPe.outFileSummary
-        File finalBedpeJoined = finalCompareBedPe.outFileBedpe
-        File svGenesTable = finalCompareSvGenes.svGenesTable
+        #File finalBedTable = finalCompareBedPe.outFileSummary
+        #File finalBedpeJoined = finalCompareBedPe.outFileBedpe
+        #File svGenesTable = finalCompareSvGenes.svGenesTable
         File summaryOutputTable = finalSummarizeVcf.summaryOutputTable
         File detailedOutputTable = finalSummarizeVcf.detailedOutputTable
 

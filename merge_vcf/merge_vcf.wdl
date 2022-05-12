@@ -41,6 +41,7 @@ task IndexVcf {
         Int diskSize = (ceil( size(vcfCompressed, "GB") )  * 2 ) + 4
     }
 
+    Int jvmHeap = memoryGb * 750  # Heap size in Megabytes. mem is in GB. (75% of mem)
     command {
         set -e -o pipefail
 
@@ -50,7 +51,7 @@ task IndexVcf {
 
         gatk \
         IndexFeatureFile \
-        --java-options "-XX:ParallelGCThreads=4" \
+        --java-options "-Xmx~{jvmHeap}m -XX:ParallelGCThreads=4" \
         --input ~{vcfCompressedPath} \
         -O ~{vcfIndexedPath}
     }
@@ -101,7 +102,7 @@ task RenameMetadata {
         mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/somatic_tools@sha256:46ab81b8dc09d6f8cf90c81f7d5692f23d73c134df6dbcd5298abde7f414dce3"
+        docker : "gcr.io/nygc-public/somatic_tools@sha256:9ae77f7d96a3c100319cf0fac2429f8f84301003480b7b7eb72994ca9f358512"
     }
 }
 
@@ -132,7 +133,7 @@ task MergePrepSupport {
         mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/somatic_tools@sha256:46ab81b8dc09d6f8cf90c81f7d5692f23d73c134df6dbcd5298abde7f414dce3"
+        docker : "gcr.io/nygc-public/somatic_tools@sha256:9ae77f7d96a3c100319cf0fac2429f8f84301003480b7b7eb72994ca9f358512"
     }
 }
 
@@ -162,7 +163,7 @@ task MergePrep {
         mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/somatic_tools@sha256:46ab81b8dc09d6f8cf90c81f7d5692f23d73c134df6dbcd5298abde7f414dce3"
+        docker : "gcr.io/nygc-public/somatic_tools@sha256:9ae77f7d96a3c100319cf0fac2429f8f84301003480b7b7eb72994ca9f358512"
     }
 }
 
@@ -196,7 +197,7 @@ task RenameVcf {
         mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/somatic_tools@sha256:46ab81b8dc09d6f8cf90c81f7d5692f23d73c134df6dbcd5298abde7f414dce3"
+        docker : "gcr.io/nygc-public/somatic_tools@sha256:9ae77f7d96a3c100319cf0fac2429f8f84301003480b7b7eb72994ca9f358512"
     }
 }
 
@@ -238,7 +239,7 @@ task SplitMultiAllelic {
         String splitVcfPath
         IndexedReference referenceFa
         IndexedVcf vcfCompressedIndexed
-        Int threads = 16
+        Int threads = 8
         Int memoryGb = 16
         Int diskSize = (ceil( size(vcfCompressedIndexed.vcf, "GB") )  * 2 ) + 10
     }
@@ -276,7 +277,7 @@ task SplitMultiAllelicRegions {
         IndexedReference referenceFa
         IndexedVcf vcfCompressedIndexed
         Array[String]+ listOfChroms
-        Int threads = 16
+        Int threads = 8
         Int memoryGb = 16
         Int diskSize = (ceil( size(vcfCompressedIndexed.vcf, "GB") )  * 3 ) + 10
     }
@@ -333,7 +334,7 @@ task SplitMnv {
         mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/somatic_tools@sha256:46ab81b8dc09d6f8cf90c81f7d5692f23d73c134df6dbcd5298abde7f414dce3"
+        docker : "gcr.io/nygc-public/somatic_tools@sha256:9ae77f7d96a3c100319cf0fac2429f8f84301003480b7b7eb72994ca9f358512"
     }
 }
 
@@ -349,21 +350,21 @@ task RemoveContig {
 
     command <<<
         set -e -o pipefail
-        
+
         filename=$(basename -- "~{dollarSign}~{removeChromVcf}")
         extension="~{dollarSign}{filename##*.}"
         filename="~{dollarSign}{filename%.*}"
-        
+
         if [[ ~{dollarSign}extension == gz ]]; then
             input_path=~{dollarSign}filename
-            
+
             gunzip -c \
             ~{removeChromVcf} \
             > ~{dollarSign}input_path
         else
             input_path=~{removeChromVcf}
         fi
-        
+
         python \
         /remove_contig.py \
         ~{dollarSign}input_path \
@@ -378,7 +379,7 @@ task RemoveContig {
         mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/somatic_tools@sha256:46ab81b8dc09d6f8cf90c81f7d5692f23d73c134df6dbcd5298abde7f414dce3"
+        docker : "gcr.io/nygc-public/somatic_tools@sha256:9ae77f7d96a3c100319cf0fac2429f8f84301003480b7b7eb72994ca9f358512"
     }
 }
 
@@ -431,7 +432,7 @@ task MergeCallers {
         String mergedChromVcfPath = "~{pairName}.merged_supported.v7.~{chrom}.vcf"
         Array[IndexedVcf] allVcfCompressed
         Array[File] allVcfCompressedList
-        Int threads = 16
+        Int threads = 8
         Int memoryGb = 16
         Int diskSize = 20
     }
@@ -524,7 +525,7 @@ task GetCandidates {
         mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/somatic_tools@sha256:46ab81b8dc09d6f8cf90c81f7d5692f23d73c134df6dbcd5298abde7f414dce3"
+        docker : "gcr.io/nygc-public/somatic_tools@sha256:9ae77f7d96a3c100319cf0fac2429f8f84301003480b7b7eb72994ca9f358512"
     }
 }
 
@@ -557,7 +558,7 @@ task VcfToBed {
         mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/somatic_tools@sha256:46ab81b8dc09d6f8cf90c81f7d5692f23d73c134df6dbcd5298abde7f414dce3"
+        docker : "gcr.io/nygc-public/somatic_tools@sha256:9ae77f7d96a3c100319cf0fac2429f8f84301003480b7b7eb72994ca9f358512"
     }
 }
 
@@ -570,7 +571,7 @@ task LancetConfirm {
         Bam normalFinalBam
         File candidateChromBed
         Bam tumorFinalBam
-        Int threads = 16
+        Int threads = 8
         Int memoryGb = 16
         Int diskSize = (ceil( size(tumorFinalBam.bam, "GB") + size(normalFinalBam.bam, "GB")) ) + 10
     }
@@ -613,7 +614,7 @@ task LancetConfirm {
 
 task IntersectVcfs {
     input {
-        Int threads = 16
+        Int threads = 8
         Int memoryGb = 16
         Int diskSize = 4
         String pairName
@@ -678,7 +679,7 @@ task MergeColumns {
         mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/somatic_tools@sha256:46ab81b8dc09d6f8cf90c81f7d5692f23d73c134df6dbcd5298abde7f414dce3"
+        docker : "gcr.io/nygc-public/somatic_tools@sha256:9ae77f7d96a3c100319cf0fac2429f8f84301003480b7b7eb72994ca9f358512"
     }
 }
 
@@ -709,7 +710,7 @@ task MergeColumnsPon {
         mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/somatic_tools@sha256:46ab81b8dc09d6f8cf90c81f7d5692f23d73c134df6dbcd5298abde7f414dce3"
+        docker : "gcr.io/nygc-public/somatic_tools@sha256:9ae77f7d96a3c100319cf0fac2429f8f84301003480b7b7eb72994ca9f358512"
     }
 }
 
@@ -744,7 +745,7 @@ task AddNygcAlleleCountsToVcf {
         mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/somatic_tools@sha256:46ab81b8dc09d6f8cf90c81f7d5692f23d73c134df6dbcd5298abde7f414dce3"
+        docker : "gcr.io/nygc-public/somatic_tools@sha256:9ae77f7d96a3c100319cf0fac2429f8f84301003480b7b7eb72994ca9f358512"
     }
 }
 
@@ -773,7 +774,7 @@ task AddFinalAlleleCountsToVcf {
         mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/somatic_tools@sha256:46ab81b8dc09d6f8cf90c81f7d5692f23d73c134df6dbcd5298abde7f414dce3"
+        docker : "gcr.io/nygc-public/somatic_tools@sha256:9ae77f7d96a3c100319cf0fac2429f8f84301003480b7b7eb72994ca9f358512"
     }
 }
 
@@ -805,7 +806,7 @@ task FilterPon {
         mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/somatic_tools@sha256:46ab81b8dc09d6f8cf90c81f7d5692f23d73c134df6dbcd5298abde7f414dce3"
+        docker : "gcr.io/nygc-public/somatic_tools@sha256:9ae77f7d96a3c100319cf0fac2429f8f84301003480b7b7eb72994ca9f358512"
     }
 }
 
@@ -836,7 +837,7 @@ task FilterVcf {
         mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/somatic_tools@sha256:46ab81b8dc09d6f8cf90c81f7d5692f23d73c134df6dbcd5298abde7f414dce3"
+        docker : "gcr.io/nygc-public/somatic_tools@sha256:9ae77f7d96a3c100319cf0fac2429f8f84301003480b7b7eb72994ca9f358512"
     }
 }
 
@@ -865,6 +866,6 @@ task SnvstomnvsCountsbasedfilterAnnotatehighconf {
         mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/somatic_tools@sha256:46ab81b8dc09d6f8cf90c81f7d5692f23d73c134df6dbcd5298abde7f414dce3"
+        docker : "gcr.io/nygc-public/somatic_tools@sha256:9ae77f7d96a3c100319cf0fac2429f8f84301003480b7b7eb72994ca9f358512"
     }
 }

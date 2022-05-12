@@ -76,7 +76,7 @@ task GetIndex {
 workflow SomaticDNA {
     input {
         Boolean external = false
-        
+
         BwaReference bwaReference
         IndexedReference referenceFa
         File adaptersFa
@@ -336,7 +336,7 @@ workflow SomaticDNA {
             call germlineAnnotate.GermlineAnnotate as unFilteredGermlineAnnotate {
                 input:
                     unannotatedVcf = Germline.haplotypecallerVcf,
-                    haplotypecallerAnnotatedVcfPath = "~{sampleInfoObj.sampleId}.haplotypecaller.gatk.v4.1.8.0.annotated.unfiltered.vcf",
+                    haplotypecallerAnnotatedVcfPath = "~{sampleInfoObj.sampleId}.haplotypecaller.gatk.annotated.unfiltered.vcf",
                     production = production,
                     referenceFa = referenceFa,
                     normal = sampleInfoObj.sampleId,
@@ -452,8 +452,8 @@ workflow SomaticDNA {
             }
         }
 
-        Boolean SomaticQcCheck = select_first([SomaticQcCheck.qcPass, bypassQcCheck])
-        if (SomaticQcCheck) {
+        Boolean somaticQcPass = select_first([SomaticQcCheck.qcPass, bypassQcCheck])
+        if (somaticQcPass) {
             call callingTasks.GetInsertSize as tumorGetInsertSize {
                 input:
                     insertSizeMetrics = Preprocess.insertSizeMetrics[tumorGetIndex.index]
@@ -505,7 +505,7 @@ workflow SomaticDNA {
                     tumorFinalBam=Preprocess.finalBam[tumorGetIndex.index],
                     normalFinalBam=Preprocess.finalBam[normalGetIndex.index]
             }
-            
+
             PreMergedPairVcfInfo preMergedPairVcfInfo = object {
                 pairId : pairRelationship.pairId,
                 filteredMantaSV : Calling.filteredMantaSV,
@@ -517,9 +517,9 @@ workflow SomaticDNA {
                 svabaIndel : Calling.svabaIndel,
                 tumor : pairRelationship.tumor,
                 normal : pairRelationship.normal,
-                tumorFinalBam : pairRelationship.tumorFinalBam,
-                normalFinalBam : pairRelationship.normalFinalBam
-    
+                tumorFinalBam : Preprocess.finalBam[tumorGetIndex.index],
+                normalFinalBam : Preprocess.finalBam[normalGetIndex.index]
+
             }
 
             PairRawVcfInfo pairRawVcfInfo = object {
@@ -670,6 +670,7 @@ workflow SomaticDNA {
       }
     }
 
+
     FinalWorkflowOutput workflowOutput = object {
         # alignment and calling results (calling results may not exist if qc failed)
         # SNV INDELs CNV SV and BAM output
@@ -722,6 +723,8 @@ workflow SomaticDNA {
         concordanceAll: Conpair.concordanceAll,
         concordanceHomoz: Conpair.concordanceHomoz,
         contamination: Conpair.contamination,
+        tumorPileup: Conpair.tumorPileup,
+        normalPileup: Conpair.normalPileup,
 
         # Germline
         kouramiResult: Kourami.result,
@@ -734,6 +737,7 @@ workflow SomaticDNA {
 
     output {
        FinalWorkflowOutput finalOutput = workflowOutput
+       Array[Boolean] allQcPass = somaticQcPass
     }
 
 }

@@ -49,7 +49,7 @@ workflow SvabaPon {
             inVcf = SvabaWgsPon.svabaIndelGz,
             sampleIds = [tumor],
             referenceFa = referenceFa,
-            outVcfPath = "~{tumor}.indel.svaba.v0.2.1.vcf",
+            outVcfPath = "~{tumor}.indel.svaba.vcf",
             memoryGb = 4,
             diskSize = 10
     }

@@ -123,7 +123,7 @@ In addition to submitting the command, this will create an output file that you 
 wdl_port/run.sh -h
 run.sh [-h] --options OPTIONS --wdl-file WDL_FILE
                --url URL --log-dir LOG_DIR
-               --project PROJECT
+               --project-name PROJECT_NAME
                [--library {WGS,Exome}]
                [--genome {Human_GRCh38_full_analysis_set_plus_decoy_hla, Human_GRCh38_tcga}]
                [--pairs-file PAIRS_FILE]
@@ -158,7 +158,7 @@ DESCRIPTION: validate workflow, create input json and submit workflow to cromwel
                         Sequence library type.
   --genome {Human_GRCh38_full_analysis_set_plus_decoy_hla, Human_GRCh38_tcga}
                         Genome key to use for pipeline.
-  --project PROJECT     Project name associated with account.
+  --project-name PROJECT Project name associated with account.
   --pairs-file PAIRS_FILE
                         CSV file with items that are required to have
                         "tumor", "normal" and "pairId" in the columns.
@@ -200,7 +200,7 @@ cd ${working-dir}
 ../wdl_port/run.sh \
 --log-dir ${working-dir} \
 --url ${url} \
---project ${lab_quote_number} \
+--project-name ${lab_quote_number} \
 --pairs-file ${tumor_normal_pairs_csv} \
 --library WGS \
 --genome Human_GRCh38_full_analysis_set_plus_decoy_hla \
@@ -234,26 +234,50 @@ After workflow finishes and the status is `SUCCEEDED` run:
 ```
 cd ${working-dir}
 
-bash ../wdl_port/run_post.sh \
+bash ../wdl_port/run_summary.sh \
 -u ${url} \
 -d ${log_dir} \
--p ${project_id}
+-p ${gcp_project} \
+-n ${project_name}
+
+# optionally add -r ${run_info} or the script will use the most recent *RunInfo.json file in the ${log_dir}
+```
+
+If you do not have a `*RunInfo.json` you can start with the workflow uuid and optionally a sample or pair csv file
+
+```
+bash \
+../wdl_port/run_summary.sh \
+-u ${url} \
+-d ${log_dir} \
+-b ${billing_export} \
+-n ${project_name} \
+-g ${gcp_project} \
+--uuid ${uuid} \
+--samples-file ${sample_id_list}
+```
+
+NOTE: Optionally add (where `${billing_export}` is the name of the table for the SQL query) to add cost per instance_id to results:
+```
+-b ${billing_export}
 ```
 
 #### Output:
-If the workflow finishes and the status is `SUCCEEDED` and you have run `run_post.sh`. It will output several log files:
+If the workflow finishes and the status is `SUCCEEDED` and you have run `run_summary.sh`. It will output several log files:
 
 `${lab_quote_number}<WORKFLOW_UUID>_outputInfo.json` :
 
-In addition to the content of `${lab_quote_number}_project.<DATE>.RunInfo.json` the file includes:
+Conatins relevant information on the run including:
+  - `named_files`: list of output files (in the final location)
+  - `outputs`: map between workflow output object-name and object (in the final bucket/location)
+  - `options`: options values from run
+  - `workflow_uuid`: uuid
+  - `run_date`: run_date
+  - `status`: status
+  - `pair_association` : map of pair_ids to the `outputs` map for just that pair (searches for the pair_id followed by . _ or / )
+  - `sample_association` : map of sample_ids to the `outputs` map for just that sample (searches for the sample_id followed by . _ or / )
 
-  - `outputs`: map between workflow output object-name and object (including the file URIs)
-  - `unnamed`: list of files in the output bucket that are not from this workflow
-  - `pair_association` : map of pair_ids to the `outputs` map for just that pair 
-  - `sample_association` : map of sample_ids to the `outputs` map for just that sample 
-  - `sub_workflow_uuids`: map of sample/pair ids to the `sub_workflow_uuids` for that id
-
-Note: Pair association only works if the pair_id is used in the filename followed by a `.` or a `_`. Sample association only works if the sample_id is used in the filename followed by a `.` or a `_`. 
+Note: Pair association only works if the pair_id is used in the filename followed by a `.`, `/` or a `_`. Sample association only works if the sample_id is used in the filename followed by a `.` or a `_`. 
 
 
 `${lab_quote_number}<WORKFLOW_UUID>_outputMetrics.csv`
@@ -275,7 +299,14 @@ the file includes the following metrics calculated from the BigQuery cromwell mo
 `${lab_quote_number}<WORKFLOW_UUID>_outputMetrics.html`
 This file includes plots of runtime metrics.
   
-  
+`${lab_quote_number}<WORKFLOW_UUID>_outputCosts.csv`
+This is the table returned from the billing db on the cloud (only created if the billing table flag is used)
+
+`${lab_quote_number}<WORKFLOW_UUID>.outputMetrics.cost.csv`
+This is the metrics table with the costs added (only created if the billing table flag is used)
+
+`${lab_quote_number}<WORKFLOW_UUID>.outputMetrics.total.csv`
+This is the end-to-end cost for the pipeline (according to the billing table) (only created if the billing table flag is used)
 
 ### Create new workflow
 <a name="create_new_workflow"></a>

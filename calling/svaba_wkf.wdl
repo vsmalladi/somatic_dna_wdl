@@ -59,7 +59,7 @@ workflow Svaba {
             tumor = tumor,
             normal = normal,
             rawVcf = svAddVcfCommand.outVcf,
-            orderedVcfPath = "~{pairName}.sv.svaba.v0.2.1.vcf",
+            orderedVcfPath = "~{pairName}.sv.svaba.vcf",
             memoryGb = 4,
             diskSize = 10
     }
@@ -78,7 +78,7 @@ workflow Svaba {
             tumor = tumor,
             normal = normal,
             rawVcf = indelAddVcfCommand.outVcf,
-            orderedVcfPath = "~{pairName}.indel.svaba.v0.2.1.vcf",
+            orderedVcfPath = "~{pairName}.indel.svaba.vcf",
             memoryGb = 4,
             diskSize = 10
     }

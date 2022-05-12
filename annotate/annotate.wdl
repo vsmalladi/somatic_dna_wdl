@@ -64,7 +64,7 @@ task AddCosmic {
         mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/somatic_tools@sha256:46ab81b8dc09d6f8cf90c81f7d5692f23d73c134df6dbcd5298abde7f414dce3"
+        docker : "gcr.io/nygc-public/somatic_tools@sha256:9ae77f7d96a3c100319cf0fac2429f8f84301003480b7b7eb72994ca9f358512"
     }
 }
 
@@ -94,7 +94,7 @@ task AddCancerResistanceMutations {
         mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/somatic_tools@sha256:46ab81b8dc09d6f8cf90c81f7d5692f23d73c134df6dbcd5298abde7f414dce3"
+        docker : "gcr.io/nygc-public/somatic_tools@sha256:9ae77f7d96a3c100319cf0fac2429f8f84301003480b7b7eb72994ca9f358512"
     }
 }
 
@@ -124,7 +124,7 @@ task AddCancerResistanceMutationsFinal {
         mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/somatic_tools@sha256:46ab81b8dc09d6f8cf90c81f7d5692f23d73c134df6dbcd5298abde7f414dce3"
+        docker : "gcr.io/nygc-public/somatic_tools@sha256:9ae77f7d96a3c100319cf0fac2429f8f84301003480b7b7eb72994ca9f358512"
     }
 }
 
@@ -152,7 +152,7 @@ task AnnotateId {
         mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/somatic_tools@sha256:46ab81b8dc09d6f8cf90c81f7d5692f23d73c134df6dbcd5298abde7f414dce3"
+        docker : "gcr.io/nygc-public/somatic_tools@sha256:9ae77f7d96a3c100319cf0fac2429f8f84301003480b7b7eb72994ca9f358512"
     }
 }
 
@@ -180,7 +180,7 @@ task RenameCsqVcf {
         mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/somatic_tools@sha256:46ab81b8dc09d6f8cf90c81f7d5692f23d73c134df6dbcd5298abde7f414dce3"
+        docker : "gcr.io/nygc-public/somatic_tools@sha256:9ae77f7d96a3c100319cf0fac2429f8f84301003480b7b7eb72994ca9f358512"
     }
 }
 
@@ -208,7 +208,7 @@ task MainVcf {
         mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/somatic_tools@sha256:46ab81b8dc09d6f8cf90c81f7d5692f23d73c134df6dbcd5298abde7f414dce3"
+        docker : "gcr.io/nygc-public/somatic_tools@sha256:9ae77f7d96a3c100319cf0fac2429f8f84301003480b7b7eb72994ca9f358512"
     }
 }
 
@@ -239,7 +239,7 @@ task TableVcf {
         mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/somatic_tools@sha256:46ab81b8dc09d6f8cf90c81f7d5692f23d73c134df6dbcd5298abde7f414dce3"
+        docker : "gcr.io/nygc-public/somatic_tools@sha256:9ae77f7d96a3c100319cf0fac2429f8f84301003480b7b7eb72994ca9f358512"
     }
 }
 
@@ -277,13 +277,13 @@ task VcfToMaf {
         mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/somatic_tools@sha256:46ab81b8dc09d6f8cf90c81f7d5692f23d73c134df6dbcd5298abde7f414dce3"
+        docker : "gcr.io/nygc-public/somatic_tools@sha256:9ae77f7d96a3c100319cf0fac2429f8f84301003480b7b7eb72994ca9f358512"
     }
 }
 
 task annotateBicSeq2Cnv {
     input {
-        Int memoryGb = 24
+        Int memoryGb = 36
         String pairName
         Array[String] listOfChroms
         String tumor
@@ -295,7 +295,7 @@ task annotateBicSeq2Cnv {
         File cosmicUniqueBed
         File cancerCensusBed
         File ensemblUniqueBed
-        
+
         String cnvAnnotatedFinalBedPath  = "~{pairName}.cnv.annotated.v7.final.bed"
         String cnvAnnotatedSupplementalBedPath  = "~{pairName}.cnv.annotated.v7.supplemental.bed"
         Int diskSize = 4
@@ -334,7 +334,7 @@ task annotateBicSeq2Cnv {
 
 task mergeSv {
     input {
-        Int memoryGb = 4
+        Int memoryGb = 8
         String pairName
         Array[String] listOfChroms
         String tumor
@@ -381,27 +381,27 @@ task mergeSv {
 
 task annotateSv {
     input {
-        Int memoryGb = 4
+        Int memoryGb = 8
         String pairName
         String tumor
         String normal
-        
+
         Int slop = 500
-        
+
         # gap,DGV,1000G,PON,COSMIC
         File gap
         File dgvBedpe
         File thousandGVcf
         File svPon
         File cosmicBedPe
-        
+
         File svMergedBedPe
         String svMergedAnnotatedBedPePath  = "~{pairName}.sv.merged.annotated.v7.bedpe"
         Int diskSize = 4
 
     }
 
-    command {        
+    command {
         Rscript \
         /annotate-bedpe-with-databases.r \
         --db_names=gap,DGV,1000G,PON,COSMIC \
@@ -426,21 +426,21 @@ task annotateSv {
 
 task annotateGenesSv {
     input {
-        Int memoryGb = 4
+        Int memoryGb = 8
         String pairName
         String tumor
         String normal
-        
+
         File ensemblUniqueBed
         File cancerCensusBed
-        
+
         File svMergedAnnotatedFinalBedPe
         String svGeneAnnotatedFinalBedPePath  = "~{pairName}.sv.merged.gene.annotated.v7.bedpe"
         Int diskSize = 4
 
     }
 
-    command {        
+    command {
         Rscript \
         /annotate-bedpe-with-genes.r \
         --ensembl=~{ensemblUniqueBed} \
@@ -463,20 +463,20 @@ task annotateGenesSv {
 
 task annotateGenesSvSupplemental {
     input {
-        Int memoryGb = 4
+        Int memoryGb = 8
         String pairName
         String tumor
         String normal
-        
+
         File ensemblUniqueBed
         File cancerCensusBed
-        
+
         File svMergedAnnotatedSupplementalBedPe
         String svGeneAnnotatedSupplementalBedPePath  = "~{pairName}.sv.merged.gene.annotated.v7.supplemental.bedpe"
         Int diskSize = 4
     }
 
-    command {        
+    command {
         Rscript \
         /annotate-bedpe-with-genes.r \
         --ensembl=~{ensemblUniqueBed} \
@@ -500,13 +500,13 @@ task annotateGenesSvSupplemental {
 
 task annotateWithCnvSv {
     input {
-        Int memoryGb = 4
+        Int memoryGb = 8
         String pairName
         String tumor
         String normal
-        
+
         File cnvAnnotatedFinalBed
-        
+
         File svGeneAnnotatedBedPe
         String svCnvAnnotatedBedPePath = "~{pairName}.sv.merged.gene.cnv.annotated.v7.bedpe"
         Int diskSize = 4
@@ -534,9 +534,9 @@ task annotateWithCnvSv {
 
 task filterBedPe {
     input {
-        Int memoryGb = 4
+        Int memoryGb = 8
         String pairName
-        
+
         File svCnvAnnotatedBedPe
         String svBedPePath
         String svHighConfidenceBedPePath
@@ -566,10 +566,3 @@ task filterBedPe {
         docker : "gcr.io/nygc-public/sv_cnv@sha256:1c14a50d131323a2a4bab323cf224879776af8de37f93df79292fd2e63269274"
     }
 }
-
-
-
-
-
-
-

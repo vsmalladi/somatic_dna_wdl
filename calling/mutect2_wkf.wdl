@@ -18,7 +18,6 @@ workflow Mutect2 {
         # Map[String, File] chromBeds
         Bam tumorFinalBam
         Int diskSize = ceil( size(tumorFinalBam.bam, "GB") + size(normalFinalBam.bam, "GB")) + 20
-        Int memoryGb = 8
         File mutectJsonLog
         File mutectJsonLogFilter
         
@@ -26,13 +25,13 @@ workflow Mutect2 {
 
     }
     
-    Int lowCallMemoryGb = 4
-    Int lowFilterMemoryGb = 4
+    Int lowCallMemoryGb = 20
+    Int lowFilterMemoryGb = 20
     Int lowFilterDiskSize = 5
     
     if (highMem) {
-        Int highCallMemoryGb = 8
-        Int highFilterMemoryGb = 4
+        Int highCallMemoryGb = 40
+        Int highFilterMemoryGb = 20
         Int highFilterDiskSize = 10
     }
     
@@ -64,7 +63,7 @@ workflow Mutect2 {
                 referenceFa = referenceFa,
                 # mutect2ChromRawVcf = select_first([Mutect2Wgs.mutect2ChromRawVcf, Mutect2Exome.mutect2ChromRawVcf])
                 mutect2ChromRawVcf = Mutect2Wgs.mutect2ChromRawVcf,
-                memoryGb = callMemoryGb,
+                memoryGb = filterMemoryGb,
                 diskSize = filterDiskSize
         }
     }
@@ -72,7 +71,7 @@ workflow Mutect2 {
     # filtered
     call calling.Gatk4MergeSortVcf as filteredGatk4MergeSortVcf {
         input:
-            sortedVcfPath = "~{pairName}.mutect2.v4.0.5.1.sorted.vcf",
+            sortedVcfPath = "~{pairName}.mutect2.sorted.vcf",
             tempChromVcfs = Mutect2Filter.mutect2ChromVcf,
             referenceFa = referenceFa,
             memoryGb = 8,
@@ -92,7 +91,7 @@ workflow Mutect2 {
             tumor = tumor,
             normal = normal,
             rawVcf = filteredAddVcfCommand.outVcf,
-            orderedVcfPath = "~{pairName}.mutect2.v4.0.5.1.vcf",
+            orderedVcfPath = "~{pairName}.mutect2.vcf",
             memoryGb = 4,
             diskSize = 10
     }
@@ -100,7 +99,7 @@ workflow Mutect2 {
     # unfiltered
     call calling.Gatk4MergeSortVcf as unfilteredGatk4MergeSortVcf {
         input:
-            sortedVcfPath = "~{pairName}.mutect2.v4.0.5.1.unfiltered.sorted.vcf",
+            sortedVcfPath = "~{pairName}.mutect2.unfiltered.sorted.vcf",
             tempChromVcfs = Mutect2Wgs.mutect2ChromRawVcf,
             referenceFa = referenceFa,
             memoryGb = 8,
@@ -120,7 +119,7 @@ workflow Mutect2 {
             tumor = tumor,
             normal = normal,
             rawVcf = unfilteredAddVcfCommand.outVcf,
-            orderedVcfPath = "~{pairName}.mutect2.v4.0.5.1.unfiltered.vcf",
+            orderedVcfPath = "~{pairName}.mutect2.unfiltered.vcf",
             memoryGb = 4,
             diskSize = 10
     }

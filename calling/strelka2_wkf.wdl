@@ -16,8 +16,8 @@ workflow Strelka2 {
         IndexedTable callRegions
         Bam tumorFinalBam
         String pairName
-        String strelka2SnvPath = "~{pairName}.snv.strelka2.v2.9.3.vcf"
-        String strelka2IndelPath = "~{pairName}.indel.strelka2.v2.9.3.vcf"
+        String strelka2SnvPath = "~{pairName}.snv.strelka2.vcf"
+        String strelka2IndelPath = "~{pairName}.indel.strelka2.vcf"
         # resources
         Int diskSize = ceil( size(tumorFinalBam.bam, "GB") + size(normalFinalBam.bam, "GB")) + 20
         Int memoryGb = 4

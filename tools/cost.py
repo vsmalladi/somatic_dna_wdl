@@ -66,7 +66,7 @@ class Cost():
         self.load_cost()
         if not self.test:
             log.info('write metrics')
-            cost_file = self.out_file_prefix + '/' + self.workflow_uuid + '_outputCosts.csv'
+            cost_file = self.out_file_prefix + '_outputCosts.csv'
             self.cost.to_csv(cost_file, index=False, float_format='{:f}'.format, encoding='utf-8')
         
     def login(self):
@@ -86,22 +86,6 @@ class Cost():
 
     def modify_date(self, run_date):
         return '-'.join(run_date.split('-')[0:3])
-
-    
-    def load_metadata(self):
-        '''
-        project_id    zone    instance_name    preemptible    workflow_name    
-            workflow_id    task_call_name    shard    attempt    start_time    
-            end_time    execution_status    cpu_count    mem_total_gb    
-            disk_mounts    disk_total_gb    disk_types    docker_image    inputs
-            
-        convert metadata from api into table for pandas dataframe
-            Includes start_time, end_time, execution_status, cpu_count,
-            mem_total_gb, task_call_name, workflow_name
-                   
-            inputs
-        '''
-        log.info('Loading Metadata...')
  
     
     def get_times(self):
@@ -121,7 +105,9 @@ SELECT
     (SELECT value from UNNEST(labels) where key = 'cromwell-workflow-id' limit 1) as workflow_id,
     (SELECT value from UNNEST(labels) where key = 'cromwell-sub-workflow-name' limit 1) as sub_workflow_name,
     (SELECT value from UNNEST(labels) where key = 'wdl-task-name' limit 1) as wdl_task_name,
-    sum(cost) as cost
+    sum(cost) as cost,
+    sku.description as service_type
+FROM `fin-admin-328417.billing_export.gcp_billing_export_v1_01F75B_F18B56_39F532`
 FROM `fin-admin-328417.billing_export.gcp_billing_export_v1_01F75B_F18B56_39F532` 
 WHERE DATE(_PARTITIONTIME) > "2021-10-01"
     AND project.id = "nygc-comp-p-12d3"
@@ -137,15 +123,16 @@ LIMIT 1000
     (SELECT value from UNNEST(labels) where key = 'cromwell-workflow-id' limit 1) as workflow_id,
     (SELECT value from UNNEST(labels) where key = 'cromwell-sub-workflow-name' limit 1) as sub_workflow_name,
     (SELECT value from UNNEST(labels) where key = 'wdl-task-name' limit 1) as wdl_task_name,
-    sum(cost) as cost
+    sum(cost) as cost,
+    sku.description as service_type
     FROM `''' + self.billing_export + '''` 
-    WHERE DATE(_PARTITIONTIME) >= ''' + self.run_date + '''
-        AND DATE(_PARTITIONTIME) <= ''' +self.end_date + '''
+    WHERE DATE(_PARTITIONTIME) >= "''' + self.run_date + '''"
+        AND DATE(_PARTITIONTIME) <= "''' +self.end_date + '''"
         AND project.id = "''' + self.gcp_query_project + '''"
         AND sku.description != "Network Google Ingress from Americas to Americas"
         AND cost > 0
         AND EXISTS (SELECT 1 FROM UNNEST(labels) WHERE key = 'cromwell-workflow-id' and value in ("cromwell-''' + self.workflow_uuid + '''"))
-    group by sub_workflow_name, wdl_task_name, workflow_id 
+    group by sub_workflow_name, wdl_task_name, workflow_id, sku.description
     order by cost desc
     LIMIT ''' + self.limit + '''
         '''
