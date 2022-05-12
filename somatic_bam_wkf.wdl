@@ -6,6 +6,7 @@ import "calling/calling.wdl" as callingTasks
 import "merge_vcf/merge_vcf_wkf.wdl" as mergeVcf
 import "alignment_analysis/kourami_wfk.wdl" as kourami
 import "alignment_analysis/msi_wkf.wdl" as msi
+import "alignment_analysis/fastngsadmix_wkf.wdl" as fastngsadmix
 import "pre_process/conpair_wkf.wdl" as conpair
 import "pre_process/qc.wdl" as qc
 import "annotate/annotate_wkf.wdl" as annotate
@@ -14,23 +15,6 @@ import "germline/germline_wkf.wdl" as germline
 import "annotate/germline_annotate_wkf.wdl" as germlineAnnotate
 import "baf/baf_wkf.wdl" as baf
 import "variant_analysis/deconstruct_sigs_wkf.wdl" as deconstructSigs
-
-# ================== COPYRIGHT ================================================
-# New York Genome Center
-# SOFTWARE COPYRIGHT NOTICE AGREEMENT
-# This software and its documentation are copyright (2021) by the New York
-# Genome Center. All rights are reserved. This software is supplied without
-# any warranty or guaranteed support whatsoever. The New York Genome Center
-# cannot be responsible for its use, misuse, or functionality.
-#
-#    Jennifer M Shelton (jshelton@nygenome.org)
-#    Nico Robine (nrobine@nygenome.org)
-#    Minita Shah (mshah@nygenome.org)
-#    Timothy Chu (tchu@nygenome.org)
-#    Will Hooper (whooper@nygenome.org)
-#
-# ================== /COPYRIGHT ===============================================
-
 
 # ================== COPYRIGHT ================================================
 # New York Genome Center
@@ -138,6 +122,21 @@ workflow SomaticBamWorkflow {
         File mantisBed
         File intervalListBed
 
+        #fastngsadmix
+        File fastngsadmixChroms
+
+        File fastngsadmixContinentalSites
+        File fastngsadmixContinentalSitesBin
+        File fastngsadmixContinentalSitesIdx
+        File fastngsadmixContinentalRef
+        File fastngsadmixContinentalNind
+
+        File fastngsadmixPopulationSites
+        File fastngsadmixPopulationSitesBin
+        File fastngsadmixPopulationSitesIdx
+        File fastngsadmixPopulationRef
+        File fastngsadmixPopulationNind
+
         # annotation:
         String vepGenomeBuild
         IndexedVcf cosmicCoding
@@ -224,6 +223,30 @@ workflow SomaticBamWorkflow {
                 referenceFa = referenceFa
         }
 
+        call fastngsadmix.FastNGSadmix as fastngsadmixContinental{
+            input:
+                bam = normalSampleBamInfo.finalBam,
+                fastngsadmixSites = fastngsadmixContinentalSites,
+                fastngsadmixSitesBin = fastngsadmixContinentalSitesBin,
+                fastngsadmixSitesIdx = fastngsadmixContinentalSitesIdx,
+                fastngsadmixChroms = fastngsadmixChroms,
+                fastngsadmixRef = fastngsadmixContinentalRef,
+                fastngsadmixNind = fastngsadmixContinentalNind,
+                outprefix = normalSampleIds
+        }
+
+        call fastngsadmix.FastNGSadmix as fastngsadmixPopulation{
+            input:
+                bam = normalSampleBamInfo.finalBam,
+                fastngsadmixSites = fastngsadmixPopulationSites,
+                fastngsadmixSitesBin = fastngsadmixPopulationSitesBin,
+                fastngsadmixSitesIdx = fastngsadmixPopulationSitesIdx,
+                fastngsadmixChroms = fastngsadmixChroms,
+                fastngsadmixRef = fastngsadmixPopulationRef,
+                fastngsadmixNind = fastngsadmixPopulationNind,
+                outprefix = normalSampleIds
+        }
+        
         call germline.Germline {
             input:
                 finalBam = normalSampleBamInfo.finalBam,
@@ -598,6 +621,11 @@ workflow SomaticBamWorkflow {
         Array[File] mantisWxsKmerCountsFiltered = Msi.mantisWxsKmerCountsFiltered
         Array[File] mantisExomeTxt = Msi.mantisExomeTxt
         Array[File] mantisStatusFinal = Msi.mantisStatusFinal
+        # ancestry
+        Array[File] beagleFileContinental = fastngsadmixContinental.beagleFile
+        Array[File] fastngsadmixQoptContinental = fastngsadmixContinental.fastngsadmixQopt
+        Array[File] beagleFilePopulation = fastngsadmixPopulation.beagleFile
+        Array[File] fastngsadmixQoptPopulation = fastngsadmixPopulation.fastngsadmixQopt
         # sigs
         Array[File] sigs = DeconstructSig.sigs
         Array[File] counts = DeconstructSig.counts

@@ -77,7 +77,7 @@ The pipeline is designed to be modular because there are times when we only run 
 and not the entire v7 pipeline. Below are available workflows:
 
 ```
-alignment_analysis_wkf.wdl             Run Kourami (HLA typing) and Mantis (MSI status) on BAMs
+alignment_analysis_wkf.wdl             Run Kourami (HLA typing), Mantis (MSI status) and FastNGSAdmix (ancestry) on BAMs
 annotate_cnv_sv_wkf.wdl                Merge SV calls, filter and annotation both SV and CNV calls
 calling_wkf.wdl                        Run SNV, INDEL, SV and CNV callers on BAMs                                  
 filter_intervals.wdl                   Prep reference files by filtering using a BED file of intervals
@@ -91,13 +91,13 @@ report_wkf.wdl                         In dev full report writing workflow
 somatic_bam_wkf.wdl                    Full v7 pipeline starting from BAMs: SNV, INDEL, SV and CNV calling 
                                         filtering and annotating, germline calls and BAF (HaplotypeCaller),
                                         DeconstructSigs (Mutational Signatures), contamination and concordance 
-                                        (Conpair), Kourami (HLA typing) and 
-                                        Mantis (MSI status)
+                                        (Conpair), Kourami (HLA typing), Mantis (MSI status) and 
+                                        FastNGSAdmix (ancestry)
 somatic_wkf.wdl                        Full v7 pipeline starting from FASTQs: Alignment, QC, SNV, INDEL, SV 
                                         and CNV calling filtering and annotating, germline calls and BAF 
                                         (HaplotypeCaller), DeconstructSigs (Mutational Signatures), 
-                                        contamination and concordance (Conpair), Kourami (HLA typing) and 
-                                        Mantis (MSI status)
+                                        contamination and concordance (Conpair), Kourami (HLA typing), Mantis (MSI status),
+                                        and FastNGSAdmix (ancestry)
 tests_wkf.wdl                          Automated comparison of prior pipeline run to current pipeline run output.
 variant_analysis_wkf.wdl               Run DeconstructSigs (Mutational Signatures)
 wdl_structs.wdl                        Custom Struct objects to reference primary and secondary files together 

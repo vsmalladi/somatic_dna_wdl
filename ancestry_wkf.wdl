@@ -1,7 +1,5 @@
 version 1.0
 
-import "alignment_analysis/kourami_wfk.wdl" as kourami
-import "alignment_analysis/msi_wkf.wdl" as msi
 import "alignment_analysis/fastngsadmix_wkf.wdl" as fastngsadmix
 import "wdl_structs.wdl"
 
@@ -21,23 +19,14 @@ import "wdl_structs.wdl"
 #
 # ================== /COPYRIGHT ===============================================
 
-workflow AlignmentAnalysis {
+workflow ancestry {
     # command
     #   Call variants in BAMs
     #   merge and filter raw VCFs
     #   annotate
     input {
-        Array[pairInfo]+ pairInfos
+        Array[SampleBamInfo]+ normalSampleBamInfos
         
-        # kourami
-        BwaReference kouramiReference
-        File kouramiFastaGem1Index
-        
-        # mantis
-        File mantisBed
-        File intervalListBed
-        IndexedReference referenceFa
-
         #fastngsadmix
         File fastngsadmixChroms
 
@@ -52,68 +41,39 @@ workflow AlignmentAnalysis {
         File fastngsadmixPopulationSitesIdx
         File fastngsadmixPopulationRef
         File fastngsadmixPopulationNind
+
     }
     
-    scatter(pairInfo in pairInfos) {
-        call kourami.Kourami as kouramiNormal {
-            input:
-                sampleId=pairInfo.normal,
-                kouramiReference=kouramiReference,
-                finalBam=pairInfo.normalFinalBam,
-                kouramiFastaGem1Index=kouramiFastaGem1Index
-        }
-        
-        call kourami.Kourami as kouramiTumor {
-            input:
-                sampleId=pairInfo.tumor,
-                kouramiReference=kouramiReference,
-                finalBam=pairInfo.tumorFinalBam,
-                kouramiFastaGem1Index=kouramiFastaGem1Index
-        }
-        
-        call msi.Msi {
-            input:
-                normal=pairInfo.normal,
-                pairName=pairInfo.pairId,
-                mantisBed=mantisBed,
-                intervalListBed=intervalListBed,
-                referenceFa=referenceFa,
-                tumorFinalBam=pairInfo.tumorFinalBam,
-                normalFinalBam=pairInfo.normalFinalBam
-        }
-
+    scatter (normalSampleBamInfo in normalSampleBamInfos) {
+		String normalSampleIds = normalSampleBamInfo.sampleId
+		
         call fastngsadmix.FastNGSadmix as fastngsadmixContinental{
             input:
-                bam = pairInfo.normalFinalBam,
+                bam = normalSampleBamInfo.finalBam,
                 fastngsadmixSites = fastngsadmixContinentalSites,
                 fastngsadmixSitesBin = fastngsadmixContinentalSitesBin,
                 fastngsadmixSitesIdx = fastngsadmixContinentalSitesIdx,
                 fastngsadmixChroms = fastngsadmixChroms,
                 fastngsadmixRef = fastngsadmixContinentalRef,
                 fastngsadmixNind = fastngsadmixContinentalNind,
-                outprefix = pairInfo.normal
+                outprefix = normalSampleIds
         }
 
         call fastngsadmix.FastNGSadmix as fastngsadmixPopulation{
             input:
-                bam = pairInfo.normalFinalBam,
+                bam = normalSampleBamInfo.finalBam,
                 fastngsadmixSites = fastngsadmixPopulationSites,
                 fastngsadmixSitesBin = fastngsadmixPopulationSitesBin,
                 fastngsadmixSitesIdx = fastngsadmixPopulationSitesIdx,
                 fastngsadmixChroms = fastngsadmixChroms,
                 fastngsadmixRef = fastngsadmixPopulationRef,
                 fastngsadmixNind = fastngsadmixPopulationNind,
-                outprefix = pairInfo.normal
+                outprefix = normalSampleIds
         }
     }
     
     output {
-        Array[File] normalKouramiResult = kouramiNormal.result
-        Array[File] tumorKouramiResult = kouramiTumor.result
-        Array[File] mantisWxsKmerCountsFinal = Msi.mantisWxsKmerCountsFinal
-        Array[File] mantisWxsKmerCountsFiltered = Msi.mantisWxsKmerCountsFiltered
-        Array[File] mantisExomeTxt = Msi.mantisExomeTxt
-        Array[File] mantisStatusFinal = Msi.mantisStatusFinal
+		# ancestry
         Array[File] beagleFileContinental = fastngsadmixContinental.beagleFile
         Array[File] fastngsadmixQoptContinental = fastngsadmixContinental.fastngsadmixQopt
         Array[File] beagleFilePopulation = fastngsadmixPopulation.beagleFile
