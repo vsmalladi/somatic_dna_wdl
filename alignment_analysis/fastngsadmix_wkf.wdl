@@ -5,7 +5,7 @@ import "../wdl_structs.wdl"
 
 workflow FastNGSadmix {
     input {
-        Bam bam
+        Bam normalFinalBam
         File fastngsadmixSites
         File fastngsadmixSitesBin
         File fastngsadmixSitesIdx
@@ -18,7 +18,7 @@ workflow FastNGSadmix {
 
     call alignmentAnalysis.Angsd {
         input:
-            bam = bam,
+            normalFinalBam = normalFinalBam,
             fastngsadmixSites = fastngsadmixSites,
             fastngsadmixSitesBin = fastngsadmixSitesBin,
             fastngsadmixSitesIdx = fastngsadmixSitesIdx,

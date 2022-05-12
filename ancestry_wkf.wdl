@@ -46,10 +46,10 @@ workflow ancestry {
     
     scatter (normalSampleBamInfo in normalSampleBamInfos) {
 		String normalSampleIds = normalSampleBamInfo.sampleId
-		
+
         call fastngsadmix.FastNGSadmix as fastngsadmixContinental{
             input:
-                bam = normalSampleBamInfo.finalBam,
+                normalFinalBam = normalSampleBamInfo.finalBam,
                 fastngsadmixSites = fastngsadmixContinentalSites,
                 fastngsadmixSitesBin = fastngsadmixContinentalSitesBin,
                 fastngsadmixSitesIdx = fastngsadmixContinentalSitesIdx,
@@ -61,7 +61,7 @@ workflow ancestry {
 
         call fastngsadmix.FastNGSadmix as fastngsadmixPopulation{
             input:
-                bam = normalSampleBamInfo.finalBam,
+                normalFinalBam = normalSampleBamInfo.finalBam,
                 fastngsadmixSites = fastngsadmixPopulationSites,
                 fastngsadmixSitesBin = fastngsadmixPopulationSitesBin,
                 fastngsadmixSitesIdx = fastngsadmixPopulationSitesIdx,
