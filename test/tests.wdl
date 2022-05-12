@@ -255,7 +255,7 @@ task PrintReport {
         String reportPath = "~{pairId}.v7.final.report.html"
         
         Int diskSize = 20
-        Int memoryGb = 30
+        Int memoryGb = 40
     }
     
     command {
