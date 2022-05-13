@@ -6,7 +6,7 @@ import "calling/calling.wdl" as callingTasks
 import "merge_vcf/merge_vcf_wkf.wdl" as mergeVcf
 import "alignment_analysis/kourami_wfk.wdl" as kourami
 import "alignment_analysis/msi_wkf.wdl" as msi
-import "alignment_analysis/fastngsadmix_wkf.wdl" as fastngsadmix
+import "alignment_analysis/fastngsadmix_wkf.wdl" as fastNgsAdmix
 import "pre_process/conpair_wkf.wdl" as conpair
 import "pre_process/qc.wdl" as qc
 import "annotate/annotate_wkf.wdl" as annotate
@@ -122,20 +122,20 @@ workflow SomaticBamWorkflow {
         File mantisBed
         File intervalListBed
 
-        #fastngsadmix
-        File fastngsadmixChroms
+        #fastNgsAdmix
+        File fastNgsAdmixChroms
 
-        File fastngsadmixContinentalSites
-        File fastngsadmixContinentalSitesBin
-        File fastngsadmixContinentalSitesIdx
-        File fastngsadmixContinentalRef
-        File fastngsadmixContinentalNind
+        File fastNgsAdmixContinentalSites
+        File fastNgsAdmixContinentalSitesBin
+        File fastNgsAdmixContinentalSitesIdx
+        File fastNgsAdmixContinentalRef
+        File fastNgsAdmixContinentalNind
 
-        File fastngsadmixPopulationSites
-        File fastngsadmixPopulationSitesBin
-        File fastngsadmixPopulationSitesIdx
-        File fastngsadmixPopulationRef
-        File fastngsadmixPopulationNind
+        File fastNgsAdmixPopulationSites
+        File fastNgsAdmixPopulationSitesBin
+        File fastNgsAdmixPopulationSitesIdx
+        File fastNgsAdmixPopulationRef
+        File fastNgsAdmixPopulationNind
 
         # annotation:
         String vepGenomeBuild
@@ -223,27 +223,27 @@ workflow SomaticBamWorkflow {
                 referenceFa = referenceFa
         }
 
-        call fastngsadmix.FastNGSadmix as fastngsadmixContinental{
+        call fastNgsAdmix.FastNgsAdmix as fastNgsAdmixContinental{
             input:
-                bam = normalSampleBamInfo.finalBam,
-                fastngsadmixSites = fastngsadmixContinentalSites,
-                fastngsadmixSitesBin = fastngsadmixContinentalSitesBin,
-                fastngsadmixSitesIdx = fastngsadmixContinentalSitesIdx,
-                fastngsadmixChroms = fastngsadmixChroms,
-                fastngsadmixRef = fastngsadmixContinentalRef,
-                fastngsadmixNind = fastngsadmixContinentalNind,
+                normalFinalBam = normalSampleBamInfo.finalBam,
+                fastNgsAdmixSites = fastNgsAdmixContinentalSites,
+                fastNgsAdmixSitesBin = fastNgsAdmixContinentalSitesBin,
+                fastNgsAdmixSitesIdx = fastNgsAdmixContinentalSitesIdx,
+                fastNgsAdmixChroms = fastNgsAdmixChroms,
+                fastNgsAdmixRef = fastNgsAdmixContinentalRef,
+                fastNgsAdmixNind = fastNgsAdmixContinentalNind,
                 outprefix = normalSampleIds
         }
 
-        call fastngsadmix.FastNGSadmix as fastngsadmixPopulation{
+        call fastNgsAdmix.FastNgsAdmix as fastNgsAdmixPopulation{
             input:
-                bam = normalSampleBamInfo.finalBam,
-                fastngsadmixSites = fastngsadmixPopulationSites,
-                fastngsadmixSitesBin = fastngsadmixPopulationSitesBin,
-                fastngsadmixSitesIdx = fastngsadmixPopulationSitesIdx,
-                fastngsadmixChroms = fastngsadmixChroms,
-                fastngsadmixRef = fastngsadmixPopulationRef,
-                fastngsadmixNind = fastngsadmixPopulationNind,
+                normalFinalBam = normalSampleBamInfo.finalBam,
+                fastNgsAdmixSites = fastNgsAdmixPopulationSites,
+                fastNgsAdmixSitesBin = fastNgsAdmixPopulationSitesBin,
+                fastNgsAdmixSitesIdx = fastNgsAdmixPopulationSitesIdx,
+                fastNgsAdmixChroms = fastNgsAdmixChroms,
+                fastNgsAdmixRef = fastNgsAdmixPopulationRef,
+                fastNgsAdmixNind = fastNgsAdmixPopulationNind,
                 outprefix = normalSampleIds
         }
         
@@ -622,10 +622,10 @@ workflow SomaticBamWorkflow {
         Array[File] mantisExomeTxt = Msi.mantisExomeTxt
         Array[File] mantisStatusFinal = Msi.mantisStatusFinal
         # ancestry
-        Array[File] beagleFileContinental = fastngsadmixContinental.beagleFile
-        Array[File] fastngsadmixQoptContinental = fastngsadmixContinental.fastngsadmixQopt
-        Array[File] beagleFilePopulation = fastngsadmixPopulation.beagleFile
-        Array[File] fastngsadmixQoptPopulation = fastngsadmixPopulation.fastngsadmixQopt
+        Array[File] beagleFileContinental = fastNgsAdmixContinental.beagleFile
+        Array[File] fastNgsAdmixQoptContinental = fastNgsAdmixContinental.fastNgsAdmixQopt
+        Array[File] beagleFilePopulation = fastNgsAdmixPopulation.beagleFile
+        Array[File] fastNgsAdmixQoptPopulation = fastNgsAdmixPopulation.fastNgsAdmixQopt
         # sigs
         Array[File] sigs = DeconstructSig.sigs
         Array[File] counts = DeconstructSig.counts

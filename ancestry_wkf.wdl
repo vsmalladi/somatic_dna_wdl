@@ -1,6 +1,6 @@
 version 1.0
 
-import "alignment_analysis/fastngsadmix_wkf.wdl" as fastngsadmix
+import "alignment_analysis/fastngsadmix_wkf.wdl" as fastNgsAdmix
 import "wdl_structs.wdl"
 
 # ================== COPYRIGHT ================================================
@@ -27,56 +27,56 @@ workflow ancestry {
     input {
         Array[SampleBamInfo]+ normalSampleBamInfos
         
-        #fastngsadmix
-        File fastngsadmixChroms
+        #fastNgsAdmix
+        File fastNgsAdmixChroms
 
-        File fastngsadmixContinentalSites
-        File fastngsadmixContinentalSitesBin
-        File fastngsadmixContinentalSitesIdx
-        File fastngsadmixContinentalRef
-        File fastngsadmixContinentalNind
+        File fastNgsAdmixContinentalSites
+        File fastNgsAdmixContinentalSitesBin
+        File fastNgsAdmixContinentalSitesIdx
+        File fastNgsAdmixContinentalRef
+        File fastNgsAdmixContinentalNind
 
-        File fastngsadmixPopulationSites
-        File fastngsadmixPopulationSitesBin
-        File fastngsadmixPopulationSitesIdx
-        File fastngsadmixPopulationRef
-        File fastngsadmixPopulationNind
+        File fastNgsAdmixPopulationSites
+        File fastNgsAdmixPopulationSitesBin
+        File fastNgsAdmixPopulationSitesIdx
+        File fastNgsAdmixPopulationRef
+        File fastNgsAdmixPopulationNind
 
     }
     
     scatter (normalSampleBamInfo in normalSampleBamInfos) {
-		String normalSampleIds = normalSampleBamInfo.sampleId
+		String normalSampleId = normalSampleBamInfo.sampleId
 
-        call fastngsadmix.FastNGSadmix as fastngsadmixContinental{
+        call fastNgsAdmix.FastNgsAdmix as fastNgsAdmixContinental{
             input:
                 normalFinalBam = normalSampleBamInfo.finalBam,
-                fastngsadmixSites = fastngsadmixContinentalSites,
-                fastngsadmixSitesBin = fastngsadmixContinentalSitesBin,
-                fastngsadmixSitesIdx = fastngsadmixContinentalSitesIdx,
-                fastngsadmixChroms = fastngsadmixChroms,
-                fastngsadmixRef = fastngsadmixContinentalRef,
-                fastngsadmixNind = fastngsadmixContinentalNind,
-                outprefix = normalSampleIds
+                fastNgsAdmixSites = fastNgsAdmixContinentalSites,
+                fastNgsAdmixSitesBin = fastNgsAdmixContinentalSitesBin,
+                fastNgsAdmixSitesIdx = fastNgsAdmixContinentalSitesIdx,
+                fastNgsAdmixChroms = fastNgsAdmixChroms,
+                fastNgsAdmixRef = fastNgsAdmixContinentalRef,
+                fastNgsAdmixNind = fastNgsAdmixContinentalNind,
+                outprefix = normalSampleId
         }
 
-        call fastngsadmix.FastNGSadmix as fastngsadmixPopulation{
+        call fastNgsAdmix.FastNgsAdmix as fastNgsAdmixPopulation{
             input:
                 normalFinalBam = normalSampleBamInfo.finalBam,
-                fastngsadmixSites = fastngsadmixPopulationSites,
-                fastngsadmixSitesBin = fastngsadmixPopulationSitesBin,
-                fastngsadmixSitesIdx = fastngsadmixPopulationSitesIdx,
-                fastngsadmixChroms = fastngsadmixChroms,
-                fastngsadmixRef = fastngsadmixPopulationRef,
-                fastngsadmixNind = fastngsadmixPopulationNind,
-                outprefix = normalSampleIds
+                fastNgsAdmixSites = fastNgsAdmixPopulationSites,
+                fastNgsAdmixSitesBin = fastNgsAdmixPopulationSitesBin,
+                fastNgsAdmixSitesIdx = fastNgsAdmixPopulationSitesIdx,
+                fastNgsAdmixChroms = fastNgsAdmixChroms,
+                fastNgsAdmixRef = fastNgsAdmixPopulationRef,
+                fastNgsAdmixNind = fastNgsAdmixPopulationNind,
+                outprefix = normalSampleId
         }
     }
     
     output {
 		# ancestry
-        Array[File] beagleFileContinental = fastngsadmixContinental.beagleFile
-        Array[File] fastngsadmixQoptContinental = fastngsadmixContinental.fastngsadmixQopt
-        Array[File] beagleFilePopulation = fastngsadmixPopulation.beagleFile
-        Array[File] fastngsadmixQoptPopulation = fastngsadmixPopulation.fastngsadmixQopt
+        Array[File] beagleFileContinental = fastNgsAdmixContinental.beagleFile
+        Array[File] fastNgsAdmixQoptContinental = fastNgsAdmixContinental.fastNgsAdmixQopt
+        Array[File] beagleFilePopulation = fastNgsAdmixPopulation.beagleFile
+        Array[File] fastNgsAdmixQoptPopulation = fastNgsAdmixPopulation.fastNgsAdmixQopt
     }
 }

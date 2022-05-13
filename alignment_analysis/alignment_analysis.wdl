@@ -438,10 +438,10 @@ task Kourami {
 task Angsd {
     input {
         Bam normalFinalBam
-        File fastngsadmixSites
-        File fastngsadmixSitesBin
-        File fastngsadmixSitesIdx
-        File fastngsadmixChroms
+        File fastNgsAdmixSites
+        File fastNgsAdmixSitesBin
+        File fastNgsAdmixSitesIdx
+        File fastNgsAdmixChroms
         Int threads
         String outprefix
         Int memoryGb = 25
@@ -454,8 +454,8 @@ task Angsd {
         angsd \
             -i ~{normalFinalBam.bam} \
             -GL 2 \
-            -rf ~{fastngsadmixChroms} \
-            -sites ~{fastngsadmixSites} \
+            -rf ~{fastNgsAdmixChroms} \
+            -sites ~{fastNgsAdmixSites} \
             -doMajorMinor 3 \
             -doGlf 2 \
             -minMapQ 30 \
@@ -468,7 +468,9 @@ task Angsd {
 
     runtime {
         memory: memoryGb + "G"
+        mem: memoryGb + "G"
         cpu: threads
+        cpus: threads
         docker: "gcr.io/nygc-public/angsd@sha256:cd13820de0bc8d400c3e3ff96be6b885b6d3289d53fda56de30bd08508a0bac7"
         disks: "local-disk " + diskSize + " HDD"
     }
@@ -481,11 +483,11 @@ task Angsd {
     }
 }
 
-task FastNGSadmix {
+task FastNgsAdmix {
     input {
         File beagleFile
-        File fastngsadmixRef
-        File fastngsadmixNind
+        File fastNgsAdmixRef
+        File fastNgsAdmixNind
         String outprefix
         Int memoryGb = 15
         Int threads = 1
@@ -497,21 +499,23 @@ task FastNGSadmix {
 
         fastNGSadmix  \
             -likes ~{beagleFile} \
-            -fname ~{fastngsadmixRef} \
-            -Nname ~{fastngsadmixNind} \
+            -fname ~{fastNgsAdmixRef} \
+            -Nname ~{fastNgsAdmixNind} \
             -whichPops all \
             -out  ~{outprefix}
     }
 
     runtime {
         memory: memoryGb + "G"
+        mem: memoryGb + "G"
         cpu: threads
+        cpus: threads
         docker: "gcr.io/nygc-public/fastngsadmix@sha256:f0a336e9f193ab1b4f1484cbec56e1abef063913102d3126f4b3a6ed7784d7f1"
         disks: "local-disk " + diskSize + " HDD"
     }
 
     output {
-        File fastngsadmixQopt = "${outprefix}.qopt"
-        File fastngsadmixLog = "${outprefix}.log"
+        File fastNgsAdmixQopt = "${outprefix}.qopt"
+        File fastNgsAdmixLog = "${outprefix}.log"
     }
 }

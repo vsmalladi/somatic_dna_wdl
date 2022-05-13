@@ -246,57 +246,57 @@
             "description": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/README_mantis_repeatfinder.md",
             "object": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/mantis_repeatfinder-hg38.chr.bed"
         },
-        "fastngsadmixChroms":{
+        "fastNgsAdmixChroms":{
             "type": "File",
             "description": "file containing list of chromosomes to use as search space for angsd",
             "object": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/fastngsadmix/hg38.chroms"
         },
-        "fastngsadmixContinentalSites": {
+        "fastNgsAdmixContinentalSites": {
             "type": "File",
             "description": "Continental level sites file for use with FastNGSAdmix",
             "object": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/fastngsadmix/hg38_refPanel_1kG_phase3.sites"
         },
-        "fastngsadmixContinentalSitesBin": {
+        "fastNgsAdmixContinentalSitesBin": {
             "type": "File",
             "description": "Continental level sites file for use with FastNGSAdmix bin",
             "object": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/fastngsadmix/hg38_refPanel_1kG_phase3.sites.bin"
         },
-        "fastngsadmixContinentalSitesIdx": {
+        "fastNgsAdmixContinentalSitesIdx": {
             "type": "File",
             "description": "Continental level sites file for use with FastNGSAdmix idx",
             "object": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/fastngsadmix/hg38_refPanel_1kG_phase3.sites.idx"
         },
-        "fastngsadmixPopulationSites": {
+        "fastNgsAdmixPopulationSites": {
             "type": "File",
             "description": "Population.bi level sites file for use with FastNGSAdmix",
             "object": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/fastngsadmix/refPanel_1kgRef_exclMXL_exclASW_exclACB_intelligentVarList_b38.chr.markers.uniq.sites"
         },
-        "fastngsadmixPopulationSitesBin": {
+        "fastNgsAdmixPopulationSitesBin": {
             "type": "File",
             "description": "Population level sites file for use with FastNGSAdmix bin",
             "object": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/fastngsadmix/refPanel_1kgRef_exclMXL_exclASW_exclACB_intelligentVarList_b38.chr.markers.uniq.sites.bin"
         },
-        "fastngsadmixPopulationSitesIdx": {
+        "fastNgsAdmixPopulationSitesIdx": {
             "type": "File",
             "description": "Population level sites file for use with FastNGSAdmix idx",
             "object": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/fastngsadmix/refPanel_1kgRef_exclMXL_exclASW_exclACB_intelligentVarList_b38.chr.markers.uniq.sites.idx"
         },
-        "fastngsadmixContinentalNind": {
+        "fastNgsAdmixContinentalNind": {
             "type": "File",
             "description":"count of number of patients used to generate reference panel for separated by continental categorization",
             "object":"gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/fastngsadmix/hg38_refPanel_1kG_phase3.nind"
         },
-        "fastngsadmixPopulationNind": {
+        "fastNgsAdmixPopulationNind": {
             "type": "File",
             "description":"count of number of patients used to generate reference panel for separated by population categorization",
             "object":"gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/fastngsadmix/nInd_1kgRef_exclMXL_exclASW_exclACB_intelligentVarList_b38.txt"
         },
-        "fastngsadmixContinentalRef": {
+        "fastNgsAdmixContinentalRef": {
             "type": "File",
             "description":"reference panel for continental level ancestry estimation",
             "object":"gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/fastngsadmix/hg38_refPanel_1kG_phase3.txt"
         },
-        "fastngsadmixPopulationRef": {
+        "fastNgsAdmixPopulationRef": {
             "type": "File",
             "description":"reference panel for population level ancestry estimation",
             "object":"gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/fastngsadmix/refPanel_1kgRef_exclMXL_exclASW_exclACB_intelligentVarList_b38.chr.markers.uniq.txt"
@@ -1049,57 +1049,57 @@
             "description": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/README_mantis_repeatfinder.md",
             "object": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/mantis_repeatfinder-hg38.chr.bed"
         },
-        "fastngsadmixChroms":{
+        "fastNgsAdmixChroms":{
             "type": "File",
             "description": "file containing list of chromosomes to use as search space for angsd",
             "object": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/fastngsadmix/hg38.chroms"
         },
-        "fastngsadmixContinentalSites": {
+        "fastNgsAdmixContinentalSites": {
             "type": "File",
             "description": "Continental level sites file for use with FastNGSAdmix",
             "object": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/fastngsadmix/hg38_refPanel_1kG_phase3.sites"
         },
-        "fastngsadmixContinentalSitesBin": {
+        "fastNgsAdmixContinentalSitesBin": {
             "type": "File",
             "description": "Continental level sites file for use with FastNGSAdmix bin",
             "object": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/fastngsadmix/hg38_refPanel_1kG_phase3.sites.bin"
         },
-        "fastngsadmixContinentalSitesIdx": {
+        "fastNgsAdmixContinentalSitesIdx": {
             "type": "File",
             "description": "Continental level sites file for use with FastNGSAdmix idx",
             "object": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/fastngsadmix/hg38_refPanel_1kG_phase3.sites.idx"
         },
-        "fastngsadmixPopulationSites": {
+        "fastNgsAdmixPopulationSites": {
             "type": "File",
             "description": "Population.bi level sites file for use with FastNGSAdmix",
             "object": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/fastngsadmix/refPanel_1kgRef_exclMXL_exclASW_exclACB_intelligentVarList_b38.chr.markers.uniq.sites"
         },
-        "fastngsadmixPopulationSitesBin": {
+        "fastNgsAdmixPopulationSitesBin": {
             "type": "File",
             "description": "Population level sites file for use with FastNGSAdmix bin",
             "object": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/fastngsadmix/refPanel_1kgRef_exclMXL_exclASW_exclACB_intelligentVarList_b38.chr.markers.uniq.sites.bin"
         },
-        "fastngsadmixPopulationSitesIdx": {
+        "fastNgsAdmixPopulationSitesIdx": {
             "type": "File",
             "description": "Population level sites file for use with FastNGSAdmix idx",
             "object": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/fastngsadmix/refPanel_1kgRef_exclMXL_exclASW_exclACB_intelligentVarList_b38.chr.markers.uniq.sites.idx"
         },
-        "fastngsadmixContinentalNind": {
+        "fastNgsAdmixContinentalNind": {
             "type": "File",
             "description":"count of number of patients used to generate reference panel for separated by continental categorization",
             "object":"gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/fastngsadmix/hg38_refPanel_1kG_phase3.nind"
         },
-        "fastngsadmixPopulationNind": {
+        "fastNgsAdmixPopulationNind": {
             "type": "File",
             "description":"count of number of patients used to generate reference panel for separated by population categorization",
             "object":"gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/fastngsadmix/nInd_1kgRef_exclMXL_exclASW_exclACB_intelligentVarList_b38.txt"
         },
-        "fastngsadmixContinentalRef": {
+        "fastNgsAdmixContinentalRef": {
             "type": "File",
             "description":"reference panel for continental level ancestry estimation",
             "object":"gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/fastngsadmix/hg38_refPanel_1kG_phase3.txt"
         },
-        "fastngsadmixPopulationRef": {
+        "fastNgsAdmixPopulationRef": {
             "type": "File",
             "description":"reference panel for population level ancestry estimation",
             "object":"gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/fastngsadmix/refPanel_1kgRef_exclMXL_exclASW_exclACB_intelligentVarList_b38.chr.markers.uniq.txt"

@@ -3,15 +3,15 @@ version 1.0
 import "alignment_analysis.wdl" as alignmentAnalysis
 import "../wdl_structs.wdl"
 
-workflow FastNGSadmix {
+workflow FastNgsAdmix {
     input {
         Bam normalFinalBam
-        File fastngsadmixSites
-        File fastngsadmixSitesBin
-        File fastngsadmixSitesIdx
-        File fastngsadmixChroms
-        File fastngsadmixRef
-        File fastngsadmixNind
+        File fastNgsAdmixSites
+        File fastNgsAdmixSitesBin
+        File fastNgsAdmixSitesIdx
+        File fastNgsAdmixChroms
+        File fastNgsAdmixRef
+        File fastNgsAdmixNind
         Int angsd_threads = 4 
         String outprefix
     }
@@ -19,24 +19,24 @@ workflow FastNGSadmix {
     call alignmentAnalysis.Angsd {
         input:
             normalFinalBam = normalFinalBam,
-            fastngsadmixSites = fastngsadmixSites,
-            fastngsadmixSitesBin = fastngsadmixSitesBin,
-            fastngsadmixSitesIdx = fastngsadmixSitesIdx,
-            fastngsadmixChroms = fastngsadmixChroms,
+            fastNgsAdmixSites = fastNgsAdmixSites,
+            fastNgsAdmixSitesBin = fastNgsAdmixSitesBin,
+            fastNgsAdmixSitesIdx = fastNgsAdmixSitesIdx,
+            fastNgsAdmixChroms = fastNgsAdmixChroms,
             threads = angsd_threads,
             outprefix = outprefix
     }
 
-    call alignmentAnalysis.FastNGSadmix {
+    call alignmentAnalysis.FastNgsAdmix {
         input:
             beagleFile = Angsd.beagleFile,
-            fastngsadmixRef = fastngsadmixRef,
-            fastngsadmixNind = fastngsadmixNind,
+            fastNgsAdmixRef = fastNgsAdmixRef,
+            fastNgsAdmixNind = fastNgsAdmixNind,
             outprefix = outprefix
     }
 
     output {
         File beagleFile = Angsd.beagleFile
-        File fastngsadmixQopt = FastNGSadmix.fastngsadmixQopt
+        File fastNgsAdmixQopt = FastNgsAdmix.fastNgsAdmixQopt
     }
 }
