@@ -249,22 +249,18 @@ variant callset ([6](#6)).
 
 #### PON generation
 The Panel of Normals for SNVs and indels was created with whole-genome sequencing
-data from normal samples from 242 unrelated individuals. Of these, sequencing data for 148
-individuals was obtained from the Illumina Polaris project which was sequenced on the HiSeqX
-platform with PCR-free sample preparation. The remaining samples were sequenced by the
-NYGC. Of these, 73 individuals were sequenced on HiSeqX, 11 on NovaSeq, and 10 were
-sequenced on both.
+data from normal samples from we used the 2504 unrelated resequenced 1000G individuals 
+([17](#17)). Each sample was sequenced in-house at the NYGC with TruSeq PCR-Free library 
+preparation on the Illumina Novaseq-6000 to a targeted depth of of 30X (mean 34X). Samples 
+were aligned to GRCh38 with BWA-MEM and base quality scores were recalibrated with GATK BQSR.
 
-We ran MuTect2 in artifact detection mode and Lumpy ([15](#15)) in single sample mode on these
-samples. For SNVs and indels, we created a PON list file with sites that were seen in two or
+We ran MuTect2 in artifact detection mode and Manta and Svaba in single sample mode on these
+samples with our [PON workflow](https://bitbucket.nygenome.org/projects/WDL/repos/somatic_dna_wdl/browse/pon_wkf.wdl). 
+For SNVs and indels, we created a PON list file with sites that were seen in two or
 more individuals.
 
-For SVs, we used the resequenced 1000G individuals ([16](#16), [17](#17)) as the basis for the new SV PON.
-Each sample was sequenced in-house at the NYGC with TruSeq PCR-Free library preparation on the Illumina Novaseq-6000 
-to a targeted depth of of 30X (mean 34X). Samples were aligned to GRCh38 with BWA-MEM and base quality scores were 
-recalibrated with GATK BQSR. 
-
-Four structural variant callers were run in single sample mode with default parameters: GRIDSS, Manta, 
+For SVs, we used the resequenced 1000G individuals as the basis for the new SV PON.Four structural 
+variant callers were run in single sample mode with default parameters: GRIDSS, Manta, 
 LUMPY (0.2.13) ([18](#18)), and SvABA (1.1.3). Of these four callers, GRIDSS, Manta, and Svaba are used 
 in somatic SV calling. LUMPY was included after it was determined that it improved artifact detection sensitivity. 
 
