@@ -2,7 +2,7 @@ version 1.0
 
 import "alignment_analysis/kourami_wfk.wdl" as kourami
 import "alignment_analysis/msi_wkf.wdl" as msi
-import "alignment_analysis/fastngsadmix_wkf.wdl" as fastngsadmix
+import "alignment_analysis/fastngsadmix_wkf.wdl" as fastNgsAdmix
 import "wdl_structs.wdl"
 
 # ================== COPYRIGHT ================================================
@@ -38,20 +38,20 @@ workflow AlignmentAnalysis {
         File intervalListBed
         IndexedReference referenceFa
 
-        #fastngsadmix
-        File fastngsadmixChroms
+        #fastNgsAdmix
+        File fastNgsAdmixChroms
 
-        File fastngsadmixContinentalSites
-        File fastngsadmixContinentalSitesBin
-        File fastngsadmixContinentalSitesIdx
-        File fastngsadmixContinentalRef
-        File fastngsadmixContinentalNind
+        File fastNgsAdmixContinentalSites
+        File fastNgsAdmixContinentalSitesBin
+        File fastNgsAdmixContinentalSitesIdx
+        File fastNgsAdmixContinentalRef
+        File fastNgsAdmixContinentalNind
 
-        File fastngsadmixPopulationSites
-        File fastngsadmixPopulationSitesBin
-        File fastngsadmixPopulationSitesIdx
-        File fastngsadmixPopulationRef
-        File fastngsadmixPopulationNind
+        File fastNgsAdmixPopulationSites
+        File fastNgsAdmixPopulationSitesBin
+        File fastNgsAdmixPopulationSitesIdx
+        File fastNgsAdmixPopulationRef
+        File fastNgsAdmixPopulationNind
     }
     
     scatter(pairInfo in pairInfos) {
@@ -82,27 +82,27 @@ workflow AlignmentAnalysis {
                 normalFinalBam=pairInfo.normalFinalBam
         }
 
-        call fastngsadmix.FastNGSadmix as fastngsadmixContinental{
+        call fastNgsAdmix.FastNgsAdmix as fastNgsAdmixContinental{
             input:
-                bam = pairInfo.normalFinalBam,
-                fastngsadmixSites = fastngsadmixContinentalSites,
-                fastngsadmixSitesBin = fastngsadmixContinentalSitesBin,
-                fastngsadmixSitesIdx = fastngsadmixContinentalSitesIdx,
-                fastngsadmixChroms = fastngsadmixChroms,
-                fastngsadmixRef = fastngsadmixContinentalRef,
-                fastngsadmixNind = fastngsadmixContinentalNind,
+                normalFinalBam = pairInfo.normalFinalBam,
+                fastNgsAdmixSites = fastNgsAdmixContinentalSites,
+                fastNgsAdmixSitesBin = fastNgsAdmixContinentalSitesBin,
+                fastNgsAdmixSitesIdx = fastNgsAdmixContinentalSitesIdx,
+                fastNgsAdmixChroms = fastNgsAdmixChroms,
+                fastNgsAdmixRef = fastNgsAdmixContinentalRef,
+                fastNgsAdmixNind = fastNgsAdmixContinentalNind,
                 outprefix = pairInfo.normal
         }
 
-        call fastngsadmix.FastNGSadmix as fastngsadmixPopulation{
+        call fastNgsAdmix.FastNgsAdmix as fastNgsAdmixPopulation{
             input:
-                bam = pairInfo.normalFinalBam,
-                fastngsadmixSites = fastngsadmixPopulationSites,
-                fastngsadmixSitesBin = fastngsadmixPopulationSitesBin,
-                fastngsadmixSitesIdx = fastngsadmixPopulationSitesIdx,
-                fastngsadmixChroms = fastngsadmixChroms,
-                fastngsadmixRef = fastngsadmixPopulationRef,
-                fastngsadmixNind = fastngsadmixPopulationNind,
+                normalFinalBam = pairInfo.normalFinalBam,
+                fastNgsAdmixSites = fastNgsAdmixPopulationSites,
+                fastNgsAdmixSitesBin = fastNgsAdmixPopulationSitesBin,
+                fastNgsAdmixSitesIdx = fastNgsAdmixPopulationSitesIdx,
+                fastNgsAdmixChroms = fastNgsAdmixChroms,
+                fastNgsAdmixRef = fastNgsAdmixPopulationRef,
+                fastNgsAdmixNind = fastNgsAdmixPopulationNind,
                 outprefix = pairInfo.normal
         }
     }
@@ -114,9 +114,9 @@ workflow AlignmentAnalysis {
         Array[File] mantisWxsKmerCountsFiltered = Msi.mantisWxsKmerCountsFiltered
         Array[File] mantisExomeTxt = Msi.mantisExomeTxt
         Array[File] mantisStatusFinal = Msi.mantisStatusFinal
-        Array[File] beagleFileContinental = fastngsadmixContinental.beagleFile
-        Array[File] fastngsadmixQoptContinental = fastngsadmixContinental.fastngsadmixQopt
-        Array[File] beagleFilePopulation = fastngsadmixPopulation.beagleFile
-        Array[File] fastngsadmixQoptPopulation = fastngsadmixPopulation.fastngsadmixQopt
+        Array[File] beagleFileContinental = fastNgsAdmixContinental.beagleFile
+        Array[File] fastNgsAdmixQoptContinental = fastNgsAdmixContinental.fastNgsAdmixQopt
+        Array[File] beagleFilePopulation = fastNgsAdmixPopulation.beagleFile
+        Array[File] fastNgsAdmixQoptPopulation = fastNgsAdmixPopulation.fastNgsAdmixQopt
     }
 }

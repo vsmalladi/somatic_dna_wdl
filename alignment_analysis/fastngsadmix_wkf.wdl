@@ -12,7 +12,7 @@ workflow FastNgsAdmix {
         File fastNgsAdmixChroms
         File fastNgsAdmixRef
         File fastNgsAdmixNind
-        Int angsd_threads = 4 
+        Int angsdThreads = 4 
         String outprefix
     }
 
@@ -23,7 +23,7 @@ workflow FastNgsAdmix {
             fastNgsAdmixSitesBin = fastNgsAdmixSitesBin,
             fastNgsAdmixSitesIdx = fastNgsAdmixSitesIdx,
             fastNgsAdmixChroms = fastNgsAdmixChroms,
-            threads = angsd_threads,
+            threads = angsdThreads,
             outprefix = outprefix
     }
 
