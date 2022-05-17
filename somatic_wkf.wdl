@@ -15,6 +15,7 @@ import "germline/germline_wkf.wdl" as germline
 import "annotate/germline_annotate_wkf.wdl" as germlineAnnotate
 import "baf/baf_wkf.wdl" as baf
 import "variant_analysis/deconstruct_sigs_wkf.wdl" as deconstructSigs
+import "alignment_analysis/fastngsadmix_wkf.wdl" as fastNgsAdmix
 
 # ================== COPYRIGHT ================================================
 # New York Genome Center
@@ -146,6 +147,21 @@ workflow SomaticDNA {
         File mantisBed
         File intervalListBed
 
+        #fastNgsAdmix
+        File fastNgsAdmixChroms
+
+        File fastNgsAdmixContinentalSites
+        File fastNgsAdmixContinentalSitesBin
+        File fastNgsAdmixContinentalSitesIdx
+        File fastNgsAdmixContinentalRef
+        File fastNgsAdmixContinentalNind
+
+        File fastNgsAdmixPopulationSites
+        File fastNgsAdmixPopulationSitesBin
+        File fastNgsAdmixPopulationSitesIdx
+        File fastNgsAdmixPopulationRef
+        File fastNgsAdmixPopulationNind
+
         # annotation:
         String vepGenomeBuild
         IndexedVcf cosmicCoding
@@ -274,6 +290,30 @@ workflow SomaticDNA {
                     finalBam = Preprocess.finalBam[germlineRunGetIndex.index],
                     kouramiFastaGem1Index = kouramiFastaGem1Index,
                     referenceFa = referenceFa
+            }
+
+            call fastNgsAdmix.FastNgsAdmix as fastNgsAdmixContinental{
+                input:
+                    normalFinalBam = Preprocess.finalBam[germlineRunGetIndex.index],
+                    fastNgsAdmixSites = fastNgsAdmixContinentalSites,
+                    fastNgsAdmixSitesBin = fastNgsAdmixContinentalSitesBin,
+                    fastNgsAdmixSitesIdx = fastNgsAdmixContinentalSitesIdx,
+                    fastNgsAdmixChroms = fastNgsAdmixChroms,
+                    fastNgsAdmixRef = fastNgsAdmixContinentalRef,
+                    fastNgsAdmixNind = fastNgsAdmixContinentalNind,
+                    outprefix = normalSampleIds
+            }
+
+            call fastNgsAdmix.FastNgsAdmix as fastNgsAdmixPopulation{
+                input:
+                    normalFinalBam = Preprocess.finalBam[germlineRunGetIndex.index],
+                    fastNgsAdmixSites = fastNgsAdmixPopulationSites,
+                    fastNgsAdmixSitesBin = fastNgsAdmixPopulationSitesBin,
+                    fastNgsAdmixSitesIdx = fastNgsAdmixPopulationSitesIdx,
+                    fastNgsAdmixChroms = fastNgsAdmixChroms,
+                    fastNgsAdmixRef = fastNgsAdmixPopulationRef,
+                    fastNgsAdmixNind = fastNgsAdmixPopulationNind,
+                    outprefix = normalSampleIds
             }
 
             call germline.Germline {
@@ -687,6 +727,12 @@ workflow SomaticDNA {
         sig_input: DeconstructSig.sigInput,
         reconstructed: DeconstructSig.reconstructed,
         diff: DeconstructSig.diff,
+
+        #ancestry
+        beagleFileContinental: fastNgsAdmixContinental.beagleFile,
+        fastNgsAdmixQoptContinental: fastNgsAdmixContinental.fastNgsAdmixQopt,
+        beagleFilePopulation: fastNgsAdmixPopulation.beagleFile,
+        fastNgsAdmixQoptPopulation: fastNgsAdmixPopulation.fastNgsAdmixQopt,
 
         # Bams
         finalBams: Preprocess.finalBam,
