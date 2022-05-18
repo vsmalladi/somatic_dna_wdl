@@ -547,8 +547,8 @@
         },
         "ponWGSFile": {
             "type": "File",
-            "description": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/README_PON",
-            "object": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/WGS_PON_GRCh38.v1.1.bed"
+            "description": "https://bitbucket.nygenome.org/projects/WDL/repos/somatic_dna_wdl/browse/README_pipeline.md",
+            "object": "gs://nygc-comp-s-fd4e-input/pon/WGS_1000g_GRCh38.pon.bed"
         },
         "germFile": {
             "type": "IndexedVcf",
@@ -1350,8 +1350,8 @@
         },
         "ponWGSFile": {
             "type": "File",
-            "description": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/README_PON",
-            "object": "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/WGS_PON_GRCh38.v1.1.bed"
+            "description": "https://bitbucket.nygenome.org/projects/WDL/repos/somatic_dna_wdl/browse/README_pipeline.md",
+            "object": "gs://nygc-comp-s-fd4e-input/pon/WGS_1000g_GRCh38.pon.bed"
         },
         "germFile": {
             "type": "IndexedVcf",

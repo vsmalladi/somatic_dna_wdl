@@ -547,8 +547,8 @@
         },
         "ponWGSFile": {
             "type": "File",
-            "description": "/gpfs/commons/groups/nygcfaculty/kancero/data/v7/GRCh38_full_analysis_set_plus_decoy_hla/internal/README_PON",
-            "object": "/gpfs/commons/groups/nygcfaculty/kancero/data/v7/GRCh38_full_analysis_set_plus_decoy_hla/internal/WGS_PON_GRCh38.v1.1.bed"
+            "description": "https://bitbucket.nygenome.org/projects/WDL/repos/somatic_dna_wdl/browse/README_pipeline.md",
+            "object": "/gpfs/commons/groups/compbio/projects/Project_NYGC_mem_PON_GRCh38_WGS/1000g/data/pon/WGS_1000g_GRCh38.pon.bed"
         },
         "germFile": {
             "type": "IndexedVcf",
@@ -1295,8 +1295,8 @@
         },
         "ponWGSFile": {
             "type": "File",
-            "description": "/gpfs/commons/groups/nygcfaculty/kancero/data/v7/GRCh38_full_analysis_set_plus_decoy_hla/internal/README_PON",
-            "object": "/gpfs/commons/groups/nygcfaculty/kancero/data/v7/GRCh38_full_analysis_set_plus_decoy_hla/internal/WGS_PON_GRCh38.v1.1.bed"
+            "description": "https://bitbucket.nygenome.org/projects/WDL/repos/somatic_dna_wdl/browse/README_pipeline.md",
+            "object": "/gpfs/commons/groups/compbio/projects/Project_NYGC_mem_PON_GRCh38_WGS/1000g/data/pon/WGS_1000g_GRCh38.pon.bed"
         },
         "germFile": {
             "type": "IndexedVcf",
