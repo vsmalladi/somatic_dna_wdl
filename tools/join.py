@@ -17,6 +17,8 @@ def add_cost(kind, row, map, costs):
         match = costs[(costs.wdl_task_name == row.wdl_task_name) &
                       (costs.workflow_id == row.costs_workflow_id) &
                       (costs.service_type.isin(cost_keys))].copy()
+    else:
+        match = pd.DataFrame({})
     if match.empty:
         match = costs[(costs.sub_workflow_name == row.sub_workflow_name) &
               (costs.wdl_task_name == row.wdl_task_name) &
