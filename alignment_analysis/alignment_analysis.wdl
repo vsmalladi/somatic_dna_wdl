@@ -434,3 +434,88 @@ task Kourami {
         docker : "gcr.io/nygc-public/kourami@sha256:d4b906b979c24ee4669fdbf7ee1dfbdeb5c89d0e34b4b4aaf21ee070e988d74b"
     }
 }
+
+task Angsd {
+    input {
+        Bam normalFinalBam
+        File fastNgsAdmixSites
+        File fastNgsAdmixSitesBin
+        File fastNgsAdmixSitesIdx
+        File fastNgsAdmixChroms
+        Int threads
+        String outprefix
+        Int memoryGb = 25
+        Int diskSize = ceil(size(normalFinalBam.bam, "GB")) + 30
+    }
+
+    command {
+        set -exo pipefail
+
+        angsd \
+            -i ~{normalFinalBam.bam} \
+            -GL 2 \
+            -rf ~{fastNgsAdmixChroms} \
+            -sites ~{fastNgsAdmixSites} \
+            -doMajorMinor 3 \
+            -doGlf 2 \
+            -minMapQ 30 \
+            -minQ 20 \
+            -doDepth 1 \
+            -doCounts 1 \
+            -nThreads ~{threads} \
+            -out ~{outprefix}
+    }
+
+    runtime {
+        memory: memoryGb + "G"
+        mem: memoryGb + "G"
+        cpu: threads
+        cpus: threads
+        docker: "gcr.io/nygc-public/angsd@sha256:cd13820de0bc8d400c3e3ff96be6b885b6d3289d53fda56de30bd08508a0bac7"
+        disks: "local-disk " + diskSize + " HDD"
+    }
+
+    output {
+        File beagleFile = "${outprefix}.beagle.gz"
+        File beagleLog = "${outprefix}.arg"
+        File beagleDepth = "${outprefix}.depthGlobal"
+        File beagleSample = "${outprefix}.depthSample"
+    }
+}
+
+task FastNgsAdmix {
+    input {
+        File beagleFile
+        File fastNgsAdmixRef
+        File fastNgsAdmixNind
+        String outprefix
+        Int memoryGb = 15
+        Int threads = 1
+        Int diskSize = 30
+    }
+
+    command {
+        set -exo pipefail
+
+        fastNGSadmix  \
+            -likes ~{beagleFile} \
+            -fname ~{fastNgsAdmixRef} \
+            -Nname ~{fastNgsAdmixNind} \
+            -whichPops all \
+            -out  ~{outprefix}
+    }
+
+    runtime {
+        memory: memoryGb + "G"
+        mem: memoryGb + "G"
+        cpu: threads
+        cpus: threads
+        docker: "gcr.io/nygc-public/fastngsadmix@sha256:f0a336e9f193ab1b4f1484cbec56e1abef063913102d3126f4b3a6ed7784d7f1"
+        disks: "local-disk " + diskSize + " HDD"
+    }
+
+    output {
+        File fastNgsAdmixQopt = "${outprefix}.qopt"
+        File fastNgsAdmixLog = "${outprefix}.log"
+    }
+}

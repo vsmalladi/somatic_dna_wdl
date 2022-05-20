@@ -250,6 +250,61 @@
             "description": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/README_mantis_repeatfinder.md",
             "object": "/gpfs/commons/groups/nygcfaculty/kancero/data/v7/GRCh38_full_analysis_set_plus_decoy_hla/internal/mantis_repeatfinder-hg38.chr.bed"
         },
+        "fastNgsAdmixChroms":{
+            "type": "File",
+            "description": "file containing list of chromosomes to use as search space for angsd",
+            "object": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/fastngsadmix/hg38.chroms"
+        },
+        "fastNgsAdmixContinentalSites": {
+            "type": "File",
+            "description": "Continental level sites file for use with FastNGSAdmix",
+            "object": "/gpfs/commons/groups/nygcfaculty/kancero/data/v7/GRCh38_full_analysis_set_plus_decoy_hla/internal/fastngsadmix/hg38_refPanel_1kG_phase3.sites"
+        },
+        "fastNgsAdmixContinentalSitesBin": {
+            "type": "File",
+            "description": "Continental level sites file for use with FastNGSAdmix bin",
+            "object": "/gpfs/commons/groups/nygcfaculty/kancero/data/v7/GRCh38_full_analysis_set_plus_decoy_hla/internal/fastngsadmix/hg38_refPanel_1kG_phase3.sites.bin"
+        },
+        "fastNgsAdmixContinentalSitesIdx": {
+            "type": "File",
+            "description": "Continental level sites file for use with FastNGSAdmix idx",
+            "object": "/gpfs/commons/groups/nygcfaculty/kancero/data/v7/GRCh38_full_analysis_set_plus_decoy_hla/internal/fastngsadmix/hg38_refPanel_1kG_phase3.sites.idx"
+        },
+        "fastNgsAdmixPopulationSites": {
+            "type": "File",
+            "description": "Population.bi level sites file for use with FastNGSAdmix",
+            "object": "/gpfs/commons/groups/nygcfaculty/kancero/data/v7/GRCh38_full_analysis_set_plus_decoy_hla/internal/fastngsadmix/refPanel_1kgRef_exclMXL_exclASW_exclACB_intelligentVarList_b38.chr.markers.uniq.sites"
+        },
+        "fastNgsAdmixPopulationSitesBin": {
+            "type": "File",
+            "description": "Population level sites file for use with FastNGSAdmix bin",
+            "object": "/gpfs/commons/groups/nygcfaculty/kancero/data/v7/GRCh38_full_analysis_set_plus_decoy_hla/internal/fastngsadmix/refPanel_1kgRef_exclMXL_exclASW_exclACB_intelligentVarList_b38.chr.markers.uniq.sites.bin"
+        },
+        "fastNgsAdmixPopulationSitesIdx": {
+            "type": "File",
+            "description": "Population level sites file for use with FastNGSAdmix idx",
+            "object": "/gpfs/commons/groups/nygcfaculty/kancero/data/v7/GRCh38_full_analysis_set_plus_decoy_hla/internal/fastngsadmix/refPanel_1kgRef_exclMXL_exclASW_exclACB_intelligentVarList_b38.chr.markers.uniq.sites.idx"
+        },
+        "fastNgsAdmixContinentalNind": {
+            "type": "File",
+            "description":"count of number of patients used to generate reference panel for separated by continental categorization",
+            "object":"/gpfs/commons/groups/nygcfaculty/kancero/data/v7/GRCh38_full_analysis_set_plus_decoy_hla/internal/fastngsadmix/hg38_refPanel_1kG_phase3.nind"
+        },
+        "fastNgsAdmixPopulationNind": {
+            "type": "File",
+            "description":"count of number of patients used to generate reference panel for separated by population categorization",
+            "object":"/gpfs/commons/groups/nygcfaculty/kancero/data/v7/GRCh38_full_analysis_set_plus_decoy_hla/internal/fastngsadmix/nInd_1kgRef_exclMXL_exclASW_exclACB_intelligentVarList_b38.txt"
+        },
+        "fastNgsAdmixContinentalRef": {
+            "type": "File",
+            "description":"reference panel for continental level ancestry estimation",
+            "object":"/gpfs/commons/groups/nygcfaculty/kancero/data/v7/GRCh38_full_analysis_set_plus_decoy_hla/internal/fastngsadmix/hg38_refPanel_1kG_phase3.txt"
+        },
+        "fastNgsAdmixPopulationRef": {
+            "type": "File",
+            "description":"reference panel for population level ancestry estimation",
+            "object":"/gpfs/commons/groups/nygcfaculty/kancero/data/v7/GRCh38_full_analysis_set_plus_decoy_hla/internal/fastngsadmix/refPanel_1kgRef_exclMXL_exclASW_exclACB_intelligentVarList_b38.chr.markers.uniq.txt"
+        },
         "cosmicCoding": {
             "type": "IndexedVcf",
             "description": "https://cancer.sanger.ac.uk/cosmic/download v92 VCF file of all coding mutations( normalised ) in the current release. The file has the variants 5' shifted as per the VCF standard, and the info part contains the 3' shifted syntaxes for cds and genome, along with the unshifted variants in the OLD_VARIANT field.",
