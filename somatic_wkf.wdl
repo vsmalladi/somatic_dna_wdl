@@ -301,7 +301,7 @@ workflow SomaticDNA {
                     fastNgsAdmixChroms = fastNgsAdmixChroms,
                     fastNgsAdmixRef = fastNgsAdmixContinentalRef,
                     fastNgsAdmixNind = fastNgsAdmixContinentalNind,
-                    outprefix = normalSampleIds
+                    outprefix = normalSampleIds + "_continental"
             }
 
             call fastNgsAdmix.FastNgsAdmix as fastNgsAdmixPopulation{
@@ -313,7 +313,7 @@ workflow SomaticDNA {
                     fastNgsAdmixChroms = fastNgsAdmixChroms,
                     fastNgsAdmixRef = fastNgsAdmixPopulationRef,
                     fastNgsAdmixNind = fastNgsAdmixPopulationNind,
-                    outprefix = normalSampleIds
+                    outprefix = normalSampleIds + "_population"
             }
 
             call germline.Germline {

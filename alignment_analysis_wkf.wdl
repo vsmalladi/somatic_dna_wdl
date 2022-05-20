@@ -91,7 +91,7 @@ workflow AlignmentAnalysis {
                 fastNgsAdmixChroms = fastNgsAdmixChroms,
                 fastNgsAdmixRef = fastNgsAdmixContinentalRef,
                 fastNgsAdmixNind = fastNgsAdmixContinentalNind,
-                outprefix = pairInfo.normal
+                outprefix = pairInfo.normal + "_continental"
         }
 
         call fastNgsAdmix.FastNgsAdmix as fastNgsAdmixPopulation{
@@ -103,7 +103,7 @@ workflow AlignmentAnalysis {
                 fastNgsAdmixChroms = fastNgsAdmixChroms,
                 fastNgsAdmixRef = fastNgsAdmixPopulationRef,
                 fastNgsAdmixNind = fastNgsAdmixPopulationNind,
-                outprefix = pairInfo.normal
+                outprefix = pairInfo.normal + "_population"
         }
     }
     
