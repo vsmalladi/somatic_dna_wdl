@@ -389,16 +389,16 @@ We are in the process of setting up a public issue tracker. In the mean time  pl
 New tag releases are made for any new/changed step in the main alignment, calling, merging, annotation, or addtional 
 analysis (e.g. MSI, HLA, etc) pipeline.
 
-[7.3.10](https://bitbucket.nygenome.org/projects/WDL/repos/somatic_dna_wdl/browse?at=refs%2Ftags%2F7.3.10&format=zip) Ancestry pipeline:
+[7.3.10](https://bitbucket.nygenome.org/rest/api/latest/projects/WDL/repos/somatic_dna_wdl/archive?at=refs%2Ftags%2F7.3.10&format=zip) Ancestry pipeline:
     - add fastngsadmix ancestry analysis as standalone workflow and to somatic_bam_wkf
     - add ancestry to somatic_wkf.wdl
 
-[7.3.5](https://bitbucket.nygenome.org/projects/WDL/repos/somatic_dna_wdl/browse?at=refs%2Ftags%2F7.3.5&format=zip) Fix for bug in Bioconductor and Gridss:
+[7.3.5](https://bitbucket.nygenome.org/rest/api/latest/projects/WDL/repos/somatic_dna_wdl/archive?at=refs%2Ftags%2F7.3.5&format=zip) Fix for bug in Bioconductor and Gridss:
     - fix: update gridss workflow to skip non-canonical chrome that can cause failures
     - fix: update gridss docker image for version with fix for new bug in Bioconductor
     - fix: skip using private files for disk size estimate
 
-[7.3.3](https://bitbucket.nygenome.org/projects/WDL/repos/somatic_dna_wdl/archive?at=refs%2Ftags%2F7.3.3&format=zip) Refactor:
+[7.3.3](https://bitbucket.nygenome.org/rest/api/latest/projects/WDL/repos/somatic_dna_wdl/archive?at=refs%2Ftags%2F7.3.3&format=zip) Refactor:
 
     - switch from tags to sha has for docker images
     - make bicseq2 config files reference files
@@ -415,7 +415,7 @@ analysis (e.g. MSI, HLA, etc) pipeline.
     - remove --read-length flag and replace with reading from input json
     - remove all private files from input JSON
 
-[7.3.2](https://bitbucket.nygenome.org/projects/WDL/repos/somatic_dna_wdl/archive?at=refs%2Ftags%2F7.3.2&format=zip) Refactor:
+[7.3.2](https://bitbucket.nygenome.org/rest/api/latest/projects/WDL/repos/somatic_dna_wdl/archive?at=refs%2Ftags%2F7.3.2&format=zip) Refactor:
 
     - adjust mem and disk size
     - finalize DeconstructSigs workflow
@@ -426,7 +426,7 @@ analysis (e.g. MSI, HLA, etc) pipeline.
     - add gridss arrange steps that works with cache
     - update resource usage scripts
     
-[7.3.1](https://bitbucket.nygenome.org/projects/WDL/repos/somatic_dna_wdl/archive?at=refs%2Ftags%2F7.3.1&format=zip) Refactor:
+[7.3.1](https://bitbucket.nygenome.org/rest/api/latest/projects/WDL/repos/somatic_dna_wdl/archive?at=refs%2Ftags%2F7.3.1&format=zip) Refactor:
 
     - add deconstructsigs
     - get chr6 coordinates from smaller file
@@ -434,7 +434,7 @@ analysis (e.g. MSI, HLA, etc) pipeline.
     - speed up allele counts (chrom splits)
     
 
-[7.2.0](https://bitbucket.nygenome.org/projects/WDL/repos/somatic_dna_wdl/archive?at=refs%2Ftags%2F7.2.0&format=zip) GDC references:
+[7.2.0](https://bitbucket.nygenome.org/rest/api/latest/projects/WDL/repos/somatic_dna_wdl/archive?at=refs%2Ftags%2F7.2.0&format=zip) GDC references:
 
     - add Human_GRCh38_tcga
     - populate BAMs from a table
