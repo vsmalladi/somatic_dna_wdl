@@ -710,7 +710,6 @@ workflow SomaticDNA {
       }
     }
 
-
     FinalWorkflowOutput workflowOutput = object {
         # alignment and calling results (calling results may not exist if qc failed)
         # SNV INDELs CNV SV and BAM output
@@ -734,8 +733,9 @@ workflow SomaticDNA {
         beagleFilePopulation: fastNgsAdmixPopulation.beagleFile,
         fastNgsAdmixQoptPopulation: fastNgsAdmixPopulation.fastNgsAdmixQopt,
 
-        # Bams
+        # Bams/Crams
         finalBams: Preprocess.finalBam,
+        finalCrams: Preprocess.finalCram,
         # QC
         alignmentSummaryMetrics: Preprocess.alignmentSummaryMetrics,
         qualityByCyclePdf: Preprocess.qualityByCyclePdf,

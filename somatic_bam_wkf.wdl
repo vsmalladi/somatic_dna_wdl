@@ -15,6 +15,7 @@ import "germline/germline_wkf.wdl" as germline
 import "annotate/germline_annotate_wkf.wdl" as germlineAnnotate
 import "baf/baf_wkf.wdl" as baf
 import "variant_analysis/deconstruct_sigs_wkf.wdl" as deconstructSigs
+import "tasks/bam_cram_conversion.wdl" as cramConversion
 
 # ================== COPYRIGHT ================================================
 # New York Genome Center
@@ -210,6 +211,25 @@ workflow SomaticBamWorkflow {
 
         Boolean highMem = false
     }
+
+    # create crams as beginning so other tasks can use them
+    # need to find UNIQUE bams (don't convert if part of more than one pair)
+    File pairInfoManifest = write_json(pairInfos)
+    call cramConversion.UniqueBams as UniqueBams {
+        input:
+            pairInfosPath = pairInfoManifest
+    }
+
+    scatter(bam in UniqueBams.uniqueBams) {
+        call cramConversion.SamtoolsBamToCram as BamToCram {
+            input:
+                inputBam = bam,
+                referenceFa = referenceFa,
+                sampleId = bam.normal,
+                diskSize = (ceil(size(pairInfo.normalFinalBam.bam, "GB")) * 2) + 50
+        }
+    }
+
 
     scatter (normalSampleBamInfo in normalSampleBamInfos) {
         String normalSampleIds = normalSampleBamInfo.sampleId
@@ -607,6 +627,24 @@ workflow SomaticBamWorkflow {
         }
    }
 
+#    scatter(pairInfo in pairInfos) {
+#        call cramConversion.SamtoolsBamToCram as normalBamToCram {
+#            input:
+#                inputBam = pairInfo.normalFinalBam,
+#                referenceFa = referenceFa,
+#                sampleId = pairInfo.normal,
+#                diskSize = (ceil(size(pairInfo.normalFinalBam.bam, "GB")) * 2) + 50
+#        }
+#
+#        call cramConversion.SamtoolsBamToCram as tumorBamToCram {
+#            input:
+#                inputBam = pairInfo.tumorFinalBam,
+#                referenceFa = referenceFa,
+#                sampleId = pairInfo.tumor,
+#                diskSize = (ceil(size(pairInfo.tumorFinalBam.bam, "GB")) * 2) + 50
+#        }
+#    }
+
     output {
         # Germline
         Array[IndexedVcf] haplotypecallerFinalFiltered = Germline.haplotypecallerFinalFiltered
@@ -639,5 +677,10 @@ workflow SomaticBamWorkflow {
         Array[File] contamination = Conpair.contamination
         Array[File] tumorPileup = Conpair.tumorPileup
         Array[File] normalPileup = Conpair.normalPileup
+
+#        # Cram
+#        Array[Cram] normalCram = normalBamToCram.finalCram
+#        Array[Cram] tumorCram = tumorBamToCram.finalCram
+
     }
 }

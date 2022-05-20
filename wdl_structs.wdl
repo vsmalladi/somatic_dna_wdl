@@ -32,6 +32,12 @@ struct Bam {
     String? md5sum
 }
 
+struct Cram {
+    File cram
+    File cramIndex
+    String? md5sum
+}
+
 struct BwaReference {
     File fasta
     File sa
