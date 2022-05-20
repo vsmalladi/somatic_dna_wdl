@@ -160,9 +160,8 @@ QC and Contamination
   - SAMPLE_ID.binest.coverage.txt
   
 - Ancestry estimation
-  - SAMPLE_ID.plink.admixture.5pops.tsv
-  - SAMPLE_ID.plink.admixture.pca.pdf
-  - SAMPLE_ID.plink.admixture.subpops.tsv
+  - SAMPLE_ID.beagle.gz
+  - SAMPLE_ID.qopt
   
 - Summary report
   - TUMOR--NORMAL.v7.final.report.html
@@ -383,7 +382,7 @@ in the tumor sample.
 
 <a name="ancestry"></a>
 
-Ancestry proportion is determined by the software ADMIXTURE v1.3.0 ([31](#31)), which uses a
+Ancestry proportion is determined by the software fastNGSadmix v1.0 ([31](#31)), which uses a
 maximum likelihood-based method to estimate the proportion of reference population ancestries
 in a sample. We genotyped the reference markers generated from 1,964 unrelated 1000
 Genomes project samples directly on the RNASeq samples using GATK pileup. Individuals from
@@ -394,7 +393,7 @@ minimum minor allele frequency (MAF) of 0.01 overall and 0.05 in at least one 10
 superpopulation. Variants are additionally linkage disequilibrium (LD) pruned using PLINK v1.9 ([32](#32))
 with a window size of 500kb, a step size of 250kb and r2 threshold of 0.2, resulting in 122377
 markers remaining. The analysis results in a proportional breakdown of each sample into 5
-superpopulations (AFR, AMR, EAS, EUR, SAS) and 23 subpopulations 
+superpopulations (AFR, AMR, EAS, EUR, SAS) and 23 subpopulations.
 
 
 <a name="references"></a>
@@ -508,6 +507,7 @@ antigen allele discovery. Genome Biol., 19, 16.
 30. Rosenthal,R., McGranahan,N., Herrero,J., Taylor,B.S. and Swanton,C. (2016)
 DeconstructSigs: delineating mutational processes in single tumors distinguishes DNA
 repair deficiencies and patterns of carcinoma evolution. Genome Biol., 17, 31.
-31. D.H. Alexander, J. Novembre, and K. Lange. (2009) Fast model-based estimation of ancestry in unrelated individuals. Genome Research, 19:1655–1664.
+<a name="31"></a>
+31. Emil Jørsboe, Kristian Hanghøj, Anders Albrechtsen. (2017) fastNGSadmix: Admixture proportions and principal component analysis of a single NGS sample, Bioinformatics, 19, 3148–3150.
 <a name="32"></a>
 32.Chang CC, Chow CC, Tellier LCAM, Vattikuti S, Purcell SM, Lee JJ (2015) Second-generation PLINK: rising to the challenge of larger and richer datasets. GigaScience, 4.
