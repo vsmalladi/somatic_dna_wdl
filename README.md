@@ -63,7 +63,7 @@ bash \
 Miniconda3-latest-Linux-x86_64.sh
 # Then follow install instructions and then instructions to add conda to your path
 # create wdl environment
-conda env create -f wdl_port/tools/environment.yml
+conda env create -f somatic_dna_wdl/tools/environment.yml
 
 # activate the environment
 conda activate wdl
@@ -108,7 +108,7 @@ wdl_structs.wdl                        Custom Struct objects to reference primar
 <a name="write_input"></a>
 
 
-Script `wdl_port/run.sh` will first quickly validate the WDL workflow. Next it will use the WDL 
+Script `somatic_dna_wdl/run.sh` will first quickly validate the WDL workflow. Next it will use the WDL 
 to determine which variables are required. All required variables will be defined from the 
 Reference JSON in config, the pairing/sample info or the custom inputs JSON.
 
@@ -120,7 +120,7 @@ Then the workflow will be submitted to the cromwell server.
 
 In addition to submitting the command, this will create an output file that you should save. It contains information about the project, pipeline version, cromwell options, inputs. It will also contain the workflow UUID. This will be used after the run to agregate information about the run.
 ```
-wdl_port/run.sh -h
+somatic_dna_wdl/run.sh -h
 run.sh [-h] --options OPTIONS --wdl-file WDL_FILE
                --url URL --log-dir LOG_DIR
                --project-name PROJECT_NAME
@@ -197,14 +197,14 @@ Command
 # Create input json
 cd ${working-dir}
 
-../wdl_port/run.sh \
+../somatic_dna_wdl/run.sh \
 --log-dir ${working-dir} \
 --url ${url} \
 --project-name ${lab_quote_number} \
 --pairs-file ${tumor_normal_pairs_csv} \
 --library WGS \
 --genome Human_GRCh38_full_analysis_set_plus_decoy_hla \
---wdl-file wdl_port/somatic_wkf.wdl \
+--wdl-file somatic_dna_wdl/somatic_wkf.wdl \
 --options options.json
 ```
 
@@ -234,7 +234,7 @@ After workflow finishes and the status is `SUCCEEDED` run:
 ```
 cd ${working-dir}
 
-bash ../wdl_port/run_summary.sh \
+bash ../somatic_dna_wdl/run_summary.sh \
 -u ${url} \
 -d ${log_dir} \
 -p ${gcp_project} \
@@ -247,7 +247,7 @@ If you do not have a `*RunInfo.json` you can start with the workflow uuid and op
 
 ```
 bash \
-../wdl_port/run_summary.sh \
+../somatic_dna_wdl/run_summary.sh \
 -u ${url} \
 -d ${log_dir} \
 -b ${billing_export} \
@@ -267,9 +267,13 @@ If the workflow finishes and the status is `SUCCEEDED` and you have run `run_sum
 
 `${lab_quote_number}<WORKFLOW_UUID>_outputInfo.json` :
 
-In addition to the content of `${lab_quote_number}_project.<DATE>.RunInfo.json` the file includes:
-
-  - `outputs`: map between workflow output object-name and object (including the file URIs)
+Conatins relevant information on the run including:
+  - `named_files`: list of output files (in the final location)
+  - `outputs`: map between workflow output object-name and object (in the final bucket/location)
+  - `options`: options values from run
+  - `workflow_uuid`: uuid
+  - `run_date`: run_date
+  - `status`: status
   - `pair_association` : map of pair_ids to the `outputs` map for just that pair (searches for the pair_id followed by . _ or / )
   - `sample_association` : map of sample_ids to the `outputs` map for just that sample (searches for the sample_id followed by . _ or / )
 
@@ -295,7 +299,14 @@ the file includes the following metrics calculated from the BigQuery cromwell mo
 `${lab_quote_number}<WORKFLOW_UUID>_outputMetrics.html`
 This file includes plots of runtime metrics.
   
-  
+`${lab_quote_number}<WORKFLOW_UUID>_outputCosts.csv`
+This is the table returned from the billing db on the cloud (only created if the billing table flag is used)
+
+`${lab_quote_number}<WORKFLOW_UUID>.outputMetrics.cost.csv`
+This is the metrics table with the costs added (only created if the billing table flag is used)
+
+`${lab_quote_number}<WORKFLOW_UUID>.outputMetrics.total.csv`
+This is the end-to-end cost for the pipeline (according to the billing table) (only created if the billing table flag is used)
 
 ### Create new workflow
 <a name="create_new_workflow"></a>
@@ -375,7 +386,19 @@ We are in the process of setting up a public issue tracker. In the mean time  pl
 # Release Notes
 <a name="release_notes"></a>
 
-[7.3.3] Refactor:
+New tag releases are made for any new/changed step in the main alignment, calling, merging, annotation, or addtional 
+analysis (e.g. MSI, HLA, etc) pipeline.
+
+[7.3.10](https://bitbucket.nygenome.org/rest/api/latest/projects/WDL/repos/somatic_dna_wdl/archive?at=refs%2Ftags%2F7.3.10&format=zip) Ancestry pipeline:
+    - add fastngsadmix ancestry analysis as standalone workflow and to somatic_bam_wkf
+    - add ancestry to somatic_wkf.wdl
+
+[7.3.5](https://bitbucket.nygenome.org/rest/api/latest/projects/WDL/repos/somatic_dna_wdl/archive?at=refs%2Ftags%2F7.3.5&format=zip) Fix for bug in Bioconductor and Gridss:
+    - fix: update gridss workflow to skip non-canonical chrome that can cause failures
+    - fix: update gridss docker image for version with fix for new bug in Bioconductor
+    - fix: skip using private files for disk size estimate
+
+[7.3.3](https://bitbucket.nygenome.org/rest/api/latest/projects/WDL/repos/somatic_dna_wdl/archive?at=refs%2Ftags%2F7.3.3&format=zip) Refactor:
 
     - switch from tags to sha has for docker images
     - make bicseq2 config files reference files
@@ -392,7 +415,7 @@ We are in the process of setting up a public issue tracker. In the mean time  pl
     - remove --read-length flag and replace with reading from input json
     - remove all private files from input JSON
 
-[7.3.2](https://bitbucket.nygenome.org/rest/api/latest/projects/COMPBIO/repos/wdl_port/archive?at=refs%2Ftags%2F7.3.2&format=zip) Refactor:
+[7.3.2](https://bitbucket.nygenome.org/rest/api/latest/projects/WDL/repos/somatic_dna_wdl/archive?at=refs%2Ftags%2F7.3.2&format=zip) Refactor:
 
     - adjust mem and disk size
     - finalize DeconstructSigs workflow
@@ -403,7 +426,7 @@ We are in the process of setting up a public issue tracker. In the mean time  pl
     - add gridss arrange steps that works with cache
     - update resource usage scripts
     
-[7.3.1](https://bitbucket.nygenome.org/rest/api/latest/projects/COMPBIO/repos/wdl_port/archive?at=refs%2Ftags%2F7.3.1&format=zip) Refactor:
+[7.3.1](https://bitbucket.nygenome.org/rest/api/latest/projects/WDL/repos/somatic_dna_wdl/archive?at=refs%2Ftags%2F7.3.1&format=zip) Refactor:
 
     - add deconstructsigs
     - get chr6 coordinates from smaller file
@@ -411,7 +434,7 @@ We are in the process of setting up a public issue tracker. In the mean time  pl
     - speed up allele counts (chrom splits)
     
 
-[7.2.0](https://bitbucket.nygenome.org/rest/api/latest/projects/COMPBIO/repos/wdl_port/archive?at=refs%2Ftags%2F7.2.0&format=zip) GDC references:
+[7.2.0](https://bitbucket.nygenome.org/rest/api/latest/projects/WDL/repos/somatic_dna_wdl/archive?at=refs%2Ftags%2F7.2.0&format=zip) GDC references:
 
     - add Human_GRCh38_tcga
     - populate BAMs from a table

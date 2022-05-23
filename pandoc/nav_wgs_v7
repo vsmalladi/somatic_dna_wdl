@@ -15,7 +15,7 @@
           <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Somatic pipeline resources<span class="caret"></span></a>
           <ul class="dropdown-menu">
             <li><a href="https://www.nygenome.org/bioinformatics/software/nygc-cancer-pipeline/" target="_blank">NYGC Somatic Pipeline</a></li>
-            <li><a href="https://www.nygenome.org/bioinformatics/wp-content/uploads/2019/06/SomaticPipeline_v7.0_Human_WGS.pdf" target="_blank">Pipeline documentation</a></li>
+            <li><a href="https://bitbucket.nygenome.org/projects/WDL/repos/somatic_dna_wdl/browse/README_pipeline.md" target="_blank">Pipeline documentation</a></li>
           </ul>
         </li>
       </ul>

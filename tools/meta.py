@@ -136,7 +136,7 @@ def fill_in_pair_info(project_info, full_pairs, suffix='.bai'):
     return project_info
         
     
-def populate(args):
+def populate(args, custom_inputs):
     '''Update the dictionary of project, run and sample related metadata (project_info)
     where a new argument has been specified'''
     project_info = {}
@@ -170,8 +170,8 @@ def populate(args):
             pair_info_relationships.append(current_pair_info_relationship)   
         project_info = note_updates(key='listOfPairRelationships', new_value=pair_info_relationships, project_info=project_info)
         # update BAM objects in project_info from custom inputs JSON (if pairInfos and normalSampleBamInfos  are in the custom json)
-        if args['custom_inputs']:
-            for alt_project_info_file in args['custom_inputs']:
+        if custom_inputs:
+            for alt_project_info_file in custom_inputs:
                 alt_project_info = read(alt_project_info_file)
                 project_info = note_custom_updates(key='pairInfos', alt_project_info=alt_project_info, project_info=project_info)
                 project_info = note_custom_updates(key='normalSampleBamInfos', alt_project_info=alt_project_info, project_info=project_info)
@@ -192,14 +192,15 @@ def populate(args):
     else:
         sample_ids = list(set(project_info['normals'] + project_info['tumors']))
     project_info = note_updates(key='sampleIds', new_value=sample_ids, project_info=project_info)
-    if args['custom_inputs']:
-        for alt_project_info_file in args['custom_inputs']:
+    if custom_inputs:
+        for alt_project_info_file in custom_inputs:
                 alt_project_info = read(alt_project_info_file)
                 project_info = note_custom_updates(key='normalSampleInfos', alt_project_info=alt_project_info, project_info=project_info)
                 project_info = note_custom_updates(key='sampleInfos', alt_project_info=alt_project_info, project_info=project_info)
     return project_info
 
-def write_wdl_json(args, project_info, local=False):
+def write_wdl_json(args, project_info, custom_inputs,
+                   local=False):
     parent_dir = os.path.abspath(os.path.dirname(__file__))
     if local:
         pipeline_input = parent_dir + '/../config/pipeline_references_local.json'
@@ -214,7 +215,7 @@ def write_wdl_json(args, project_info, local=False):
                       interval_input=interval_input,
                       pipeline_input=pipeline_input,
                       genome=args['genome'],
-                      custom_inputs=args['custom_inputs'],
+                      custom_inputs=custom_inputs,
                       validate=not args['skip_validate'],
                       project_info=project_info,
                       local=args['local'])
@@ -317,7 +318,7 @@ def get_args():
                         required=False
                         )
     parser.add_argument('--custom-inputs',
-                        help='Optional JSON file with custom input variables. '
+                        help='Optional comma separated list of JSON files with custom input variables. '
                         'The name of the variable in the input file must match the '
                         'name of the variable in the WDL workflow. '
                         'It is not required that the input specify the workflow. '
@@ -326,8 +327,8 @@ def get_args():
                         'Script also requires a default_credentials_JSON to be created by the user '
                         'Run the following to generate a default credentials file: '
                         '     $ gcloud auth application-default login',
-                        nargs='*',
-                        required=False
+                        required=False,
+                        default=False
                         )
     parser.add_argument('--skip-validate',
                         help='Skip the step where input files are validated. '
@@ -349,8 +350,10 @@ def get_args():
 
 def main():
     args = get_args()
+    if args['custom_inputs']:
+        custom_inputs = args['custom_inputs'].split(',')
     # project, run and sample related metadata (project_info)
-    project_info = populate(args)
+    project_info = populate(args, custom_inputs)
     passed = test_schema(project_info)
     if passed:
         file_out = args['project_name'].replace(' ', '_') + '_projectInfo.json'
@@ -358,7 +361,8 @@ def main():
         write_json(args, project_info,
                    file_out=file_out)
         # create/print WDL inputs JSON
-        write_wdl_json(args, project_info, 
+        write_wdl_json(args, project_info,
+                       custom_inputs=custom_inputs, 
                        local=args['local'])
 
 if __name__ == "__main__":
