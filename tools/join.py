@@ -18,7 +18,10 @@ def add_cost(kind, row, map, costs):
                       (costs.workflow_id == row.costs_workflow_id) &
                       (costs.service_type.isin(cost_keys))].copy()
     else:
-        match = pd.DataFrame({})
+        match = costs[(costs.sub_workflow_name == row.sub_workflow_name) &
+                      (costs.wdl_task_name == row.wdl_task_name) &
+                      (costs.workflow_id == row.costs_workflow_id) &
+                      (costs.service_type.isin(cost_keys))].copy()
     if match.empty:
         match = costs[(costs.sub_workflow_name == row.sub_workflow_name) &
               (costs.wdl_task_name == row.wdl_task_name) &
@@ -65,7 +68,8 @@ def get_cost(value, length):
 
 def load_runtime(file, costs, uuid):
     runtime = pd.read_csv(file)
-    map = {'Spot Preemptible Custom Instance Core running in Americas' : {'cost' : 'core_cost',
+    map = {
+           'Spot Preemptible Custom Instance Core running in Americas' : {'cost' : 'core_cost',
                                                                     'type' : 'spot_custom',
                                                                     'preemptible' : True},
            'Spot Preemptible Custom Instance Ram running in Americas' : {'cost' : 'ram_cost',
@@ -92,6 +96,18 @@ def load_runtime(file, costs, uuid):
            'Storage PD Capacity': {'cost' : 'capacity_cost',
                                    'type' : 'storage_pd_capacity',
                                    'preemptible' : np.nan},
+           'Spot Preemptible N1 Predefined Instance Core running in Americas': {'cost' : 'core_cost',
+                                                                    'type' : 'spot_N1_predefined',
+                                                                    'preemptible' : True},
+           'Spot Preemptible N1 Predefined Instance Ram running in Americas': {'cost' : 'ram_cost',
+                                                                    'type' : 'spot_N1_predefined',
+                                                                    'preemptible' : True},
+           'Spot N1 Predefined Instance Core running in Americas': {'cost' : 'core_cost',
+                                                                    'type' : 'spot_N1_predefined',
+                                                                    'preemptible' : False},
+           'Spot N1 Predefined Instance Ram running in Americas': {'cost' : 'ram_cost',
+                                                                    'type' : 'spot_N1_predefined',
+                                                                    'preemptible' : False},
            'N1 Predefined Instance Core running in Americas': {'cost' : 'core_cost',
                                                                     'type' : 'N1_predefined',
                                                                     'preemptible' : False},
@@ -123,7 +139,10 @@ def load_runtime(file, costs, uuid):
                                                                     'type' : 'N2',
                                                                     'preemptible' : True},
            'Network Internet Egress from Americas to Americas': {'cost' : 'egress_cost',
-                                                                 'type' : 'network_egress',
+                                                                 'type' : 'network_internet_egress',
+                                                                 'preemptible' : np.nan},
+           'Network Inter Region Egress from Americas to Americas': {'cost' : 'egress_cost',
+                                                                 'type' : 'network_inter_region_egress',
                                                                  'preemptible' : np.nan},
            'Network Inter Zone Egress': {'cost' : 'egress_cost',
                                          'type' : 'network_inter_zone_egress',

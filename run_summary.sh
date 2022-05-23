@@ -224,6 +224,7 @@ if [ ! -z "$billing_export" ]; then
     echo "Adding cost per instance id to metrics..."
     python ${wdl_dir}/tools/cost.py \
     --output-metrics "${metrics_file}" \
+    --workflow-uuid "${workflow_uuid}" \
     --gcp-project "${gcp_project}" \
     --url "${url}"  \
     --billing-export "${billing_export}" \

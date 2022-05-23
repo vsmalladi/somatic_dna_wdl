@@ -30,10 +30,12 @@ class Cost():
                  url,
                  out_file_prefix,
                  billing_export,
+                 workflow_uuid,
                  limit=1000000,
                  gcp_project=False,
                  test=False):
         self.test = test
+        self.workflow_uuid = workflow_uuid
         self.billing_export = billing_export
         self.parent_dir = os.path.abspath(os.path.dirname(__file__))
         self.output_metrics = output_metrics
@@ -58,8 +60,6 @@ class Cost():
     def process_metadata(self, file):
         '''Get costs for one workflow uuid'''
         self.metadata = pd.read_csv(file)
-        # hack fix later by adding main uuid to metrics file
-        self.workflow_uuid = file.split('.')[1].replace('_outputMetrics', '')
         # seg run_date and end_date
         self.get_times()
         log.info('lookup costs')
@@ -167,6 +167,11 @@ def get_args():
                         default=False,
                         required=False
                         )
+    parser.add_argument('--workflow-uuid',
+                        help='Workflow UUID',
+                        default=False,
+                        required=False
+                        )
     parser.add_argument('--url',
                         help='URL for cromwell server.',
                         required=True
@@ -192,6 +197,7 @@ def main():
     args = get_args()
     cost = Cost(output_metrics=args['output_metrics'],
                 url=args['url'],
+                workflow_uuid=args['workflow_uuid'],
                 out_file_prefix=args['out_file_prefix'],
                 limit=args['limit'],
                 gcp_project=args['gcp_project'],
