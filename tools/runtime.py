@@ -49,87 +49,83 @@ class Runtime():
         self.prep_ids()
         self.metrics_file = metrics_file_prefix + self.workflow_uuid + '_outputMetrics.csv'
         self.non_retried_metrics_file = metrics_file_prefix + self.workflow_uuid + '_outputMetrics.non_retried.csv'
-        if os.path.isfile(self.metrics_file):
-            self.loaded = True
-            log.warning('Metrics file (*outputMetrics.csv) exists. Reading from original metrics file.')
+        # find relevant project info
+        self.limit = str(limit)
+        self.metrics_limit = str(limit * 4)
+        # login
+        self.credentials, self.gcp_project = self.login()
+        if gcp_project:
+            self.gcp_query_project = gcp_project
         else:
-            # find relevant project info
-            self.limit = str(limit)
-            self.metrics_limit = str(limit * 4)
-            # login
-            self.credentials, self.gcp_project = self.login()
-            if gcp_project:
-                self.gcp_query_project = gcp_project
+            self.gcp_query_project = self.gcp_project
+        self.default_project = (self.gcp_project == self.gcp_query_project)
+        self.get_sample_info()
+        # gather big cloud tables
+        self.bqclient = bigquery.Client(project=self.gcp_project ,
+                                        credentials=self.credentials)
+        self.bqstorageclient = bigquery_storage.BigQueryReadClient(credentials=self.credentials)
+        self.loaded = self.load_metadata_api()
+        if not self.loaded:
+            log.warning('No endtime found for workflow: ' + output_info['workflow_uuid'])
+        elif not 'monitoring_image' in output_info['options'] :
+            log.info('write metrics')
+            self.metadata = self.load_plot_metrics(self.metadata)
+            self.metadata.to_csv(self.metrics_file, index=False, float_format='{:f}'.format,
+                                 encoding='utf-8')
+        else:
+            self.load_runtime()
+            # check for UUIDs that were missed in the metadata api call
+            metadata_workflow_id = set(self.metadata.workflow_id.to_list())
+            runtime_workflow_id = set(self.runtime.workflow_id.to_list())
+            missing = runtime_workflow_id.difference(metadata_workflow_id)
+            assert len(missing) == 0 , 'Some workflow uuids found in runtime but not in metadata ' + ' '.join(missing)
+            # merge runtime info with metadata
+            self.runtime.columns = ['project_id', 'zone', 'instance_id', 'instance_name', 'preemptible',
+                           'runtime_workflow_id', 'task_call_name', 'shard', 'attempt', 'cpu_count',
+                           'cpu_platform', 'mem_total_gb', 'disk_mounts', 'disk_total_gb',
+                           'start_time']
+            self.runtime = self.reset_instance_id(self.runtime)
+            # rename the columns before merge, then replace where runtime NaN
+            self.metadata.rename(columns={'mem_total_gb':'mem_total_gb_runtime',
+                                          'disk_mounts': 'disk_mounts_runtime',
+                                          'disk_total_gb': 'disk_total_gb_runtime',
+                                          }, inplace=True)
+            self.metadata = pd.merge(self.metadata, self.runtime[['instance_name', 'instance_id',
+                                                                  'cpu_platform', 'mem_total_gb',
+                                                                  'disk_mounts', 'disk_total_gb']]
+                                     .drop_duplicates(subset=['instance_id']),
+                                     on='instance_name', how='left')
+            self.metadata['mem_total_gb'].fillna(self.metadata['mem_total_gb_runtime'], inplace=True)
+            self.metadata['disk_mounts'].fillna(self.metadata['disk_mounts_runtime'], inplace=True)
+            self.metadata['disk_total_gb'].fillna(self.metadata['disk_total_gb_runtime'], inplace=True)
+            self.metadata.drop(columns=['mem_total_gb_runtime', 'disk_mounts_runtime',
+                                        'disk_total_gb_runtime'], inplace=True)
+            self.metadata = self.reset_instance_id(self.metadata)
+            self.load_metrics()
+            self.metrics = self.reset_instance_id(self.metrics)
+            log.info('add custom cols')
+            self.add_custom_cols()
+            # remove non-run rows
+            log.info('remove non-run rows')
+            self.metadata_cache = self.metadata.loc[pd.isnull(self.metadata[['instance_name']]).any(axis=1)].copy()
+            self.metadata = self.metadata.dropna(subset=['instance_name']).copy()
+            self.non_retry_metadata = self.metadata[self.metadata.backend_status == 'Success'].copy()
+            # if no tasks are finished
+            if self.metadata[self.metadata.execution_status != 'RUNNING'].empty:
+                self.metadata = pd.concat([self.metadata, self.metadata_cache], ignore_index=True)
+                self.metadata.to_csv(self.metrics_file, index=False)
             else:
-                self.gcp_query_project = self.gcp_project
-            self.default_project = (self.gcp_project == self.gcp_query_project)
-            self.get_sample_info()
-            # gather big cloud tables
-            self.bqclient = bigquery.Client(project=self.gcp_project ,
-                                            credentials=self.credentials)
-            self.bqstorageclient = bigquery_storage.BigQueryReadClient(credentials=self.credentials)
-            self.loaded = self.load_metadata_api()
-            if not self.loaded:
-                log.warning('No endtime found for workflow: ' + output_info['workflow_uuid'])
-            elif not 'monitoring_image' in output_info['options'] :
-                log.info('write metrics')
+                log.info('make plot metrics')
+                self.metadata_full = self.metadata.copy()
                 self.metadata = self.load_plot_metrics(self.metadata)
+                log.info('make non retry plot metrics')
+                self.non_retry_metadata = self.load_plot_metrics(self.non_retry_metadata)
+                self.metadata = pd.concat([self.metadata, self.metadata_cache], ignore_index=True)
+                log.info('write metrics')
                 self.metadata.to_csv(self.metrics_file, index=False, float_format='{:f}'.format,
                                      encoding='utf-8')
-            else:
-                self.load_runtime()
-                # check for UUIDs that were missed in the metadata api call
-                metadata_workflow_id = set(self.metadata.workflow_id.to_list())
-                runtime_workflow_id = set(self.runtime.workflow_id.to_list())
-                missing = runtime_workflow_id.difference(metadata_workflow_id)
-                assert len(missing) == 0 , 'Some workflow uuids found in runtime but not in metadata ' + ' '.join(missing)
-                # merge runtime info with metadata
-                self.runtime.columns = ['project_id', 'zone', 'instance_id', 'instance_name', 'preemptible',
-                               'runtime_workflow_id', 'task_call_name', 'shard', 'attempt', 'cpu_count',
-                               'cpu_platform', 'mem_total_gb', 'disk_mounts', 'disk_total_gb',
-                               'start_time']
-                self.runtime = self.reset_instance_id(self.runtime)
-                # rename the columns before merge, then replace where runtime NaN
-                self.metadata.rename(columns={'mem_total_gb':'mem_total_gb_runtime',
-                                              'disk_mounts': 'disk_mounts_runtime',
-                                              'disk_total_gb': 'disk_total_gb_runtime',
-                                              }, inplace=True)
-                self.metadata = pd.merge(self.metadata, self.runtime[['instance_name', 'instance_id', 
-                                                                      'cpu_platform', 'mem_total_gb', 
-                                                                      'disk_mounts', 'disk_total_gb']]
-                                         .drop_duplicates(subset=['instance_id']), 
-                                         on='instance_name', how='left')
-                self.metadata['mem_total_gb'].fillna(self.metadata['mem_total_gb_runtime'], inplace=True)
-                self.metadata['disk_mounts'].fillna(self.metadata['disk_mounts_runtime'], inplace=True)
-                self.metadata['disk_total_gb'].fillna(self.metadata['disk_total_gb_runtime'], inplace=True)
-                self.metadata.drop(columns=['mem_total_gb_runtime', 'disk_mounts_runtime', 
-                                            'disk_total_gb_runtime'], inplace=True)
-                self.metadata = self.reset_instance_id(self.metadata)
-                self.load_metrics()
-                self.metrics = self.reset_instance_id(self.metrics)
-                log.info('add custom cols')
-                self.add_custom_cols()
-                # remove non-run rows
-                log.info('remove non-run rows')
-                self.metadata_cache = self.metadata.loc[pd.isnull(self.metadata[['instance_name']]).any(axis=1)].copy()
-                self.metadata = self.metadata.dropna(subset=['instance_name']).copy()
-                self.non_retry_metadata = self.metadata[self.metadata.backend_status == 'Success'].copy()
-                # if no tasks are finished
-                if self.metadata[self.metadata.execution_status != 'RUNNING'].empty:
-                    self.metadata = pd.concat([self.metadata, self.metadata_cache], ignore_index=True)
-                    self.metadata.to_csv(self.metrics_file, index=False)
-                else:
-                    log.info('make plot metrics')
-                    self.metadata_full = self.metadata.copy()
-                    self.metadata = self.load_plot_metrics(self.metadata)
-                    log.info('make non retry plot metrics')
-                    self.non_retry_metadata = self.load_plot_metrics(self.non_retry_metadata)
-                    self.metadata = pd.concat([self.metadata, self.metadata_cache], ignore_index=True)
-                    log.info('write metrics')
-                    self.metadata.to_csv(self.metrics_file, index=False, float_format='{:f}'.format, 
-                                         encoding='utf-8')
-                    self.non_retry_metadata.to_csv(self.non_retried_metrics_file, index=False, 
-                                                   float_format='{:f}'.format, encoding='utf-8')
+                self.non_retry_metadata.to_csv(self.non_retried_metrics_file, index=False,
+                                               float_format='{:f}'.format, encoding='utf-8')
 
     def reset_instance_id(self, data):
         data['instance_id'] = data['instance_id'].fillna(-1)
