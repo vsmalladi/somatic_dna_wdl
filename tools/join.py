@@ -69,6 +69,9 @@ def get_cost(value, length):
 def load_runtime(file, costs, uuid):
     runtime = pd.read_csv(file)
     map = {
+           'Network Internet Egress from Americas to EMEA': {'cost' : 'egress_cost',
+                                                                 'type' : 'network_internet_egress',
+                                                                 'preemptible' : np.nan},
            'Spot Preemptible Custom Instance Core running in Americas' : {'cost' : 'core_cost',
                                                                     'type' : 'spot_custom',
                                                                     'preemptible' : True},
