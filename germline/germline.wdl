@@ -50,7 +50,7 @@ task haplotypeCallerGatk4 {
         mem: memoryGb + "G"
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker: "gcr.io/nygc-public/broadinstitute/gatk@sha256:18146e79d06787483310e5de666502090a480e10ac0fad06a36a5e7a5c9bb1dc"
+        docker: "gcr.io/nygc-public/broadinstitute/gatk4@sha256:b3bde7bc74ab00ddce342bd511a9797007aaf3d22b9cfd7b52f416c893c3774c"
     }
 }
 
@@ -128,7 +128,7 @@ task GentotypeGvcfsGatk4 {
         mem: memoryGb + "G"
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker : "gcr.io/nygc-public/broadinstitute/gatk@sha256:18146e79d06787483310e5de666502090a480e10ac0fad06a36a5e7a5c9bb1dc"
+        docker : "gcr.io/nygc-public/broadinstitute/gatk4@sha256:b3bde7bc74ab00ddce342bd511a9797007aaf3d22b9cfd7b52f416c893c3774c"
     }
 }
 
@@ -194,7 +194,7 @@ task genotypeRefinementWorkflow {
         mem: memoryGb + "G"
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker : "gcr.io/nygc-public/broadinstitute/gatk@sha256:18146e79d06787483310e5de666502090a480e10ac0fad06a36a5e7a5c9bb1dc"
+        docker : "gcr.io/nygc-public/broadinstitute/gatk4@sha256:b3bde7bc74ab00ddce342bd511a9797007aaf3d22b9cfd7b52f416c893c3774c"
     }
 }
 
