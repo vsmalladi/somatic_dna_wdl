@@ -560,6 +560,7 @@ task Mutect2Wgs {
         String normal
         String pairName
         String mutect2ChromRawVcfPath = "~{pairName}_~{chrom}.mutect2.raw.vcf"
+        String mutect2ChromRawStatsPath = "~{pairName}_~{chrom}.mutect2.raw.vcf.stats"
         IndexedReference referenceFa
         Bam normalFinalBam
         Bam tumorFinalBam
@@ -582,6 +583,7 @@ task Mutect2Wgs {
 
     output {
         File mutect2ChromRawVcf = "~{mutect2ChromRawVcfPath}"
+        File mutect2ChromRawStats = "~{mutect2ChromRawStatsPath}"
     }
 
     runtime {
@@ -635,6 +637,7 @@ task Mutect2Filter {
         String mutect2ChromVcfPath = "~{pairName}_~{chrom}.mutect2.vcf"
         IndexedReference referenceFa
         File mutect2ChromRawVcf
+        File mutect2ChromRawStats
     }
 
     Int jvmHeap = memoryGb * 750  # Heap size in Megabytes. mem is in GB. (75% of mem)
@@ -644,6 +647,7 @@ task Mutect2Filter {
         --java-options "-Xmx~{jvmHeap}m -XX:ParallelGCThreads=4" \
         --reference ~{referenceFa.fasta} \
         -V ~{mutect2ChromRawVcf} \
+        --stats ~{mutect2ChromRawStats} \
         -O ~{mutect2ChromVcfPath}
     }
 
