@@ -52,7 +52,7 @@ workflow PreprocessWrapper {
     input {
         Boolean external = false
 
-        BwaReference bwaReference
+        BwaMem2Reference bwamem2Reference
         IndexedReference referenceFa
         File adaptersFa
         IndexedVcf MillsAnd1000G
@@ -76,7 +76,7 @@ workflow PreprocessWrapper {
                 trim = trim,
                 adaptersFa = adaptersFa,
                 sampleId = sampleInfoObj.sampleId,
-                bwaReference = bwaReference,
+                bwamem2Reference = bwamem2Reference,
                 referenceFa = referenceFa,
                 MillsAnd1000G = MillsAnd1000G,
                 gnomadBiallelic = gnomadBiallelic,

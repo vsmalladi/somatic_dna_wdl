@@ -44,6 +44,25 @@ struct BwaReference {
     File? index
 }
 
+struct BwaMem2Reference {
+    File fasta
+    File bwt2bit
+    File pac
+    File ann
+    File amb
+    File num
+    File? alt
+    File? dict
+    File? index
+}
+
+struct Minimap2Reference {
+    File fasta
+    File? alt
+    File? dict
+    File? index
+}
+
 struct IndexedReference {
     File fasta
     File? dict
