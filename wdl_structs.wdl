@@ -269,3 +269,39 @@ struct FinalWorkflowOutput {
     Array[File?] haplotypecallerAnnotatedVcf
     Array[File?] alleleCountsTxt
 }
+
+struct PreprocessingOutput {
+    # Preprocessing output.
+    Array[Bam] finalBams
+
+    # QC
+    Array[File] alignmentSummaryMetrics
+    Array[File] qualityByCyclePdf
+    Array[File] baseDistributionByCycleMetrics
+    Array[File] qualityByCycleMetrics
+    Array[File] baseDistributionByCyclePdf
+    Array[File] qualityDistributionPdf
+    Array[File] qualityDistributionMetrics
+    Array[File] insertSizeHistogramPdf
+    Array[File] insertSizeMetrics
+    Array[File] gcBiasMetrics
+    Array[File] gcBiasSummary
+    Array[File] gcBiasPdf
+    Array[File] flagStat
+    Array[File] hsMetrics
+    Array[File] hsMetricsPerTargetCoverage
+    Array[File] hsMetricsPerTargetCoverageAutocorr
+    Array[File] autocorroutput1100
+    Array[File] collectOxoGMetrics
+    Array[File] collectWgsMetrics
+    Array[File] binestCov
+    Array[File] normCoverageByChrPng
+    
+    # Dedup metrics
+    Array[File] collectWgsMetricsPreBqsr
+    Array[File] qualityDistributionPdfPreBqsr
+    Array[File] qualityByCycleMetricsPreBqsr
+    Array[File] qualityByCyclePdfPreBqsr
+    Array[File] qualityDistributionMetricsPreBqsr
+
+}

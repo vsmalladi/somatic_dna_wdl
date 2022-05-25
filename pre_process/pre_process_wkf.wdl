@@ -15,7 +15,7 @@ workflow Preprocess {
         
         Array[Fastqs] listOfFastqPairs
         Boolean trim = true
-        BwaReference bwaReference
+        BwaMem2Reference bwamem2Reference
         File adaptersFa
         #    command merge flowcell
         String sampleId
@@ -32,10 +32,10 @@ workflow Preprocess {
 
         # resources
         #    prep flowcell
-        Int minimapMem = 86
+        Int bwamem2Mem = 86
         Int novosortMem = 80
         Int threads = 16
-        Int minimapThreads = 96
+        Int bwamem2Threads = 96
     }
 
     call alignFastq.AlignFastq {
@@ -43,10 +43,10 @@ workflow Preprocess {
             listOfFastqPairs = listOfFastqPairs,
             trim = trim,
             adaptersFa = adaptersFa,
-            bwaReference = bwaReference,
-            minimapMem = minimapMem,
+            bwamem2Reference = bwamem2Reference,
+            bwamem2Mem = bwamem2Mem,
             threads = threads,
-            minimapThreads = minimapThreads
+            bwamem2Threads = bwamem2Threads
     }
 
     call mergeBams.MergeBams {
