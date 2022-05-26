@@ -93,7 +93,7 @@ task AlignBwaMem2 {
         cpu : totalThreads
         memory : memoryGb + " GB"
         disks: "local-disk " + diskSize + " LOCAL"
-        docker : "gcr.io/nygc-compbio/bwamem2@sha256:bc25df2bf49e94c2377970fc45ca103e40b7c7ca84167fd7f7acaddf438b4fb8"
+        docker : "gcr.io/nygc-comp-s-fd4e/bwamem2@sha256:b67aa35884fa3ac1632268d5b9a77a364e6aa366f897701b797c1dbdb09516bd"
     }
     meta {
         tool : "bwa-mem"

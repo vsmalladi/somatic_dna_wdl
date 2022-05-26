@@ -4,7 +4,7 @@ import "./wdl_structs.wdl"
 import "pre_process/pre_process_wkf.wdl" as preProcess
 import "pre_process/qc_wkf.wdl" as qc
 
-# breaking full pipeline to just handle the preprocessing steps to test minimap
+# breaking full pipeline to just handle the preprocessing steps to test aligners
 # input is a list of samples and there fastq information, no pairing info needed
 
 # ================== COPYRIGHT ================================================
