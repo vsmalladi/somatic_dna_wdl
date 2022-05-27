@@ -464,6 +464,7 @@ task Pileup {
         --java-options "-Xmx~{jvmHeap}m -XX:ParallelGCThreads=1" \
         -I ~{finalBam.bam} \
         -V ~{gnomadBiallelic.vcf} \
+        -L ~{gnomadBiallelic.vcf} \
         -O ~{pileupsTablePath}
     }
 

@@ -86,8 +86,8 @@
   "SomaticDNA.mantisBed": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/mantis_repeatfinder-hg38.chr.bed",
   "SomaticDNA.kouramiFastaGem1Index": "gs://nygc-resources-public/kourami/All_FINAL_with_Decoy.v1.gem",
   "SomaticDNA.dbsnpIndels": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/dbsnp_146.indels.hg38.vcf",
-  "SomaticDNA.markerTxtFile": "gs://nygc-resources-public/GRCh38_tcga/GRCh38.autosomes.phase3_shapeit2_mvncall_integrated.20130502.SNV.genotype.sselect_v4_MAF_0.4_LD_0.8.liftover.txt",
-  "SomaticDNA.markerBedFile": "gs://nygc-resources-public/GRCh38_tcga/GRCh38.autosomes.phase3_shapeit2_mvncall_integrated.20130502.SNV.genotype.sselect_v4_MAF_0.4_LD_0.8.liftover.bed",
+  "SomaticDNA.markerTxtFile": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/GRCh38.autosomes.phase3_shapeit2_mvncall_integrated.20130502.SNV.genotype.sselect_v4_MAF_0.4_LD_0.8.liftover.txt",
+  "SomaticDNA.markerBedFile": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/GRCh38.autosomes.phase3_shapeit2_mvncall_integrated.20130502.SNV.genotype.sselect_v4_MAF_0.4_LD_0.8.liftover.bed",
   "SomaticDNA.hgmdGene": {
       "vcf": "gs://nygc-resources-public/annotations/hgmd_genes_pro_2020_hg38.vcf.gz",
       "index": "gs://nygc-resources-public/annotations/hgmd_genes_pro_2020_hg38.vcf.gz.tbi"
