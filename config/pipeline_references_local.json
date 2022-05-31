@@ -1,4 +1,19 @@
 {
+    "docLink": {
+        "type": "String",
+        "description": "v7 report current Documentation",
+        "object" : "https://bitbucket.nygenome.org/projects/COMPBIO/repos/wdl_port/browse/archive/README_pipeline.7.3.2.md"
+    },
+    "navTemplate": {
+        "type": "File",
+        "description": "v7 report template",
+        "object" : "/gpfs/commons/groups/nygcfaculty/kancero/data/v7/nav_wgs_v7"
+    },
+    "pandocTemplate": {
+        "type": "File",
+        "description": "v7 report template",
+        "object" : "/gpfs/commons/groups/nygcfaculty/kancero/data/v7/pandoc.tar.gz"
+    },
     "lancetJsonLog" : {
         "type" : "File",
         "description" : "caller command",

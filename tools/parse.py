@@ -334,10 +334,22 @@ class Wdl():
         if self.custom_inputs:
             for custom_input in self.custom_inputs:
                 data = self.load_json(custom_input)
+                first_key = [k for k in data.keys()][0]
+                if len(data.keys()) == 1 and isinstance(data[first_key], dict):
+                    # create better workaround
+                    # get past the section name (outputs, SomaticDNA.finalOutput, etc)
+                    new_data = {}
+                    # get main key
+                    new_data[first_key] = data[first_key]
+                    # get nested keys
+                    for k in data[first_key]:
+                        new_data[k] = data[first_key][k]
+                    data = new_data
                 new_vars = [variable.split('.')[-1] for variable in set(data.keys())]
                 assert len(set(new_vars)) == len(new_vars), 'input variables must have unique variable names (after removing workflow names).'
                 for variable in data:
                     new_var = variable.split('.')[-1]
+                    # overwrite references with value from the custom input jsons
                     if new_var in self.input_objects.keys():
                         log.warning(new_var + 'value is being taken from custom inputs json file.')
                     self.input_objects[new_var] = {}

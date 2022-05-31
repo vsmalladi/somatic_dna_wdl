@@ -262,7 +262,7 @@ workflow SomaticBamWorkflow {
                 fastNgsAdmixChroms = fastNgsAdmixChroms,
                 fastNgsAdmixRef = fastNgsAdmixContinentalRef,
                 fastNgsAdmixNind = fastNgsAdmixContinentalNind,
-                outprefix = normalSampleIds
+                outprefix = normalSampleIds + "_continental"
         }
 
         call fastNgsAdmix.FastNgsAdmix as fastNgsAdmixPopulation{
@@ -274,7 +274,7 @@ workflow SomaticBamWorkflow {
                 fastNgsAdmixChroms = fastNgsAdmixChroms,
                 fastNgsAdmixRef = fastNgsAdmixPopulationRef,
                 fastNgsAdmixNind = fastNgsAdmixPopulationNind,
-                outprefix = normalSampleIds
+                outprefix = normalSampleIds + "population"
         }
         
         call germline.Germline {
