@@ -736,6 +736,7 @@ workflow SomaticDNA {
         # Bams/Crams
         finalBams: Preprocess.finalBam,
         finalCrams: Preprocess.finalCram,
+
         # QC
         alignmentSummaryMetrics: Preprocess.alignmentSummaryMetrics,
         qualityByCyclePdf: Preprocess.qualityByCyclePdf,

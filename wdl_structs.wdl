@@ -77,6 +77,11 @@ struct SampleBamInfo {
     Bam finalBam
 }
 
+struct SampleCramInfo {
+    String sampleId
+    Cram finalCram
+}
+
 struct PreMergedPairVcfInfo {
     String pairId
     File filteredMantaSV
@@ -190,6 +195,14 @@ struct pairInfo {
     String pairId
     Bam tumorFinalBam
     Bam normalFinalBam
+    String tumor
+    String normal
+}
+
+struct pairCramInfo {
+    String pairId
+    Cram tumorFinalCram
+    Cram normalFinalCram
     String tumor
     String normal
 }

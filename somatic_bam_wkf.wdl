@@ -212,23 +212,33 @@ workflow SomaticBamWorkflow {
         Boolean highMem = false
     }
 
-    # create crams as beginning so other tasks can use them
     # need to find UNIQUE bams (don't convert if part of more than one pair)
-    File pairInfoManifest = write_json(pairInfos)
-    call cramConversion.UniqueBams as UniqueBams {
+    call cramConversion.UniqueBams as uniqueBams {
         input:
-            pairInfosPath = pairInfoManifest
+            pairInfosJson = write_json(pairInfos)
     }
 
-    scatter(bam in UniqueBams.uniqueBams) {
-        call cramConversion.SamtoolsBamToCram as BamToCram {
+    scatter(bamInfo in uniqueBams.uniqueBams) {
+        call cramConversion.SamtoolsBamToCram as bamToCram {
             input:
-                inputBam = bam,
+                inputBam = bamInfo.finalBam,
                 referenceFa = referenceFa,
-                sampleId = bam.normal,
-                diskSize = (ceil(size(pairInfo.normalFinalBam.bam, "GB")) * 2) + 50
+                sampleId = bamInfo.sampleId,
+                diskSize = (ceil(size(bamInfo.finalBam.bam, "GB") * 1.7)) + 20 # 0.7 is estimated cram size
         }
     }
+
+    # then create a new map of sample cram infos (to use as input where crams used instead of bams)
+    # treating is as new object. Other option is to make a new struct with bam+cram together
+    call cramConversion.UpdateCramInfos as updateCramInfo {
+        input:
+            pairInfosJson = write_json(pairInfos),
+            normalInfosJson = write_json(normalSampleBamInfos),
+            cramInfosJson = write_json(bamToCram.cramInfo)
+    }
+    #    # the output of this can be used like:
+    #    Array normalSampleCramInfos = updateCramInfo.normalSampleCramInfos
+    #    Array pairCramInfos = updateCramInfo.pairCramInfos
 
 
     scatter (normalSampleBamInfo in normalSampleBamInfos) {
@@ -627,24 +637,6 @@ workflow SomaticBamWorkflow {
         }
    }
 
-#    scatter(pairInfo in pairInfos) {
-#        call cramConversion.SamtoolsBamToCram as normalBamToCram {
-#            input:
-#                inputBam = pairInfo.normalFinalBam,
-#                referenceFa = referenceFa,
-#                sampleId = pairInfo.normal,
-#                diskSize = (ceil(size(pairInfo.normalFinalBam.bam, "GB")) * 2) + 50
-#        }
-#
-#        call cramConversion.SamtoolsBamToCram as tumorBamToCram {
-#            input:
-#                inputBam = pairInfo.tumorFinalBam,
-#                referenceFa = referenceFa,
-#                sampleId = pairInfo.tumor,
-#                diskSize = (ceil(size(pairInfo.tumorFinalBam.bam, "GB")) * 2) + 50
-#        }
-#    }
-
     output {
         # Germline
         Array[IndexedVcf] haplotypecallerFinalFiltered = Germline.haplotypecallerFinalFiltered
@@ -678,9 +670,7 @@ workflow SomaticBamWorkflow {
         Array[File] tumorPileup = Conpair.tumorPileup
         Array[File] normalPileup = Conpair.normalPileup
 
-#        # Cram
-#        Array[Cram] normalCram = normalBamToCram.finalCram
-#        Array[Cram] tumorCram = tumorBamToCram.finalCram
-
+        # Cram
+         Array[SampleCramInfo] crams = bamToCram.cramInfo
     }
 }

@@ -106,7 +106,6 @@ workflow MergeBams {
 
     output {
         Bam finalBam = PrintReads.finalBam
-        Cram finalCram = PrintReads.finalCram
         File collectWgsMetricsPreBqsr = CollectWgsMetrics.collectWgsMetrics
         File qualityDistributionPdfPreBqsr = MultipleMetricsPreBqsr.qualityDistributionPdfPreBqsr
         File qualityByCycleMetricsPreBqsr = MultipleMetricsPreBqsr.qualityByCycleMetricsPreBqsr

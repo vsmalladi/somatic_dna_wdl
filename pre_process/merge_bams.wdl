@@ -214,7 +214,6 @@ task PrintReads {
         IndexedReference referenceFa
         String sampleId
         String finalBamPath = "~{sampleId}.final.bam"
-        String finalCramPath = "~{sampleId}.final.cram"
         # resources
         Int memoryGb = 16
         Int threads = 2
@@ -230,18 +229,6 @@ task PrintReads {
         -I ~{mergedDedupBam.bam} \
         -O ~{finalBamPath} \
         --bqsr-recal-file ~{recalGrp}
-
-        samtools \
-        view \
-        -C \
-        -T ~{referenceFa.fasta} \
-        -t ~{referenceFa.index} \
-        -o ~{finalCramPath} \
-        ~{finalBamPath} \
-        --verbosity=8 \
-        --threads ~{threads}
-
-        samtools index ~{finalCramPath}
     }
 
     output {
@@ -249,10 +236,6 @@ task PrintReads {
                 bam : finalBamPath,
                 bamIndex : sub(basename(finalBamPath), ".bam$", ".bai")
             }
-        Cram finalCram = object {
-                           cram : finalCramPath,
-                           cramIndex : sub(basename(finalCramPath), ".cram$", ".cram.crai")
-                       }
     }
 
     runtime {

@@ -32,19 +32,28 @@ task SamtoolsBamToCram {
     }
 
     output {
-        Cram finalCram = object {
-                             cram : "~{cramPath}",
-                             cramIndex : "~{indexPath}"
-                         }
+        SampleCramInfo cramInfo = object {
+            sampleId : "~{sampleId}",
+            finalCram : {
+                            'cram' : "~{cramPath}",
+                            'cramIndex' : "~{indexPath}"
+                        }
+             }
     }
 
     runtime {
         docker : "gcr.io/nygc-public/samtools@sha256:32f29fcd7af01b3941e6f93095e8d899741e81b50bcc838329bd8df43e120cc3"
-        disks: "local-disk " + diskSize + " LOCAL"
+        disks: "local-disk " + diskSize + " HDD"
         memory: memoryGb + " GB"
         cpu: threads
     }
 }
+
+# note: there are possible issues converting cram to bam directly. May need cram->sam->bam
+# https://github.com/gatk-workflows/seq-format-conversion/blob/master/cram-to-bam.wdl
+# The reason this approach was chosen instead of converting CRAM to BAM directly using Samtools is because Samtools 1.3
+# produces incorrect bins due to an old version of htslib included in the package.
+# Samtools versions 1.4 & 1.5 have an NM issue that causes them to not validate with Picard.
 
 task SamtoolsCramToBam {
     input {
@@ -76,15 +85,18 @@ task SamtoolsCramToBam {
     }
 
     output {
-        Bam finalBam = object {
-                           bam : "~{bamPath}",
-                           bamIndex : "~{indexPath}"
+        SampleBamInfo bamInfo = object {
+            sampleId: "~{sampleId}",
+            finalBam: {
+                           'bam' : "~{bamPath}",
+                           'bamIndex' : "~{indexPath}"
                        }
+            }
     }
 
     runtime {
         docker : "gcr.io/nygc-public/samtools@sha256:32f29fcd7af01b3941e6f93095e8d899741e81b50bcc838329bd8df43e120cc3"
-        disks: "local-disk " + diskSize + " LOCAL"
+        disks: "local-disk " + diskSize + " HDD"
         memory: memoryGb + " GB"
         cpu: threads
     }
@@ -93,21 +105,44 @@ task SamtoolsCramToBam {
 
 task UniqueBams {
     input {
-        # command
-        String pairInfosPath
+        File pairInfosJson
     }
 
     command {
         python /unique_bams.py \
-        --pair-infos ~{pairInfosPath}
+        --pair-infos ~{pairInfosJson}
     }
 
     output {
-        Array[Bam] uniqueBams = read_json('unique_bams.json')
+        Array[SampleBamInfo] uniqueBams = read_json('unique_bams.json')
     }
 
     runtime {
-        docker : "TBD"
+        docker : "gcr.io/nygc-comp-s-fd4e/test_cram_conversion@sha256:52089cdf7056712ed2dca363a5f4f83be27ee819e6ce80256fe9031b61eb265b"
     }
 }
 
+task UpdateCramInfos {
+    input {
+        File pairInfosJson
+        File normalInfosJson
+        File cramInfosJson
+    }
+
+    command {
+        python /update_cram_info.py \
+        --pair-infos ~{pairInfosJson} \
+        --normal-infos ~{normalInfosJson} \
+        --cram-infos ~{cramInfosJson}
+    }
+
+    output {
+        Array[SampleCramInfo] normalSampleCramInfos = read_json('normal_cram_infos.json')
+        Array[pairCramInfo] pairCramInfos = read_json('pair_cram_infos.json')
+    }
+
+    runtime {
+        docker : "gcr.io/nygc-comp-s-fd4e/test_cram_conversion@sha256:52089cdf7056712ed2dca363a5f4f83be27ee819e6ce80256fe9031b61eb265b"
+    }
+
+}

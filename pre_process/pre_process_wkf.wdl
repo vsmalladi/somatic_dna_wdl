@@ -4,7 +4,7 @@ import "align_fastq_wkf.wdl" as alignFastq
 import "merge_bams_wkf.wdl" as mergeBams
 import "../wdl_structs.wdl"
 import "qc_wkf.wdl" as qc
-#import "../tasks/bam_cram_conversion.wdl" as cramConversion
+import "../tasks/bam_cram_conversion.wdl" as cramConversion
 
 workflow Preprocess {
     # command
@@ -78,18 +78,17 @@ workflow Preprocess {
             outputDir = "Sample_~{sampleId}/qc"
     }
 
-#    call cramConversion.SamtoolsBamToCram as bamToCram {
-#        input:
-#            inputBam = MergeBams.finalBam,
-#            referenceFa = referenceFa,
-#            sampleId = sampleId,
-#            diskSize = (ceil(size(MergeBams.finalBam.bam, "GB")) * 2) + 50
-#    }
+    call cramConversion.SamtoolsBamToCram as bamToCram {
+        input:
+            inputBam = MergeBams.finalBam,
+            referenceFa = referenceFa,
+            sampleId = sampleId,
+            diskSize = (ceil(size(MergeBams.finalBam.bam, "GB") * 1.7)) + 20 # 0.7 is estimated cram size
+    }
 
     output {
         Bam finalBam = MergeBams.finalBam
-        Cram finalCram = MergeBams.finalCram
-#        Cram finalCram = bamToCram.finalCram
+        Cram finalCram = bamToCram.cramInfo.finalCram
         File alignmentSummaryMetrics = QcMetrics.alignmentSummaryMetrics
         File qualityByCyclePdf = QcMetrics.qualityByCyclePdf
         File baseDistributionByCycleMetrics = QcMetrics.baseDistributionByCycleMetrics
