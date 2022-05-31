@@ -285,7 +285,6 @@ class PlotRuntime():
         color_cols = [col for col in [x, color] + top_ys + central_ys if not col == '']
         data_steps = data_steps.drop_duplicates(subset=color_cols).copy()
         data_steps['task per id'] = data_steps.apply(lambda row: ' '.join([row[x], row['id']]), axis=1)
-        non_retry_data_steps['task per id'] = non_retry_data_steps.apply(lambda row: ' '.join([row[x], row['id']]), axis=1)
         for y in central_ys:
             if y == 'sample_task_run_time_h':
                 grouped = data_steps.groupby(['task per id'])

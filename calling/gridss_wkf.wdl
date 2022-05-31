@@ -28,8 +28,8 @@ workflow Gridss {
         Boolean highMem = false
 
         Int preMemoryGb = 32
-        Int tumorDiskSize = 740
-        Int normalDiskSize = 740
+        Int tumorDiskSize = ceil(size(tumorFinalBam.bam, "GB") * 3) + 20
+        Int normalDiskSize = ceil(size(normalFinalBam.bam, "GB") * 3) + 20
     }
 
     call calling.GridssPreprocess as tumorGridssPreprocess {
