@@ -45,6 +45,13 @@ task SamtoolsBamToCram {
         docker : "gcr.io/nygc-public/samtools@sha256:32f29fcd7af01b3941e6f93095e8d899741e81b50bcc838329bd8df43e120cc3"
         disks: "local-disk " + diskSize + " HDD"
         memory: memoryGb + " GB"
+        mem: memoryGb + " G"
+        cpu: threads
+        cpus: threads
+    }
+        docker : "gcr.io/nygc-public/samtools@sha256:32f29fcd7af01b3941e6f93095e8d899741e81b50bcc838329bd8df43e120cc3"
+        disks: "local-disk " + diskSize + " HDD"
+        memory: memoryGb + " GB"
         cpu: threads
     }
 }
