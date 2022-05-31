@@ -78,6 +78,10 @@ def load_runtime(file, costs, uuid):
            'Spot Preemptible Custom Instance Ram running in Americas' : {'cost' : 'ram_cost',
                                                                     'type' : 'spot_custom',
                                                                     'preemptible' : True},
+                                                                    
+           'SSD backed Local Storage' : {'cost' : 'capacity_cost',
+                                      'type' : 'ssd_local_capacity',
+                                      'preemptible' : np.nan},
            'SSD backed Local Storage attached to Spot Preemptible VMs': {'cost' : 'capacity_cost',
                                       'type' : 'ssd_local_attached_spot_capacity',
                                       'preemptible' : np.nan},
