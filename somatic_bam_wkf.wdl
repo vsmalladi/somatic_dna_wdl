@@ -210,6 +210,7 @@ workflow SomaticBamWorkflow {
         File cosmicSigs
 
         Boolean highMem = false
+        Boolean createCramBasedObjects = false
     }
 
     # need to find UNIQUE bams (don't convert if part of more than one pair)
@@ -227,19 +228,14 @@ workflow SomaticBamWorkflow {
                 diskSize = (ceil(size(bamInfo.finalBam.bam, "GB") * 1.7)) + 20 # 0.7 is estimated cram size
         }
     }
-
-    # then create a new map of sample cram infos (to use as input where crams used instead of bams)
-    # treating is as new object. Other option is to make a new struct with bam+cram together
-    call cramConversion.UpdateCramInfos as updateCramInfo {
-        input:
-            pairInfosJson = write_json(pairInfos),
-            normalInfosJson = write_json(normalSampleBamInfos),
-            cramInfosJson = write_json(bamToCram.cramInfo)
+    if (createCramBasedObjects) {
+        call cramConversion.UpdateCramInfos as updateCramInfo {
+            input:
+                pairInfosJson = write_json(pairInfos),
+                normalInfosJson = write_json(normalSampleBamInfos),
+                cramInfosJson = write_json(bamToCram.cramInfo)
+        }
     }
-    #    # the output of this can be used like:
-    #    Array normalSampleCramInfos = updateCramInfo.normalSampleCramInfos
-    #    Array pairCramInfos = updateCramInfo.pairCramInfos
-
 
     scatter (normalSampleBamInfo in normalSampleBamInfos) {
         String normalSampleIds = normalSampleBamInfo.sampleId

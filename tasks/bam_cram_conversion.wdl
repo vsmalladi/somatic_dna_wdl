@@ -45,7 +45,9 @@ task SamtoolsBamToCram {
         docker : "gcr.io/nygc-public/samtools@sha256:32f29fcd7af01b3941e6f93095e8d899741e81b50bcc838329bd8df43e120cc3"
         disks: "local-disk " + diskSize + " HDD"
         memory: memoryGb + " GB"
+        mem: memoryGb + " G"
         cpu: threads
+        cpus: threads
     }
 }
 
@@ -98,7 +100,9 @@ task SamtoolsCramToBam {
         docker : "gcr.io/nygc-public/samtools@sha256:32f29fcd7af01b3941e6f93095e8d899741e81b50bcc838329bd8df43e120cc3"
         disks: "local-disk " + diskSize + " HDD"
         memory: memoryGb + " GB"
+        mem: memoryGb + " G"
         cpu: threads
+        cpus: threads
     }
 }
 
@@ -119,6 +123,11 @@ task UniqueBams {
 
     runtime {
         docker : "gcr.io/nygc-comp-s-fd4e/test_cram_conversion@sha256:52089cdf7056712ed2dca363a5f4f83be27ee819e6ce80256fe9031b61eb265b"
+        disks: "local-disk 10 HDD"
+        memory: "1 GB"
+        mem: "1 G"
+        cpu: "1"
+        cpus: "1"
     }
 }
 
@@ -143,6 +152,11 @@ task UpdateCramInfos {
 
     runtime {
         docker : "gcr.io/nygc-comp-s-fd4e/test_cram_conversion@sha256:52089cdf7056712ed2dca363a5f4f83be27ee819e6ce80256fe9031b61eb265b"
+        disks: "local-disk 10 HDD"
+        memory: "1 GB"
+        mem: "1 G"
+        cpu: "1"
+        cpus: "1"
     }
 
 }
