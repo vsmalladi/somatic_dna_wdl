@@ -32,6 +32,12 @@ struct Bam {
     String? md5sum
 }
 
+struct Cram {
+    File cram
+    File cramIndex
+    String? md5sum
+}
+
 struct BwaReference {
     File fasta
     File sa
@@ -69,6 +75,11 @@ struct sampleInfo {
 struct SampleBamInfo {
     String sampleId
     Bam finalBam
+}
+
+struct SampleCramInfo {
+    String sampleId
+    Cram finalCram
 }
 
 struct PreMergedPairVcfInfo {
@@ -184,6 +195,14 @@ struct pairInfo {
     String pairId
     Bam tumorFinalBam
     Bam normalFinalBam
+    String tumor
+    String normal
+}
+
+struct pairCramInfo {
+    String pairId
+    Cram tumorFinalCram
+    Cram normalFinalCram
     String tumor
     String normal
 }

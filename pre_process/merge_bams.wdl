@@ -24,7 +24,7 @@ task NovosortMarkDupExternal {
         -o ~{mergedDedupBamPath} \
         --forcesort \
         --markDuplicates \
-        ${sep=' ' laneBams}
+        ${sep=' ' laneBams} 2> >(tee -a ~{dedupLogPath} >&2)
     }
 
     output {

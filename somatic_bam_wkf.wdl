@@ -15,6 +15,7 @@ import "germline/germline_wkf.wdl" as germline
 import "annotate/germline_annotate_wkf.wdl" as germlineAnnotate
 import "baf/baf_wkf.wdl" as baf
 import "variant_analysis/deconstruct_sigs_wkf.wdl" as deconstructSigs
+import "tasks/bam_cram_conversion.wdl" as cramConversion
 
 # ================== COPYRIGHT ================================================
 # New York Genome Center
@@ -209,6 +210,31 @@ workflow SomaticBamWorkflow {
         File cosmicSigs
 
         Boolean highMem = false
+        Boolean createCramBasedObjects = false
+    }
+
+    # need to find UNIQUE bams (don't convert if part of more than one pair)
+    call cramConversion.UniqueBams as uniqueBams {
+        input:
+            pairInfosJson = write_json(pairInfos)
+    }
+
+    scatter(bamInfo in uniqueBams.uniqueBams) {
+        call cramConversion.SamtoolsBamToCram as bamToCram {
+            input:
+                inputBam = bamInfo.finalBam,
+                referenceFa = referenceFa,
+                sampleId = bamInfo.sampleId,
+                diskSize = (ceil(size(bamInfo.finalBam.bam, "GB") * 1.7)) + 20 # 0.7 is estimated cram size
+        }
+    }
+    if (createCramBasedObjects) {
+        call cramConversion.UpdateCramInfos as updateCramInfo {
+            input:
+                pairInfosJson = write_json(pairInfos),
+                normalInfosJson = write_json(normalSampleBamInfos),
+                cramInfosJson = write_json(bamToCram.cramInfo)
+        }
     }
 
     scatter (normalSampleBamInfo in normalSampleBamInfos) {
@@ -639,5 +665,8 @@ workflow SomaticBamWorkflow {
         Array[File] contamination = Conpair.contamination
         Array[File] tumorPileup = Conpair.tumorPileup
         Array[File] normalPileup = Conpair.normalPileup
+
+        # Cram
+         Array[SampleCramInfo] crams = bamToCram.cramInfo
     }
 }
