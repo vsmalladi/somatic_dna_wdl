@@ -97,11 +97,6 @@ class Runtime():
                                                                   'disk_total_gb', 'actual_start_time']]
                                      .drop_duplicates(subset=['instance_id']),
                                      on='instance_name', how='left')
-            # self.metadata['start_time'] = self.metadata['start_time'].apply(lambda x: self.get_cromwell_time(x))
-            print(self.metadata[['actual_start_time']])
-            print(self.metadata.dtypes)
-            # self.metadata['actual_start_time'] = pd.to_datetime(self.metadata['actual_start_time'],
-            #                                                     format="%Y-%m-%d %H:%M:%S.%f Z")
             self.metadata['wait_time_m'] = (self.metadata['actual_start_time'] - self.metadata['start_time']) / pd.Timedelta(minutes=1)
             self.metadata['actual_runtime_m'] = (self.metadata['end_time'] - self.metadata['actual_start_time']) / pd.Timedelta(minutes=1)
             self.metadata['mem_total_gb'].fillna(self.metadata['mem_total_gb_runtime'], inplace=True)
