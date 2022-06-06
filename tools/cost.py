@@ -102,7 +102,7 @@ class Cost():
         '''convert big query runtime table into pandas dataframe
         Includes ? and workflow_id.
 SELECT
-    (SELECT value from UNNEST(labels) where key = 'cromwell-workflow-id' limit 1) as workflow_id,
+    (SELECT value from UNNEST(labels) where key = 'cromwell-workflow-id' limit 1) as cromwell_workflow_id,
     (SELECT value from UNNEST(labels) where key = 'cromwell-sub-workflow-name' limit 1) as sub_workflow_name,
     (SELECT value from UNNEST(labels) where key = 'wdl-task-name' limit 1) as wdl_task_name,
     sum(cost) as cost,
@@ -120,7 +120,7 @@ LIMIT 1000
         '''
         log.info('Loading Cost: ' + self.workflow_uuid + '...')
         query_string = '''SELECT
-    (SELECT value from UNNEST(labels) where key = 'cromwell-workflow-id' limit 1) as workflow_id,
+    (SELECT value from UNNEST(labels) where key = 'cromwell-workflow-id' limit 1) as cromwell_workflow_id,
     (SELECT value from UNNEST(labels) where key = 'cromwell-sub-workflow-name' limit 1) as sub_workflow_name,
     (SELECT value from UNNEST(labels) where key = 'wdl-task-name' limit 1) as wdl_task_name,
     sum(cost) as cost,
@@ -132,7 +132,7 @@ LIMIT 1000
         AND sku.description != "Network Google Ingress from Americas to Americas"
         AND cost > 0
         AND EXISTS (SELECT 1 FROM UNNEST(labels) WHERE key = 'cromwell-workflow-id' and value in ("cromwell-''' + self.workflow_uuid + '''"))
-    group by sub_workflow_name, wdl_task_name, workflow_id, sku.description
+    group by sub_workflow_name, wdl_task_name, cromwell_workflow_id, sku.description
     order by cost desc
     LIMIT ''' + self.limit + '''
         '''

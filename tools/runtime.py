@@ -296,7 +296,8 @@ class Runtime():
         labels = metadata['submittedFiles']['labels'] # dictionary in a string        
         # instance-level results
         task_call_names = []
-        non_alias_task_call_names = []
+        wdl_task_names = []
+        sub_workflow_names = []
         workflow_names = []
         execution_statuss = []
         mem_total_gbs = []
@@ -326,7 +327,8 @@ class Runtime():
         # order   call_type, attempt, workflowName
         for workflow_id, task_call_name, call, workflow_name in self.tasks:
             task_call_names.append(task_call_name)
-            non_alias_task_call_names.append(call.get('backendLabels', {}).get('wdl-task-name', task_call_name))
+            wdl_task_names.append(call.get('backendLabels', {}).get('wdl-task-name', task_call_name))
+            sub_workflow_names.append(call.get('backendLabels', {}).get('cromwell-sub-workflow-name', task_call_name.split('.')[0]))
             workflow_names.append(workflow_name.split('.')[-1])
             execution_statuss.append(call['executionStatus'])
             # replace with dict.get with default values
@@ -385,7 +387,8 @@ class Runtime():
             inputs.append(call.get('inputs', {}))
         # output
         self.metadata = pd.DataFrame({'task_call_name' : task_call_names,
-                                      'non_alias_task_call_name': non_alias_task_call_names,
+                                      'wdl_task_name': wdl_task_names,
+                                      'sub_workflow_name': sub_workflow_names,
                                       'workflow_name' : workflow_names,
                                       'execution_status' : execution_statuss,
                                       'mem_total_gb' : mem_total_gbs,
