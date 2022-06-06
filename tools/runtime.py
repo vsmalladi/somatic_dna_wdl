@@ -90,11 +90,20 @@ class Runtime():
                                           'disk_mounts': 'disk_mounts_runtime',
                                           'disk_total_gb': 'disk_total_gb_runtime',
                                           }, inplace=True)
+            # start time from metadata doesn't really capture tasks that wait for a vm, runtime start_time more accurate
+            self.runtime.rename(columns={'start_time': 'actual_start_time'}, inplace=True)
             self.metadata = pd.merge(self.metadata, self.runtime[['instance_name', 'instance_id',
-                                                                  'cpu_platform', 'mem_total_gb',
-                                                                  'disk_mounts', 'disk_total_gb']]
+                                                                  'cpu_platform', 'mem_total_gb','disk_mounts',
+                                                                  'disk_total_gb', 'actual_start_time']]
                                      .drop_duplicates(subset=['instance_id']),
                                      on='instance_name', how='left')
+            # self.metadata['start_time'] = self.metadata['start_time'].apply(lambda x: self.get_cromwell_time(x))
+            print(self.metadata[['actual_start_time']])
+            print(self.metadata.dtypes)
+            # self.metadata['actual_start_time'] = pd.to_datetime(self.metadata['actual_start_time'],
+            #                                                     format="%Y-%m-%d %H:%M:%S.%f Z")
+            self.metadata['wait_time_m'] = (self.metadata['actual_start_time'] - self.metadata['start_time']) / pd.Timedelta(minutes=1)
+            self.metadata['actual_runtime_m'] = (self.metadata['end_time'] - self.metadata['actual_start_time']) / pd.Timedelta(minutes=1)
             self.metadata['mem_total_gb'].fillna(self.metadata['mem_total_gb_runtime'], inplace=True)
             self.metadata['disk_mounts'].fillna(self.metadata['disk_mounts_runtime'], inplace=True)
             self.metadata['disk_total_gb'].fillna(self.metadata['disk_total_gb_runtime'], inplace=True)
@@ -415,9 +424,11 @@ class Runtime():
         self.metadata['labels'] = labels
         self.deduplicate_metadata()
         self.metadata['start_time'] = pd.to_datetime(self.metadata['start_time'],
-                                                     format="%Y-%m-%dT%H:%M:%S.%fZ")
+                                                     format="%Y-%m-%dT%H:%M:%S.%fZ",
+                                                     utc=True)
         self.metadata['end_time'] = pd.to_datetime(self.metadata['end_time'],
-                                                     format="%Y-%m-%dT%H:%M:%S.%fZ")
+                                                   format="%Y-%m-%dT%H:%M:%S.%fZ",
+                                                   utc=True)
         self.run_date = self.load_end_date(self.metadata.start_time.min())
         self.end_date = self.load_end_date(self.metadata.end_time.max())
         if not self.end_date:

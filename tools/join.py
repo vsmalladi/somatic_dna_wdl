@@ -157,7 +157,7 @@ def load_runtime(file, costs, uuid):
     runtime['main_workflow_id'] = uuid
     runtime['cromwell_workflow_id'] = 'cromwell-' + runtime['main_workflow_id']
 
-    # # note: tasks from root_workflow do not have 'sub_workflow_name'. fill this based on runtime
+    # # note: tasks from root_workflow do not have 'sub_workflow_name'. fill this based on runtime 'main_workflow_name'
     # # join.py only takes a single uuid so should only have one unique 'main_workflow_name':
     # sub_workflow_name = runtime['main_workflow_name'].iloc[0]
     # costs['sub_workflow_name'].fillna(sub_workflow_name, inplace=True)
@@ -202,8 +202,8 @@ def load_runtime(file, costs, uuid):
 
     # also give estimated total cost based on task runtimes, could also do this for each sub-category if desired
     runtime['group_cost'] = runtime.groupby(grouper)['total_cost'].transform('sum')
-    runtime['group_runtime'] = runtime.groupby(grouper)['run_time_m'].transform('sum')
-    runtime['task_cost_estimate'] = runtime['group_cost'] * (runtime['run_time_m'] / runtime['group_runtime'])
+    runtime['group_runtime'] = runtime.groupby(grouper)['actual_runtime_m'].transform('sum')
+    runtime['task_cost_estimate'] = runtime['group_cost'] * (runtime['actual_runtime_m'] / runtime['group_runtime'])
 
     # add the service type, treat as set. Almost always going to be a single type
     core_costs = costs[costs['cost_type'] == 'core_cost'].copy()
