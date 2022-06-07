@@ -46,6 +46,7 @@ Set up on prem:
 
 ```
 module load wdl
+export PYTHONPATH=/gpfs/commons/groups/nygcfaculty/kancero/envs/pip3/wdl-additional/:$PYTHONPATH
 ```
 
 ### Environment setup
