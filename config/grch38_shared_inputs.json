@@ -66,7 +66,7 @@
       "chr9": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chr9.bed",
       "chrX": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/knownGene_hg20_exons_padding_5_union_chr.chrX.bed"
   },
-  "SomaticDNA.ponWGSFile": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/WGS_PON_GRCh38.v1.1.bed",
+  "SomaticDNA.ponWGSFile": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/WGS_1000g_GRCh38.pon.bed",
   "SomaticDNA.ponExomeFile": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/Exome_PON_GRCh38.v1.1.bed",
   "SomaticDNA.gnomadBiallelic": {
                 "vcf" : "gs://nygc-resources-public/gnomAD/gnomad_data/vcf/GRCh38/gnomad.genomes.r2.0.2.sites.ALL.liftover.b38.chr_af_pass_biallelic.vcf",

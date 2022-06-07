@@ -765,6 +765,7 @@ workflow SomaticDNA {
         qualityByCycleMetricsPreBqsr: Preprocess.qualityByCycleMetricsPreBqsr,
         qualityByCyclePdfPreBqsr: Preprocess.qualityByCyclePdfPreBqsr,
         qualityDistributionMetricsPreBqsr: Preprocess.qualityDistributionMetricsPreBqsr,
+        dedupLog: Preprocess.dedupLog,
 
         # Conpair
         concordanceAll: Conpair.concordanceAll,
