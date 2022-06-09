@@ -9,176 +9,87 @@ try:
 except ImportError:
     pass
 
+
+def is_preemptible(service):
+    if 'preemptible' in service:
+        return True
+    else:
+        return False
+
+
+def formatter(service, drop=[], truncate=False, suffix=False):
+    # takes a string service type, split to list of words, drop some useless words,
+    # drop up to truncate word and suffix. can't just keep it do to 'storage'-> 'capacity'
+    word_list = service.split()
+    clean_words = [a for a in word_list if a not in drop]
+
+    if truncate:
+        try:
+            truncate_index = clean_words.index(truncate)
+        except ValueError:  # storage services are called capacity
+            truncate_index = -1
+        words = clean_words[:truncate_index]
+    if suffix:
+        words.append(suffix)
+
+    return '_'.join(words)
+
+
+def mapper(row):
+    # cost_type & preemptible are pretty clearly defined. cost_description not so much
+    service_type = row['service_type'].lower()
+
+    if 'storage' in service_type or 'capacity' in service_type:
+        cost_type = 'capacity_cost'
+        preemptible = np.nan
+        cost_description = formatter(service_type,
+                                     drop=['backed', 'storage', 'to', 'preemptible', 'vms'],
+                                     truncate='capacity',
+                                     suffix='capacity'
+                                     )
+    elif 'egress' in service_type:
+        cost_type = 'egress_cost'
+        preemptible = np.nan
+        cost_description = formatter(service_type,
+                                     truncate='egress',
+                                     suffix='egress'
+                                     )
+    elif 'core' in service_type:
+        cost_type = 'core_cost'
+        preemptible = is_preemptible(service_type)
+        cost_description = formatter(service_type,
+                                     drop=['preemptible'],
+                                     truncate='instance'
+                                     )
+    elif 'ram' in service_type:
+        cost_type = 'ram_cost'
+        preemptible = is_preemptible(service_type)
+        cost_description = formatter(service_type,
+                                     drop=['preemptible'],
+                                     truncate='instance'
+                                     )
+    else:
+        cost_type = 'unknown_cost'
+        cost_description = 'unknown'
+        preemptible = np.nan
+
+    return cost_type, cost_description, preemptible
+
+
 def load_runtime(file, costs, uuid):
     runtime = pd.read_csv(file)
-    map = {
-        'Network Internet Egress from Americas to EMEA':
-            {'cost': 'egress_cost',
-             'type': 'network_internet_egress',
-             'preemptible': np.nan
-             },
-        'Spot Preemptible Custom Instance Core running in Americas':
-            {'cost': 'core_cost',
-             'type': 'spot_custom',
-             'preemptible': True
-             },
-        'Spot Preemptible Custom Instance Ram running in Americas':
-            {'cost': 'ram_cost',
-             'type': 'spot_custom',
-             'preemptible': True
-             },
-
-        'SSD backed Local Storage':
-            {'cost': 'capacity_cost',
-             'type': 'ssd_local_capacity',
-             'preemptible': np.nan
-             },
-        'SSD backed Local Storage attached to Spot Preemptible VMs':
-            {'cost': 'capacity_cost',
-             'type': 'ssd_local_attached_spot_capacity',
-             'preemptible': np.nan
-             },
-        'SSD backed PD Capacity':
-            {'cost': 'capacity_cost',
-             'type': 'ssd_pd_capacity',
-             'preemptible': np.nan
-             },
-        'Custom Instance Core running in Americas':
-            {'cost': 'core_cost',
-             'type': 'custom',
-             'preemptible': False
-             },
-        'Preemptible Custom Instance Core running in Americas':
-            {'cost': 'core_cost',
-             'type': 'custom',
-             'preemptible': True
-             },
-        'Custom Instance Ram running in Americas':
-            {'cost': 'ram_cost',
-             'type': 'custom',
-             'preemptible': False
-             },
-        'Preemptible Custom Instance Ram running in Americas':
-            {'cost': 'ram_cost',
-             'type': 'custom',
-             'preemptible': True
-             },
-        'Storage PD Capacity':
-            {'cost': 'capacity_cost',
-             'type': 'storage_pd_capacity',
-             'preemptible': np.nan},
-        'Spot Preemptible N1 Predefined Instance Core running in Americas':
-            {'cost': 'core_cost',
-             'type': 'spot_N1_predefined',
-             'preemptible': True
-             },
-        'Spot Preemptible N1 Predefined Instance Ram running in Americas':
-            {'cost': 'ram_cost',
-             'type': 'spot_N1_predefined',
-             'preemptible': True
-             },
-        'Spot N1 Predefined Instance Core running in Americas':
-            {'cost': 'core_cost',
-             'type': 'spot_N1_predefined',
-             'preemptible': False
-             },
-        'Spot N1 Predefined Instance Ram running in Americas':
-            {'cost': 'ram_cost',
-             'type': 'spot_N1_predefined',
-             'preemptible': False
-             },
-        'N1 Predefined Instance Core running in Americas':
-            {'cost': 'core_cost',
-             'type': 'N1_predefined',
-             'preemptible': False
-             },
-        'N1 Predefined Instance Ram running in Americas':
-            {'cost': 'ram_cost',
-             'type': 'N1_predefined',
-             'preemptible': False
-             },
-        'N2 Instance Core running in Americas':
-            {'cost': 'core_cost',
-             'type': 'N1_predefined',
-             'preemptible': False
-             },
-        'N2 Instance Ram running in Americas':
-            {'cost': 'ram_cost',
-             'type': 'N1_predefined',
-             'preemptible': False
-             },
-        'Preemptible N1 Predefined Instance Core running in Americas':
-            {'cost': 'core_cost',
-             'type': 'N1_predefined',
-             'preemptible': True
-             },
-        'Preemptible N1 Predefined Instance Ram running in Americas':
-            {'cost': 'ram_cost',
-             'type': 'N1_predefined',
-             'preemptible': True
-             },
-        'Spot Preemptible N2 Instance Core running in Americas':
-            {'cost': 'core_cost',
-             'type': 'spot_N2',
-             'preemptible': True
-             },
-        'Spot Preemptible N2 Instance Ram running in Americas':
-            {'cost': 'ram_cost',
-             'type': 'spot_N2',
-             'preemptible': True
-             },
-        'Preemptible N2 Instance Core running in Americas':
-            {'cost': 'core_cost',
-             'type': 'N2',
-             'preemptible': True
-             },
-        'Preemptible N2 Instance Ram running in Americas':
-            {'cost': 'ram_cost',
-             'type': 'N2',
-             'preemptible': True
-             },
-        'Network Internet Egress from Americas to Americas':
-            {'cost': 'egress_cost',
-             'type': 'network_internet_egress',
-             'preemptible': np.nan
-             },
-        'Network Inter Region Egress from Americas to Americas':
-            {'cost': 'egress_cost',
-             'type': 'network_inter_region_egress',
-             'preemptible': np.nan
-             },
-        'Network Inter Zone Egress':
-            {'cost': 'egress_cost',
-             'type': 'network_inter_zone_egress',
-             'preemptible': np.nan
-             },
-    }
 
     runtime['main_workflow_id'] = uuid
     runtime['cromwell_workflow_id'] = 'cromwell-' + runtime['main_workflow_id']
 
-    # # note: tasks from root_workflow do not have 'sub_workflow_name'. fill this based on runtime 'main_workflow_name'
-    # # join.py only takes a single uuid so should only have one unique 'main_workflow_name':
-    # sub_workflow_name = runtime['main_workflow_name'].iloc[0]
-    # costs['sub_workflow_name'].fillna(sub_workflow_name, inplace=True)
-    # A more generalizable approach mapping unique uuids.(unlikely but just to be safe or if multiple uuids allowed)
-    unique_roots = runtime.drop_duplicates(['main_workflow_name', 'cromwell_workflow_id']).set_index('cromwell_workflow_id')
+    unique_roots = runtime.drop_duplicates(['main_workflow_name', 'cromwell_workflow_id']).set_index(
+        'cromwell_workflow_id')
     costs['sub_workflow_name'] = np.where(costs['sub_workflow_name'].isna(),
                                           costs['cromwell_workflow_id'].map(unique_roots['main_workflow_name']),
                                           costs['sub_workflow_name']
                                           )
 
-    costs['map'] = costs['service_type'].map(map)
-    missing = costs[costs['map'].isna()]['service_type'].unique().tolist()
-    # placeholder for items not in map so script doesn't fail. 
-    missing_map = {'cost': 'unknown_cost',
-                   'type': 'unknown',
-                   'preemptible': np.nan
-                   }
-    costs['map'] = np.where(costs['map'].isna(), missing_map, costs['map'])
-    costs['cost_type'] = costs['map'].apply(lambda x: x.get('cost'))
-    costs['core_type'] = costs['map'].apply(lambda x: x.get('type'))
-
+    costs[['cost_type', 'cost_desc', 'preemptible']] = costs.apply(mapper, axis=1, result_type="expand")
     grouper = ['cromwell_workflow_id', 'sub_workflow_name', 'wdl_task_name']
     wide_costs = pd.pivot_table(costs,
                                 values='cost',
@@ -188,7 +99,7 @@ def load_runtime(file, costs, uuid):
                                 fill_value=0
                                 ).reset_index()
 
-    runtime = pd.merge(runtime, wide_costs, on=grouper, how='outer') # leaving outer to check validity. can change to left when done
+    runtime = pd.merge(runtime, wide_costs, on=grouper, how='outer')
 
     cost_opts = ['capacity_cost', 'core_cost', 'ram_cost', 'egress_cost', 'unknown_cost']
     cost_cols = [c for c in cost_opts if c in runtime.columns]
@@ -199,20 +110,19 @@ def load_runtime(file, costs, uuid):
         runtime[c] = runtime[c] / runtime['group_count']
     runtime['total_cost'] = runtime[cost_cols].sum(axis=1)
 
-
-    # also give estimated total cost based on task runtimes, could also do this for each sub-category if desired
     runtime['group_cost'] = runtime.groupby(grouper)['total_cost'].transform('sum')
     runtime['group_runtime'] = runtime.groupby(grouper)['actual_runtime_m'].transform('sum')
-    runtime['task_cost_estimate'] = runtime['group_cost'] * (runtime['actual_runtime_m'] / runtime['group_runtime'])
+    runtime['runtime_scaled_total_cost'] = runtime['group_cost'] * (runtime['actual_runtime_m'] / runtime['group_runtime'])
 
     # add the service type, treat as set. Almost always going to be a single type
     core_costs = costs[costs['cost_type'] == 'core_cost'].copy()
-    service_types = core_costs.groupby(grouper).agg({'core_type': set}).reset_index()
+    service_types = core_costs.groupby(grouper).agg({'cost_desc': set}).reset_index()
     runtime = pd.merge(runtime, service_types, on=grouper, how='outer')
 
+    missing = costs[costs['cost_type'] == 'unknown_cost']['service_type'].unique().tolist()
     if len(missing) > 0:
-            log.warning('Following service_types are not yet described in map. Add them to join.py: ')
-            log.warning(', '.join(missing))
+        log.warning('Following service_types are not yet described in map. Add them to join.py: ')
+        log.warning(', '.join(missing))
 
     runtime.drop(columns=['group_count', 'group_cost', 'group_runtime'], inplace=True)
     return runtime
