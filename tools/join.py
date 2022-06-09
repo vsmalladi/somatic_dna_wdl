@@ -105,13 +105,14 @@ def load_runtime(file, costs, uuid):
     # add the service type, treat as set. Almost always going to be a single type
     core_costs = costs[costs['cost_type'] == 'core_cost'].copy()
     service_types = core_costs.groupby(grouper).agg({'machine_type': set}).reset_index()
+    service_types['machine_type'] = service_types.machine_type.str.join(';')
     runtime = pd.merge(runtime, service_types, on=grouper, how='outer')
     missing = costs[costs['cost_type'] == 'unknown_cost']['service_type'].unique().tolist()
     if len(missing) > 0:
         log.warning('Following service_types are not yet described in mapper(). Add them to join.py: ')
         log.warning(', '.join(missing))
     runtime.drop(columns=['group_count', 'group_cost', 'group_runtime'], inplace=True)
-    cost_cols_map = {col : 'avg_' + col for col + ['total_cost'] in cost_cols}
+    cost_cols_map = {col : 'avg_' + col for col in cost_cols + ['total_cost']}
     runtime = runtime.rename(columns=cost_cols_map)
     return runtime
 
