@@ -34,12 +34,12 @@ def formatter(service, drop=[], truncate=False, suffix=False):
 
 
 def mapper(row):
-    '''cost_type & preemptible are pretty clearly defined. cost_description not so much'''
+    '''cost_type & preemptible are pretty clearly defined. machine_type not so much'''
     service_type = row['service_type'].lower()
     if 'storage' in service_type or 'capacity' in service_type:
         cost_type = 'capacity_cost'
         preemptible = np.nan
-        cost_description = formatter(service_type,
+        machine_type = formatter(service_type,
                                      drop=['backed', 'storage', 'to', 'preemptible', 'vms'],
                                      truncate='capacity',
                                      suffix='capacity'
@@ -47,29 +47,29 @@ def mapper(row):
     elif 'egress' in service_type:
         cost_type = 'egress_cost'
         preemptible = np.nan
-        cost_description = formatter(service_type,
+        machine_type = formatter(service_type,
                                      truncate='egress',
                                      suffix='egress'
                                      )
     elif 'core' in service_type:
         cost_type = 'core_cost'
         preemptible = is_preemptible(service_type)
-        cost_description = formatter(service_type,
+        machine_type = formatter(service_type,
                                      drop=['preemptible'],
                                      truncate='instance'
                                      )
     elif 'ram' in service_type:
         cost_type = 'ram_cost'
         preemptible = is_preemptible(service_type)
-        cost_description = formatter(service_type,
+        machine_type = formatter(service_type,
                                      drop=['preemptible'],
                                      truncate='instance'
                                      )
     else:
         cost_type = 'unknown_cost'
-        cost_description = 'unknown'
+        machine_type = 'unknown'
         preemptible = np.nan
-    return cost_type, cost_description, preemptible
+    return cost_type, machine_type, preemptible
 
 
 def load_runtime(file, costs, uuid):
@@ -82,7 +82,7 @@ def load_runtime(file, costs, uuid):
                                           costs['cromwell_workflow_id'].map(unique_roots['main_workflow_name']),
                                           costs['sub_workflow_name']
                                           )
-    costs[['cost_type', 'cost_desc', 'preemptible']] = costs.apply(mapper, axis=1, result_type="expand")
+    costs[['cost_type', 'machine_type', 'preemptible']] = costs.apply(mapper, axis=1, result_type="expand")
     grouper = ['cromwell_workflow_id', 'sub_workflow_name', 'wdl_task_name']
     wide_costs = pd.pivot_table(costs,
                                 values='cost',
@@ -104,7 +104,7 @@ def load_runtime(file, costs, uuid):
     runtime['runtime_scaled_total_cost'] = runtime['group_cost'] * (runtime['actual_runtime_m'] / runtime['group_runtime'])
     # add the service type, treat as set. Almost always going to be a single type
     core_costs = costs[costs['cost_type'] == 'core_cost'].copy()
-    service_types = core_costs.groupby(grouper).agg({'cost_desc': set}).reset_index()
+    service_types = core_costs.groupby(grouper).agg({'machine_type': set}).reset_index()
     runtime = pd.merge(runtime, service_types, on=grouper, how='outer')
     missing = costs[costs['cost_type'] == 'unknown_cost']['service_type'].unique().tolist()
     if len(missing) > 0:
