@@ -90,11 +90,15 @@ class Runtime():
                                           'disk_mounts': 'disk_mounts_runtime',
                                           'disk_total_gb': 'disk_total_gb_runtime',
                                           }, inplace=True)
+            # start time from metadata doesn't really capture tasks that wait for a vm, runtime start_time more accurate
+            self.runtime.rename(columns={'start_time': 'actual_start_time'}, inplace=True)
             self.metadata = pd.merge(self.metadata, self.runtime[['instance_name', 'instance_id',
-                                                                  'cpu_platform', 'mem_total_gb',
-                                                                  'disk_mounts', 'disk_total_gb']]
+                                                                  'cpu_platform', 'mem_total_gb','disk_mounts',
+                                                                  'disk_total_gb', 'actual_start_time']]
                                      .drop_duplicates(subset=['instance_id']),
                                      on='instance_name', how='left')
+            self.metadata['wait_time_m'] = (self.metadata['actual_start_time'] - self.metadata['start_time']) / pd.Timedelta(minutes=1)
+            self.metadata['actual_runtime_m'] = (self.metadata['end_time'] - self.metadata['actual_start_time']) / pd.Timedelta(minutes=1)
             self.metadata['mem_total_gb'].fillna(self.metadata['mem_total_gb_runtime'], inplace=True)
             self.metadata['disk_mounts'].fillna(self.metadata['disk_mounts_runtime'], inplace=True)
             self.metadata['disk_total_gb'].fillna(self.metadata['disk_total_gb_runtime'], inplace=True)
@@ -296,7 +300,8 @@ class Runtime():
         labels = metadata['submittedFiles']['labels'] # dictionary in a string        
         # instance-level results
         task_call_names = []
-        non_alias_task_call_names = []
+        wdl_task_names = []
+        sub_workflow_names = []
         workflow_names = []
         execution_statuss = []
         mem_total_gbs = []
@@ -326,7 +331,8 @@ class Runtime():
         # order   call_type, attempt, workflowName
         for workflow_id, task_call_name, call, workflow_name in self.tasks:
             task_call_names.append(task_call_name)
-            non_alias_task_call_names.append(call.get('backendLabels', {}).get('wdl-task-name', task_call_name))
+            wdl_task_names.append(call.get('backendLabels', {}).get('wdl-task-name', task_call_name))
+            sub_workflow_names.append(call.get('backendLabels', {}).get('cromwell-sub-workflow-name', task_call_name.split('.')[0]))
             workflow_names.append(workflow_name.split('.')[-1])
             execution_statuss.append(call['executionStatus'])
             # replace with dict.get with default values
@@ -385,7 +391,8 @@ class Runtime():
             inputs.append(call.get('inputs', {}))
         # output
         self.metadata = pd.DataFrame({'task_call_name' : task_call_names,
-                                      'non_alias_task_call_name': non_alias_task_call_names,
+                                      'wdl_task_name': wdl_task_names,
+                                      'sub_workflow_name': sub_workflow_names,
                                       'workflow_name' : workflow_names,
                                       'execution_status' : execution_statuss,
                                       'mem_total_gb' : mem_total_gbs,
@@ -412,9 +419,11 @@ class Runtime():
         self.metadata['labels'] = labels
         self.deduplicate_metadata()
         self.metadata['start_time'] = pd.to_datetime(self.metadata['start_time'],
-                                                     format="%Y-%m-%dT%H:%M:%S.%fZ")
+                                                     format="%Y-%m-%dT%H:%M:%S.%fZ",
+                                                     utc=True)
         self.metadata['end_time'] = pd.to_datetime(self.metadata['end_time'],
-                                                     format="%Y-%m-%dT%H:%M:%S.%fZ")
+                                                   format="%Y-%m-%dT%H:%M:%S.%fZ",
+                                                   utc=True)
         self.run_date = self.load_end_date(self.metadata.start_time.min())
         self.end_date = self.load_end_date(self.metadata.end_time.max())
         if not self.end_date:
