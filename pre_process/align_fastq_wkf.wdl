@@ -48,16 +48,6 @@ workflow AlignFastq {
                 diskSize = alignDiskSize
         }
 
-        # call alignFastq.AlignMinimap2 {
-        #     input:
-        #         fastqsAlign = fastqsAlign,
-        #         bwaReference = bwaReference,
-        #         memoryGb = minimapMem,
-        #         threads = threads,
-        #         minimapThreads = minimapThreads,
-        #         diskSize = alignDiskSize
-        # }
-
         call alignFastq.ShortAlignMark {
             input:
                 laneBam = AlignBwaMem2.laneBam,

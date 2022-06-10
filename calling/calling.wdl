@@ -35,10 +35,12 @@ task Gatk4MergeSortCompressVcf {
         IndexedReference referenceFa
     }
 
+    Int jvmHeap = memoryGb * 750  # Heap size in Megabytes. mem is in GB. (75% of mem)
+
     command {
         gatk \
         SortVcf \
-        --java-options "-XX:ParallelGCThreads=4" \
+        --java-options "-Xmx~{jvmHeap}m -XX:ParallelGCThreads=4" \
         -SD ~{referenceFa.dict} \
         -I ~{sep=" -I " tempChromVcfs} \
         -O ~{sortedVcfPath}
@@ -85,10 +87,11 @@ task Gatk4MergeSortVcf {
         IndexedReference referenceFa
     }
 
+    Int jvmHeap = memoryGb * 750  # Heap size in Megabytes. mem is in GB. (75% of mem)
     command {
         gatk \
         SortVcf \
-        --java-options "-XX:ParallelGCThreads=4" \
+        --java-options "-Xmx~{jvmHeap}m -XX:ParallelGCThreads=4" \
         -SD ~{referenceFa.dict} \
         -I ~{sep=" -I " tempChromVcfs} \
         -O ~{sortedVcfPath}
@@ -139,13 +142,13 @@ task AddCommandReorderColumnsVcf {
     }
 
     command {
-    
+
         python \
         /add_command.py \
         ~{inVcf} \
         ~{outVcfPath} \
         ~{jsonLog}
-        
+
         python \
         /reorder_vcf.py \
         ~{outVcfPath} \
@@ -161,7 +164,7 @@ task AddCommandReorderColumnsVcf {
         mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/somatic_tools@sha256:9ae77f7d96a3c100319cf0fac2429f8f84301003480b7b7eb72994ca9f358512"
+        docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:1b0d465258d8926d8db1deb7991dc23436fce0d4343eb76c10c307c18de4a89e"
     }
 }
 
@@ -191,7 +194,7 @@ task ReorderVcfColumns {
         mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/somatic_tools@sha256:9ae77f7d96a3c100319cf0fac2429f8f84301003480b7b7eb72994ca9f358512"
+        docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:1b0d465258d8926d8db1deb7991dc23436fce0d4343eb76c10c307c18de4a89e"
     }
 }
 
@@ -220,7 +223,7 @@ task AddVcfCommand {
         mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/somatic_tools@sha256:9ae77f7d96a3c100319cf0fac2429f8f84301003480b7b7eb72994ca9f358512"
+        docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:1b0d465258d8926d8db1deb7991dc23436fce0d4343eb76c10c307c18de4a89e"
     }
 }
 
@@ -344,10 +347,11 @@ task FilterNonpass {
         File vcf
     }
 
+    Int jvmHeap = memoryGb * 750  # Heap size in Megabytes. mem is in GB. (75% of mem)
     command {
         gatk \
         SelectVariants \
-        --java-options "-XX:ParallelGCThreads=4" \
+        --java-options "-Xmx~{jvmHeap}m -XX:ParallelGCThreads=4" \
         -R ~{referenceFa.fasta} \
         -V ~{vcf} \
         -O ~{outVcfPath} \
@@ -497,7 +501,7 @@ task LancetWGSRegional {
         mem: memoryGb + "G"
         cpus: threads
         cpu : threads
-        disks: "local-disk " + diskSize + " LOCAL"
+        disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/lancet@sha256:25169d34b41de9564e03f02ebcbfb4655cf536449592b0bd58773195f9376e61"
     }
@@ -541,7 +545,7 @@ task LancetExome {
         mem: memoryGb + "G"
         cpus: threads
         cpu : threads
-        disks: "local-disk " + diskSize + " LOCAL"
+        disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/lancet@sha256:25169d34b41de9564e03f02ebcbfb4655cf536449592b0bd58773195f9376e61"
     }
@@ -561,10 +565,12 @@ task Mutect2Wgs {
         Bam tumorFinalBam
     }
 
+    Int jvmHeap = memoryGb * 750  # Heap size in Megabytes. mem is in GB. (75% of mem)
+
     command {
         gatk \
         Mutect2 \
-        --java-options "-XX:ParallelGCThreads=4" \
+        --java-options "-Xmx~{jvmHeap}m -XX:ParallelGCThreads=4" \
         --reference ~{referenceFa.fasta} \
         -L ~{chrom} \
         -I ~{tumorFinalBam.bam} \
@@ -631,10 +637,11 @@ task Mutect2Filter {
         File mutect2ChromRawVcf
     }
 
+    Int jvmHeap = memoryGb * 750  # Heap size in Megabytes. mem is in GB. (75% of mem)
     command {
         gatk \
         FilterMutectCalls \
-        --java-options "-XX:ParallelGCThreads=4" \
+        --java-options "-Xmx~{jvmHeap}m -XX:ParallelGCThreads=4" \
         --reference ~{referenceFa.fasta} \
         -V ~{mutect2ChromRawVcf} \
         -O ~{mutect2ChromVcfPath}
@@ -708,11 +715,11 @@ task PopulateCache {
 
     command {
         set -e -o pipefail
-        
+
         /samtools-1.4.1/misc/seq_cache_populate.pl \
         -root ~{refCacheDirPath} \
         ~{bwaReference.fasta}
-        
+
         tar -czvf \
         ~{refCachePath} \
         ~{refCacheDirPath}
@@ -740,10 +747,10 @@ task SvabaIndex {
 
     command {
         set -e -o pipefail
-        
+
         cp ~{bwaReference.fasta} \
         ~{svabaIndexedReferencePath}
-        
+
         /svaba/SeqLib/bwa/bwa \
         index \
         ~{svabaIndexedReferencePath}
@@ -786,13 +793,13 @@ task SvabaWgsPon {
 
     command {
         set -e -o pipefail
-        
+
         tar -xzf \
         ~{refCache}
-        
+
         export REF_PATH=./~{refCacheDirPath}/%2s/%2s/%s
         export REF_CACHE=./~{refCacheDirPath}/%2s/%2s/%s
-        
+
         svaba \
         run \
         --verbose ~{verbose} \
@@ -840,13 +847,13 @@ task SvabaWgsPonNoL {
 
     command {
         set -e -o pipefail
-        
+
         tar -xzf \
         ~{refCache}
-        
+
         export REF_PATH=./~{refCacheDirPath}/%2s/%2s/%s
         export REF_CACHE=./~{refCacheDirPath}/%2s/%2s/%s
-        
+
         svaba \
         run \
         --verbose ~{verbose} \
@@ -888,11 +895,11 @@ task ReheaderVcf {
 
     command {
         set -e -o pipefail
-    
-        for id in ~{sep=" " sampleIds} ; do 
+
+        for id in ~{sep=" " sampleIds} ; do
             echo $id >> sample_list.txt
         done
-        
+
         bcftools \
         reheader \
         --samples sample_list.txt \
@@ -1021,7 +1028,7 @@ task Bicseq2Wgs {
 
     command {
         set -e -o pipefail
-        
+
         mkdir -p ~{pairName}
 
         python3 \
@@ -1191,6 +1198,7 @@ task GridssAssembleChunk {
         cpu : threads
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/gridss@sha256:284c58744471089a9d0998a48a33d7cd3d1019a588a284fb99b69b547f794cac"
+
     }
 }
 
@@ -1329,7 +1337,7 @@ task GridssCalling {
         ln -s \
         ~{gridssassemblyBam} \
         ~{gridssassemblyBamPath}
-        
+
 
         # link chunk assembly results
         sub_dir=~{gridssassemblyBamPath}.gridss.working/
@@ -1371,6 +1379,7 @@ task GridssCalling {
         cpu : threads
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/gridss@sha256:284c58744471089a9d0998a48a33d7cd3d1019a588a284fb99b69b547f794cac"
+
     }
 }
 
@@ -1399,7 +1408,7 @@ task FilterNonChroms {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/somatic_tools@sha256:9ae77f7d96a3c100319cf0fac2429f8f84301003480b7b7eb72994ca9f358512"
+        docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:1b0d465258d8926d8db1deb7991dc23436fce0d4343eb76c10c307c18de4a89e"
     }
 }
 
@@ -1448,6 +1457,8 @@ task GridssFilter {
         disks: "local-disk " + diskSize + " HDD"
         cpu : threads
         memory : memoryGb + "GB"
+
         docker : "gcr.io/nygc-public/gridss@sha256:284c58744471089a9d0998a48a33d7cd3d1019a588a284fb99b69b547f794cac"
+
     }
 }

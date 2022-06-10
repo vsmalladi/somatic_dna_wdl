@@ -6,6 +6,7 @@ import "calling/calling.wdl" as callingTasks
 import "merge_vcf/merge_vcf_wkf.wdl" as mergeVcf
 import "alignment_analysis/kourami_wfk.wdl" as kourami
 import "alignment_analysis/msi_wkf.wdl" as msi
+import "alignment_analysis/fastngsadmix_wkf.wdl" as fastNgsAdmix
 import "pre_process/conpair_wkf.wdl" as conpair
 import "pre_process/qc.wdl" as qc
 import "annotate/annotate_wkf.wdl" as annotate
@@ -14,23 +15,7 @@ import "germline/germline_wkf.wdl" as germline
 import "annotate/germline_annotate_wkf.wdl" as germlineAnnotate
 import "baf/baf_wkf.wdl" as baf
 import "variant_analysis/deconstruct_sigs_wkf.wdl" as deconstructSigs
-
-# ================== COPYRIGHT ================================================
-# New York Genome Center
-# SOFTWARE COPYRIGHT NOTICE AGREEMENT
-# This software and its documentation are copyright (2021) by the New York
-# Genome Center. All rights are reserved. This software is supplied without
-# any warranty or guaranteed support whatsoever. The New York Genome Center
-# cannot be responsible for its use, misuse, or functionality.
-#
-#    Jennifer M Shelton (jshelton@nygenome.org)
-#    Nico Robine (nrobine@nygenome.org)
-#    Minita Shah (mshah@nygenome.org)
-#    Timothy Chu (tchu@nygenome.org)
-#    Will Hooper (whooper@nygenome.org)
-#
-# ================== /COPYRIGHT ===============================================
-
+import "tasks/bam_cram_conversion.wdl" as cramConversion
 
 # ================== COPYRIGHT ================================================
 # New York Genome Center
@@ -103,7 +88,7 @@ workflow SomaticBamWorkflow {
         File mutectJsonLog
         File mutectJsonLogFilter
         File configureStrelkaSomaticWorkflow
-        
+
         #   BicSeq2
         Int readLength
         Int coordReadLength
@@ -114,12 +99,12 @@ workflow SomaticBamWorkflow {
         Int tumorMedianInsertSize = 400
         Int normalMedianInsertSize = 400
         Int lambda = 4
-        
+
         # Gridss
         String bsGenome
         File ponTarGz
         Array[File] gridssAdditionalReference
-        
+
         # merge callers
         File intervalListBed
 
@@ -137,12 +122,27 @@ workflow SomaticBamWorkflow {
         # mantis
         File mantisBed
         File intervalListBed
-        
+
+        #fastNgsAdmix
+        File fastNgsAdmixChroms
+
+        File fastNgsAdmixContinentalSites
+        File fastNgsAdmixContinentalSitesBin
+        File fastNgsAdmixContinentalSitesIdx
+        File fastNgsAdmixContinentalRef
+        File fastNgsAdmixContinentalNind
+
+        File fastNgsAdmixPopulationSites
+        File fastNgsAdmixPopulationSitesBin
+        File fastNgsAdmixPopulationSitesIdx
+        File fastNgsAdmixPopulationRef
+        File fastNgsAdmixPopulationNind
+
         # annotation:
         String vepGenomeBuild
         IndexedVcf cosmicCoding
         IndexedVcf cosmicNoncoding
-        
+
         # Public
         File cancerResistanceMutations
         File vepCache
@@ -150,13 +150,13 @@ workflow SomaticBamWorkflow {
         File plugins
         String vepGenomeBuild
         IndexedReference vepFastaReference
-        
+
         # NYGC-only
         IndexedVcf hgmdGene
         IndexedVcf hgmdUd10
         IndexedVcf hgmdPro
         IndexedVcf omimVcf
-        
+
         # Public
         IndexedVcf chdGenesVcf
         IndexedVcf chdEvolvingGenesVcf
@@ -164,7 +164,7 @@ workflow SomaticBamWorkflow {
         IndexedVcf deepIntronicsVcf
         IndexedVcf clinvarIntronicsVcf
         IndexedVcf masterMind
-        
+
         # annotate cnv
         File cytoBand
         File dgv
@@ -172,7 +172,7 @@ workflow SomaticBamWorkflow {
         File cosmicUniqueBed
         File cancerCensusBed
         File ensemblUniqueBed
-        
+
         # annotate sv
         String vepGenomeBuild
         # gap,DGV,1000G,PON,COSMIC
@@ -181,23 +181,23 @@ workflow SomaticBamWorkflow {
         File thousandGVcf
         File svPon
         File cosmicBedPe
-        
+
         # post annotation
         File cosmicCensus
-        
+
         File ensemblEntrez
-        
+
         # germline
-        
+
         File excludeIntervalList
         Array[File] scatterIntervalsHcs
-        
+
         IndexedVcf MillsAnd1000G
         IndexedVcf omni
         IndexedVcf hapmap
         IndexedVcf onekG
         IndexedVcf dbsnp
-        
+
         IndexedVcf whitelist
         IndexedVcf nygcAf
         IndexedVcf pgx
@@ -205,13 +205,38 @@ workflow SomaticBamWorkflow {
         IndexedVcf deepIntronicsVcf
         IndexedVcf clinvarIntronicsVcf
         IndexedVcf chdWhitelistVcf
-        
+
         # signatures
         File cosmicSigs
-        
+
         Boolean highMem = false
+        Boolean createCramBasedObjects = false
     }
-    
+
+    # need to find UNIQUE bams (don't convert if part of more than one pair)
+    call cramConversion.UniqueBams as uniqueBams {
+        input:
+            pairInfosJson = write_json(pairInfos)
+    }
+
+    scatter(bamInfo in uniqueBams.uniqueBams) {
+        call cramConversion.SamtoolsBamToCram as bamToCram {
+            input:
+                inputBam = bamInfo.finalBam,
+                referenceFa = referenceFa,
+                sampleId = bamInfo.sampleId,
+                diskSize = (ceil(size(bamInfo.finalBam.bam, "GB") * 1.7)) + 20 # 0.7 is estimated cram size
+        }
+    }
+    if (createCramBasedObjects) {
+        call cramConversion.UpdateCramInfos as updateCramInfo {
+            input:
+                pairInfosJson = write_json(pairInfos),
+                normalInfosJson = write_json(normalSampleBamInfos),
+                cramInfosJson = write_json(bamToCram.cramInfo)
+        }
+    }
+
     scatter (normalSampleBamInfo in normalSampleBamInfos) {
         String normalSampleIds = normalSampleBamInfo.sampleId
 
@@ -222,6 +247,30 @@ workflow SomaticBamWorkflow {
                 finalBam = normalSampleBamInfo.finalBam,
                 kouramiFastaGem1Index = kouramiFastaGem1Index,
                 referenceFa = referenceFa
+        }
+
+        call fastNgsAdmix.FastNgsAdmix as fastNgsAdmixContinental{
+            input:
+                normalFinalBam = normalSampleBamInfo.finalBam,
+                fastNgsAdmixSites = fastNgsAdmixContinentalSites,
+                fastNgsAdmixSitesBin = fastNgsAdmixContinentalSitesBin,
+                fastNgsAdmixSitesIdx = fastNgsAdmixContinentalSitesIdx,
+                fastNgsAdmixChroms = fastNgsAdmixChroms,
+                fastNgsAdmixRef = fastNgsAdmixContinentalRef,
+                fastNgsAdmixNind = fastNgsAdmixContinentalNind,
+                outprefix = normalSampleIds + "_continental"
+        }
+
+        call fastNgsAdmix.FastNgsAdmix as fastNgsAdmixPopulation{
+            input:
+                normalFinalBam = normalSampleBamInfo.finalBam,
+                fastNgsAdmixSites = fastNgsAdmixPopulationSites,
+                fastNgsAdmixSitesBin = fastNgsAdmixPopulationSitesBin,
+                fastNgsAdmixSitesIdx = fastNgsAdmixPopulationSitesIdx,
+                fastNgsAdmixChroms = fastNgsAdmixChroms,
+                fastNgsAdmixRef = fastNgsAdmixPopulationRef,
+                fastNgsAdmixNind = fastNgsAdmixPopulationNind,
+                outprefix = normalSampleIds + "population"
         }
         
         call germline.Germline {
@@ -246,7 +295,7 @@ workflow SomaticBamWorkflow {
                 clinvarIntronicsVcf = clinvarIntronicsVcf,
                 highMem = highMem
         }
-        
+
         call germlineAnnotate.GermlineAnnotate as filteredGermlineAnnotate {
             input:
                 unannotatedVcf = Germline.haplotypecallerFinalFiltered,
@@ -278,9 +327,9 @@ workflow SomaticBamWorkflow {
                 # post annotation
                 cosmicCensus = cosmicCensus,
                 ensemblEntrez = ensemblEntrez,
-                library = library  
+                library = library
         }
-        
+
         call germlineAnnotate.GermlineAnnotate as unFilteredGermlineAnnotate {
             input:
                 unannotatedVcf = Germline.haplotypecallerVcf,
@@ -313,17 +362,17 @@ workflow SomaticBamWorkflow {
                 # post annotation
                 cosmicCensus = cosmicCensus,
                 ensemblEntrez = ensemblEntrez,
-                library = library  
+                library = library
         }
     }
-    
+
     scatter(pairInfo in pairInfos) {
         call GetIndex as germlineGetIndex {
             input:
                 sampleIds = normalSampleIds,
                 sampleId = pairInfo.normal
         }
-        
+
         call baf.Baf {
             input:
                 referenceFa = referenceFa,
@@ -335,12 +384,12 @@ workflow SomaticBamWorkflow {
                 listOfChroms = listOfChroms
         }
     }
-    
+
     scatter(pairInfo in pairInfos) {
-        
+
         # tumor insert size
         Int tumorDiskSize = ceil(size(pairInfo.tumorFinalBam.bam, "GB")) + 30
-                      
+
         call qc.MultipleMetrics as tumorMultipleMetrics {
             input:
                 referenceFa = referenceFa,
@@ -348,15 +397,15 @@ workflow SomaticBamWorkflow {
                 sampleId = pairInfo.tumor,
                 diskSize = tumorDiskSize
         }
-        
+
         call callingTasks.GetInsertSize as tumorGetInsertSize {
             input:
                 insertSizeMetrics = tumorMultipleMetrics.insertSizeMetrics
         }
-        
+
         # normal insert size
         Int normalDiskSize = ceil(size(pairInfo.normalFinalBam.bam, "GB")) + 30
-                      
+
         call qc.MultipleMetrics as normalMultipleMetrics {
             input:
                 referenceFa = referenceFa,
@@ -364,12 +413,12 @@ workflow SomaticBamWorkflow {
                 sampleId = pairInfo.normal,
                 diskSize = normalDiskSize
         }
-        
+
         call callingTasks.GetInsertSize as normalGetInsertSize {
             input:
                 insertSizeMetrics = normalMultipleMetrics.insertSizeMetrics
         }
-        
+
         call conpair.Conpair {
             input:
                 finalTumorBam = pairInfo.tumorFinalBam,
@@ -488,7 +537,7 @@ workflow SomaticBamWorkflow {
         }
 
         File mergedVcf = select_first([wgsMergeVcf.mergedVcf, exomeMergeVcf.mergedVcf])
-        
+
         call annotate.Annotate {
             input:
                 unannotatedVcf = mergedVcf,
@@ -521,9 +570,9 @@ workflow SomaticBamWorkflow {
                 # post annotation
                 cosmicCensus = cosmicCensus,
                 ensemblEntrez = ensemblEntrez,
-                library = library  
+                library = library
         }
-        
+
         call annotate_cnv_sv.AnnotateCnvSv {
             input:
                 tumor = pairRawVcfInfo.tumor,
@@ -535,9 +584,9 @@ workflow SomaticBamWorkflow {
                 dgv = dgv,
                 thousandG = thousandG,
                 cosmicUniqueBed = cosmicUniqueBed,
-                cancerCensusBed = cancerCensusBed, 
+                cancerCensusBed = cancerCensusBed,
                 ensemblUniqueBed = ensemblUniqueBed,
-                
+
                 filteredMantaSV = pairRawVcfInfo.filteredMantaSV,
                 svabaSv = pairRawVcfInfo.svabaSv,
                 gridssVcf = pairRawVcfInfo.gridssVcf,
@@ -548,15 +597,15 @@ workflow SomaticBamWorkflow {
                 svPon = svPon,
                 cosmicBedPe = cosmicBedPe
         }
-        
+
         call deconstructSigs.DeconstructSig {
-            input: 
+            input:
                 pairId = pairInfo.pairId,
                 mainVcf = mergedVcf,
                 cosmicSigs = cosmicSigs,
                 vepGenomeBuild = vepGenomeBuild
         }
-        
+
         FinalVcfPairInfo finalVcfPairInfo = object {
             pairId : pairInfo.pairId,
             tumor : pairInfo.tumor,
@@ -598,18 +647,26 @@ workflow SomaticBamWorkflow {
         Array[File] mantisWxsKmerCountsFiltered = Msi.mantisWxsKmerCountsFiltered
         Array[File] mantisExomeTxt = Msi.mantisExomeTxt
         Array[File] mantisStatusFinal = Msi.mantisStatusFinal
+        # ancestry
+        Array[File] beagleFileContinental = fastNgsAdmixContinental.beagleFile
+        Array[File] fastNgsAdmixQoptContinental = fastNgsAdmixContinental.fastNgsAdmixQopt
+        Array[File] beagleFilePopulation = fastNgsAdmixPopulation.beagleFile
+        Array[File] fastNgsAdmixQoptPopulation = fastNgsAdmixPopulation.fastNgsAdmixQopt
         # sigs
         Array[File] sigs = DeconstructSig.sigs
         Array[File] counts = DeconstructSig.counts
         Array[File] sig_input = DeconstructSig.sigInput
         Array[File] reconstructed = DeconstructSig.reconstructed
         Array[File] diff = DeconstructSig.diff
-        
+
         # Conpair
         Array[File] concordanceAll = Conpair.concordanceAll
         Array[File] concordanceHomoz = Conpair.concordanceHomoz
         Array[File] contamination = Conpair.contamination
+        Array[File] tumorPileup = Conpair.tumorPileup
+        Array[File] normalPileup = Conpair.normalPileup
 
+        # Cram
+         Array[SampleCramInfo] crams = bamToCram.cramInfo
     }
 }
-

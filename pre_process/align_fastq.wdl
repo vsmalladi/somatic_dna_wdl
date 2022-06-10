@@ -59,7 +59,7 @@ task AlignBwaMem2 {
         Int memoryGb
         Int threads
         Int bwamem2Threads
-        Int totalThreads = 80
+        Int totalThreads = 96
         Int diskSize
 
         # Values used in RG tags. These are overridden for external fastqs or if we start using

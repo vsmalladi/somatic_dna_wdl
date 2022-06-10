@@ -51,6 +51,7 @@ task GetIndex {
 workflow PreprocessWrapper {
     input {
         Boolean external = false
+        Boolean highMem = false
 
         BwaMem2Reference bwamem2Reference
         IndexedReference referenceFa
@@ -72,6 +73,7 @@ workflow PreprocessWrapper {
         call preProcess.Preprocess {
             input:
                 external = external,
+                highMem = highMem,
                 listOfFastqPairs = sampleInfoObj.listOfFastqPairs,
                 trim = trim,
                 adaptersFa = adaptersFa,

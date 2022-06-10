@@ -53,8 +53,10 @@ workflow Calling {
         File mutectJsonLog
         File mutectJsonLogFilter
         File configureStrelkaSomaticWorkflow
-        
+
         Boolean highMem = false
+        Int gridssTumorDiskSize = 740
+        Int gridssNormalDiskSize = 740
     }
     call mutect2.Mutect2 {
         input:
@@ -137,6 +139,8 @@ workflow Calling {
             tumorFinalBam = pairInfo.tumorFinalBam,
             bsGenome = bsGenome,
             ponTarGz = ponTarGz,
+            tumorDiskSize = gridssTumorDiskSize,
+            normalDiskSize = gridssNormalDiskSize,
             highMem = highMem
     }
 

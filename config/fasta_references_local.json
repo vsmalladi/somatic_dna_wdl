@@ -187,7 +187,11 @@
             "description" : "",
             "object" : "/gpfs/commons/groups/nygcfaculty/kancero/data/v7/GRCh38_full_analysis_set_plus_decoy_hla/internal/ensembl_genes_unique_sorted.final.v93.chr.sorted.bed"
         },
-
+        "karyotype" :{
+            "type": "File",
+            "description" : "Human karyotype bands and centromeres",
+            "object" : "/gpfs/commons/groups/nygcfaculty/kancero/data/karyotype.human.hg38.chr.txt"
+        },
         "cosmicSigs" :{
             "type": "File",
             "description" : "Mutational Signatures (v3.2 - March 2021) from https://cancer.sanger.ac.uk/signatures/downloads/",
@@ -245,6 +249,61 @@
             "type": "File",
             "description": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/README_mantis_repeatfinder.md",
             "object": "/gpfs/commons/groups/nygcfaculty/kancero/data/v7/GRCh38_full_analysis_set_plus_decoy_hla/internal/mantis_repeatfinder-hg38.chr.bed"
+        },
+        "fastNgsAdmixChroms":{
+            "type": "File",
+            "description": "file containing list of chromosomes to use as search space for angsd",
+            "object": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/fastngsadmix/hg38.chroms"
+        },
+        "fastNgsAdmixContinentalSites": {
+            "type": "File",
+            "description": "Continental level sites file for use with FastNGSAdmix",
+            "object": "/gpfs/commons/groups/nygcfaculty/kancero/data/v7/GRCh38_full_analysis_set_plus_decoy_hla/internal/fastngsadmix/hg38_refPanel_1kG_phase3.sites"
+        },
+        "fastNgsAdmixContinentalSitesBin": {
+            "type": "File",
+            "description": "Continental level sites file for use with FastNGSAdmix bin",
+            "object": "/gpfs/commons/groups/nygcfaculty/kancero/data/v7/GRCh38_full_analysis_set_plus_decoy_hla/internal/fastngsadmix/hg38_refPanel_1kG_phase3.sites.bin"
+        },
+        "fastNgsAdmixContinentalSitesIdx": {
+            "type": "File",
+            "description": "Continental level sites file for use with FastNGSAdmix idx",
+            "object": "/gpfs/commons/groups/nygcfaculty/kancero/data/v7/GRCh38_full_analysis_set_plus_decoy_hla/internal/fastngsadmix/hg38_refPanel_1kG_phase3.sites.idx"
+        },
+        "fastNgsAdmixPopulationSites": {
+            "type": "File",
+            "description": "Population.bi level sites file for use with FastNGSAdmix",
+            "object": "/gpfs/commons/groups/nygcfaculty/kancero/data/v7/GRCh38_full_analysis_set_plus_decoy_hla/internal/fastngsadmix/refPanel_1kgRef_exclMXL_exclASW_exclACB_intelligentVarList_b38.chr.markers.uniq.sites"
+        },
+        "fastNgsAdmixPopulationSitesBin": {
+            "type": "File",
+            "description": "Population level sites file for use with FastNGSAdmix bin",
+            "object": "/gpfs/commons/groups/nygcfaculty/kancero/data/v7/GRCh38_full_analysis_set_plus_decoy_hla/internal/fastngsadmix/refPanel_1kgRef_exclMXL_exclASW_exclACB_intelligentVarList_b38.chr.markers.uniq.sites.bin"
+        },
+        "fastNgsAdmixPopulationSitesIdx": {
+            "type": "File",
+            "description": "Population level sites file for use with FastNGSAdmix idx",
+            "object": "/gpfs/commons/groups/nygcfaculty/kancero/data/v7/GRCh38_full_analysis_set_plus_decoy_hla/internal/fastngsadmix/refPanel_1kgRef_exclMXL_exclASW_exclACB_intelligentVarList_b38.chr.markers.uniq.sites.idx"
+        },
+        "fastNgsAdmixContinentalNind": {
+            "type": "File",
+            "description":"count of number of patients used to generate reference panel for separated by continental categorization",
+            "object":"/gpfs/commons/groups/nygcfaculty/kancero/data/v7/GRCh38_full_analysis_set_plus_decoy_hla/internal/fastngsadmix/hg38_refPanel_1kG_phase3.nind"
+        },
+        "fastNgsAdmixPopulationNind": {
+            "type": "File",
+            "description":"count of number of patients used to generate reference panel for separated by population categorization",
+            "object":"/gpfs/commons/groups/nygcfaculty/kancero/data/v7/GRCh38_full_analysis_set_plus_decoy_hla/internal/fastngsadmix/nInd_1kgRef_exclMXL_exclASW_exclACB_intelligentVarList_b38.txt"
+        },
+        "fastNgsAdmixContinentalRef": {
+            "type": "File",
+            "description":"reference panel for continental level ancestry estimation",
+            "object":"/gpfs/commons/groups/nygcfaculty/kancero/data/v7/GRCh38_full_analysis_set_plus_decoy_hla/internal/fastngsadmix/hg38_refPanel_1kG_phase3.txt"
+        },
+        "fastNgsAdmixPopulationRef": {
+            "type": "File",
+            "description":"reference panel for population level ancestry estimation",
+            "object":"/gpfs/commons/groups/nygcfaculty/kancero/data/v7/GRCh38_full_analysis_set_plus_decoy_hla/internal/fastngsadmix/refPanel_1kgRef_exclMXL_exclASW_exclACB_intelligentVarList_b38.chr.markers.uniq.txt"
         },
         "cosmicCoding": {
             "type": "IndexedVcf",
@@ -492,8 +551,8 @@
         },
         "ponWGSFile": {
             "type": "File",
-            "description": "/gpfs/commons/groups/nygcfaculty/kancero/data/v7/GRCh38_full_analysis_set_plus_decoy_hla/internal/README_PON",
-            "object": "/gpfs/commons/groups/nygcfaculty/kancero/data/v7/GRCh38_full_analysis_set_plus_decoy_hla/internal/WGS_PON_GRCh38.v1.1.bed"
+            "description": "https://bitbucket.nygenome.org/projects/WDL/repos/somatic_dna_wdl/browse/README_pipeline.md",
+            "object": "/gpfs/commons/groups/compbio/projects/Project_NYGC_mem_PON_GRCh38_WGS/1000g/data/pon/WGS_1000g_GRCh38.pon.bed"
         },
         "germFile": {
             "type": "IndexedVcf",
@@ -935,7 +994,11 @@
             "description" : "",
             "object" : "/gpfs/commons/groups/nygcfaculty/kancero/data/v7/GRCh38_full_analysis_set_plus_decoy_hla/internal/ensembl_genes_unique_sorted.final.v93.chr.sorted.bed"
         },
-
+        "karyotype" :{
+            "type": "File",
+            "description" : "Human karyotype bands and centromeres",
+            "object" : "/gpfs/commons/groups/nygcfaculty/kancero/data/karyotype.human.hg38.chr.txt"
+        },
         "cosmicSigs" :{
             "type": "File",
             "description" : "Mutational Signatures (v3.2 - March 2021) from https://cancer.sanger.ac.uk/signatures/downloads/",
@@ -1240,8 +1303,8 @@
         },
         "ponWGSFile": {
             "type": "File",
-            "description": "/gpfs/commons/groups/nygcfaculty/kancero/data/v7/GRCh38_full_analysis_set_plus_decoy_hla/internal/README_PON",
-            "object": "/gpfs/commons/groups/nygcfaculty/kancero/data/v7/GRCh38_full_analysis_set_plus_decoy_hla/internal/WGS_PON_GRCh38.v1.1.bed"
+            "description": "https://bitbucket.nygenome.org/projects/WDL/repos/somatic_dna_wdl/browse/README_pipeline.md",
+            "object": "/gpfs/commons/groups/compbio/projects/Project_NYGC_mem_PON_GRCh38_WGS/1000g/data/pon/WGS_1000g_GRCh38.pon.bed"
         },
         "germFile": {
             "type": "IndexedVcf",

@@ -32,6 +32,12 @@ struct Bam {
     String? md5sum
 }
 
+struct Cram {
+    File cram
+    File cramIndex
+    String? md5sum
+}
+
 struct BwaReference {
     File fasta
     File sa
@@ -88,6 +94,11 @@ struct sampleInfo {
 struct SampleBamInfo {
     String sampleId
     Bam finalBam
+}
+
+struct SampleCramInfo {
+    String sampleId
+    Cram finalCram
 }
 
 struct PreMergedPairVcfInfo {
@@ -207,6 +218,14 @@ struct pairInfo {
     String normal
 }
 
+struct pairCramInfo {
+    String pairId
+    Cram tumorFinalCram
+    Cram normalFinalCram
+    String tumor
+    String normal
+}
+
 struct FinalWorkflowOutput {
     # alignment and calling results (calling results may not exist if qc failed)
     # SNV INDELs CNV SV and BAM output
@@ -255,11 +274,14 @@ struct FinalWorkflowOutput {
     Array[File] qualityByCycleMetricsPreBqsr
     Array[File] qualityByCyclePdfPreBqsr
     Array[File] qualityDistributionMetricsPreBqsr
+    Array[File] dedupLog
 
     # Conpair
     Array[File] concordanceAll
     Array[File] concordanceHomoz
     Array[File] contamination
+    Array[File] normalPileup
+    Array[File] tumorPileup
 
     # Germline
     Array[File?] kouramiResult

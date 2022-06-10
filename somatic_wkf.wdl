@@ -15,6 +15,7 @@ import "germline/germline_wkf.wdl" as germline
 import "annotate/germline_annotate_wkf.wdl" as germlineAnnotate
 import "baf/baf_wkf.wdl" as baf
 import "variant_analysis/deconstruct_sigs_wkf.wdl" as deconstructSigs
+import "alignment_analysis/fastngsadmix_wkf.wdl" as fastNgsAdmix
 
 # ================== COPYRIGHT ================================================
 # New York Genome Center
@@ -76,8 +77,9 @@ task GetIndex {
 workflow SomaticDNA {
     input {
         Boolean external = false
-        
+
         BwaReference bwaReference
+        BwaMem2Reference bwamem2Reference
         IndexedReference referenceFa
         File adaptersFa
         IndexedVcf MillsAnd1000G
@@ -145,6 +147,21 @@ workflow SomaticDNA {
         # mantis
         File mantisBed
         File intervalListBed
+
+        #fastNgsAdmix
+        File fastNgsAdmixChroms
+
+        File fastNgsAdmixContinentalSites
+        File fastNgsAdmixContinentalSitesBin
+        File fastNgsAdmixContinentalSitesIdx
+        File fastNgsAdmixContinentalRef
+        File fastNgsAdmixContinentalNind
+
+        File fastNgsAdmixPopulationSites
+        File fastNgsAdmixPopulationSitesBin
+        File fastNgsAdmixPopulationSitesIdx
+        File fastNgsAdmixPopulationRef
+        File fastNgsAdmixPopulationNind
 
         # annotation:
         String vepGenomeBuild
@@ -224,11 +241,12 @@ workflow SomaticDNA {
         call preProcess.Preprocess {
             input:
                 external = external,
+                highMem = highMem,
                 listOfFastqPairs = sampleInfoObj.listOfFastqPairs,
                 trim = trim,
                 adaptersFa = adaptersFa,
                 sampleId = sampleInfoObj.sampleId,
-                bwaReference = bwaReference,
+                bwamem2Reference = bwamem2Reference,
                 referenceFa = referenceFa,
                 MillsAnd1000G = MillsAnd1000G,
                 gnomadBiallelic = gnomadBiallelic,
@@ -274,6 +292,30 @@ workflow SomaticDNA {
                     finalBam = Preprocess.finalBam[germlineRunGetIndex.index],
                     kouramiFastaGem1Index = kouramiFastaGem1Index,
                     referenceFa = referenceFa
+            }
+
+            call fastNgsAdmix.FastNgsAdmix as fastNgsAdmixContinental{
+                input:
+                    normalFinalBam = Preprocess.finalBam[germlineRunGetIndex.index],
+                    fastNgsAdmixSites = fastNgsAdmixContinentalSites,
+                    fastNgsAdmixSitesBin = fastNgsAdmixContinentalSitesBin,
+                    fastNgsAdmixSitesIdx = fastNgsAdmixContinentalSitesIdx,
+                    fastNgsAdmixChroms = fastNgsAdmixChroms,
+                    fastNgsAdmixRef = fastNgsAdmixContinentalRef,
+                    fastNgsAdmixNind = fastNgsAdmixContinentalNind,
+                    outprefix = normalSampleIds + "_continental"
+            }
+
+            call fastNgsAdmix.FastNgsAdmix as fastNgsAdmixPopulation{
+                input:
+                    normalFinalBam = Preprocess.finalBam[germlineRunGetIndex.index],
+                    fastNgsAdmixSites = fastNgsAdmixPopulationSites,
+                    fastNgsAdmixSitesBin = fastNgsAdmixPopulationSitesBin,
+                    fastNgsAdmixSitesIdx = fastNgsAdmixPopulationSitesIdx,
+                    fastNgsAdmixChroms = fastNgsAdmixChroms,
+                    fastNgsAdmixRef = fastNgsAdmixPopulationRef,
+                    fastNgsAdmixNind = fastNgsAdmixPopulationNind,
+                    outprefix = normalSampleIds + "_population"
             }
 
             call germline.Germline {
@@ -452,8 +494,8 @@ workflow SomaticDNA {
             }
         }
 
-        Boolean SomaticQcCheck = select_first([SomaticQcCheck.qcPass, bypassQcCheck])
-        if (SomaticQcCheck) {
+        Boolean somaticQcPass = select_first([SomaticQcCheck.qcPass, bypassQcCheck])
+        if (somaticQcPass) {
             call callingTasks.GetInsertSize as tumorGetInsertSize {
                 input:
                     insertSizeMetrics = Preprocess.insertSizeMetrics[tumorGetIndex.index]
@@ -505,7 +547,7 @@ workflow SomaticDNA {
                     tumorFinalBam=Preprocess.finalBam[tumorGetIndex.index],
                     normalFinalBam=Preprocess.finalBam[normalGetIndex.index]
             }
-            
+
             PreMergedPairVcfInfo preMergedPairVcfInfo = object {
                 pairId : pairRelationship.pairId,
                 filteredMantaSV : Calling.filteredMantaSV,
@@ -517,9 +559,9 @@ workflow SomaticDNA {
                 svabaIndel : Calling.svabaIndel,
                 tumor : pairRelationship.tumor,
                 normal : pairRelationship.normal,
-                tumorFinalBam : pairRelationship.tumorFinalBam,
-                normalFinalBam : pairRelationship.normalFinalBam
-    
+                tumorFinalBam : Preprocess.finalBam[tumorGetIndex.index],
+                normalFinalBam : Preprocess.finalBam[normalGetIndex.index]
+
             }
 
             PairRawVcfInfo pairRawVcfInfo = object {
@@ -687,8 +729,16 @@ workflow SomaticDNA {
         reconstructed: DeconstructSig.reconstructed,
         diff: DeconstructSig.diff,
 
-        # Bams
+        #ancestry
+        beagleFileContinental: fastNgsAdmixContinental.beagleFile,
+        fastNgsAdmixQoptContinental: fastNgsAdmixContinental.fastNgsAdmixQopt,
+        beagleFilePopulation: fastNgsAdmixPopulation.beagleFile,
+        fastNgsAdmixQoptPopulation: fastNgsAdmixPopulation.fastNgsAdmixQopt,
+
+        # Bams/Crams
         finalBams: Preprocess.finalBam,
+        finalCrams: Preprocess.finalCram,
+
         # QC
         alignmentSummaryMetrics: Preprocess.alignmentSummaryMetrics,
         qualityByCyclePdf: Preprocess.qualityByCyclePdf,
@@ -722,6 +772,8 @@ workflow SomaticDNA {
         concordanceAll: Conpair.concordanceAll,
         concordanceHomoz: Conpair.concordanceHomoz,
         contamination: Conpair.contamination,
+        tumorPileup: Conpair.tumorPileup,
+        normalPileup: Conpair.normalPileup,
 
         # Germline
         kouramiResult: Kourami.result,
@@ -734,6 +786,7 @@ workflow SomaticDNA {
 
     output {
        FinalWorkflowOutput finalOutput = workflowOutput
+       Array[Boolean] allQcPass = somaticQcPass
     }
 
 }

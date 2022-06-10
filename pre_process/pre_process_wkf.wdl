@@ -4,6 +4,7 @@ import "align_fastq_wkf.wdl" as alignFastq
 import "merge_bams_wkf.wdl" as mergeBams
 import "../wdl_structs.wdl"
 import "qc_wkf.wdl" as qc
+import "../tasks/bam_cram_conversion.wdl" as cramConversion
 
 workflow Preprocess {
     # command
@@ -12,7 +13,8 @@ workflow Preprocess {
     #   merge lane level BAMs
     input {
         Boolean external = false
-        
+        Boolean highMem = false
+
         Array[Fastqs] listOfFastqPairs
         Boolean trim = true
         BwaMem2Reference bwamem2Reference
@@ -32,10 +34,15 @@ workflow Preprocess {
 
         # resources
         #    prep flowcell
-        Int bwamem2Mem = 86
-        Int novosortMem = 80
         Int threads = 16
-        Int bwamem2Threads = 96
+        Int bwamem2Threads = 80
+    }
+
+    Int bwamem2Mem = 86
+    Int novosortMem = 32
+    
+    if (highMem) {
+        Int novosortMem = 80
     }
 
     call alignFastq.AlignFastq {
@@ -61,7 +68,7 @@ workflow Preprocess {
             referenceFa = referenceFa,
             randomIntervals = randomIntervals,
             qcDir = "Sample_~{sampleId}/qc",
-            memoryGb = novosortMem,
+            novosortMem = novosortMem,
             threads = threads
     }
 
@@ -77,8 +84,17 @@ workflow Preprocess {
             outputDir = "Sample_~{sampleId}/qc"
     }
 
+    call cramConversion.SamtoolsBamToCram as bamToCram {
+        input:
+            inputBam = MergeBams.finalBam,
+            referenceFa = referenceFa,
+            sampleId = sampleId,
+            diskSize = (ceil(size(MergeBams.finalBam.bam, "GB") * 1.7)) + 20 # 0.7 is estimated cram size
+    }
+
     output {
         Bam finalBam = MergeBams.finalBam
+        Cram finalCram = bamToCram.cramInfo.finalCram
         File alignmentSummaryMetrics = QcMetrics.alignmentSummaryMetrics
         File qualityByCyclePdf = QcMetrics.qualityByCyclePdf
         File baseDistributionByCycleMetrics = QcMetrics.baseDistributionByCycleMetrics
@@ -106,6 +122,7 @@ workflow Preprocess {
         File qualityByCycleMetricsPreBqsr = MergeBams.qualityByCycleMetricsPreBqsr
         File qualityByCyclePdfPreBqsr = MergeBams.qualityByCyclePdfPreBqsr
         File qualityDistributionMetricsPreBqsr = MergeBams.qualityDistributionMetricsPreBqsr
+        File dedupLog = MergeBams.dedupLog
     }
 
 }
