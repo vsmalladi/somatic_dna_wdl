@@ -19,7 +19,7 @@ def is_preemptible(service):
 
 def formatter(service, drop=[], truncate=False, suffix=False):
     '''takes a string service type, split to list of words, drop some useless words,
-    drop up to truncate word and suffix. can't just keep it do to 'storage'-> 'capacity' '''
+    drop up to truncate word and suffix. can't just keep it due to 'storage'-> 'capacity' '''
     word_list = service.split()
     clean_words = [a for a in word_list if a not in drop]
     if truncate:
@@ -28,6 +28,8 @@ def formatter(service, drop=[], truncate=False, suffix=False):
         except ValueError:  # storage services are called capacity
             truncate_index = -1
         words = clean_words[:truncate_index]
+    else:
+        words = clean_words
     if suffix:
         words.append(suffix)
     return '_'.join(words)
