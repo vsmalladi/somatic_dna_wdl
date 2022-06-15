@@ -50,7 +50,7 @@ task MultipleMetrics {
         cpu : threads
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker : "gcr.io/nygc-public/broadinstitute/gatk@sha256:0dd5cb7f9321dc5a43e7667ed4682147b1e827d6a3e5f7bf4545313df6d491aa"
+        docker : "gcr.io/nygc-public/broadinstitute/gatk4@sha256:b3bde7bc74ab00ddce342bd511a9797007aaf3d22b9cfd7b52f416c893c3774c"
     }
 }
 
@@ -95,7 +95,7 @@ task MultipleMetricsPreBqsr {
         cpu : threads
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker : "gcr.io/nygc-public/broadinstitute/gatk@sha256:0dd5cb7f9321dc5a43e7667ed4682147b1e827d6a3e5f7bf4545313df6d491aa"
+        docker : "gcr.io/nygc-public/broadinstitute/gatk4@sha256:b3bde7bc74ab00ddce342bd511a9797007aaf3d22b9cfd7b52f416c893c3774c"
     }
 }
 
@@ -140,7 +140,7 @@ task CollectGcBiasMetrics {
         cpu : threads
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker : "gcr.io/nygc-public/broadinstitute/gatk@sha256:0dd5cb7f9321dc5a43e7667ed4682147b1e827d6a3e5f7bf4545313df6d491aa"
+        docker : "gcr.io/nygc-public/broadinstitute/gatk4@sha256:b3bde7bc74ab00ddce342bd511a9797007aaf3d22b9cfd7b52f416c893c3774c"
     }
 }
 
@@ -178,7 +178,7 @@ task Flagstat {
         cpu : threads
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker : "gcr.io/nygc-public/broadinstitute/gatk@sha256:0dd5cb7f9321dc5a43e7667ed4682147b1e827d6a3e5f7bf4545313df6d491aa"
+        docker : "gcr.io/nygc-public/broadinstitute/gatk4@sha256:b3bde7bc74ab00ddce342bd511a9797007aaf3d22b9cfd7b52f416c893c3774c"
     }
 }
 
@@ -227,7 +227,7 @@ task HsMetrics {
         cpu : threads
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker : "gcr.io/nygc-public/broadinstitute/gatk@sha256:0dd5cb7f9321dc5a43e7667ed4682147b1e827d6a3e5f7bf4545313df6d491aa"
+        docker : "gcr.io/nygc-public/broadinstitute/gatk4@sha256:b3bde7bc74ab00ddce342bd511a9797007aaf3d22b9cfd7b52f416c893c3774c"
     }
 }
 
@@ -330,7 +330,7 @@ task CollectOxoGMetricsWgs {
         cpu : threads
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker : "gcr.io/nygc-public/broadinstitute/gatk@sha256:0dd5cb7f9321dc5a43e7667ed4682147b1e827d6a3e5f7bf4545313df6d491aa"
+        docker : "gcr.io/nygc-public/broadinstitute/gatk4@sha256:b3bde7bc74ab00ddce342bd511a9797007aaf3d22b9cfd7b52f416c893c3774c"
     }
 }
 
@@ -375,7 +375,7 @@ task CollectWgsMetrics {
         cpu : threads
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker : "gcr.io/nygc-public/broadinstitute/gatk@sha256:0dd5cb7f9321dc5a43e7667ed4682147b1e827d6a3e5f7bf4545313df6d491aa"
+        docker : "gcr.io/nygc-public/broadinstitute/gatk4@sha256:b3bde7bc74ab00ddce342bd511a9797007aaf3d22b9cfd7b52f416c893c3774c"
     }
 }
 
@@ -464,6 +464,7 @@ task Pileup {
         --java-options "-Xmx~{jvmHeap}m -XX:ParallelGCThreads=1" \
         -I ~{finalBam.bam} \
         -V ~{gnomadBiallelic.vcf} \
+        -L ~{gnomadBiallelic.vcf} \
         -O ~{pileupsTablePath}
     }
 
@@ -477,7 +478,7 @@ task Pileup {
         cpu: threads
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker : "gcr.io/nygc-public/broadinstitute/gatk@sha256:277658fad225fa986eb7c3e5adf984d0c3b9a21f5557b5e82dcd6885bb4d6a52"
+        docker : "gcr.io/nygc-public/broadinstitute/gatk4@sha256:b3bde7bc74ab00ddce342bd511a9797007aaf3d22b9cfd7b52f416c893c3774c"
     }
 }
 
@@ -511,7 +512,7 @@ task CalculateContamination {
         cpus: threads
         cpu : threads
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/broadinstitute/gatk@sha256:277658fad225fa986eb7c3e5adf984d0c3b9a21f5557b5e82dcd6885bb4d6a52"
+        docker : "gcr.io/nygc-public/broadinstitute/gatk4@sha256:b3bde7bc74ab00ddce342bd511a9797007aaf3d22b9cfd7b52f416c893c3774c"
         disks: "local-disk " + diskSize + " HDD"
     }
 }
@@ -547,7 +548,7 @@ task CalculateContaminationPaired {
         cpus: threads
         cpu : threads
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/broadinstitute/gatk@sha256:277658fad225fa986eb7c3e5adf984d0c3b9a21f5557b5e82dcd6885bb4d6a52"
+        docker : "gcr.io/nygc-public/broadinstitute/gatk4@sha256:b3bde7bc74ab00ddce342bd511a9797007aaf3d22b9cfd7b52f416c893c3774c"
     }
 }
 
