@@ -116,6 +116,7 @@ def load_runtime(file, costs, uuid):
     runtime.drop(columns=['group_count', 'group_cost', 'group_runtime'], inplace=True)
     cost_cols_map = {col : 'avg_' + col for col in cost_cols + ['total_cost']}
     runtime = runtime.rename(columns=cost_cols_map)
+    runtime['vm_summary'] = runtime.cpu_platform + ' ' + runtime.machine_type + ' ' + runtime.disk_type
     return runtime
 
 

@@ -97,6 +97,7 @@ class Runtime():
                                                                   'disk_total_gb', 'actual_start_time']]
                                      .drop_duplicates(subset=['instance_id']),
                                      on='instance_name', how='left')
+            self.metadata['vm_summary'] = self.metadata.cpu_platform + ' ' + self.metadata.disk_type
             self.metadata['wait_time_m'] = (self.metadata['actual_start_time'] - self.metadata['start_time']) / pd.Timedelta(minutes=1)
             self.metadata['actual_runtime_m'] = (self.metadata['end_time'] - self.metadata['actual_start_time']) / pd.Timedelta(minutes=1)
             self.metadata['mem_total_gb'].fillna(self.metadata['mem_total_gb_runtime'], inplace=True)
@@ -416,6 +417,8 @@ class Runtime():
                                       'inputs' : inputs
                                       })
         self.metadata['main_workflow_name'] = main_workflow_name
+        self.metadata['disk_type'] = self.metadata.apply(lambda row: row.disk_types.replace('[\'', '').replace('\']', '')
+                                                if str(row.disk_types) != 'nan' else '', axis=1)
         self.metadata['labels'] = labels
         self.deduplicate_metadata()
         self.metadata['start_time'] = pd.to_datetime(self.metadata['start_time'],
