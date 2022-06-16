@@ -1394,6 +1394,20 @@
                 "index": "gs://nygc-resources-public/gnomAD/gnomad_data/vcf/GRCh38/gnomad-and-ALL_GRCh38_sites.20170504.normalized.modified.PASS.vcf.gz.tbi"
             }
         },
+        "bwamem2Reference": {
+            "type": "BwaMem2Reference",
+            "description": "BWA-MEM2 index built on 6/14/22",
+            "object": {
+                "fasta": "gs://nygc-resources-public/GRCh38_tcga/bwa-mem2/GRCh38.d1.vd1.fa",
+                "bwt2bit": "gs://nygc-resources-public/GRCh38_tcga/bwa-mem2/GRCh38.d1.vd1.fa.bwt.2bit.64",
+                "pac": "gs://nygc-resources-public/GRCh38_tcga/bwa-mem2/GRCh38.d1.vd1.fa.pac",
+                "ann": "gs://nygc-resources-public/GRCh38_tcga/bwa-mem2/GRCh38.d1.vd1.fa.ann",
+                "amb": "gs://nygc-resources-public/GRCh38_tcga/bwa-mem2/GRCh38.d1.vd1.fa.amb",
+                "num": "gs://nygc-resources-public/GRCh38_tcga/bwa-mem2/GRCh38.d1.vd1.fa.0123",
+                "dict": "gs://nygc-resources-public/GRCh38_tcga/bwa-mem2/GRCh38.d1.vd1.dict",
+                "index": "gs://nygc-resources-public/GRCh38_tcga/bwa-mem2/GRCh38.d1.vd1.fa.fai"
+              }
+        },
         "bwaReference": {
             "type": "BwaReference",
             "description": "ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/GRCh38_reference_genome/README.20150309.GRCh38_full_analysis_set_plus_decoy_hla",
