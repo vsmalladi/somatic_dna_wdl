@@ -578,6 +578,21 @@
 
             }
         },
+        "bwamem2Reference": {
+            "type": "BwaMem2Reference",
+            "description": "BWA-MEM2 index built on 5/9/22",
+            "object": {
+                "fasta": "/gpfs/commons/groups/nygcfaculty/kancero/data/bwa-mem2/GRCh38_full_analysis_set_plus_decoy_hla.fa",
+                "bwt2bit": "/gpfs/commons/groups/nygcfaculty/kancero/data/bwa-mem2/GRCh38_full_analysis_set_plus_decoy_hla.fa.bwt.2bit.64",
+                "pac": "/gpfs/commons/groups/nygcfaculty/kancero/data/bwa-mem2/GRCh38_full_analysis_set_plus_decoy_hla.fa.pac",
+                "ann": "/gpfs/commons/groups/nygcfaculty/kancero/data/bwa-mem2/GRCh38_full_analysis_set_plus_decoy_hla.fa.ann",
+                "amb": "/gpfs/commons/groups/nygcfaculty/kancero/data/bwa-mem2/GRCh38_full_analysis_set_plus_decoy_hla.fa.amb",
+                "num": "/gpfs/commons/groups/nygcfaculty/kancero/data/bwa-mem2/GRCh38_full_analysis_set_plus_decoy_hla.fa.0123",
+                "alt": "/gpfs/commons/groups/nygcfaculty/kancero/data/bwa-mem2/GRCh38_full_analysis_set_plus_decoy_hla.fa.alt",
+                "dict": "/gpfs/commons/groups/nygcfaculty/kancero/data/bwa-mem2/GRCh38_full_analysis_set_plus_decoy_hla.dict",
+                "index": "/gpfs/commons/groups/nygcfaculty/kancero/data/bwa-mem2/GRCh38_full_analysis_set_plus_decoy_hla.fa.fai"
+              }
+        },
         "MillsAnd1000G": {
             "type": "IndexedVcf",
             "description": "",
@@ -1313,6 +1328,20 @@
                 "vcf": "/gpfs/commons/groups/nygcfaculty/kancero/data/gnomad-and-ALL_GRCh38_sites.20170504.normalized.modified.PASS.vcf.gz",
                 "index": "/gpfs/commons/groups/nygcfaculty/kancero/data/gnomad-and-ALL_GRCh38_sites.20170504.normalized.modified.PASS.vcf.gz.tbi"
             }
+        },
+        "bwamem2Reference": {
+            "type": "BwaMem2Reference",
+            "description": "BWA-MEM2 index built on 6/14/22",
+            "object": {
+                "fasta": "gs://nygc-resources-public/GRCh38_tcga/bwa-mem2/GRCh38.d1.vd1.fa",
+                "bwt2bit": "gs://nygc-resources-public/GRCh38_tcga/bwa-mem2/GRCh38.d1.vd1.fa.bwt.2bit.64",
+                "pac": "gs://nygc-resources-public/GRCh38_tcga/bwa-mem2/GRCh38.d1.vd1.fa.pac",
+                "ann": "gs://nygc-resources-public/GRCh38_tcga/bwa-mem2/GRCh38.d1.vd1.fa.ann",
+                "amb": "gs://nygc-resources-public/GRCh38_tcga/bwa-mem2/GRCh38.d1.vd1.fa.amb",
+                "num": "gs://nygc-resources-public/GRCh38_tcga/bwa-mem2/GRCh38.d1.vd1.fa.0123",
+                "dict": "gs://nygc-resources-public/GRCh38_tcga/bwa-mem2/GRCh38.d1.vd1.dict",
+                "index": "gs://nygc-resources-public/GRCh38_tcga/bwa-mem2/GRCh38.d1.vd1.fa.fai"
+              }
         },
         "bwaReference": {
             "type": "BwaReference",

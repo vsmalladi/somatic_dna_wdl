@@ -13,10 +13,11 @@ workflow Preprocess {
     #   merge lane level BAMs
     input {
         Boolean external = false
+        Boolean highMem = false
 
         Array[Fastqs] listOfFastqPairs
         Boolean trim = true
-        BwaReference bwaReference
+        BwaMem2Reference bwamem2Reference
         File adaptersFa
         #    command merge flowcell
         String sampleId
@@ -33,10 +34,15 @@ workflow Preprocess {
 
         # resources
         #    prep flowcell
-        Int bwaMem = 86
-        Int novosortMem = 32
         Int threads = 16
-        Int bwaThreads = 96
+        Int bwamem2Threads = 80
+    }
+
+    Int bwamem2Mem = 86
+    Int novosortMem = 32
+    
+    if (highMem) {
+        Int novosortMem = 80
     }
 
     call alignFastq.AlignFastq {
@@ -44,10 +50,10 @@ workflow Preprocess {
             listOfFastqPairs = listOfFastqPairs,
             trim = trim,
             adaptersFa = adaptersFa,
-            bwaReference = bwaReference,
-            bwaMem = bwaMem,
+            bwamem2Reference = bwamem2Reference,
+            bwamem2Mem = bwamem2Mem,
             threads = threads,
-            bwaThreads = bwaThreads
+            bwamem2Threads = bwamem2Threads
     }
 
     call mergeBams.MergeBams {

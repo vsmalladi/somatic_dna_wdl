@@ -230,25 +230,59 @@ cromwell-tools status \
 --uuid ${uuid}
 ```
 
-After workflow finishes and the status is `SUCCEEDED` run:
+After workflow finishes and the status is `SUCCEEDED` or while it is running use `run_summary.sh` to review run metrics and cost:
 
 ```
-cd ${working-dir}
+USAGE: run_summary.sh -u URL -n PROJECT_NAME -g GCP_PROJECT -d log_dir [-r RUNINFO_JSON] [-i UUID] [-b BILLING EXPORT] [--from-billing] [-p PAIRS_FILE] [-s SAMPLES_FILE]
+DESCRIPTION: monitor or summarize cromwell workflow.
+Script requires jq to be in the path.
+If no *.RunInfo.json file OR uuid is provided then
+the most recent file in the log dir will be used
+Script generates summary of any workflow.
+-h, --help          Show this help message and exit
+  --billing-export BILLING     The name of the table for the SQL query
+                               of the billing table.
+  --from-billing               Skip regenerating runtime metrics. Use existing
+                               metrics files; add the cost values from the billing
+                               table; and plot the results (including billing).
+  --gcp-project GCP_PROJECT    GCP project id for api queries.
+  --run-info-json RUNINFO_JSON Optional file that includes any sampleIds and the
+                               main workflow UUID.
+  --url URL                    Cromwell server URL (required)
+  --log-dir LOG_DIR            Output directory for all logs and reports
+                               related to this workflow UUID (required)
+  --project-name PROJECT_NAME  Project name associated with account.
+  --pairs-file PAIRS_FILE
+                               Optional, CSV file with items that are required to have
+                               "tumor", "normal" and "pairId" in the columns.
+                               Optionally, include "tumorBam", "normalBam" columns to create
+                               "pairInfos" and "normalSampleBamInfos" automatically.
+  --samples-file [SAMPLES_FILE]
+                               Not generally required. If tasks only require
+                               sampleId and do not use pairing information sample
+                               info can be populated with a CSV file. The CSV file
+                               requires a columns named ["sampleId"].
+```
 
-bash ../somatic_dna_wdl/run_summary.sh \
+Command:
+
+```
+bash templates/run_summary.sh \
 -u ${url} \
 -d ${log_dir} \
 -p ${gcp_project} \
 -n ${project_name}
-
-# optionally add -r ${run_info} or the script will use the most recent *RunInfo.json file in the ${log_dir}
 ```
 
-If you do not have a `*RunInfo.json` you can start with the workflow uuid and optionally a sample or pair csv file
+Optionally add `-r ${run_info}` or `--uuid ${uuid}` to the command. Otherwise, the script will use the
+most recent `*RunInfo.json` file in the `${log_dir}`.
+
+If you do not have a `*RunInfo.json` you can start with the workflow uuid 
+(a sample or pair csv file can also be indicated but is not required).
 
 ```
 bash \
-../somatic_dna_wdl/run_summary.sh \
+templates/run_summary.sh \
 -u ${url} \
 -d ${log_dir} \
 -b ${billing_export} \
@@ -258,10 +292,13 @@ bash \
 --samples-file ${sample_id_list}
 ```
 
-NOTE: Optionally add (where `${billing_export}` is the name of the table for the SQL query) to add cost per instance_id to results:
+#### NOTE: Optionally add the following flag (where `${billing_export}` 
+is the name of the table for the SQL query) to add cost per instance_id to results:
+
 ```
 -b ${billing_export}
 ```
+
 
 #### Output:
 If the workflow finishes and the status is `SUCCEEDED` and you have run `run_summary.sh`. It will output several log files:
@@ -284,18 +321,22 @@ Note: Pair association only works if the pair_id is used in the filename followe
 `${lab_quote_number}<WORKFLOW_UUID>_outputMetrics.csv`
 the file includes the following metrics calculated from the BigQuery cromwell monitor:
 
-    'id', 'project_id', 'zone', 'instance_name', 
-    'preemptible', 'workflow_name', 'workflow_id', 
-    'task_call_name', 'shard', 'attempt', 
-    'start_time', 'end_time', 'execution_status', 
-    'cpu_count', 'mem_total_gb', 'disk_mounts', 
-    'disk_total_gb', 'disk_types', 'docker_image',
-    'inputs', 'run_time', 'run_time_m', 
-    'cpu_time_m', 'mean_task_core_h', 'mean_task_run_time_h', 
-    'sample_task_run_time_h', 'max_mem_g', 'sample_task_core_h',
-    'sample_subworkflow_core_h', 'sample_subworkflow_run_time_h', 
-    'subworkflow_max_mem_g', 'sample_workflow_core_h', 
-    'sample_workflow_run_time_h', 'workflow_max_mem_g'
+       'task_call_name', 'wdl_task_name', 'sub_workflow_name', 'workflow_name',
+       'execution_status', 'cpu_count', 'disk_types', 'docker_image',
+       'attempt', 'backend_status', 'preemptible', 'instance_name', 'zone',
+       'project_id', 'return_code', 'workflow_id', 'shard', 'start_time',
+       'end_time', 'localization_m', 'inputs', 'main_workflow_name', 'labels',
+       'id', 'instance_id', 'cpu_platform', 'mem_total_gb', 'disk_mounts',
+       'disk_total_gb', 'actual_start_time', 'wait_time_m', 'actual_runtime_m',
+       'max_cpu_used_percent', 'max_disk_used_gb', 'max_mem_used_gb',
+       'run_time', 'run_time_m', 'cpu_time_m', 'sample_task_run_time_h',
+       'sample_task_core_h', 'sample_subworkflow_core_h',
+       'sample_subworkflow_run_time_h', 'subworkflow_max_mem_g',
+       'sample_workflow_core_h', 'sample_workflow_run_time_h',
+       'workflow_max_mem_g', 'main_workflow_id', 'cromwell_workflow_id',
+       'avg_capacity_cost', 'avg_core_cost', 'avg_egress_cost', 'avg_ram_cost',
+       'avg_total_cost', 'runtime_scaled_total_cost', 'machine_type',
+       'disk_type'
     
 `${lab_quote_number}<WORKFLOW_UUID>_outputMetrics.html`
 This file includes plots of runtime metrics.

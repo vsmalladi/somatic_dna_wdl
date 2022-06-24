@@ -51,7 +51,8 @@ workflow Mutect2Pon {
                 chrom = chrom,
                 pairName = tumor,
                 referenceFa = referenceFa,
-                # mutect2ChromRawVcf = select_first([Mutect2WgsPon.mutect2ChromRawVcf])
+                # mutect2ChromRawVcf = select_first([Mutect2WgsPon.mutect2ChromRawVcf]),
+                mutect2ChromRawStats = Mutect2WgsPon.mutect2ChromRawStats,
                 mutect2ChromRawVcf = Mutect2WgsPon.mutect2ChromRawVcf,
                 memoryGb = callMemoryGb,
                 diskSize = filterDiskSize

@@ -600,6 +600,7 @@ task Mutect2WgsPon {
         Int diskSize
         String chrom
         String tumor
+        String mutect2ChromRawStatsPath = "~{tumor}_~{chrom}.mutect2.raw.vcf.stats"
         String mutect2ChromRawVcfPath = "~{tumor}_~{chrom}.mutect2.raw.vcf"
         IndexedReference referenceFa
         Bam tumorFinalBam
@@ -618,6 +619,7 @@ task Mutect2WgsPon {
 
     output {
         File mutect2ChromRawVcf = "~{mutect2ChromRawVcfPath}"
+        File mutect2ChromRawStats = "~{mutect2ChromRawStatsPath}"
     }
 
     runtime {

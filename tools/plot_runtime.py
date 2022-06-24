@@ -28,7 +28,7 @@ class PlotRuntime():
     '''Plot results from outputMetrics.csv'''
     def __init__(self,
                  project_id,
-                 manifest=False, 
+                 manifest=False,
                  output_info_file=False,
                  metrics_file=False,
                  non_retry_metrics_file=False,
@@ -73,13 +73,18 @@ class PlotRuntime():
         self.gather_summary()
         self.plot_summary()
         self.plot_preempts()
+        self.plot_wait_time()
+        if 'avg_total_cost' in self.metadata.columns:
+            self.plot_cost()
+        else:
+            self.cost_fig = False
         # main figs
         self.fig = self.plot_by_steps(data_steps=self.metadata,
                                       non_retry_data_steps=self.non_retry_metadata,
                                       button=True,
                                       x="workflow_name",
-                                      ys=["sample_task_core_h", 
-                                          "max_mem_used_gb", 
+                                      ys=["sample_task_core_h",
+                                          "max_mem_used_gb",
                                           "sample_task_run_time_h"],
                                       color="task_call_name",
                                       hover_data=['id'],
@@ -95,8 +100,8 @@ class PlotRuntime():
                                       non_retry_data_steps=self.non_retry_metadata[self.non_retry_metadata.preemptible == False],
                                       button=True,
                                       x="workflow_name",
-                                      ys=["sample_task_core_h", 
-                                          "max_mem_used_gb", 
+                                      ys=["sample_task_core_h",
+                                          "max_mem_used_gb",
                                           "sample_task_run_time_h"],
                                       color="task_call_name",
                                       hover_data=['id'],
@@ -112,8 +117,8 @@ class PlotRuntime():
                                        non_retry_data_steps=self.non_retry_metadata,
                                        button=False,
                                        x="workflow_name",
-                                       ys=["sample_subworkflow_core_h", 
-                                          "subworkflow_max_mem_g", 
+                                       ys=["sample_subworkflow_core_h",
+                                          "subworkflow_max_mem_g",
                                           "sample_subworkflow_run_time_h"],
                                        color="workflow_name",
                                        hover_data=['id'],
@@ -129,8 +134,8 @@ class PlotRuntime():
                                        non_retry_data_steps=self.non_retry_metadata,
                                        button=False,
                                        x="id",
-                                       ys=["sample_workflow_core_h", 
-                                          "workflow_max_mem_g", 
+                                       ys=["sample_workflow_core_h",
+                                          "workflow_max_mem_g",
                                           "sample_workflow_run_time_h"],
                                        color="id",
                                        hover_data=['id'],
@@ -142,9 +147,9 @@ class PlotRuntime():
                                               'task_call_name' : 'Task'},
                                        title='<b>Workflows: resource usage summary plot</b>',
                                        x_title="Full pipeline")
-        self.fig4, self.fig5, self.fig6 = self.custom_by_steps(data_steps=self.metadata,
+        self.fig4, self.fig5, self.fig6, self.cummulative_cost_fig = self.custom_by_steps(data_steps=self.metadata,
                                                               non_retry_data_steps=self.non_retry_metadata,
-                                                              button=True,                                      
+                                                              button=True,
                                                               x="workflow_name",
                                                               top_ys=["mem_total_gb", "disk_total_gb", ""],
                                                               central_ys=["max_mem_used_gb", "max_disk_used_gb", "sample_task_run_time_h"],
@@ -182,20 +187,24 @@ class PlotRuntime():
         '''Add details about percent of instances that are preemptible'''
         self.metadata = self.metadata[~(self.metadata.backend_status.isin(['Running', 'CacheHit']))].copy()
         # exit status of non-zero exits
-        exit_status = self.metadata[['task_call_name', 
+        exit_status = self.metadata[['task_call_name',
                                      'backend_status']].value_counts().to_frame().reset_index()
         self.exit_status = exit_status[exit_status.backend_status != 'Success']
         self.exit_status.columns = ['Task', 'Exit status', 'Count']
         # preemptible percentage
-        print(self.metadata.preemptible.unique())
-#         print(self.metadata.shape)
         testable = self.metadata.dropna(subset=['preemptible'])
-        self.preemptible_percent = testable[testable.preemptible].shape[0] / float(testable.shape[0])
+        self.preemptible_percent = (testable[testable.preemptible].shape[0] / float(testable.shape[0])) * 100
+        self.preemptible_percent_runtime = (testable[testable.preemptible].run_time_m.sum() / float(testable.run_time_m.sum())) * 100
         # disk type
-        self.metadata['disk_type']= self.metadata.apply(lambda row: row.disk_types.replace('[\'', '').replace('\']', '') 
+        self.metadata['disk_type']= self.metadata.apply(lambda row: row.disk_types.replace('[\'', '').replace('\']', '')
                                                         if str(row.disk_types) != 'nan' else '', axis=1)
-        self.disk_type = self.metadata.groupby(['task_call_name', 'id', 'instance_name', 'disk_type']).sample_task_run_time_h.sum().reset_index()
-        self.disk_type.columns = ['Task', 'Id', 'Instance name', 'Disk type', 'Wall clock (h)']
+        # create vm summary
+        if 'machine_type' in self.metadata.columns:
+            self.metadata['vm_summary'] = self.metadata.cpu_platform + ' ' + self.metadata.machine_type + ' ' + self.metadata.disk_type
+        else:
+            self.metadata['vm_summary'] = self.metadata.cpu_platform + ' ' + self.metadata.disk_type
+        self.disk_type = self.metadata.groupby(['task_call_name', 'id', 'instance_name', 'disk_type', 'vm_summary']).sample_task_run_time_h.sum().reset_index()
+        self.disk_type.columns = ['Task', 'Id', 'Instance name', 'Disk type', 'VM type', 'Wall clock (h)']
         
     def add_button(self, fig):
         fig.update_layout(updatemenus=[{'type' : 'buttons',
@@ -205,10 +214,10 @@ class PlotRuntime():
                                                     'args' : [{'visible' : [True] * self.all_levels + [False] * self.non_retry_levels},
                                                               {'title' : 'All instances'}]
                                                     },
-                                                    {'label' : 'Non-RetryableFailure instances',
+                                                    {'label' : 'Non-Preempted instances',
                                                     'method' : 'update',
                                                     'args' : [{'visible' : [False] * self.all_levels + [True] * self.non_retry_levels},
-                                                              {'title' : 'Non-RetryableFailure instances'}]
+                                                              {'title' : 'Non-Preempted instances'}]
                                                     }]
                                        }])
         return fig
@@ -227,9 +236,82 @@ class PlotRuntime():
             self.preempt_fig = ploter.Fig(fig)
         else:
             self.preempt_fig = False
+    
+    def plot_wait_time(self):
+        waits = self.metadata[['task_call_name', 'vm_summary', 'sample_task_run_time_h', 'wait_time_m']].copy()
+        if not waits.empty:
+            waits = waits.dropna(subset=['wait_time_m']).copy()
+            waits.columns = ['Task', 'VM type', 'Wall clock (h)', 'Wait time (m)']
+            fig = px.box(waits, x='Task', y='Wait time (m)', points="all",
+                              color_discrete_sequence=self.colors_set1,
+                              color='VM type')
+            fig.update_layout(xaxis_type='category',
+                              title_text='Wait time before jobs begin (m)')
+            fig.update_xaxes(title_text='')
+            fig.update_yaxes(title_text="Wait time (m)")
+            self.wait_fig = ploter.Fig(fig)
+        else:
+            self.wait_fig = False
+    
+    def plot_cost(self):
+        costs = self.metadata[['task_call_name', 'vm_summary', 'sample_task_run_time_h',
+                                'avg_total_cost', 'runtime_scaled_total_cost']].copy()
+        if not costs.empty:
+            costs = costs.dropna(subset=['runtime_scaled_total_cost']).copy()
+            costs.columns = ['Task', 'VM type', 'Wall clock (h)', 'Average cost', 'Runtime scaled cost']
+            fig1 = px.box(costs, x='Task', y='Runtime scaled cost', points="all",
+                              color_discrete_sequence=self.colors_set1,
+                              color='VM type')
+            fig1.update_layout(xaxis_type='category',
+                              title_text='Cost')
+            fig1.update_xaxes(title_text='')
+            fig1.update_yaxes(title_text="Runtime scaled cost")
+            # create scatter plot
+            fig2 = px.scatter(costs, x='Wall clock (h)', y='Runtime scaled cost',
+                              color_discrete_sequence=self.colors_set2,
+                              color='Task')
+            fig2.update_layout(title_text='Cost by runtime')
+            fig2.update_xaxes(title_text='Wall clock (h)')
+            fig2.update_yaxes(title_text="Runtime scaled cost")
+            fig = make_subplots(rows=1,
+                        cols=2,
+                        subplot_titles=("", ""))
+            # All instances
+            for trace in fig1.data:
+                trace['showlegend'] = True
+                trace['pointpos'] = 0
+                fig.add_trace(
+                              trace,
+                              row=1, col=1
+                             )
+            for trace in fig2.data:
+                trace['showlegend'] = True
+                fig.add_trace(
+                              trace,
+                              row=1, col=2
+                           )
+            # add labels
+            fig.update_layout(title_text="Cost details")
+            fig.update_xaxes(title_text='')
+            fig.update_yaxes(title_text="Runtime-scaled cost",
+                             range=[0, costs['Runtime scaled cost'].max() + 2],
+                             row=1, col=1)
+            fig.update_yaxes(title_text="",
+                             range=[0, costs['Runtime scaled cost'].max() + 2],
+                             row=1, col=2)
+            fig.update_xaxes(title_text="",
+    #                         categoryarray=category_orders[ys[0]],
+    #                         categoryorder='array',
+                             row=1, col=1)
+            fig.update_xaxes(title_text="Wall clock (h)",
+                             row=1, col=2)
+    #        fig.update_xaxes(tickfont={'size' : 5})
+            self.cost_fig = ploter.Fig(fig)
+        else:
+            self.cost_fig = False
         
     def plot_summary(self):
-        fig = px.box(self.disk_type, x='Disk type', y='Wall clock (h)', points="all",
+        fig = px.box(self.disk_type, x='VM type', y='Wall clock (h)', points="all",
                           color_discrete_sequence=self.colors_set2,
                           color='Task',
                           height=300)
@@ -237,7 +319,7 @@ class PlotRuntime():
             trace['showlegend'] = True
             trace['pointpos'] = 0
         fig.update_layout(xaxis_type='category',
-                          title_text='<b>Runtime by disk type</b>')
+                          title_text='<b>Runtime by VM type</b>')
         fig.update_xaxes(title_text='')
         fig.update_yaxes(title_text="Wall clock (h)")
         self.disk_type_plot = ploter.Fig(fig)
@@ -249,11 +331,11 @@ class PlotRuntime():
         
     def write_summary(self):
         '''Write about details including percent of instances that are preemptible'''
-        lines = []
-        lines += [str(int(self.preemptible_percent)) + '% of instances were preemptible.',
-                  '']
-        
-    
+        lines = ['Below is a table of all the tasks with non-zero exit status. ']
+        lines += ['Overall, ' + str(int(self.preemptible_percent)) + '% of instances were preemptible. ',
+                  '' + str(int(self.preemptible_percent_runtime)) + '% of total run time was on preemptible instances.']
+        return lines
+
     def get_table(self):
         '''Make workflow resource usage summary table'''
         table_data = self.metadata[['id', 'sample_workflow_run_time_h']].copy()
@@ -267,7 +349,7 @@ class PlotRuntime():
                                                scroll=True)
         return summary_table
     
-    def custom_by_steps(self, 
+    def custom_by_steps(self,
                           data_steps,
                           non_retry_data_steps,
                           button=False,
@@ -328,9 +410,9 @@ class PlotRuntime():
             ))
         # plot stacked bar of task persample summed runtime [x, 'id']
         data_steps['Result set'] = 'All runs'
-        non_preemptible_data_steps = data_steps[data_steps.preemptible == False].copy()
-        non_preemptible_data_steps['Result set'] = 'Non-preemptible runs'
-        plot_data = pd.concat([data_steps, non_preemptible_data_steps], ignore_index=True)
+        non_preempted_data_steps = data_steps[data_steps.backend_status == 'Success'].copy()
+        non_preempted_data_steps['Result set'] = 'Non-preemptedruns'
+        plot_data = pd.concat([data_steps, non_preempted_data_steps], ignore_index=True)
         fig3 = px.bar(plot_data, x='task per id', y=central_ys[2],
                       hover_data=['id', 'task per id', central_ys[2], 'preemptible'],
                       labels=labels,
@@ -343,9 +425,66 @@ class PlotRuntime():
         fig3.update_xaxes(matches='x')
         if x.lower() in ['task per id', 'id']:
             fig.update_xaxes(tickfont={'size' : 5})
-        return ploter.Fig(fig1), ploter.Fig(fig2), ploter.Fig(fig3)
+        if 'avg_total_cost' in data_steps.columns:
+            # all tasks
+            fig4 = px.bar(data_steps, x='task per id', y='runtime_scaled_total_cost',
+                          hover_data=['id', 'task per id', 'runtime_scaled_total_cost', 'preemptible'],
+                          labels=labels,
+                          facet_row='Result set',
+                          title='<b>Cumulative cost per ID</b>',
+                          color_discrete_sequence=color_discrete_sequence,
+                          color=color, category_orders=category_orders)
+            fig4.update_traces(marker=dict(line=dict(width=0)))
+            fig4.update_xaxes(tickangle=45)
+            fig4.update_xaxes(matches='x')
+            if x.lower() in ['task per id', 'id']:
+                fig.update_xaxes(tickfont={'size' : 5})
+            # succeeded tasks only
+            fig5 = px.bar(non_preempted_data_steps, x='task per id', y='runtime_scaled_total_cost',
+                          hover_data=['id', 'task per id', 'runtime_scaled_total_cost', 'preemptible'],
+                          labels=labels,
+                          facet_row='Result set',
+                          title='<b>Cumulative cost per ID</b>',
+                          color_discrete_sequence=color_discrete_sequence,
+                          color=color, category_orders=category_orders)
+            fig5.update_traces(marker=dict(line=dict(width=0)))
+            fig5.update_xaxes(tickangle=45)
+            fig5.update_xaxes(matches='x')
+            if x.lower() in ['task per id', 'id']:
+                fig.update_xaxes(tickfont={'size' : 5})
+            fig = make_subplots(rows=1,
+                    cols=1,
+                    subplot_titles=(""))
+            # All instances
+            for trace in fig4.data:
+                trace['showlegend'] = True
+                fig.add_trace(
+                              trace,
+                              row=1, col=1
+                             )
+            for trace in fig5.data:
+                trace['showlegend'] = True
+                trace['visible'] = False
+                fig.add_trace(
+                              trace,
+                              row=1, col=1
+                           )
+#            if button:
+            self.all_levels = len(fig4.data)
+            self.non_retry_levels = len(fig5.data)
+            fig = self.add_button(fig)
+            fig.update_layout(barmode='stack')
+            fig.update_layout(title_text="Cumulative cost per ID")
+            fig.update_xaxes(title_text='')
+            fig.update_yaxes(title_text="Runtime-scaled cost",
+                             range=[0, data_steps['runtime_scaled_total_cost'].max() + 2],
+                             row=1, col=1)
+            cummulative_cost_fig = ploter.Fig(fig)
+        else:
+            cummulative_cost_fig = False
+        return ploter.Fig(fig1), ploter.Fig(fig2), ploter.Fig(fig3), cummulative_cost_fig
     
-    def plot_by_steps(self, 
+    def plot_by_steps(self,
                       data_steps,
                       non_retry_data_steps,
                       button=False,
@@ -396,7 +535,7 @@ class PlotRuntime():
                           hover_data=hover_data,
                           labels=labels,
                           color_discrete_sequence=color_discrete_sequence,
-                          color=color, category_orders=category_orders)        
+                          color=color, category_orders=category_orders)
             self.non_retry_levels = len(fig4.data) + len(fig5.data) + len(fig6.data)
         fig = make_subplots(rows=1,
                             cols=3,
@@ -423,7 +562,7 @@ class PlotRuntime():
                           trace,
                           row=1, col=3
                        )
-        # Non-RetryableFailure instances
+        # Non-Preempted instances
         if button:
             for trace in fig4.data:
                 trace['showlegend'] = False
@@ -452,14 +591,14 @@ class PlotRuntime():
         fig.update_layout(xaxis_type='category',
                           title_text=title)
         fig.update_xaxes(title_text='')
-        fig.update_yaxes(title_text="CPU Time (h)", 
+        fig.update_yaxes(title_text="CPU Time (h)",
                          range=[0, self.metadata[ys[0]].max() + 2],
                          row=1, col=1)
-        fig.update_yaxes(title_text="Mem (G)", 
+        fig.update_yaxes(title_text="Mem (G)",
                          range=[0, self.metadata[ys[1]].max() + 2],
                          row=1, col=2)
         fig.update_yaxes(title_text="Wall clock (h)",
-                         range=[0, self.metadata[ys[2]].max() + 2], 
+                         range=[0, self.metadata[ys[2]].max() + 2],
                          row=1, col=3)
         fig.update_xaxes(title_text="",
                          categoryarray=category_orders[ys[0]],
@@ -477,7 +616,7 @@ class PlotRuntime():
             fig.update_xaxes(tickfont={'size' : 5})
         if button:
             fig = self.add_button(fig)
-        return ploter.Fig(fig)  
+        return ploter.Fig(fig)
         
     
 def make_files(results, appendix=False):
@@ -496,7 +635,7 @@ def make_files(results, appendix=False):
         #  Section Logo and basic info
         #  =======================
 #         basic_info = ''.join(['\n\nRuntime metrics: v7 pipeline',
-#                               '\n\nRuntime for different task, subworkflows and full workflows of the v7 pipeline are shown below.\n\n',  
+#                               '\n\nRuntime for different task, subworkflows and full workflows of the v7 pipeline are shown below.\n\n',
 #                               '\n\nTask runtime and core hours can have preempted workflow runtime removed but this cannot be subtracted from the full workflow runtime.\n\n'
 #                               ])
         basic_info = ''.join(['\n\n<b>Project :</b> ', results.project_id, '\n\n'])
@@ -530,7 +669,7 @@ def make_files(results, appendix=False):
         #  Non-zero exit status
         #  =======================
         if results.preempt_fig:
-            section_content = ''.join([''])
+            section_content = ''.join(results.write_summary())
     #         section_content = ''.join(['All tasks with non-zero exit status.'])
             lines = [contents.add_line(content=section_content,
                                         libraries=['WGS', 'Exome'],
@@ -543,7 +682,38 @@ def make_files(results, appendix=False):
                                               results.exit_status_table.div),
                                             (results.preempt_fig.script,
                                              results.preempt_fig.div)])
-        
+        #  =======================
+        #  Wait time (m)
+        #  =======================
+        if results.wait_fig:
+            section_content = ''.join([''])
+    #         section_content = ''.join(['All tasks with non-zero exit status.'])
+            lines = [contents.add_line(content=section_content,
+                                        libraries=['WGS', 'Exome'],
+                                        types=['tumor_only', 'paired'],
+                                        audiences=['internal', 'external'])]
+            all_section_content = md_content.join_ignore_none(lines)
+            md_content.update_doc(section_header='Job wait time',
+                                  center_content=all_section_content,
+                                  figures=[(results.wait_fig.script,
+                                            results.wait_fig.div)])
+        #  =======================
+        #  Cost
+        #  =======================
+        if results.cost_fig:
+            section_content = ''.join([''])
+    #         section_content = ''.join(['All tasks with non-zero exit status.'])
+            lines = [contents.add_line(content=section_content,
+                                        libraries=['WGS', 'Exome'],
+                                        types=['tumor_only', 'paired'],
+                                        audiences=['internal', 'external'])]
+            all_section_content = md_content.join_ignore_none(lines)
+            md_content.update_doc(section_header='Cost overview',
+                                  center_content=all_section_content,
+                                  figures=[(results.cost_fig.script,
+                                            results.cost_fig.div),
+                                            (results.cummulative_cost_fig.script,
+                                            results.cummulative_cost_fig.div)])
         #  =======================
         #  Task
         #  =======================
@@ -553,16 +723,17 @@ def make_files(results, appendix=False):
                                     types=['tumor_only', 'paired'],
                                     audiences=['internal', 'external'])]
         all_section_content = md_content.join_ignore_none(lines)
+        figures=[(results.fig.script,
+                results.fig.div),
+                (results.fig4.script,
+                results.fig4.div),
+                (results.fig5.script,
+                results.fig5.div),
+                (results.fig6.script,
+                results.fig6.div)]
         md_content.update_doc(section_header='Task metrics',
                               center_content=all_section_content,
-                              figures=[(results.fig.script,
-                                        results.fig.div),
-                                        (results.fig4.script,
-                                        results.fig4.div),
-                                        (results.fig5.script,
-                                        results.fig5.div),
-                                        (results.fig6.script,
-                                        results.fig6.div)])
+                              figures=figures)
         #  =======================
         #  Subworkflow
         #  =======================
@@ -649,7 +820,7 @@ def get_args():
                         required=False
                         )
     args_namespace = parser.parse_args()
-    return args_namespace.__dict__       
+    return args_namespace.__dict__
     
 def main():
     args = get_args()

@@ -49,7 +49,59 @@ task Skewer {
     }
 }
 
-task AlignBwaMem {
+task AlignBwaMem2 {
+    input {
+        # command
+        Fastqs fastqsAlign
+        BwaMem2Reference bwamem2Reference
+        String laneBamPath = "~{fastqsAlign.readgroupId}.readgroup.bam"
+        # resources
+        Int memoryGb
+        Int threads
+        Int bwamem2Threads
+        Int totalThreads = 96
+        Int diskSize
+
+        # Values used in RG tags. These are overridden for external fastqs or if we start using
+        # other sequencing platforms.
+        String platform = "illumina"
+        String machineType = "NovaSeq"
+        String center = "NYGenome"
+    }
+    command {
+        set -e -o pipefail
+        bwa-mem2 mem \
+        -Y \
+        -K 100000000 \
+        -t ~{bwamem2Threads} \
+        -R '@RG\tID:~{fastqsAlign.readgroupId}\tPL:~{platform}\tPM:~{machineType}\tLB:~{fastqsAlign.sampleId}\tDS:hg38\tSM:~{fastqsAlign.sampleId}\tCN:~{center}\tPU:${fastqsAlign.rgpu}' \
+        ~{bwamem2Reference.fasta} \
+        ~{fastqsAlign.fastqR1} \
+        ~{fastqsAlign.fastqR2} \
+        | samtools view \
+        -@ ~{threads} \
+        -Shb \
+        -o ~{laneBamPath} \
+        -
+    }
+    output {
+        File laneBam = laneBamPath
+    }
+    runtime {
+        mem: memoryGb + "G"
+        cpus: totalThreads
+        cpu : totalThreads
+        memory : memoryGb + " GB"
+        disks: "local-disk " + diskSize + " LOCAL"
+        docker : "gcr.io/nygc-public/bwamem2@sha256:d46d1433562b8a4e56486298ef522f02f17cb7bd079962b246245136cde15743"
+    }
+    meta {
+        tool : "bwa-mem"
+        version : "2-2.2.1_x64-linux"
+    }
+}
+
+task AlignMinimap2 {
     input {
         # command
         Fastqs fastqsAlign
@@ -58,7 +110,7 @@ task AlignBwaMem {
         # resources
         Int memoryGb
         Int threads
-        Int bwaThreads
+        Int minimapThreads
         Int totalThreads = 80
         Int diskSize
 
@@ -71,11 +123,11 @@ task AlignBwaMem {
     }
 
     command {
-        set -e -o pipefail
-        bwa mem \
+        minimap2 \
+        -a \
+        -xsr \
         -Y \
-        -K 100000000 \
-        -t ~{bwaThreads} \
+        -t ~{minimapThreads} \
         -R '@RG\tID:~{fastqsAlign.readgroupId}\tPL:~{platform}\tPM:~{machineType}\tLB:~{fastqsAlign.sampleId}\tDS:hg38\tSM:~{fastqsAlign.sampleId}\tCN:~{center}\tPU:${fastqsAlign.rgpu}' \
         ~{bwaReference.fasta} \
         ~{fastqsAlign.fastqR1} \
@@ -97,7 +149,7 @@ task AlignBwaMem {
         cpu : totalThreads
         memory : memoryGb + " GB"
         disks: "local-disk " + diskSize + " LOCAL"
-        docker : "gcr.io/nygc-public/bwa-kit@sha256:0642151a32fe8f90ece70cde3bd61a03c7421314c37c1de2c0ee5e368d2bfc7a"
+        docker : "gcr.io/nygc-compbio/minimap2:2.20-r1061"
     }
 }
 
