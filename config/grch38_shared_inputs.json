@@ -10,6 +10,17 @@
       "index": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/GRCh38_full_analysis_set_plus_decoy_hla.fa.fai",
      "dict": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/GRCh38_full_analysis_set_plus_decoy_hla.dict"
     },
+    "SomaticDNA.bwamem2Reference": {
+       "fasta": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/bwa-mem2/GRCh38_full_analysis_set_plus_decoy_hla.fa",
+        "bwt2bit": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/bwa-mem2/GRCh38_full_analysis_set_plus_decoy_hla.fa.bwt.2bit.64",
+        "pac": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/bwa-mem2/GRCh38_full_analysis_set_plus_decoy_hla.fa.pac",
+        "ann": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/bwa-mem2/GRCh38_full_analysis_set_plus_decoy_hla.fa.ann",
+        "amb": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/bwa-mem2/GRCh38_full_analysis_set_plus_decoy_hla.fa.amb",
+        "num": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/bwa-mem2/GRCh38_full_analysis_set_plus_decoy_hla.fa.0123",
+        "alt": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/bwa-mem2/GRCh38_full_analysis_set_plus_decoy_hla.fa.alt",
+        "dict": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/bwa-mem2/GRCh38_full_analysis_set_plus_decoy_hla.dict",
+        "index": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/bwa-mem2/GRCh38_full_analysis_set_plus_decoy_hla.fa.fai"
+   },
   "SomaticDNA.referenceFa": {
     "fasta": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/GRCh38_full_analysis_set_plus_decoy_hla.fa",
     "dict": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/GRCh38_full_analysis_set_plus_decoy_hla.dict",

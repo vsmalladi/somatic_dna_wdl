@@ -39,11 +39,13 @@ workflow Preprocess {
     }
 
     Int bwamem2Mem = 86
-    Int novosortMem = 32
+    Int novosortMemLow = 32
     
     if (highMem) {
-        Int novosortMem = 80
+        Int novosortMemHigh = 80
     }
+
+    Int novosortMem = select_first([novosortMemHigh, novosortMemLow])
 
     call alignFastq.AlignFastq {
         input:
