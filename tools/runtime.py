@@ -69,6 +69,10 @@ class Runtime():
             log.warning('No endtime found for workflow: ' + output_info['workflow_uuid'])
         elif not 'monitoring_image' in output_info['options'] :
             log.info('write metrics')
+            self.metadata['wait_time_m'] = (self.metadata['vm_start_time'] - self.metadata['start_time']) / pd.Timedelta(minutes=1)
+            self.metadata['vm_runtime_m'] = (self.metadata['end_time'] - self.metadata['vm_start_time']) / pd.Timedelta(minutes=1)
+            # get cpu_time
+            self.metadata['cpu_time_m'] = self.metadata['vm_runtime_m'] * self.metadata['cpu_count']
             self.metadata = self.load_plot_metrics(self.metadata)
             self.metadata.to_csv(self.metrics_file, index=False, float_format='{:f}'.format,
                                  encoding='utf-8')
@@ -80,26 +84,30 @@ class Runtime():
             missing = runtime_workflow_id.difference(metadata_workflow_id)
             assert len(missing) == 0 , 'Some workflow uuids found in runtime but not in metadata ' + ' '.join(missing)
             # merge runtime info with metadata
+            # Start time from metadata includes wait for a vm, the runtime table start_time (used in vm_runtime_m) is more accurate.
             self.runtime.columns = ['project_id', 'zone', 'instance_id', 'instance_name', 'preemptible',
                            'runtime_workflow_id', 'task_call_name', 'shard', 'attempt', 'cpu_count',
                            'cpu_platform', 'mem_total_gb', 'disk_mounts', 'disk_total_gb',
-                           'start_time']
+                           'vm_start_time']
             self.runtime = self.reset_instance_id(self.runtime)
             # rename the columns before merge, then replace where runtime NaN
             self.metadata.rename(columns={'mem_total_gb':'mem_total_gb_runtime',
                                           'disk_mounts': 'disk_mounts_runtime',
                                           'disk_total_gb': 'disk_total_gb_runtime',
                                           }, inplace=True)
-            # start time from metadata doesn't really capture tasks that wait for a vm, runtime start_time more accurate
-            self.runtime.rename(columns={'start_time': 'actual_start_time'}, inplace=True)
+            # Start time from metadata includes wait for a vm, the runtime table start_time (used in vm_runtime_m) is more accurate.
+#            self.runtime.rename(columns={'start_time': 'vm_start_time'}, inplace=True)
+            self.metadata.drop(columns=['vm_start_time'], inplace=True)
             self.metadata = pd.merge(self.metadata, self.runtime[['instance_name', 'instance_id',
                                                                   'cpu_platform', 'mem_total_gb','disk_mounts',
-                                                                  'disk_total_gb', 'actual_start_time']]
+                                                                  'disk_total_gb', 'vm_start_time']]
                                      .drop_duplicates(subset=['instance_id']),
                                      on='instance_name', how='left')
             self.metadata['vm_summary'] = self.metadata.cpu_platform + ' ' + self.metadata.disk_type
-            self.metadata['wait_time_m'] = (self.metadata['actual_start_time'] - self.metadata['start_time']) / pd.Timedelta(minutes=1)
-            self.metadata['actual_runtime_m'] = (self.metadata['end_time'] - self.metadata['actual_start_time']) / pd.Timedelta(minutes=1)
+            self.metadata['wait_time_m'] = (self.metadata['vm_start_time'] - self.metadata['start_time']) / pd.Timedelta(minutes=1)
+            self.metadata['vm_runtime_m'] = (self.metadata['end_time'] - self.metadata['vm_start_time']) / pd.Timedelta(minutes=1)
+            # get cpu_time
+            self.metadata['cpu_time_m'] = self.metadata['vm_runtime_m'] * self.metadata['cpu_count']
             self.metadata['mem_total_gb'].fillna(self.metadata['mem_total_gb_runtime'], inplace=True)
             self.metadata['disk_mounts'].fillna(self.metadata['disk_mounts_runtime'], inplace=True)
             self.metadata['disk_total_gb'].fillna(self.metadata['disk_total_gb_runtime'], inplace=True)
@@ -126,11 +134,28 @@ class Runtime():
                 log.info('make non retry plot metrics')
                 self.non_retry_metadata = self.load_plot_metrics(self.non_retry_metadata)
                 self.metadata = pd.concat([self.metadata, self.metadata_cache], ignore_index=True)
+                log.info('clean columns')
+                keep = [col for col in self.metadata.columns if not col in ['queuing_to_delocalization']]
+                self.metadata = self.metadata[keep].copy()
+                self.non_retry_metadata = self.non_retry_metadata[keep].copy()
                 log.info('write metrics')
                 self.metadata.to_csv(self.metrics_file, index=False, float_format='{:f}'.format,
                                      encoding='utf-8')
                 self.non_retry_metadata.to_csv(self.non_retried_metrics_file, index=False,
                                                float_format='{:f}'.format, encoding='utf-8')
+
+        self.timing_file = metrics_file_prefix + self.workflow_uuid + '_timing.html'
+        self.timing_diagram()
+
+    def timing_diagram(self):
+        log.info('Loading Timing Diagram...')
+        cromwell_url = "{}/api/workflows/v1/{}/timing".format(self.url, self.workflow_uuid)
+        response = requests.get(url=cromwell_url, auth=self.cromwell_auth)
+        if response.status_code == 200:
+            with open(self.timing_file, 'w') as fh:
+                fh.write(response.text)
+        else:
+            log.warning('Failed: Timing Diagram. Status Code: ' + response.status_code)
 
     def reset_instance_id(self, data):
         data['instance_id'] = data['instance_id'].fillna(-1)
@@ -173,7 +198,7 @@ class Runtime():
                                                  'task_call_name', 
                                                  'workflow_name']):
         ''' get runtime in core hours for the task (within a workflow) '''
-        return (row.cpu_count * float(row.run_time_m)) / 60
+        return (row.cpu_count * float(row.vm_runtime_m)) / 60
             
     def get_flow_runtime(self, metadata, ids, col='sample_subworkflow_run_time_h'):
         ''' For sub workflow and workflows this will also include wait time and
@@ -192,16 +217,14 @@ class Runtime():
         
         '''
         log.info('Calculating runtime metrics...')
-        metadata['run_time'] = metadata['end_time'] - metadata['start_time']
-        metadata['run_time_m'] = metadata['run_time'].dt.total_seconds() / 60.0
-        # get cpu_time
-        metadata['cpu_time_m'] = metadata['run_time_m'] * metadata['cpu_count']        
+        metadata['queuing_to_delocalization'] = metadata['end_time'] - metadata['start_time']
+        metadata['queuing_to_delocalization_m'] = metadata['queuing_to_delocalization'].dt.total_seconds() / 60.0
         # ============================
         #     Tasks w/in subworkflow
         # ============================
         log.info('Tasks w/in subworkflow...')
         # sub task wallclock time from start to finish
-        metadata['sample_task_run_time_h'] = metadata['run_time_m'] / 60.0
+        metadata['sample_task_vm_runtime_h'] = metadata['vm_runtime_m'] / 60.0
         metadata['sample_task_core_h'] = metadata['cpu_time_m'] /60.0
 
         # ============================
@@ -323,6 +346,9 @@ class Runtime():
         start_times = []
         end_times = []
         localization_ms = []
+        delocalization_ms = []
+        user_action_ms = []
+        vm_start_times = []
         inputs = []
         self.tasks = []
         self.call_lister(metadata['calls'],
@@ -378,17 +404,12 @@ class Runtime():
             shards.append(call['shardIndex'])
             start_times.append(call['start'])
             end_times.append(call.get('end', np.nan))
-            try:
-                # get localization time
-                localization_m = np.nan
-                for event in call["executionEvents"]:
-                    if event['description'] == "Localization":
-                        start = event['startTime']
-                        end = event['endTime']
-                        localization_m = self.sec_between(start, end) / 60.0
-                localization_ms.append(localization_m)
-            except KeyError:
-                localization_ms.append(np.nan)
+            # get execution events
+            execution_events = call.get("executionEvents", [])
+            localization_ms.append(self.execution_time(execution_events, "Localization"))
+            delocalization_ms.append(self.execution_time(execution_events, "Delocalization"))
+            user_action_ms.append(self.execution_time(execution_events, "UserAction"))
+            vm_start_times.append(self.vm_start_time(execution_events))
             inputs.append(call.get('inputs', {}))
         # output
         self.metadata = pd.DataFrame({'task_call_name' : task_call_names,
@@ -414,6 +435,9 @@ class Runtime():
                                       'start_time' : start_times,
                                       'end_time' : end_times,
                                       'localization_m' : localization_ms,
+                                      'delocalization_m' : delocalization_ms,
+                                      'user_action_time_m' : user_action_ms,
+                                      'vm_start_time' : vm_start_times,
                                       'inputs' : inputs
                                       })
         self.metadata['main_workflow_name'] = main_workflow_name
@@ -422,6 +446,9 @@ class Runtime():
         self.metadata['labels'] = labels
         self.deduplicate_metadata()
         self.metadata['start_time'] = pd.to_datetime(self.metadata['start_time'],
+                                                     format="%Y-%m-%dT%H:%M:%S.%fZ",
+                                                     utc=True)
+        self.metadata['vm_start_time'] = pd.to_datetime(self.metadata['vm_start_time'],
                                                      format="%Y-%m-%dT%H:%M:%S.%fZ",
                                                      utc=True)
         self.metadata['end_time'] = pd.to_datetime(self.metadata['end_time'],
@@ -440,6 +467,31 @@ class Runtime():
         d1 = self.get_cromwell_time(d1)
         d2 = self.get_cromwell_time(d2)
         return abs((d2 - d1).seconds)
+
+    def vm_start_time(self, events):
+        '''Grab the vm start time from cromwell API'''
+        try:
+            for event in events:
+                if event['description'].startswith('Worker '):
+                    # get the time a vm worker was assigned to the task
+                    vm_start_time = event['startTime']
+                    return vm_start_time
+        except KeyError:
+            pass
+        return np.nan
+    
+    def execution_time(self, events, description):
+        '''takes list of execution events and returns the time in minutes for any desciption
+        '''
+        try:
+            for event in events:
+                if event['description'] == description:
+                    start = event['startTime']
+                    end = event['endTime']
+                    return self.sec_between(start, end) / 60.0
+        except KeyError:
+            pass
+        return np.nan
 
     def call_lister(self, call_dictionary, workflowName, workflow_id=False):
         '''takes as input the metadata "calls" section 
