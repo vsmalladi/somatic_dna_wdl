@@ -92,6 +92,7 @@ task AlignBwaMem2 {
         cpus: totalThreads
         cpu : totalThreads
         memory : memoryGb + " GB"
+        cpuPlatform: "Intel Cascade Lake"
         disks: "local-disk " + diskSize + " LOCAL"
         docker : "gcr.io/nygc-public/bwamem2@sha256:d46d1433562b8a4e56486298ef522f02f17cb7bd079962b246245136cde15743"
     }
@@ -148,6 +149,7 @@ task AlignMinimap2 {
         cpus: totalThreads
         cpu : totalThreads
         memory : memoryGb + " GB"
+        cpuPlatform: "Intel Cascade Lake"
         disks: "local-disk " + diskSize + " LOCAL"
         docker : "gcr.io/nygc-compbio/minimap2:2.20-r1061"
     }
