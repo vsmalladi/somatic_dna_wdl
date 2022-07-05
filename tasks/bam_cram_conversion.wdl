@@ -13,17 +13,26 @@ task SamtoolsBamToCram {
         # resources
         Int diskSize
         Int threads = 8
-        Int memoryGb = 8
+        Int memoryGb = 16
     }
 
     command {
         set -e -o pipefail
 
+        if [ "~{referenceFa.httpFasta}" ]
+        then
+            ref=~{referenceFa.httpFasta}
+            ref_index=~{referenceFa.httpIndex}
+        else
+            ref=~{referenceFa.fasta}
+            ref_index=~{referenceFa.index}
+        fi
+
         samtools \
         view \
         -C \
-        -T ~{referenceFa.fasta} \
-        -t ~{referenceFa.index} \
+        -T "$ref" \
+        -t "$ref_index" \
         -o ~{cramPath} ~{inputBam.bam} \
         --verbosity=8 \
         --threads ~{threads}
@@ -43,7 +52,7 @@ task SamtoolsBamToCram {
 
     runtime {
         docker : "gcr.io/nygc-public/samtools@sha256:32f29fcd7af01b3941e6f93095e8d899741e81b50bcc838329bd8df43e120cc3"
-        disks: "local-disk " + diskSize + " HDD"
+        disks: "local-disk " + diskSize + " LOCAL"
         memory: memoryGb + " GB"
         mem: memoryGb + " G"
         cpu: threads

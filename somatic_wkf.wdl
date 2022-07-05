@@ -95,12 +95,14 @@ workflow SomaticDNA {
 
         Boolean trim = true
         Boolean production = true
-        Boolean bypassQcCheck = false
 
         # For Tumor-Normal QC
         File markerBedFile
         File markerTxtFile
+
         Boolean bypassQcCheck = false
+        Boolean tumorFfpe = false      
+        Boolean normalFfpe = false
 
         # calling
         Array[String]+ listOfChromsFull
@@ -274,7 +276,8 @@ workflow SomaticDNA {
                 sampleId = sampleInfoObj.sampleId
         }
 
-        if (!bypassQcCheck) {
+        Boolean skipCoverageCheck = select_first([sampleInfoObj.skipCoverageCheck, false])
+        if (!bypassQcCheck && !skipCoverageCheck) {
             call BamQcCheck {
                 input:
                     wgsMetricsFile = Preprocess.collectWgsMetrics[germlineRunGetIndex.index],
@@ -284,7 +287,7 @@ workflow SomaticDNA {
 
         Boolean coveragePass = select_first([BamQcCheck.coveragePass, false])
 
-        if (bypassQcCheck || coveragePass ) {
+        if (bypassQcCheck || skipCoverageCheck || coveragePass ) {
             call kourami.Kourami {
                 input:
                     sampleId = sampleInfoObj.sampleId,
@@ -483,12 +486,16 @@ workflow SomaticDNA {
         }
 
         if (!bypassQcCheck) {
+            Boolean tumorSkipCoverageCheck = select_first([sampleInfos[tumorGetIndex.index].skipCoverageCheck, false])
+            Boolean normalSkipCoverageCheck = select_first([sampleInfos[normalGetIndex.index].skipCoverageCheck, false])
             call SomaticQcCheck {
                 input:
                     tumorWgsMetricsFile = Preprocess.collectWgsMetrics[tumorGetIndex.index],
                     tumorExpectedCoverage = sampleInfos[tumorGetIndex.index].expectedCoverage,
+                    tumorSkipCoverageCheck = tumorSkipCoverageCheck,
                     normalWgsMetricsFile = Preprocess.collectWgsMetrics[normalGetIndex.index],
                     normalExpectedCoverage = sampleInfos[normalGetIndex.index].expectedCoverage,
+                    normalSkipCoverageCheck = normalSkipCoverageCheck,
                     concordanceFile = Conpair.concordanceAll,
                     contaminationFile = Conpair.contamination
             }
@@ -822,9 +829,12 @@ task SomaticQcCheck {
         File contaminationFile
         Float minConcordance = 95.0
         Float maxContamination = 0.99
+        Boolean tumorSkipCoverageCheck = false
+        Boolean normalSkipCoverageCheck = false
     }
 
     command {
+ 
         python /check_somatic_qc.py \
            --tumor_metrics_file ~{tumorWgsMetricsFile} \
            --tumor_expected_coverage ~{tumorExpectedCoverage} \
@@ -833,7 +843,9 @@ task SomaticQcCheck {
            --concordance_file ~{concordanceFile} \
            --contamination_file ~{contaminationFile} \
            --min_concordance ~{minConcordance} \
-           --max_contamination ~{maxContamination}
+           --max_contamination ~{maxContamination} \
+           ${if tumorSkipCoverageCheck then "--skip_tumor_coverage" else " "} \ 
+           ${if normalSkipCoverageCheck then "--skip_normal_coverage" else " "}
     }
 
     output {
@@ -841,6 +853,7 @@ task SomaticQcCheck {
     }
 
     runtime {
-        docker: "gcr.io/nygc-public/workflow_utils@sha256:b7269061a4620c6565566cbeaf61b1a58d49d26c382fa12f05f41b0e5f2e4807"
+        # This is for testing. Needs to be moved to the public repo.
+        docker: "gcr.io/nygc-internal-tools/workflow_utils@sha256:a3a69b4b9ca28afa6aa149d43b861bb25a917d164ca40efdd1a6a313e640a013"
     }
 }

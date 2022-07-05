@@ -35,10 +35,10 @@ workflow Preprocess {
         # resources
         #    prep flowcell
         Int threads = 16
-        Int bwamem2Threads = 80
+        Int bwamem2Threads = 32
     }
 
-    Int bwamem2Mem = 86
+    Int bwamem2Mem = 48
     Int novosortMemLow = 32
     
     if (highMem) {

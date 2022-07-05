@@ -24,7 +24,9 @@
   "SomaticDNA.referenceFa": {
     "fasta": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/GRCh38_full_analysis_set_plus_decoy_hla.fa",
     "dict": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/GRCh38_full_analysis_set_plus_decoy_hla.dict",
-    "index": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/GRCh38_full_analysis_set_plus_decoy_hla.fa.fai"
+    "index": "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/GRCh38_full_analysis_set_plus_decoy_hla.fa.fai",
+      "httpFasta" : "https://storage.googleapis.com/nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/GRCh38_full_analysis_set_plus_decoy_hla.fa",
+      "httpIndex" : "https://storage.googleapis.com/nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/GRCh38_full_analysis_set_plus_decoy_hla.fa.fai"
   },
   "SomaticDNA.dbsnp": {
     "vcf": "gs://nygc-resources-public/GatkBundle/hg38bundle/Homo_sapiens_assembly38.dbsnp138.vcf",
