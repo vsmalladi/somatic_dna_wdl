@@ -283,7 +283,6 @@ task MantaWgs {
         mem: memoryGb + "G"
         cpus: threads
         cpu : threads
-        cpuPlatform: "Intel Cascade Lake"
         disks: "local-disk " + diskSize + " LOCAL"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/manta@sha256:e171112cccf6758693b7a8aab80000fe6121d6969ce83e14a4e15fbc5f2f3662"
@@ -458,7 +457,6 @@ task Strelka2 {
         mem: memoryGb + "G"
         cpus: threads
         cpu : threads
-        cpuPlatform: "Intel Cascade Lake"
         disks: "local-disk " + diskSize + " LOCAL"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/strelka@sha256:eb71db1fbe25d67c025251823ae5d5e9dbf5a6861a98298b47ecd722dfa5bd14"
@@ -503,7 +501,7 @@ task LancetWGSRegional {
         mem: memoryGb + "G"
         cpus: threads
         cpu : threads
-        disks: "local-disk " + diskSize + " HDD"
+        disks: "local-disk " + diskSize + " LOCAL"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/lancet@sha256:25169d34b41de9564e03f02ebcbfb4655cf536449592b0bd58773195f9376e61"
     }
@@ -547,7 +545,7 @@ task LancetExome {
         mem: memoryGb + "G"
         cpus: threads
         cpu : threads
-        disks: "local-disk " + diskSize + " HDD"
+        disks: "local-disk " + diskSize + " LOCAL"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/lancet@sha256:25169d34b41de9564e03f02ebcbfb4655cf536449592b0bd58773195f9376e61"
     }
@@ -592,7 +590,6 @@ task Mutect2Wgs {
         mem: memoryGb + "G"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/broadinstitute/gatk4@sha256:b3bde7bc74ab00ddce342bd511a9797007aaf3d22b9cfd7b52f416c893c3774c"
-        cpuPlatform: "Intel Cascade Lake"
         disks: "local-disk " + diskSize + " LOCAL"
     }
 }
@@ -706,7 +703,6 @@ task SvabaWgs {
         mem: memoryGb + "G"
         cpus: threads
         cpu : threads
-        cpuPlatform: "Intel Cascade Lake"
         disks: "local-disk " + diskSize + " LOCAL"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/svaba@sha256:48f6bd86e933ca88fd74d8effc66e93eee5b40945ee37612b80d7edaadc567f3"
@@ -741,7 +737,6 @@ task PopulateCache {
 
     runtime {
         mem: memoryGb + "G"
-        cpuPlatform: "Intel Cascade Lake"
         disks: "local-disk " + diskSize + " LOCAL"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/samtools@sha256:e1149e965e8379f4a75b120d832b84e87dbb97bd5510ed581113400f768e5940"
@@ -780,7 +775,6 @@ task SvabaIndex {
 
     runtime {
         mem: memoryGb + "G"
-        cpuPlatform: "Intel Cascade Lake"
         disks: "local-disk " + diskSize + " LOCAL"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/svaba@sha256:48f6bd86e933ca88fd74d8effc66e93eee5b40945ee37612b80d7edaadc567f3"
@@ -959,7 +953,6 @@ task UniqReads {
 
     runtime {
         mem: memoryGb + "G"
-        cpuPlatform: "Intel Cascade Lake"
         disks: "local-disk " + diskSize + " LOCAL"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/bicseq2@sha256:3d110b672df0385f761fb64fcf63e98685e6d810c5560043efed5ab94961f3a9"
@@ -1018,7 +1011,6 @@ task Bicseq2Norm {
 
     runtime {
         mem: memoryGb + "G"
-        cpuPlatform: "Intel Cascade Lake"
         disks: "local-disk " + diskSize + " LOCAL"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/bicseq2@sha256:3d110b672df0385f761fb64fcf63e98685e6d810c5560043efed5ab94961f3a9"
@@ -1070,7 +1062,6 @@ task Bicseq2Wgs {
 
     runtime {
         mem: memoryGb + "G"
-        cpuPlatform: "Intel Cascade Lake"
         disks: "local-disk " + diskSize + " LOCAL"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/bicseq2@sha256:3d110b672df0385f761fb64fcf63e98685e6d810c5560043efed5ab94961f3a9"
@@ -1132,7 +1123,6 @@ task GridssPreprocess {
     runtime {
         mem: memoryGb + "G"
         cpus: threads
-        cpuPlatform: "Intel Cascade Lake"
         disks: "local-disk " + diskSize + " LOCAL"
         cpu : threads
         memory : memoryGb + "GB"
@@ -1210,7 +1200,6 @@ task GridssAssembleChunk {
     runtime {
         mem: memoryGb + "G"
         cpus: threads
-        cpuPlatform: "Intel Cascade Lake"
         disks: "local-disk " + diskSize + " LOCAL"
         cpu : threads
         memory : memoryGb + "GB"
@@ -1296,7 +1285,6 @@ task GridssAssemble {
     runtime {
         mem: memoryGb + "G"
         cpus: threads
-        cpuPlatform: "Intel Cascade Lake"
         disks: "local-disk " + diskSize + " LOCAL"
         cpu : threads
         memory : memoryGb + "GB"
@@ -1392,7 +1380,6 @@ task GridssCalling {
     runtime {
         mem: memoryGb + "G"
         cpus: threads
-        cpuPlatform: "Intel Cascade Lake"
         disks: "local-disk " + diskSize + " LOCAL"
         cpu : threads
         memory : memoryGb + "GB"

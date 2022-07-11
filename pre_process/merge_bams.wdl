@@ -42,7 +42,6 @@ task NovosortMarkDupExternal {
         memory : memoryGb + " GB"
         docker :  "gcr.io/nygc-public/novosort@sha256:acc029023227b996b0f0fb7074070de3a36f00293237273f7862ba523cdae5c9"
         # Per clinical team novosort runs significantly faster with SSD
-        cpuPlatform: "Intel Cascade Lake"
         disks: "local-disk " + diskSize + " LOCAL"
     }
 }
@@ -91,7 +90,6 @@ task NovosortMarkDup {
         memory : memoryGb + " GB"
         docker :  "gcr.io/nygc-compbio/novosort@sha256:ec3b0a6b1293916df21e69ec668f6ee23f33ce643f8c455c21d5f4234be25193"
         # Per clinical team novosort runs significantly faster with SSD
-        cpuPlatform: "Intel Cascade Lake"
         disks: "local-disk " + diskSize + " LOCAL"
     }
 }
