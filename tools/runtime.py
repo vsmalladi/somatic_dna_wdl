@@ -353,7 +353,9 @@ class Runtime():
             disk_mounts.append('Unknown')
             if 'backendStatus' in call:
                 backend_status = call['backendStatus'] # Preempted or Failed or Success
-            elif 'callCaching' in call and call['callCaching']['hit']:
+            elif 'callCaching' in call \
+            		and 'hit' in call['callCaching'] \
+            		and call['callCaching']['hit']:
                 backend_status = 'CacheHit'
             else:
                 backend_status = 'Error'
