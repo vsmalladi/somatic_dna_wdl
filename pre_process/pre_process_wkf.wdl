@@ -44,7 +44,7 @@ workflow Preprocess {
     
     if (highMem) {
         Int novosortMemHigh = 80
-        Int bwamem2MemHigh = 86
+        Int bwamem2MemHigh = 64
     }
 
     Int novosortMem = select_first([novosortMemHigh, novosortMemLow])
