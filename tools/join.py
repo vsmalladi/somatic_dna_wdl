@@ -46,6 +46,13 @@ def mapper(row):
                                      truncate='capacity',
                                      suffix='capacity'
                                      )
+    elif 'gpu' in service_type.split():
+        cost_type = 'gpu_cost'
+        preemptible = is_preemptible(service_type)
+        machine_type = formatter(service_type,
+                                     drop=['preemptible'],
+                                     truncate='gpu'
+                                     )
     elif 'egress' in service_type:
         cost_type = 'egress_cost'
         preemptible = np.nan
@@ -94,7 +101,7 @@ def load_runtime(file, costs, uuid):
                                 fill_value=0
                                 ).reset_index()
     runtime = pd.merge(runtime, wide_costs, on=grouper, how='outer')
-    cost_opts = ['capacity_cost', 'core_cost', 'ram_cost', 'egress_cost', 'unknown_cost']
+    cost_opts = ['capacity_cost', 'core_cost', 'ram_cost', 'gpu_cost', 'egress_cost', 'unknown_cost']
     cost_cols = [c for c in cost_opts if c in runtime.columns]
     # the costs are still for the full group, divide them evenly
     runtime['group_count'] = runtime.groupby(grouper)['task_call_name'].transform('count')
@@ -102,8 +109,8 @@ def load_runtime(file, costs, uuid):
         runtime[c] = runtime[c] / runtime['group_count']
     runtime['total_cost'] = runtime[cost_cols].sum(axis=1)
     runtime['group_cost'] = runtime.groupby(grouper)['total_cost'].transform('sum')
-    runtime['group_runtime'] = runtime.groupby(grouper)['actual_runtime_m'].transform('sum')
-    runtime['runtime_scaled_total_cost'] = runtime['group_cost'] * (runtime['actual_runtime_m'] / runtime['group_runtime'])
+    runtime['group_runtime'] = runtime.groupby(grouper)['vm_runtime_m'].transform('sum')
+    runtime['runtime_scaled_total_cost'] = runtime['group_cost'] * (runtime['vm_runtime_m'] / runtime['group_runtime'])
     # add the service type, treat as set. Almost always going to be a single type
     core_costs = costs[costs['cost_type'] == 'core_cost'].copy()
     service_types = core_costs.groupby(grouper).agg({'machine_type': set}).reset_index()
@@ -116,7 +123,10 @@ def load_runtime(file, costs, uuid):
     runtime.drop(columns=['group_count', 'group_cost', 'group_runtime'], inplace=True)
     cost_cols_map = {col : 'avg_' + col for col in cost_cols + ['total_cost']}
     runtime = runtime.rename(columns=cost_cols_map)
-    runtime['vm_summary'] = runtime.cpu_platform + ' ' + runtime.machine_type + ' ' + runtime.disk_type
+    if 'cpu_platform' in runtime.columns:
+        runtime['vm_summary'] = runtime.cpu_platform + ' ' + runtime.machine_type + ' ' + runtime.disk_type
+    else:
+        runtime['vm_summary'] = runtime.machine_type + ' ' + runtime.disk_type
     return runtime
 
 
