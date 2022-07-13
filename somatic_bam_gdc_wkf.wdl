@@ -80,12 +80,10 @@ workflow SomaticBamWorkflow {
         Array[String]+ listOfChromsFull
         Array[String]+ listOfChroms
         IndexedTable callRegions
-        File dbsnpIndels
         Map[String, File] chromBedsWgs
         File lancetJsonLog
         File mantaJsonLog
         File strelkaJsonLog
-        File svabaJsonLog
         File mutectJsonLog
         File mutectJsonLogFilter
         File configureStrelkaSomaticWorkflow
@@ -222,7 +220,6 @@ workflow SomaticBamWorkflow {
                 lancetJsonLog = lancetJsonLog,
                 mutectJsonLog = mutectJsonLog,
                 mutectJsonLogFilter = mutectJsonLogFilter,
-                svabaJsonLog = svabaJsonLog,
                 strelkaJsonLog = strelkaJsonLog,
                 configureStrelkaSomaticWorkflow = configureStrelkaSomaticWorkflow,
                 pairInfo = pairInfo,
@@ -231,7 +228,6 @@ workflow SomaticBamWorkflow {
                 referenceFa = referenceFa,
                 callRegions = callRegions,
                 bwaReference = bwaReference,
-                dbsnpIndels = dbsnpIndels,
                 chromBedsWgs = chromBedsWgs,
                 readLength = readLength,
                 coordReadLength = coordReadLength,
@@ -254,8 +250,6 @@ workflow SomaticBamWorkflow {
             strelka2Indel : Calling.strelka2Indel,
             mutect2 : Calling.mutect2,
             lancet : Calling.lancet,
-            svabaSv : Calling.svabaSv,
-            svabaIndel : Calling.svabaIndel,
             tumor : pairInfo.tumor,
             normal : pairInfo.normal,
             tumorFinalBam : pairInfo.tumorFinalBam,
@@ -270,8 +264,6 @@ workflow SomaticBamWorkflow {
             strelka2Indel : Calling.strelka2Indel,
             mutect2 : Calling.mutect2,
             lancet : Calling.lancet,
-            svabaSv : Calling.svabaSv,
-            svabaIndel : Calling.svabaIndel,
             gridssVcf : Calling.gridssVcf,
             bicseq2Png : Calling.bicseq2Png,
             bicseq2 : Calling.bicseq2,
@@ -362,7 +354,6 @@ workflow SomaticBamWorkflow {
                 ensemblUniqueBed = ensemblUniqueBed,
                 
                 filteredMantaSV = pairRawVcfInfo.filteredMantaSV,
-                svabaSv = pairRawVcfInfo.svabaSv,
                 gridssVcf = pairRawVcfInfo.gridssVcf,
                 vepGenomeBuild = vepGenomeBuild,
                 gap = gap,
@@ -385,8 +376,6 @@ workflow SomaticBamWorkflow {
             strelka2Indel : Calling.strelka2Indel,
             mutect2 : Calling.mutect2,
             lancet : Calling.lancet,
-            svabaSv : Calling.svabaSv,
-            svabaIndel : Calling.svabaIndel,
             gridssVcf : Calling.gridssVcf,
             bicseq2Png : Calling.bicseq2Png,
             bicseq2 : Calling.bicseq2,

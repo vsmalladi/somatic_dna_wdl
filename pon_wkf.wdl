@@ -3,7 +3,6 @@ version 1.0
 import "calling/calling.wdl" as callingTasks
 import "calling/mutect2_pon_wkf.wdl" as mutect2Pon
 import "calling/manta_pon_wkf.wdl" as mantaPon
-import "calling/svaba_pon_wkf.wdl" as svabaPon
 import "merge_vcf/merge_vcf_pon_wkf.wdl" as MergeVcfPon
 import "annotate/annotate.wdl" as annotate
 import "annotate/variantEffectPredictor.wdl" as variantEffectPredictor
@@ -45,11 +44,7 @@ workflow CallingPon {
         #   Manta
         IndexedTable callRegions
         File mantaJsonLog
-        #   Svaba
-        File dbsnpIndels
-        File svabaJsonLog
         File mutectJsonLogFilter
-        BwaReference svabaIndexedReference
         File refCache
         Boolean highMem = false
         
@@ -110,24 +105,11 @@ workflow CallingPon {
                 highMem = highMem
         }
         
-        call svabaPon.SvabaPon {
-            input:
-                refCache = refCache,
-                svabaJsonLog = svabaJsonLog,
-                tumor = tumorInfo.sampleId,
-                dbsnpIndels = dbsnpIndels,
-                callRegions = callRegions,
-                referenceFa = referenceFa,
-                svabaIndexedReference = svabaIndexedReference,
-                tumorFinalBam = tumorInfo.finalBam,
-                highMem = true
-        }
         call MergeVcfPon.MergeVcfPon as wgsMergeVcfPon {
                     input:
                         tumor = tumorInfo.sampleId,
                         filteredMantaSV = MantaPon.filteredMantaSV,
                         mutect2 = Mutect2Pon.mutect2,
-                        svabaIndel = SvabaPon.svabaIndel,
                         
                         referenceFa = referenceFa,
                         listOfChroms = listOfChroms,
@@ -214,10 +196,6 @@ workflow CallingPon {
         Array[File] mutect2 = Mutect2Pon.mutect2
         # Manta 
         Array[File] filteredMantaSV = MantaPon.filteredMantaSV
-        # Strelka2
 
-        # Svaba
-        Array[File] svabaSvGz = SvabaPon.svabaSvGz
-        Array[File] svabaIndel = SvabaPon.svabaIndel
     }
 }

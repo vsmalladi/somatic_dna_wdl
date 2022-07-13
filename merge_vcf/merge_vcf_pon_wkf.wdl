@@ -15,7 +15,6 @@ workflow MergeVcfPon {
         
         File filteredMantaSV 
         File mutect2
-        File svabaIndel
         String tumor
         
         IndexedReference referenceFa
@@ -46,17 +45,7 @@ workflow MergeVcfPon {
             
     }
     
-    call prepMergeVcfPon.PrepMergeVcfPon as svabaIndelPrepMergeVcfPon {
-        input:
-            callerVcf=svabaIndel,
-            tumor=tumor,
-            tool='svaba',
-            renameVcfPon = renameVcfPon,
-            referenceFa=referenceFa
-            
-    }
-    
-    Array[IndexedVcf] allVcfCompressed = [filteredMantaSVPrepMergeVcfPon.preppedVcf, mutect2PrepMergeVcfPon.preppedVcf, svabaIndelPrepMergeVcfPon.preppedVcf]
+    Array[IndexedVcf] allVcfCompressed = [filteredMantaSVPrepMergeVcfPon.preppedVcf, mutect2PrepMergeVcfPon.preppedVcf]
     
 
     call mergeCallersPon.MergeCallersPon {

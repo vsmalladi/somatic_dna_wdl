@@ -48,12 +48,10 @@ workflow SomaticBamWorkflow {
         Array[String]+ listOfChromsFull
         Array[String]+ listOfChroms
         IndexedTable callRegions
-        File dbsnpIndels
         Map[String, File] chromBedsWgs
         File lancetJsonLog
         File mantaJsonLog
         File strelkaJsonLog
-        File svabaJsonLog
         File mutectJsonLog
         File mutectJsonLogFilter
         File configureStrelkaSomaticWorkflow
@@ -137,7 +135,6 @@ workflow SomaticBamWorkflow {
                 lancetJsonLog = lancetJsonLog,
                 mutectJsonLog = mutectJsonLog,
                 mutectJsonLogFilter = mutectJsonLogFilter,
-                svabaJsonLog = svabaJsonLog,
                 strelkaJsonLog = strelkaJsonLog,
                 configureStrelkaSomaticWorkflow = configureStrelkaSomaticWorkflow,
                 pairInfo = pairInfo,
@@ -146,7 +143,6 @@ workflow SomaticBamWorkflow {
                 referenceFa = referenceFa,
                 callRegions = callRegions,
                 bwaReference = bwaReference,
-                dbsnpIndels = dbsnpIndels,
                 chromBedsWgs = chromBedsWgs,
                 highMem = highMem
         }
@@ -169,8 +165,6 @@ workflow SomaticBamWorkflow {
             strelka2Indel : Calling.strelka2Indel,
             mutect2 : Calling.mutect2,
             lancet : Calling.lancet,
-            svabaSv : Calling.svabaSv,
-            svabaIndel : Calling.svabaIndel,
             tumor : pairInfo.tumor,
             normal : pairInfo.normal,
             tumorFinalBam : pairInfo.tumorFinalBam,
@@ -267,8 +261,6 @@ workflow SomaticBamWorkflow {
         Array[File] strelka2Indel = Calling.strelka2Indel
         Array[File] mutect2 = Calling.mutect2
         Array[File] lancet = Calling.lancet
-        Array[File] svabaSv = Calling.svabaSv
-        Array[File] svabaIndel = Calling.svabaIndel
         # MSI
         Array[File] mantisWxsKmerCountsFinal = Msi.mantisWxsKmerCountsFinal
         Array[File] mantisWxsKmerCountsFiltered = Msi.mantisWxsKmerCountsFiltered

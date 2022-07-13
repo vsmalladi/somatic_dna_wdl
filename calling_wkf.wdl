@@ -5,7 +5,6 @@ import "calling/bicseq2_wkf.wdl" as bicseq2
 import "calling/mutect2_wkf.wdl" as mutect2
 import "calling/strelka2_wkf.wdl" as strelka2
 import "calling/manta_wkf.wdl" as manta
-import "calling/svaba_wkf.wdl" as svaba
 import "calling/lancet_wkf.wdl" as lancet
 import "calling/gridss_wkf.wdl" as gridss
 import "calling/bicseq2_wkf.wdl" as bicseq2
@@ -45,9 +44,6 @@ workflow Calling {
         #   Manta
         IndexedTable callRegions
         File mantaJsonLog
-        #   Svaba
-        File dbsnpIndels
-        File svabaJsonLog
         File mutectJsonLogFilter
         BwaReference bwaReference
         #   Lancet
@@ -146,19 +142,6 @@ workflow Calling {
                 tumorFinalBam = pairInfo.tumorFinalBam
         }
         
-        call svaba.Svaba {
-            input:
-                svabaJsonLog = svabaJsonLog,
-                tumor = pairInfo.tumor,
-                normal = pairInfo.normal,
-                dbsnpIndels = dbsnpIndels,
-                bwaReference = bwaReference,
-                pairName = pairInfo.pairId,
-                normalFinalBam = pairInfo.normalFinalBam,
-                tumorFinalBam = pairInfo.tumorFinalBam,
-                highMem = highMem
-        }
-        
         call lancet.Lancet {
             input:
                 lancetJsonLog = lancetJsonLog,
@@ -194,11 +177,6 @@ workflow Calling {
         Array[IndexedVcf] strelka2Indels = Strelka2.strelka2Indels
         Array[File] strelka2Snv = Strelka2.strelka2Snv
         Array[File] strelka2Indel = Strelka2.strelka2Indel
-        # Svaba
-        Array[File] svabaRawGermlineIndel = Svaba.svabaRawGermlineIndel
-        Array[File] svabaRawGermlineSv = Svaba.svabaRawGermlineSv
-        Array[File] svabaSv = Svaba.svabaSv
-        Array[File] svabaIndel = Svaba.svabaIndel
         # Lancet
         Array[File] lancet = Lancet.lancet
     }

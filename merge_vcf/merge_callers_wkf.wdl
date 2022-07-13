@@ -228,24 +228,20 @@ workflow MergeCallers {
                 pairName = pairName,
                 preCountsChromVcf = AddNygcAlleleCountsToVcf.preCountsChromVcf
         }
-        
-        if (!external) {
-            call mergeVcf.FilterPon {
-                input:
-                    chrom = chrom,
-                    pairName = pairName,
-                    countsChromVcf = AddFinalAlleleCountsToVcf.countsChromVcf,
-                    ponFile = ponFile
-            }
+
+        call mergeVcf.FilterPon {
+            input:
+                chrom = chrom,
+                pairName = pairName,
+                countsChromVcf = AddFinalAlleleCountsToVcf.countsChromVcf,
+                ponFile = ponFile
         }
-        
-        File preGermFilteredVcf = select_first([FilterPon.ponOutFile, AddFinalAlleleCountsToVcf.countsChromVcf])
 
         call mergeVcf.FilterVcf {
             input:
                 chrom = chrom,
                 pairName = pairName,
-                ponOutFile = preGermFilteredVcf,
+                ponOutFile = FilterPon.ponOutFile,
                 germFile = germFile
         }
 
