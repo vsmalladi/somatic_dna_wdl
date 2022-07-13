@@ -77,17 +77,6 @@ workflow MergeVcf {
             
     }
     
-    call prepMergeVcf.PrepMergeVcf as svabaIndelPrepMergeVcf {
-        input:
-            callerVcf=preMergedPairVcfInfo.svabaIndel,
-            tumor=preMergedPairVcfInfo.tumor,
-            normal=preMergedPairVcfInfo.normal,
-            tool='svaba',
-            pairName=preMergedPairVcfInfo.pairId,
-            referenceFa=referenceFa
-            
-    }
-    
     call mergeCallers.MergeCallers {
         input:
             external=external,
@@ -105,8 +94,7 @@ workflow MergeVcf {
                 strelka2SnvPrepMergeVcf.preppedVcf,
                 strelka2IndelPrepMergeVcf.preppedVcf,
                 mutect2PrepMergeVcf.preppedVcf,
-                lancetPrepMergeVcf.preppedVcf,
-                svabaIndelPrepMergeVcf.preppedVcf]
+                lancetPrepMergeVcf.preppedVcf]
         
     }
     
