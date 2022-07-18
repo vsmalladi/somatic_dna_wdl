@@ -227,6 +227,7 @@ set -e
 set -o pipefail
 
 script_dir=$(dirname "$0")
+workflow_dir=$(dirname ${workflow})
 
 echo "Validate workflow..." >&2
 cd ${log_dir}
@@ -273,8 +274,8 @@ eval ${meta_command}
 
 # zip dependencies
 echo "Zip dependencies..." >&2
-cd ${script_dir}
-zip dependencies.zip wdl_structs.wdl */*.wdl
+cd ${workflow_dir}
+zip dependencies.zip *.wdl */*.wdl
 cd -
 
 echo "Precheck input json..." >&2
@@ -292,7 +293,7 @@ if [ -z "$dry_run" ]; then
         -u ${url} \
         -w ${workflow} \
         -o ${options} \
-        -d ${script_dir}/dependencies.zip \
+        -d ${workflow_dir}/dependencies.zip \
         -p ${log_dir}/${project_name}_projectInfo.json \
         -i ${workflow_name}Input.json"
         

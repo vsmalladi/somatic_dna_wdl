@@ -17,7 +17,7 @@ import parse
 
 log.basicConfig(format='%(levelname)s:  %(message)s', level=log.INFO)
 
-def git_log(program):
+def git_log(program, soft_fail=False):
     '''
         Function returns the most recent git commit and tag.
     '''
@@ -26,7 +26,10 @@ def git_log(program):
     while True:
         if not os.path.isdir(potential_git_repo):
             log.error(')No parent directories of the program contain a .git directory :' + program )
-            sys.exit(1)
+            if soft_fail:
+                return "", "not a git repo", "", ""
+            else:
+                sys.exit(1)
         if os.path.isdir(potential_git_repo + '/.git'):
             break
         else:
@@ -141,12 +144,19 @@ def populate(args, custom_inputs):
     where a new argument has been specified'''
     project_info = {}
     project_info['options'] = read(args['options'])
-    # update wdl pipeline version
+    # update wdl pipeline monitor version
     commit, tag, uniq_tag, branch = git_log(__file__)
     project_info['commit'] = commit
     project_info['tag'] = tag
     project_info['branch'] = branch
     project_info['uniq_tag'] = uniq_tag
+    # update wdl pipeline version (if stored in a git repo)
+    commit_wdl, tag_wdl, uniq_tag_wdl, branch_wdl = git_log(args['wdl_file'],
+                                                            soft_fail=True)
+    project_info['commit_wdl'] = commit_wdl
+    project_info['tag_wdl'] = tag_wdl
+    project_info['branch_wdl'] = branch_wdl
+    project_info['uniq_tag_wdl'] = uniq_tag_wdl
     # update as needed
     verify_required(key='library', args=args, project_info=project_info)
     project_info = note_updates(key='library', new_value=args['library'], project_info=project_info)
@@ -187,10 +197,13 @@ def populate(args, custom_inputs):
         tumors = list(set([info['tumor'] for info in project_info['listOfPairRelationships']]))
         project_info = note_updates(key='tumors', new_value=tumors, project_info=project_info)
     # fill in list of samples
-    if args['samples_file']:
-        sample_ids = load_sample_ids(args['samples_file'])
-    else:
-        sample_ids = list(set(project_info['normals'] + project_info['tumors']))
+    try:
+        if args['samples_file']:
+            sample_ids = load_sample_ids(args['samples_file'])
+        else:
+            sample_ids = list(set(project_info['normals'] + project_info['tumors']))
+    except KeyError:
+        sample_ids = []
     project_info = note_updates(key='sampleIds', new_value=sample_ids, project_info=project_info)
     if custom_inputs:
         for alt_project_info_file in custom_inputs:

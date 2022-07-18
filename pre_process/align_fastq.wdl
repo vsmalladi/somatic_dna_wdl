@@ -57,9 +57,9 @@ task AlignBwaMem2 {
         String laneBamPath = "~{fastqsAlign.readgroupId}.readgroup.bam"
         # resources
         Int memoryGb
-        Int threads
-        Int bwamem2Threads
-        Int totalThreads = 96
+        Int threads = 4
+        Int bwamem2Threads = 32
+        Int totalThreads = threads + bwamem2Threads
         Int diskSize
 
         # Values used in RG tags. These are overridden for external fastqs or if we start using

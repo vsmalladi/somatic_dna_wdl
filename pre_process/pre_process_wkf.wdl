@@ -35,17 +35,20 @@ workflow Preprocess {
         # resources
         #    prep flowcell
         Int threads = 16
-        Int bwamem2Threads = 80
+        Int samtoolsThreads = 4
+        Int bwamem2Threads = 32
     }
 
-    Int bwamem2Mem = 86
+    Int bwamem2MemLow = 32
     Int novosortMemLow = 32
     
     if (highMem) {
         Int novosortMemHigh = 80
+        Int bwamem2MemHigh = 64
     }
 
     Int novosortMem = select_first([novosortMemHigh, novosortMemLow])
+    Int bwamem2Mem = select_first([bwamem2MemHigh, bwamem2MemLow])
 
     call alignFastq.AlignFastq {
         input:
@@ -54,7 +57,7 @@ workflow Preprocess {
             adaptersFa = adaptersFa,
             bwamem2Reference = bwamem2Reference,
             bwamem2Mem = bwamem2Mem,
-            threads = threads,
+            threads = samtoolsThreads,
             bwamem2Threads = bwamem2Threads
     }
 
