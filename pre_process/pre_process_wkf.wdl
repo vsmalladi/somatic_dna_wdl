@@ -35,17 +35,20 @@ workflow Preprocess {
         # resources
         #    prep flowcell
         Int threads = 16
+        Int samtoolsThreads = 4
         Int bwamem2Threads = 32
     }
 
-    Int bwamem2Mem = 48
+    Int bwamem2MemLow = 32
     Int novosortMemLow = 32
     
     if (highMem) {
         Int novosortMemHigh = 80
+        Int bwamem2MemHigh = 48
     }
 
     Int novosortMem = select_first([novosortMemHigh, novosortMemLow])
+    Int bwamem2Mem = select_first([bwamem2MemHigh, bwamem2MemLow])
 
     call alignFastq.AlignFastq {
         input:
@@ -54,7 +57,7 @@ workflow Preprocess {
             adaptersFa = adaptersFa,
             bwamem2Reference = bwamem2Reference,
             bwamem2Mem = bwamem2Mem,
-            threads = threads,
+            threads = samtoolsThreads,
             bwamem2Threads = bwamem2Threads
     }
 
@@ -86,12 +89,23 @@ workflow Preprocess {
             outputDir = "Sample_~{sampleId}/qc"
     }
 
+    Int bamSize = ceil(size(MergeBams.finalBam.bam, "GB"))
+    Int bamToCramMemLow = 8
+    Int bamToCramThreadsLow = 8
+    if (bamSize > 200) {
+        Int bamToCramMemHigh = 16
+        Int bamToCramThreadsHigh = 12
+    }
+    Int bamToCramMem = select_first([bamToCramMemLow, bamToCramMemHigh])
+    Int bamToCramThreads = select_first([bamToCramThreadsLow, bamToCramThreadsHigh])
     call cramConversion.SamtoolsBamToCram as bamToCram {
         input:
             inputBam = MergeBams.finalBam,
             referenceFa = referenceFa,
             sampleId = sampleId,
-            diskSize = (ceil(size(MergeBams.finalBam.bam, "GB") * 1.7)) + 20 # 0.7 is estimated cram size
+            threads = bamToCramThreads,
+            memoryGb = bamToCramMem,
+            diskSize = (ceil(size(MergeBams.finalBam.bam, "GB") * 2)) + 20 # 0.7 is estimated cram size
     }
 
     output {

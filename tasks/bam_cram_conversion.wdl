@@ -13,7 +13,7 @@ task SamtoolsBamToCram {
         # resources
         Int diskSize
         Int threads = 8
-        Int memoryGb = 16
+        Int memoryGb = 8
     }
 
     command {

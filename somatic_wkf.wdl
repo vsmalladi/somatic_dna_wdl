@@ -69,7 +69,7 @@ task GetIndex {
     }
 
     runtime {
-        docker: "gcr.io/nygc-public/workflow_utils@sha256:b7269061a4620c6565566cbeaf61b1a58d49d26c382fa12f05f41b0e5f2e4807"
+        docker: "gcr.io/nygc-public/workflow_utils@sha256:40fa18ac3f9d9f3b9f037ec091cb0c2c26ad6c7cb5c32fb16c1c0cf2a5c9caea"
     }
 }
 
@@ -814,7 +814,7 @@ task BamQcCheck {
     }
 
     runtime {
-        docker: "gcr.io/nygc-public/workflow_utils@sha256:b7269061a4620c6565566cbeaf61b1a58d49d26c382fa12f05f41b0e5f2e4807"
+        docker: "gcr.io/nygc-public/workflow_utils@sha256:40fa18ac3f9d9f3b9f037ec091cb0c2c26ad6c7cb5c32fb16c1c0cf2a5c9caea"
     }
 }
 
@@ -854,6 +854,6 @@ task SomaticQcCheck {
 
     runtime {
         # This is for testing. Needs to be moved to the public repo.
-        docker: "gcr.io/nygc-internal-tools/workflow_utils@sha256:a3a69b4b9ca28afa6aa149d43b861bb25a917d164ca40efdd1a6a313e640a013"
+        docker: "gcr.io/nygc-public/workflow_utils@sha256:40fa18ac3f9d9f3b9f037ec091cb0c2c26ad6c7cb5c32fb16c1c0cf2a5c9caea"
     }
 }
