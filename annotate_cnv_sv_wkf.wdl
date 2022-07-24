@@ -59,7 +59,6 @@ workflow AnnotateCnvSv {
                 ensemblUniqueBed=ensemblUniqueBed,
                 
                 filteredMantaSV=pairRawVcfInfo.filteredMantaSV,
-                svabaSv=pairRawVcfInfo.svabaSv,
                 gridssVcf=pairRawVcfInfo.gridssVcf,
                 vepGenomeBuild=vepGenomeBuild,
                 gap=gap,

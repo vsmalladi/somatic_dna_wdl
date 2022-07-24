@@ -3,7 +3,6 @@ version 1.0
 import "mutect2_wkf.wdl" as mutect2
 import "strelka2_wkf.wdl" as strelka2
 import "manta_wkf.wdl" as manta
-import "svaba_wkf.wdl" as svaba
 import "lancet_wkf.wdl" as lancet
 import "gridss_wkf.wdl" as gridss
 import "bicseq2_wkf.wdl" as bicseq2
@@ -25,9 +24,6 @@ workflow Calling {
         IndexedReference referenceFa
         #   Manta
         IndexedTable callRegions
-        #   Svaba
-        File dbsnpIndels
-        BwaReference bwaReference
         #   Lancet
         Map[String, File] chromBedsWgs
 
@@ -42,6 +38,7 @@ workflow Calling {
         Int normalMedianInsertSize = 400
         Int lambda = 4
         # Gridss
+        BwaReference bwaReference
         String bsGenome
         File ponTarGz
         Array[File] gridssAdditionalReference
@@ -49,7 +46,6 @@ workflow Calling {
         File lancetJsonLog
         File mantaJsonLog
         File strelkaJsonLog
-        File svabaJsonLog
         File mutectJsonLog
         File mutectJsonLogFilter
         File configureStrelkaSomaticWorkflow
@@ -98,20 +94,6 @@ workflow Calling {
             pairName = pairInfo.pairId,
             normalFinalBam = pairInfo.normalFinalBam,
             tumorFinalBam = pairInfo.tumorFinalBam
-    }
-
-    call svaba.Svaba {
-        input:
-            svabaJsonLog = svabaJsonLog,
-            tumor = pairInfo.tumor,
-            normal = pairInfo.normal,
-            dbsnpIndels = dbsnpIndels,
-            bwaReference = bwaReference,
-            callRegions = callRegions,
-            pairName = pairInfo.pairId,
-            normalFinalBam = pairInfo.normalFinalBam,
-            tumorFinalBam = pairInfo.tumorFinalBam,
-            highMem = highMem
     }
 
     call lancet.Lancet {
@@ -180,11 +162,6 @@ workflow Calling {
         IndexedVcf strelka2Indels = Strelka2.strelka2Indels
         File strelka2Snv = Strelka2.strelka2Snv
         File strelka2Indel = Strelka2.strelka2Indel
-        # Svaba
-        File svabaRawGermlineIndel = Svaba.svabaRawGermlineIndel
-        File svabaRawGermlineSv = Svaba.svabaRawGermlineSv
-        File svabaSv = Svaba.svabaSv
-        File svabaIndel = Svaba.svabaIndel
         # Lancet
         File lancet = Lancet.lancet
         # Gridss

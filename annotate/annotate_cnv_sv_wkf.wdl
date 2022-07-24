@@ -21,7 +21,6 @@ workflow AnnotateCnvSv {
         
         # sv
         File filteredMantaSV
-        File svabaSv
         IndexedVcf gridssVcf
         String vepGenomeBuild
         
@@ -63,7 +62,6 @@ workflow AnnotateCnvSv {
             tumor=tumor,
             normal=normal,
             filteredMantaSV=filteredMantaSV,
-            svabaSv=svabaSv,
             gridssVcf=gridssVcf
   
     }

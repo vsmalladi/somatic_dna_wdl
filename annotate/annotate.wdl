@@ -340,7 +340,6 @@ task mergeSv {
         String tumor
         String normal
         File filteredMantaSV
-        File svabaSv
         IndexedVcf gridssVcf
         String vepGenomeBuild
         Int slop = 300
@@ -354,8 +353,8 @@ task mergeSv {
     command {
         Rscript \
         /merge-caller-vcfs.r \
-        --vcf=~{filteredMantaSV},~{svabaSv},~{gridssVcf.vcf} \
-        --caller=manta,svaba,gridss \
+        --vcf=~{filteredMantaSV},~{gridssVcf.vcf} \
+        --caller=manta,gridss \
         --tumor=~{tumor} \
         --normal=~{normal} \
         --build=~{vepGenomeBuild} \

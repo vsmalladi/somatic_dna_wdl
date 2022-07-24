@@ -111,8 +111,8 @@ struct PreMergedPairVcfInfo {
     File strelka2Indel
     File mutect2
     File lancet
-    File svabaSv
-    File svabaIndel
+    File? svabaSv
+    File? svabaIndel
     String tumor
     String normal
     Bam tumorFinalBam
@@ -129,8 +129,8 @@ struct PairRawVcfInfo {
     File strelka2Indel
     File mutect2
     File lancet
-    File svabaSv
-    File svabaIndel
+    File? svabaSv
+    File? svabaIndel
     IndexedVcf gridssVcf
     File bicseq2Png
     File bicseq2
@@ -168,8 +168,8 @@ struct FinalVcfPairInfo {
     File strelka2Indel
     File mutect2
     File lancet
-    File svabaSv
-    File svabaIndel
+    File? svabaSv
+    File? svabaIndel
     IndexedVcf gridssVcf
     File bicseq2Png
     File bicseq2
@@ -192,8 +192,8 @@ struct FinalPairInfo {
     File strelka2Indel
     File mutect2
     File lancet
-    File svabaSv
-    File svabaIndel
+    File? svabaSv
+    File? svabaIndel
     IndexedVcf gridssVcf
     File bicseq2Png
     File bicseq2
