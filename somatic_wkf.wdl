@@ -515,6 +515,7 @@ workflow SomaticDNA {
                 input:
                     mantaJsonLog = mantaJsonLog,
                     lancetJsonLog = lancetJsonLog,
+                    strelkaJsonLog = strelkaJsonLog,
                     mutectJsonLog = mutectJsonLog,
                     mutectJsonLogFilter = mutectJsonLogFilter,
                     configureStrelkaSomaticWorkflow = configureStrelkaSomaticWorkflow,
@@ -832,7 +833,7 @@ task SomaticQcCheck {
            --contamination_file ~{contaminationFile} \
            --min_concordance ~{minConcordance} \
            --max_contamination ~{maxContamination} \
-           ${if tumorSkipCoverageCheck then "--skip_tumor_coverage" else " "} \ 
+           ${if tumorSkipCoverageCheck then "--skip_tumor_coverage" else " "} \
            ${if normalSkipCoverageCheck then "--skip_normal_coverage" else " "}
     }
 

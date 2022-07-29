@@ -96,8 +96,8 @@ workflow Preprocess {
         Int bamToCramMemHigh = 16
         Int bamToCramThreadsHigh = 12
     }
-    Int bamToCramMem = select_first([bamToCramMemLow, bamToCramMemHigh])
-    Int bamToCramThreads = select_first([bamToCramThreadsLow, bamToCramThreadsHigh])
+    Int bamToCramMem = select_first([bamToCramMemHigh, bamToCramMemLow])
+    Int bamToCramThreads = select_first([bamToCramThreadsHigh, bamToCramThreadsLow])
     call cramConversion.SamtoolsBamToCram as bamToCram {
         input:
             inputBam = MergeBams.finalBam,

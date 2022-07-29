@@ -246,8 +246,9 @@ struct FinalWorkflowOutput {
     Array[File?] reconstructed
     Array[File?] diff
 
-    # Preprocessing output.
+    # Preprocessing output
     Array[Bam] finalBams
+    Array[Cram] finalCrams
 
     # QC
     Array[File] alignmentSummaryMetrics
