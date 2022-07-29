@@ -101,8 +101,6 @@ workflow SomaticDNA {
         File markerTxtFile
 
         Boolean bypassQcCheck = false
-        Boolean tumorFfpe = false      
-        Boolean normalFfpe = false
 
         # calling
         Array[String]+ listOfChromsFull
