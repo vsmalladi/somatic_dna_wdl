@@ -840,7 +840,6 @@ task SomaticQcCheck {
     }
 
     runtime {
-        # This is for testing. Needs to be moved to the public repo.
         docker: "gcr.io/nygc-public/workflow_utils@sha256:40fa18ac3f9d9f3b9f037ec091cb0c2c26ad6c7cb5c32fb16c1c0cf2a5c9caea"
     }
 }
