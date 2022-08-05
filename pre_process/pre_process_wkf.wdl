@@ -44,7 +44,7 @@ workflow Preprocess {
     
     if (highMem) {
         Int novosortMemHigh = 80
-        Int bwamem2MemHigh = 64
+        Int bwamem2MemHigh = 48
     }
 
     Int novosortMem = select_first([novosortMemHigh, novosortMemLow])
@@ -89,12 +89,23 @@ workflow Preprocess {
             outputDir = "Sample_~{sampleId}/qc"
     }
 
+    Int bamSize = ceil(size(MergeBams.finalBam.bam, "GB"))
+    Int bamToCramMemLow = 8
+    Int bamToCramThreadsLow = 8
+    if (bamSize > 200) {
+        Int bamToCramMemHigh = 16
+        Int bamToCramThreadsHigh = 12
+    }
+    Int bamToCramMem = select_first([bamToCramMemHigh, bamToCramMemLow])
+    Int bamToCramThreads = select_first([bamToCramThreadsHigh, bamToCramThreadsLow])
     call cramConversion.SamtoolsBamToCram as bamToCram {
         input:
             inputBam = MergeBams.finalBam,
             referenceFa = referenceFa,
             sampleId = sampleId,
-            diskSize = (ceil(size(MergeBams.finalBam.bam, "GB") * 1.7)) + 20 # 0.7 is estimated cram size
+            threads = bamToCramThreads,
+            memoryGb = bamToCramMem,
+            diskSize = (ceil(size(MergeBams.finalBam.bam, "GB") * 2)) + 20 # 0.7 is estimated cram size
     }
 
     output {

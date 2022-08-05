@@ -73,6 +73,8 @@ struct IndexedReference {
     File fasta
     File? dict
     File index
+    String? httpFasta
+    String? httpIndex
 }
 
 struct Fastqs {
@@ -89,6 +91,7 @@ struct sampleInfo {
     String sampleId
     Array[Fastqs] listOfFastqPairs
     Float expectedCoverage
+    Boolean? skipCoverageCheck
 }
 
 struct SampleBamInfo {
@@ -243,8 +246,9 @@ struct FinalWorkflowOutput {
     Array[File?] reconstructed
     Array[File?] diff
 
-    # Preprocessing output.
+    # Preprocessing output
     Array[Bam] finalBams
+    Array[Cram] finalCrams
 
     # QC
     Array[File] alignmentSummaryMetrics

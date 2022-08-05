@@ -69,7 +69,7 @@ task GetIndex {
     }
 
     runtime {
-        docker: "gcr.io/nygc-public/workflow_utils@sha256:b7269061a4620c6565566cbeaf61b1a58d49d26c382fa12f05f41b0e5f2e4807"
+        docker: "gcr.io/nygc-public/workflow_utils@sha256:40fa18ac3f9d9f3b9f037ec091cb0c2c26ad6c7cb5c32fb16c1c0cf2a5c9caea"
     }
 }
 
@@ -95,11 +95,11 @@ workflow SomaticDNA {
 
         Boolean trim = true
         Boolean production = true
-        Boolean bypassQcCheck = false
 
         # For Tumor-Normal QC
         File markerBedFile
         File markerTxtFile
+
         Boolean bypassQcCheck = false
 
         # calling
@@ -272,7 +272,8 @@ workflow SomaticDNA {
                 sampleId = sampleInfoObj.sampleId
         }
 
-        if (!bypassQcCheck) {
+        Boolean skipCoverageCheck = select_first([sampleInfoObj.skipCoverageCheck, false])
+        if (!bypassQcCheck && !skipCoverageCheck) {
             call BamQcCheck {
                 input:
                     wgsMetricsFile = Preprocess.collectWgsMetrics[germlineRunGetIndex.index],
@@ -282,7 +283,7 @@ workflow SomaticDNA {
 
         Boolean coveragePass = select_first([BamQcCheck.coveragePass, false])
 
-        if (bypassQcCheck || coveragePass ) {
+        if (bypassQcCheck || skipCoverageCheck || coveragePass ) {
             call kourami.Kourami {
                 input:
                     sampleId = sampleInfoObj.sampleId,
@@ -481,12 +482,16 @@ workflow SomaticDNA {
         }
 
         if (!bypassQcCheck) {
+            Boolean tumorSkipCoverageCheck = select_first([sampleInfos[tumorGetIndex.index].skipCoverageCheck, false])
+            Boolean normalSkipCoverageCheck = select_first([sampleInfos[normalGetIndex.index].skipCoverageCheck, false])
             call SomaticQcCheck {
                 input:
                     tumorWgsMetricsFile = Preprocess.collectWgsMetrics[tumorGetIndex.index],
                     tumorExpectedCoverage = sampleInfos[tumorGetIndex.index].expectedCoverage,
+                    tumorSkipCoverageCheck = tumorSkipCoverageCheck,
                     normalWgsMetricsFile = Preprocess.collectWgsMetrics[normalGetIndex.index],
                     normalExpectedCoverage = sampleInfos[normalGetIndex.index].expectedCoverage,
+                    normalSkipCoverageCheck = normalSkipCoverageCheck,
                     concordanceFile = Conpair.concordanceAll,
                     contaminationFile = Conpair.contamination
             }
@@ -508,6 +513,7 @@ workflow SomaticDNA {
                 input:
                     mantaJsonLog = mantaJsonLog,
                     lancetJsonLog = lancetJsonLog,
+                    strelkaJsonLog = strelkaJsonLog,
                     mutectJsonLog = mutectJsonLog,
                     mutectJsonLogFilter = mutectJsonLogFilter,
                     configureStrelkaSomaticWorkflow = configureStrelkaSomaticWorkflow,
@@ -795,7 +801,7 @@ task BamQcCheck {
     }
 
     runtime {
-        docker: "gcr.io/nygc-public/workflow_utils@sha256:b7269061a4620c6565566cbeaf61b1a58d49d26c382fa12f05f41b0e5f2e4807"
+        docker: "gcr.io/nygc-public/workflow_utils@sha256:40fa18ac3f9d9f3b9f037ec091cb0c2c26ad6c7cb5c32fb16c1c0cf2a5c9caea"
     }
 }
 
@@ -810,9 +816,12 @@ task SomaticQcCheck {
         File contaminationFile
         Float minConcordance = 95.0
         Float maxContamination = 0.99
+        Boolean tumorSkipCoverageCheck = false
+        Boolean normalSkipCoverageCheck = false
     }
 
     command {
+ 
         python /check_somatic_qc.py \
            --tumor_metrics_file ~{tumorWgsMetricsFile} \
            --tumor_expected_coverage ~{tumorExpectedCoverage} \
@@ -821,7 +830,9 @@ task SomaticQcCheck {
            --concordance_file ~{concordanceFile} \
            --contamination_file ~{contaminationFile} \
            --min_concordance ~{minConcordance} \
-           --max_contamination ~{maxContamination}
+           --max_contamination ~{maxContamination} \
+           ${if tumorSkipCoverageCheck then "--skip_tumor_coverage" else " "} \
+           ${if normalSkipCoverageCheck then "--skip_normal_coverage" else " "}
     }
 
     output {
@@ -829,6 +840,6 @@ task SomaticQcCheck {
     }
 
     runtime {
-        docker: "gcr.io/nygc-public/workflow_utils@sha256:b7269061a4620c6565566cbeaf61b1a58d49d26c382fa12f05f41b0e5f2e4807"
+        docker: "gcr.io/nygc-public/workflow_utils@sha256:40fa18ac3f9d9f3b9f037ec091cb0c2c26ad6c7cb5c32fb16c1c0cf2a5c9caea"
     }
 }
