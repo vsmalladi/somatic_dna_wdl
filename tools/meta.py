@@ -213,6 +213,7 @@ def populate(args, custom_inputs):
     return project_info
 
 def write_wdl_json(args, project_info, custom_inputs,
+                   custom_inputs_out,
                    local=False):
     parent_dir = os.path.abspath(os.path.dirname(__file__))
     if local:
@@ -232,7 +233,7 @@ def write_wdl_json(args, project_info, custom_inputs,
                       validate=not args['skip_validate'],
                       project_info=project_info,
                       local=args['local'])
-    file_out = os.path.basename(args['wdl_file']).replace('.wdl', '') + 'Input.json'
+    file_out = custom_inputs_out
     with open(file_out, 'w') as input_info_file:
         json.dump(input.final_inputs, input_info_file, indent=4)
             
@@ -285,6 +286,14 @@ def get_args():
                         help='WDL workflow. '
                         'An input JSON that matches this '
                         'WDL workflow will be created (required)',
+                        required=True
+                        )
+    parser.add_argument('--file-out',
+                        help='Output file for project info',
+                        required=True
+                        )
+    parser.add_argument('--custom-inputs-out',
+                        help='Output file for custom workflow inputs',
                         required=True
                         )
     parser.add_argument('--library',
@@ -369,13 +378,14 @@ def main():
     project_info = populate(args, custom_inputs)
     passed = test_schema(project_info)
     if passed:
-        file_out = args['project_name'].replace(' ', '_') + '_projectInfo.json'
+        file_out = args['file_out']
         # print project json
         write_json(args, project_info,
                    file_out=file_out)
         # create/print WDL inputs JSON
         write_wdl_json(args, project_info,
-                       custom_inputs=custom_inputs, 
+                       custom_inputs=custom_inputs,
+                       custom_inputs_out=args['custom_inputs_out'],
                        local=args['local'])
 
 if __name__ == "__main__":
