@@ -223,14 +223,23 @@ if [ -z "$project_name" ]; then
     exit 1
 fi
 
+log_dir=$( realpath ${log_dir})
+mkdir -p ${log_dir}
+
 set -e 
 set -o pipefail
 
-script_dir=$(dirname "$0")
+
+init_script_dir=$(dirname "$0")
+script_dir=$( realpath ${init_script_dir})
 workflow_dir=$(dirname ${workflow})
+workflow_dir=$( realpath ${workflow_dir})
+
+workflow_name=$( basename ${workflow} | sed 's/\.wdl//' )
+submission_inputs=${log_dir}/${workflow_name}Input.json
+project_info=${log_dir}/${project_name}_projectInfo.json
 
 echo "Validate workflow..." >&2
-cd ${log_dir}
 womtool \
 validate \
 ${workflow} \
@@ -241,6 +250,8 @@ ${workflow} \
 echo "Create input json and confirm files exist..." >&2
 meta_command="python ${script_dir}/tools/meta.py \
     --project-name ${project_name} \
+    --custom-inputs-out ${submission_inputs} \
+    --file-out ${project_info} \
     --library ${library} \
     --genome ${genome} \
     --wdl-file ${workflow} \
@@ -279,10 +290,10 @@ zip dependencies.zip *.wdl */*.wdl
 cd -
 
 echo "Precheck input json..." >&2
-workflow_name=$( basename ${workflow} | sed 's/\.wdl//' )
+
 womtool \
 validate \
---inputs ${workflow_name}Input.json \
+--inputs ${submission_inputs} \
 ${workflow}
 
 if [ -z "$dry_run" ]; then
@@ -294,14 +305,13 @@ if [ -z "$dry_run" ]; then
         -w ${workflow} \
         -o ${options} \
         -d ${workflow_dir}/dependencies.zip \
-        -p ${log_dir}/${project_name}_projectInfo.json \
-        -i ${workflow_name}Input.json"
+        -p ${project_info} \
+        -i ${submission_inputs}"
         
     if [ ! -z "$labels_file" ]; then
         submit_command="${submit_command} \
         -l ${labels_file}"
     fi
-    cd ${log_dir}
     uuid=$( ${submit_command} )
 fi
 
