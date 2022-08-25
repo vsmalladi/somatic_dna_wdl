@@ -93,7 +93,7 @@ class Cost():
         self.metadata['start_time'] = pd.to_datetime(self.metadata['start_time'])
         self.metadata['end_time'] = pd.to_datetime(self.metadata['end_time'])
         self.metadata['padded_start_time'] = self.metadata['start_time'] - datetime.timedelta(days=1)
-        self.metadata['padded_end_time'] = self.metadata['end_time'] + datetime.timedelta(days=1)
+        self.metadata['padded_end_time'] = self.metadata['end_time'] + datetime.timedelta(days=14)
         self.run_date = self.load_end_date(self.metadata.padded_start_time.min())
         self.end_date = self.load_end_date(self.metadata.padded_end_time.max())
 
@@ -130,7 +130,7 @@ LIMIT 1000
         AND DATE(_PARTITIONTIME) <= "''' +self.end_date + '''"
         AND project.id = "''' + self.gcp_query_project + '''"
         AND sku.description != "Network Google Ingress from Americas to Americas"
-        AND cost > 0
+        AND cost != 0
         AND EXISTS (SELECT 1 FROM UNNEST(labels) WHERE key = 'cromwell-workflow-id' and value in ("cromwell-''' + self.workflow_uuid + '''"))
     group by sub_workflow_name, wdl_task_name, cromwell_workflow_id, sku.description
     order by cost desc
