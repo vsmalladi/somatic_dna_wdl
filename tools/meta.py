@@ -372,7 +372,6 @@ def get_args():
 
 def main():
     args = get_args()
-    #custom_inputs = []
     if args['custom_inputs']:
         custom_inputs = args['custom_inputs'].split(',')
     else:
