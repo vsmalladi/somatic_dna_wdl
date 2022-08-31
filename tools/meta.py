@@ -374,6 +374,8 @@ def main():
     args = get_args()
     if args['custom_inputs']:
         custom_inputs = args['custom_inputs'].split(',')
+    else:
+        custom_inputs = None
     # project, run and sample related metadata (project_info)
     project_info = populate(args, custom_inputs)
     passed = test_schema(project_info)
