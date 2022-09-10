@@ -33,7 +33,8 @@ task Skewer {
         Fastqs skewerFastqs = object {
             fastqR1 : fastqOutR1Path,
             fastqR2 : fastqOutR2Path,
-            sampleId: fastqs.sampleId,
+            clientSampleId: fastqs.clientSampleId,
+            limsLibraryName: fastqs.limsLibraryName,
             readgroupId: fastqs.readgroupId,
             rgpu: fastqs.rgpu
         }
@@ -68,13 +69,14 @@ task AlignBwaMem2 {
         String machineType = "NovaSeq"
         String center = "NYGenome"
     }
+    String libraryName = select_first([fastqsAlign.limsLibraryName, fastqsAlign.clientSampleId])
     command {
         set -e -o pipefail
         bwa-mem2 mem \
         -Y \
         -K 100000000 \
         -t ~{bwamem2Threads} \
-        -R '@RG\tID:~{fastqsAlign.readgroupId}\tPL:~{platform}\tPM:~{machineType}\tLB:~{fastqsAlign.sampleId}\tDS:hg38\tSM:~{fastqsAlign.sampleId}\tCN:~{center}\tPU:${fastqsAlign.rgpu}' \
+        -R '@RG\tID:~{fastqsAlign.readgroupId}\tPL:~{platform}\tPM:~{machineType}\tLB:~{libraryName}\tDS:hg38\tSM:~{fastqsAlign.clientSampleId}\tCN:~{center}\tPU:${fastqsAlign.rgpu}' \
         ~{bwamem2Reference.fasta} \
         ~{fastqsAlign.fastqR1} \
         ~{fastqsAlign.fastqR2} \
@@ -128,7 +130,7 @@ task AlignMinimap2 {
         -xsr \
         -Y \
         -t ~{minimapThreads} \
-        -R '@RG\tID:~{fastqsAlign.readgroupId}\tPL:~{platform}\tPM:~{machineType}\tLB:~{fastqsAlign.sampleId}\tDS:hg38\tSM:~{fastqsAlign.sampleId}\tCN:~{center}\tPU:${fastqsAlign.rgpu}' \
+        -R '@RG\tID:~{fastqsAlign.readgroupId}\tPL:~{platform}\tPM:~{machineType}\tLB:~{fastqsAlign.clientSampleId}\tDS:hg38\tSM:~{fastqsAlign.clientSampleId}\tCN:~{center}\tPU:${fastqsAlign.rgpu}' \
         ~{bwaReference.fasta} \
         ~{fastqsAlign.fastqR1} \
         ~{fastqsAlign.fastqR2} \

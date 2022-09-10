@@ -57,6 +57,7 @@ task SamtoolsBamToCram {
         mem: memoryGb + " G"
         cpu: threads
         cpus: threads
+        max_retries: 3
     }
 }
 

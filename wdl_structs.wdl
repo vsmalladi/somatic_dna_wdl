@@ -82,9 +82,10 @@ struct Fastqs {
     String? md5sumR1
     File fastqR2
     String? md5sumR2
-    String sampleId
-    String readgroupId
-    String rgpu
+    String clientSampleId        # @RG.SM tag
+    String? limsLibraryName      # @RG.LB tag
+    String readgroupId           # file name prefix
+    String rgpu                  # @RG.PU tag
 }
 
 struct sampleInfo {
@@ -209,16 +210,20 @@ struct FinalPairInfo {
 
 struct PairRelationship {
     String pairId
-    String tumor
-    String normal
+    String tumorPrefix
+    String normalPrefix
+    String tumorId
+    String normalId
 }
 
 struct pairInfo {
     String pairId
     Bam tumorFinalBam
     Bam normalFinalBam
-    String tumor
-    String normal
+    String tumorPrefix       # Filename prefix
+    String normalPrefix
+    String tumorId           # ID in SM tag
+    String normalId
 }
 
 struct pairCramInfo {
@@ -248,7 +253,7 @@ struct FinalWorkflowOutput {
 
     # Preprocessing output
     Array[Bam] finalBams
-    Array[Cram] finalCrams
+    #Array[Cram] finalCrams
 
     # QC
     Array[File] alignmentSummaryMetrics
@@ -322,7 +327,7 @@ struct PreprocessingOutput {
     Array[File] collectWgsMetrics
     Array[File] binestCov
     Array[File] normCoverageByChrPng
-    
+
     # Dedup metrics
     Array[File] collectWgsMetricsPreBqsr
     Array[File] qualityDistributionPdfPreBqsr
