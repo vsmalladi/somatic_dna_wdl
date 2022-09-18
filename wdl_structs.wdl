@@ -82,14 +82,14 @@ struct Fastqs {
     String? md5sumR1
     File fastqR2
     String? md5sumR2
-    String clientSampleId        # @RG.SM tag
-    String? limsLibraryName      # @RG.LB tag
-    String readgroupId           # file name prefix
-    String rgpu                  # @RG.PU tag
+    String readGroupId              # file name prefix
+    String clientSampleId           # @RG.SM tag
+    String? limsLibraryName         # @RG.LB tag
+    String readGroupPlatformUnit    # @RG.PU tag
 }
 
-struct sampleInfo {
-    String sampleId
+struct SampleInfo {
+    String sampleAnalysisId
     Array[Fastqs] listOfFastqPairs
     Float expectedCoverage
     Boolean? skipCoverageCheck
@@ -212,7 +212,7 @@ struct PairRelationship {
     String pairId
     String tumorPrefix
     String normalPrefix
-    String tumorId
+    String tumorId    #ID in SM tag
     String normalId
 }
 
@@ -220,8 +220,6 @@ struct pairInfo {
     String pairId
     Bam tumorFinalBam
     Bam normalFinalBam
-    String tumorPrefix       # Filename prefix
-    String normalPrefix
     String tumorId           # ID in SM tag
     String normalId
 }
@@ -253,7 +251,7 @@ struct FinalWorkflowOutput {
 
     # Preprocessing output
     Array[Bam] finalBams
-    #Array[Cram] finalCrams
+    Array[Cram] finalCrams
 
     # QC
     Array[File] alignmentSummaryMetrics

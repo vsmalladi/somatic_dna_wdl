@@ -89,8 +89,8 @@ workflow SomaticDNA {
         File chromLengths
         File hsMetricsIntervals
         File randomIntervals
-        Array[sampleInfo]+ normalSampleInfos
-        Array[sampleInfo]+ sampleInfos
+        Array[SampleInfo]+ normalSampleInfos
+        Array[SampleInfo]+ sampleInfos
         Array[PairRelationship]+ listOfPairRelationships
 
         Boolean trim = true
@@ -243,7 +243,7 @@ workflow SomaticDNA {
                 listOfFastqPairs = sampleInfoObj.listOfFastqPairs,
                 trim = trim,
                 adaptersFa = adaptersFa,
-                sampleId = sampleInfoObj.sampleId,
+                sampleId = sampleInfoObj.sampleAnalysisId,
                 bwamem2Reference = bwamem2Reference,
                 referenceFa = referenceFa,
                 MillsAnd1000G = MillsAnd1000G,
@@ -257,8 +257,8 @@ workflow SomaticDNA {
         }
 
         # for wdl version 1.0
-        String sampleIds = sampleInfoObj.sampleId
-        # Bam sampleBams = preProcess.finalBam
+        String sampleIds = sampleInfoObj.sampleAnalysisId
+
         # for wdl version 1.1
         # Pair[String, Bam] bamPairs = (sampleInfo.sampleId, Preprocess.finalBam)
 
@@ -266,12 +266,12 @@ workflow SomaticDNA {
 
 
     scatter (sampleInfoObj in normalSampleInfos) {
-        String normalSampleIds = sampleInfoObj.sampleId
+        String normalSampleIds = sampleInfoObj.sampleAnalysisId
 
         call GetIndex as germlineRunGetIndex {
             input:
                 sampleIds = sampleIds,
-                sampleId = sampleInfoObj.sampleId
+                sampleId = sampleInfoObj.sampleAnalysisId
         }
 
         Boolean skipCoverageCheck = select_first([sampleInfoObj.skipCoverageCheck, false])
@@ -288,7 +288,7 @@ workflow SomaticDNA {
         if (bypassQcCheck || skipCoverageCheck || coveragePass ) {
             call kourami.Kourami {
                 input:
-                    sampleId = sampleInfoObj.sampleId,
+                    sampleId = sampleInfoObj.sampleAnalysisId,
                     kouramiReference = kouramiReference,
                     finalBam = Preprocess.finalBam[germlineRunGetIndex.index],
                     kouramiFastaGem1Index = kouramiFastaGem1Index,
@@ -323,7 +323,7 @@ workflow SomaticDNA {
                 input:
                     finalBam = Preprocess.finalBam[germlineRunGetIndex.index],
                     normal = sampleInfoObj.listOfFastqPairs[0].clientSampleId, # SM tag.
-                    outputPrefix = sampleInfoObj.sampleId,
+                    outputPrefix = sampleInfoObj.sampleAnalysisId,
                     referenceFa = referenceFa,
                     listOfChroms = listOfChroms,
                     MillsAnd1000G = MillsAnd1000G,
@@ -348,7 +348,7 @@ workflow SomaticDNA {
                     unannotatedVcf = Germline.haplotypecallerFinalFiltered,
                     production = production,
                     referenceFa = referenceFa,
-                    normal = sampleInfoObj.sampleId,
+                    normal = sampleInfoObj.sampleAnalysisId,
                     listOfChroms = listOfChroms,
                     vepGenomeBuild = vepGenomeBuild,
                     cosmicCoding = cosmicCoding,
@@ -380,10 +380,10 @@ workflow SomaticDNA {
             call germlineAnnotate.GermlineAnnotate as unFilteredGermlineAnnotate {
                 input:
                     unannotatedVcf = Germline.haplotypecallerVcf,
-                    haplotypecallerAnnotatedVcfPath = "~{sampleInfoObj.sampleId}.haplotypecaller.gatk.annotated.unfiltered.vcf",
+                    haplotypecallerAnnotatedVcfPath = "~{sampleInfoObj.sampleAnalysisId}.haplotypecaller.gatk.annotated.unfiltered.vcf",
                     production = production,
                     referenceFa = referenceFa,
-                    normal = sampleInfoObj.sampleId,
+                    normal = sampleInfoObj.sampleAnalysisId,
                     listOfChroms = listOfChroms,
                     vepGenomeBuild = vepGenomeBuild,
                     cosmicCoding = cosmicCoding,
@@ -468,10 +468,8 @@ workflow SomaticDNA {
             pairId : pairRelationship.pairId,
             tumorFinalBam : Preprocess.finalBam[tumorGetIndex.index],
             normalFinalBam : Preprocess.finalBam[normalGetIndex.index],
-            tumorId : pairRelationship.tumorId,
-            normalId : pairRelationship.normalId,
-            tumorPrefix: pairRelationship.tumorPrefix,
-            normalPrefix: pairRelationship.normalPrefix
+            tumorId : pairRelationship.tumorId,    # SM tag
+            normalId : pairRelationship.normalId   # SM tag
         }
 
         call conpair.Conpair {
@@ -736,7 +734,7 @@ workflow SomaticDNA {
 
         # Bams/Crams
         finalBams: Preprocess.finalBam,
-        #finalCrams: Preprocess.finalCram,
+        finalCrams: Preprocess.finalCram,
 
         # QC
         alignmentSummaryMetrics: Preprocess.alignmentSummaryMetrics,

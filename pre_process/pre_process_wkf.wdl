@@ -89,28 +89,28 @@ workflow Preprocess {
             outputDir = "Sample_~{sampleId}/qc"
     }
 
-    # Int bamSize = ceil(size(MergeBams.finalBam.bam, "GB"))
-    # Int bamToCramMemLow = 8
-    # Int bamToCramThreadsLow = 8
-    # if (bamSize > 200) {
-    #     Int bamToCramMemHigh = 16
-    #     Int bamToCramThreadsHigh = 12
-    # }
-    # Int bamToCramMem = select_first([bamToCramMemHigh, bamToCramMemLow])
-    # Int bamToCramThreads = select_first([bamToCramThreadsHigh, bamToCramThreadsLow])
-    # call cramConversion.SamtoolsBamToCram as bamToCram {
-    #     input:
-    #         inputBam = MergeBams.finalBam,
-    #         referenceFa = referenceFa,
-    #         sampleId = sampleId,
-    #         threads = bamToCramThreads,
-    #         memoryGb = bamToCramMem,
-    #         diskSize = (ceil(size(MergeBams.finalBam.bam, "GB") * 2)) + 20 # 0.7 is estimated cram size
-    # }
+    Int bamSize = ceil(size(MergeBams.finalBam.bam, "GB"))
+    Int bamToCramMemLow = 8
+    Int bamToCramThreadsLow = 8
+    if (bamSize > 200) {
+        Int bamToCramMemHigh = 16
+        Int bamToCramThreadsHigh = 12
+    }
+    Int bamToCramMem = select_first([bamToCramMemHigh, bamToCramMemLow])
+    Int bamToCramThreads = select_first([bamToCramThreadsHigh, bamToCramThreadsLow])
+    call cramConversion.SamtoolsBamToCram as bamToCram {
+        input:
+            inputBam = MergeBams.finalBam,
+            referenceFa = referenceFa,
+            sampleId = sampleId,
+            threads = bamToCramThreads,
+            memoryGb = bamToCramMem,
+            diskSize = (ceil(size(MergeBams.finalBam.bam, "GB") * 2)) + 20 # 0.7 is estimated cram size
+    }
 
     output {
         Bam finalBam = MergeBams.finalBam
-        #Cram finalCram = bamToCram.cramInfo.finalCram
+        Cram finalCram = bamToCram.cramInfo.finalCram
         File alignmentSummaryMetrics = QcMetrics.alignmentSummaryMetrics
         File qualityByCyclePdf = QcMetrics.qualityByCyclePdf
         File baseDistributionByCycleMetrics = QcMetrics.baseDistributionByCycleMetrics
