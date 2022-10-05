@@ -28,11 +28,11 @@ workflow AlignmentAnalysis {
     #   annotate
     input {
         Array[pairInfo]+ pairInfos
-        
+
         # kourami
         BwaReference kouramiReference
         File kouramiFastaGem1Index
-        
+
         # mantis
         File mantisBed
         File intervalListBed
@@ -53,27 +53,27 @@ workflow AlignmentAnalysis {
         File fastNgsAdmixPopulationRef
         File fastNgsAdmixPopulationNind
     }
-    
+
     scatter(pairInfo in pairInfos) {
         call kourami.Kourami as kouramiNormal {
             input:
-                sampleId=pairInfo.normal,
+                sampleId=pairInfo.normalId,
                 kouramiReference=kouramiReference,
                 finalBam=pairInfo.normalFinalBam,
                 kouramiFastaGem1Index=kouramiFastaGem1Index
         }
-        
+
         call kourami.Kourami as kouramiTumor {
             input:
-                sampleId=pairInfo.tumor,
+                sampleId=pairInfo.tumorId,
                 kouramiReference=kouramiReference,
                 finalBam=pairInfo.tumorFinalBam,
                 kouramiFastaGem1Index=kouramiFastaGem1Index
         }
-        
+
         call msi.Msi {
             input:
-                normal=pairInfo.normal,
+                normal=pairInfo.normalId,
                 pairName=pairInfo.pairId,
                 mantisBed=mantisBed,
                 intervalListBed=intervalListBed,
@@ -91,7 +91,7 @@ workflow AlignmentAnalysis {
                 fastNgsAdmixChroms = fastNgsAdmixChroms,
                 fastNgsAdmixRef = fastNgsAdmixContinentalRef,
                 fastNgsAdmixNind = fastNgsAdmixContinentalNind,
-                outprefix = pairInfo.normal + "_continental"
+                outprefix = pairInfo.normalId + "_continental"
         }
 
         call fastNgsAdmix.FastNgsAdmix as fastNgsAdmixPopulation{
@@ -103,10 +103,10 @@ workflow AlignmentAnalysis {
                 fastNgsAdmixChroms = fastNgsAdmixChroms,
                 fastNgsAdmixRef = fastNgsAdmixPopulationRef,
                 fastNgsAdmixNind = fastNgsAdmixPopulationNind,
-                outprefix = pairInfo.normal + "_population"
+                outprefix = pairInfo.normalId + "_population"
         }
     }
-    
+
     output {
         Array[File] normalKouramiResult = kouramiNormal.result
         Array[File] tumorKouramiResult = kouramiTumor.result

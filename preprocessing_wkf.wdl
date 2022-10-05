@@ -64,7 +64,7 @@ workflow PreprocessWrapper {
         File chromLengths
         File hsMetricsIntervals
         File randomIntervals
-        Array[sampleInfo]+ sampleInfos
+        Array[SampleInfo]+ sampleInfos
 
         Boolean trim = true
     }
@@ -77,7 +77,7 @@ workflow PreprocessWrapper {
                 listOfFastqPairs = sampleInfoObj.listOfFastqPairs,
                 trim = trim,
                 adaptersFa = adaptersFa,
-                sampleId = sampleInfoObj.sampleId,
+                sampleId = sampleInfoObj.sampleAnalysisId,
                 bwamem2Reference = bwamem2Reference,
                 referenceFa = referenceFa,
                 MillsAnd1000G = MillsAnd1000G,
@@ -90,7 +90,7 @@ workflow PreprocessWrapper {
                 chromLengths = chromLengths
         }
 
-        String sampleIds = sampleInfoObj.sampleId
+        String sampleIds = sampleInfoObj.sampleAnalysisId
 
     }
 
@@ -133,5 +133,3 @@ workflow PreprocessWrapper {
     }
 
 }
-
-

@@ -70,7 +70,7 @@ workflow SomaticBamWorkflow {
     input {
         BwaReference bwaReference
         IndexedReference referenceFa
-        
+
         Boolean production = true
         Boolean external = false
 
@@ -87,7 +87,7 @@ workflow SomaticBamWorkflow {
         File mutectJsonLog
         File mutectJsonLogFilter
         File configureStrelkaSomaticWorkflow
-        
+
         #   BicSeq2
         Int readLength
         Int coordReadLength
@@ -98,12 +98,12 @@ workflow SomaticBamWorkflow {
         Int tumorMedianInsertSize = 400
         Int normalMedianInsertSize = 400
         Int lambda = 4
-        
+
         # Gridss
         String bsGenome
         File ponTarGz
         Array[File] gridssAdditionalReference
-        
+
         # merge callers
         File intervalListBed
 
@@ -113,12 +113,12 @@ workflow SomaticBamWorkflow {
         IndexedVcf gnomadBiallelic
 
         IndexedVcf germFile
-        
+
         # annotation:
         String vepGenomeBuild
         IndexedVcf cosmicCoding
         IndexedVcf cosmicNoncoding
-        
+
         # Public
         File cancerResistanceMutations
         File vepCache
@@ -126,13 +126,13 @@ workflow SomaticBamWorkflow {
         File plugins
         String vepGenomeBuild
         IndexedReference vepFastaReference
-        
+
         # NYGC-only
         IndexedVcf hgmdGene
         IndexedVcf hgmdUd10
         IndexedVcf hgmdPro
         IndexedVcf omimVcf
-        
+
         # Public
         IndexedVcf chdGenesVcf
         IndexedVcf chdEvolvingGenesVcf
@@ -140,7 +140,7 @@ workflow SomaticBamWorkflow {
         IndexedVcf deepIntronicsVcf
         IndexedVcf clinvarIntronicsVcf
         IndexedVcf masterMind
-        
+
         # annotate cnv
         File cytoBand
         File dgv
@@ -148,7 +148,7 @@ workflow SomaticBamWorkflow {
         File cosmicUniqueBed
         File cancerCensusBed
         File ensemblUniqueBed
-        
+
         # annotate sv
         String vepGenomeBuild
         # gap,DGV,1000G,PON,COSMIC
@@ -157,18 +157,18 @@ workflow SomaticBamWorkflow {
         File thousandGVcf
         File svPon
         File cosmicBedPe
-        
+
         # post annotation
         File cosmicCensus
-        
+
         File ensemblEntrez
-        
+
         IndexedVcf MillsAnd1000G
         IndexedVcf omni
         IndexedVcf hapmap
         IndexedVcf onekG
         IndexedVcf dbsnp
-        
+
         IndexedVcf whitelist
         IndexedVcf nygcAf
         IndexedVcf pgx
@@ -176,39 +176,39 @@ workflow SomaticBamWorkflow {
         IndexedVcf deepIntronicsVcf
         IndexedVcf clinvarIntronicsVcf
         IndexedVcf chdWhitelistVcf
-        
+
         Boolean highMem = false
     }
-    
+
     scatter(pairInfo in pairInfos) {
-        
+
         # tumor insert size
         Int tumorDiskSize = ceil(size(pairInfo.tumorFinalBam.bam, "GB")) + 30
-                      
+
         call qc.MultipleMetrics as tumorMultipleMetrics {
             input:
                 referenceFa = referenceFa,
                 finalBam = pairInfo.tumorFinalBam,
-                sampleId = pairInfo.tumor,
+                sampleId = pairInfo.tumorId,
                 diskSize = tumorDiskSize
         }
-        
+
         call callingTasks.GetInsertSize as tumorGetInsertSize {
             input:
                 insertSizeMetrics = tumorMultipleMetrics.insertSizeMetrics
         }
-        
+
         # normal insert size
         Int normalDiskSize = ceil(size(pairInfo.normalFinalBam.bam, "GB")) + 30
-                      
+
         call qc.MultipleMetrics as normalMultipleMetrics {
             input:
                 referenceFa = referenceFa,
                 finalBam = pairInfo.normalFinalBam,
-                sampleId = pairInfo.normal,
+                sampleId = pairInfo.normalId,
                 diskSize = normalDiskSize
         }
-        
+
         call callingTasks.GetInsertSize as normalGetInsertSize {
             input:
                 insertSizeMetrics = normalMultipleMetrics.insertSizeMetrics
@@ -242,7 +242,7 @@ workflow SomaticBamWorkflow {
                 gridssAdditionalReference = gridssAdditionalReference,
                 highMem = highMem
         }
-        
+
         PreMergedPairVcfInfo preMergedPairVcfInfo = object {
             pairId : pairInfo.pairId,
             filteredMantaSV : Calling.filteredMantaSV,
@@ -303,14 +303,14 @@ workflow SomaticBamWorkflow {
         }
 
         File mergedVcf = select_first([wgsMergeVcf.mergedVcf, exomeMergeVcf.mergedVcf])
-        
+
         call annotate.Annotate {
             input:
                 unannotatedVcf = mergedVcf,
                 referenceFa = referenceFa,
                 production = production,
-                tumor = pairInfo.tumor,
-                normal = pairInfo.normal,
+                tumor = pairInfo.tumorId,
+                normal = pairInfo.normalId,
                 pairName = pairInfo.pairId,
                 vepGenomeBuild = vepGenomeBuild,
                 cosmicCoding = cosmicCoding,
@@ -336,9 +336,9 @@ workflow SomaticBamWorkflow {
                 # post annotation
                 cosmicCensus = cosmicCensus,
                 ensemblEntrez = ensemblEntrez,
-                library = library  
+                library = library
         }
-        
+
         call annotate_cnv_sv.AnnotateCnvSv {
             input:
                 tumor = pairRawVcfInfo.tumor,
@@ -350,9 +350,9 @@ workflow SomaticBamWorkflow {
                 dgv = dgv,
                 thousandG = thousandG,
                 cosmicUniqueBed = cosmicUniqueBed,
-                cancerCensusBed = cancerCensusBed, 
+                cancerCensusBed = cancerCensusBed,
                 ensemblUniqueBed = ensemblUniqueBed,
-                
+
                 filteredMantaSV = pairRawVcfInfo.filteredMantaSV,
                 gridssVcf = pairRawVcfInfo.gridssVcf,
                 vepGenomeBuild = vepGenomeBuild,
@@ -362,7 +362,7 @@ workflow SomaticBamWorkflow {
                 svPon = svPon,
                 cosmicBedPe = cosmicBedPe
         }
-        
+
         FinalVcfPairInfo finalVcfPairInfo = object {
             pairId : pairInfo.pairId,
             tumor : pairInfo.tumor,
@@ -394,4 +394,3 @@ workflow SomaticBamWorkflow {
 
     }
 }
-

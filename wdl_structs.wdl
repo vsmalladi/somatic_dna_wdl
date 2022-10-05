@@ -243,11 +243,17 @@ struct FinalWorkflowOutput {
     Array[File?] mantisExomeTxt
     Array[File?] mantisStatusFinal
     # SIGs
-    Array[File?] sigs
-    Array[File?] counts
-    Array[File?] sig_input
-    Array[File?] reconstructed
-    Array[File?] diff
+    Array[File?] deconstructSigSigs
+    Array[File?] deconstructSigCounts
+    Array[File?] deconstructSigSigInput
+    Array[File?] deconstructSigReconstructed
+    Array[File?] deconstructSigDiff
+
+    # ancestry
+    Array[File?] beagleFileContinental
+    Array[File?] fastNgsAdmixQoptContinental
+    Array[File?] beagleFilePopulation
+    Array[File?] fastNgsAdmixQoptPopulation
 
     # Preprocessing output
     Array[Bam] finalBams

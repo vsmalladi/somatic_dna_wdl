@@ -720,11 +720,11 @@ workflow SomaticDNA {
         mantisExomeTxt: Msi.mantisExomeTxt,
         mantisStatusFinal: Msi.mantisStatusFinal,
         # SIGs
-        sigs: DeconstructSig.sigs,
-        counts: DeconstructSig.counts,
-        sig_input: DeconstructSig.sigInput,
-        reconstructed: DeconstructSig.reconstructed,
-        diff: DeconstructSig.diff,
+        deconstructSigSigs: DeconstructSig.sigs,
+        deconstructSigCounts: DeconstructSig.counts,
+        deconstructSigSigInput: DeconstructSig.sigInput,
+        deconstructSigReconstructed: DeconstructSig.reconstructed,
+        deconstructSigDiff: DeconstructSig.diff,
 
         #ancestry
         beagleFileContinental: fastNgsAdmixContinental.beagleFile,

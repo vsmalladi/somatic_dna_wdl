@@ -34,15 +34,15 @@ workflow Calling {
         File mutectJsonLog
         File mutectJsonLogFilter
         File configureStrelkaSomaticWorkflow
-        
+
         Boolean highMem = false
     }
     call mutect2.Mutect2 {
         input:
             mutectJsonLogFilter = mutectJsonLogFilter,
             mutectJsonLog = mutectJsonLog,
-            tumor = pairInfo.tumor,
-            normal = pairInfo.normal,
+            tumor = pairInfo.tumorId,
+            normal = pairInfo.normalId,
             listOfChroms = listOfChroms,
             pairName = pairInfo.pairId,
             referenceFa = referenceFa,
@@ -54,8 +54,8 @@ workflow Calling {
     call manta.Manta {
         input:
             mantaJsonLog = mantaJsonLog,
-            tumor = pairInfo.tumor,
-            normal = pairInfo.normal,
+            tumor = pairInfo.tumorId,
+            normal = pairInfo.normalId,
             callRegions = callRegions,
             referenceFa = referenceFa,
             pairName = pairInfo.pairId,
@@ -68,8 +68,8 @@ workflow Calling {
         input:
             strelkaJsonLog = strelkaJsonLog,
             configureStrelkaSomaticWorkflow = configureStrelkaSomaticWorkflow,
-            tumor = pairInfo.tumor,
-            normal = pairInfo.normal,
+            tumor = pairInfo.tumorId,
+            normal = pairInfo.normalId,
             callRegions = callRegions,
             candidateSmallIndels = Manta.candidateSmallIndels,
             referenceFa = referenceFa,
@@ -81,8 +81,8 @@ workflow Calling {
     call svaba.Svaba {
         input:
             svabaJsonLog = svabaJsonLog,
-            tumor = pairInfo.tumor,
-            normal = pairInfo.normal,
+            tumor = pairInfo.tumorId,
+            normal = pairInfo.normalId,
             dbsnpIndels = dbsnpIndels,
             bwaReference = bwaReference,
             callRegions = callRegions,
@@ -95,8 +95,8 @@ workflow Calling {
     call lancet.Lancet {
         input:
             lancetJsonLog = lancetJsonLog,
-            tumor = pairInfo.tumor,
-            normal = pairInfo.normal,
+            tumor = pairInfo.tumorId,
+            normal = pairInfo.normalId,
             listOfChroms = listOfChroms,
             chromBedsWgs = chromBedsWgs,
             referenceFa = referenceFa,

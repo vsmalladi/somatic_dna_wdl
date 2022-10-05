@@ -32,10 +32,10 @@ import "variant_analysis/deconstruct_sigs_wkf.wdl" as deconstructSigs
 workflow SomaticBamWorkflow {
     input {
         Boolean external = false
-        
+
         BwaReference bwaReference
         IndexedReference referenceFa
-        
+
         Boolean production = true
 
         Array[pairInfo]+ pairInfos
@@ -55,8 +55,8 @@ workflow SomaticBamWorkflow {
         File mutectJsonLog
         File mutectJsonLogFilter
         File configureStrelkaSomaticWorkflow
-        
-        
+
+
         # merge callers
         File intervalListBed
 
@@ -64,15 +64,15 @@ workflow SomaticBamWorkflow {
         File ponWGSFile
         File ponExomeFile
         IndexedVcf gnomadBiallelic
-        
+
         # mantis
         File mantisBed
-        
+
         # annotation:
         String vepGenomeBuild
         IndexedVcf cosmicCoding
         IndexedVcf cosmicNoncoding
-        
+
         # Public
         File cancerResistanceMutations
         File vepCache
@@ -80,13 +80,13 @@ workflow SomaticBamWorkflow {
         File plugins
         String vepGenomeBuild
         IndexedReference vepFastaReference
-        
+
         # NYGC-only
         IndexedVcf hgmdGene
         IndexedVcf hgmdUd10
         IndexedVcf hgmdPro
         IndexedVcf omimVcf
-        
+
         # Public
         IndexedVcf chdGenesVcf
         IndexedVcf chdEvolvingGenesVcf
@@ -94,23 +94,23 @@ workflow SomaticBamWorkflow {
         IndexedVcf deepIntronicsVcf
         IndexedVcf clinvarIntronicsVcf
         IndexedVcf masterMind
-        
+
         # post annotation
         File cosmicCensus
-        
+
         File ensemblEntrez
-        
+
         # germline
-        
+
         File excludeIntervalList
         Array[File] scatterIntervalsHcs
-        
+
         IndexedVcf MillsAnd1000G
         IndexedVcf omni
         IndexedVcf hapmap
         IndexedVcf onekG
         IndexedVcf dbsnp
-        
+
         IndexedVcf whitelist
         IndexedVcf nygcAf
         IndexedVcf pgx
@@ -118,17 +118,17 @@ workflow SomaticBamWorkflow {
         IndexedVcf deepIntronicsVcf
         IndexedVcf clinvarIntronicsVcf
         IndexedVcf chdWhitelistVcf
-        
+
         IndexedVcf germFile
-        
+
         # signatures
         File cosmicSigs
-        
+
         Boolean highMem = false
     }
-    
+
     scatter(pairInfo in pairInfos) {
-        
+
         call calling.Calling {
             input:
                 mantaJsonLog = mantaJsonLog,
@@ -149,7 +149,7 @@ workflow SomaticBamWorkflow {
 
         call msi.Msi {
             input:
-                normal = pairInfo.normal,
+                normal = pairInfo.normalId,
                 pairName = pairInfo.pairId,
                 mantisBed = mantisBed,
                 intervalListBed = intervalListBed,
@@ -165,8 +165,8 @@ workflow SomaticBamWorkflow {
             strelka2Indel : Calling.strelka2Indel,
             mutect2 : Calling.mutect2,
             lancet : Calling.lancet,
-            tumor : pairInfo.tumor,
-            normal : pairInfo.normal,
+            tumor : pairInfo.tumorId,
+            normal : pairInfo.normalId,
             tumorFinalBam : pairInfo.tumorFinalBam,
             normalFinalBam : pairInfo.normalFinalBam
 
@@ -201,14 +201,14 @@ workflow SomaticBamWorkflow {
         }
 
         File mergedVcf = select_first([wgsMergeVcf.mergedVcf, exomeMergeVcf.mergedVcf])
-        
+
         call annotate.Annotate {
             input:
                 unannotatedVcf = mergedVcf,
                 referenceFa = referenceFa,
                 production = production,
-                tumor = pairInfo.tumor,
-                normal = pairInfo.normal,
+                tumor = pairInfo.tumorId,
+                normal = pairInfo.normalId,
                 pairName = pairInfo.pairId,
                 vepGenomeBuild = vepGenomeBuild,
                 cosmicCoding = cosmicCoding,
@@ -234,15 +234,15 @@ workflow SomaticBamWorkflow {
                 # post annotation
                 cosmicCensus = cosmicCensus,
                 ensemblEntrez = ensemblEntrez,
-                library = library  
+                library = library
         }
-        
+
         File runMainVcf = Annotate.pairVcfInfo.mainVcf
         File runSupplementalVcf = Annotate.pairVcfInfo.supplementalVcf
         File runVcfAnnotatedTxt = Annotate.pairVcfInfo.vcfAnnotatedTxt
-        
+
         call deconstructSigs.DeconstructSig {
-            input: 
+            input:
                 pairId = pairInfo.pairId,
                 mainVcf = mergedVcf,
                 cosmicSigs = cosmicSigs,
@@ -251,7 +251,7 @@ workflow SomaticBamWorkflow {
    }
 
     output {
-    
+
         # CNV SV output and SNV INDELs
         Array[File] mainVcf = runMainVcf
         Array[File] supplementalVcf = runSupplementalVcf
@@ -275,4 +275,3 @@ workflow SomaticBamWorkflow {
 
     }
 }
-

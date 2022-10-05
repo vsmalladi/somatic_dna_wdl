@@ -19,24 +19,22 @@ task SamtoolsBamToCram {
     command {
         set -e -o pipefail
 
-        if [ "~{referenceFa.httpFasta}" ]
-        then
-            ref=~{referenceFa.httpFasta}
-            ref_index=~{referenceFa.httpIndex}
-        else
-            ref=~{referenceFa.fasta}
-            ref_index=~{referenceFa.index}
-        fi
+        set -x
 
         samtools \
         view \
         -C \
-        -T "$ref" \
-        -t "$ref_index" \
+        -T ~{referenceFa.fasta} \
+        -t ~{referenceFa.index} \
         -o ~{cramPath} ~{inputBam.bam} \
         --verbosity=8 \
         --threads ~{threads}
 
+        # Reheader the cram with the http reference
+        samtools view -H ~{cramPath} | sed "s%UR:~{referenceFa.fasta}%UR:~{referenceFa.httpFasta}%" > new_header.txt
+        samtools reheader -i --no-PG new_header.txt ~{cramPath}
+
+        # Index cram
         samtools index ~{cramPath} ~{indexPath}
     }
 
