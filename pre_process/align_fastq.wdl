@@ -67,7 +67,7 @@ task AlignBwaMem2 {
         # other sequencing platforms.
         String platform = "illumina"
         String machineType = "NovaSeq"
-        String center = "NYGenome"
+        String center = "NYGC"
     }
     String libraryName = select_first([fastqsAlign.limsLibraryName, fastqsAlign.clientSampleId])
     command {
@@ -120,7 +120,7 @@ task AlignMinimap2 {
         # other sequencing platforms.
         String platform = "illumina"
         String machineType = "NovaSeq"
-        String center = "NYGenome"
+        String center = "NYGC"
 
     }
     String libraryName = select_first([fastqsAlign.limsLibraryName, fastqsAlign.clientSampleId])
