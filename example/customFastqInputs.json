@@ -4,82 +4,64 @@
     "readLength" : 151,
     "normalSampleInfos": [
         {
-            "sampleId": "NORMAL",
+            "sampleAnalysisId": "NORMAL",
             "expectedCoverage": 30,
             "listOfFastqPairs": [
                 {
                     "fastqR1": " gs://YOUR_BUCKET/fastq/NORMAL_CCGAAGTA_HYVLCCCXX_L001_001.R1.fastq.gz",
                     "fastqR2": " gs://YOUR_BUCKET/fastq/NORMAL_CCGAAGTA_HYVLCCCXX_L001_001.R2.fastq.gz",
-                    "readgroupId": "NORMAL_AAGGTACA_HY7KNCCXX_L001",
-                    "flowcell": "HY7KNCCXX",
-                    "lane": "L001",
-                    "sampleId": "NORMAL",
-                    "rgpu": "HY7KNCCXX.L002.AAGGTACA",
-                    "barcode": "AAGGTACA"
+                    "readGroupId": "NORMAL_AAGGTACA_HY7KNCCXX_L001",
+                    "clientSampleId": "NORMAL",
+                    "readGroupPlatformUnit": "HY7KNCCXX.1.AAGGTACA"
                 },
                 {
                     "fastqR1": " gs://YOUR_BUCKET/fastq/NORMAL_CCGAAGTA_HYVLCCCXX_L002_001.R1.fastq.gz",
                     "fastqR2": " gs://YOUR_BUCKET/fastq/NORMAL_CCGAAGTA_HYVLCCCXX_L002_001.R2.fastq.gz",
-                    "readgroupId": "NORMAL_AAGGTACA_HY7KNCCXX_L001",
-                    "flowcell": "HY7KNCCXX",
-                    "lane": "L002",
-                    "sampleId": "NORMAL",
-                    "rgpu": "HY7KNCCXX.L002.AAGGTACA",
-                    "barcode": "AAGGTACA"
+                    "readGroupId": "NORMAL_AAGGTACA_HY7KNCCXX_L001",
+                    "clientSampleId": "NORMAL",
+                    "readGroupPlatformUnit": "HY7KNCCXX.2.AAGGTACA"
                 }
             ]
         }
     ],
     "sampleInfos": [
         {
-            "sampleId": "NORMAL",
+            "sampleAnalysisId": "NORMAL",
             "expectedCoverage": 30,
             "listOfFastqPairs": [
                 {
                     "fastqR1": " gs://YOUR_BUCKET/fastq/NORMAL_CCGAAGTA_HYVLCCCXX_L001_001.R1.fastq.gz",
                     "fastqR2": " gs://YOUR_BUCKET/fastq/NORMAL_CCGAAGTA_HYVLCCCXX_L001_001.R2.fastq.gz",
-                    "readgroupId": "NORMAL_AAGGTACA_HY7KNCCXX_L001",
-                    "flowcell": "HY7KNCCXX",
-                    "lane": "L001",
-                    "sampleId": "NORMAL",
-                    "rgpu": "HY7KNCCXX.L002.AAGGTACA",
-                    "barcode": "AAGGTACA"
+                    "readGroupId": "NORMAL_AAGGTACA_HY7KNCCXX_L001",
+                    "clientSampleId": "NORMAL",
+                    "readGroupPlatformUnit": "HY7KNCCXX.1.AAGGTACA"
                 },
                 {
                     "fastqR1": " gs://YOUR_BUCKET/fastq/NORMAL_CCGAAGTA_HYVLCCCXX_L002_001.R1.fastq.gz",
                     "fastqR2": " gs://YOUR_BUCKET/fastq/NORMAL_CCGAAGTA_HYVLCCCXX_L002_001.R2.fastq.gz",
-                    "readgroupId": "NORMAL_AAGGTACA_HY7KNCCXX_L001",
-                    "flowcell": "HY7KNCCXX",
-                    "lane": "L002",
-                    "sampleId": "NORMAL",
-                    "rgpu": "HY7KNCCXX.L002.AAGGTACA",
-                    "barcode": "AAGGTACA"
+                    "readGroupId": "NORMAL_AAGGTACA_HY7KNCCXX_L001",
+                    "clientSampleId": "NORMAL",
+                    "readGroupPlatformUnit": "HY7KNCCXX.2.AAGGTACA"
                 }
             ]
         },
         {
-            "sampleId": "TUMOR",
+            "sampleAnalysisId": "TUMOR",
             "expectedCoverage": 80,
             "listOfFastqPairs": [
                 {
                     "fastqR1": " gs://YOUR_BUCKET/fastq/TUMOR_AGATCGCA_HYVLCCCXX_L005_001.R1.fastq.gz",
                     "fastqR2": " gs://YOUR_BUCKET/fastq/TUMOR_AGATCGCA_HYVLCCCXX_L005_001.R2.fastq.gz",
-                    "readgroupId": "TUMOR_AGATCGCA_HY7KNCCXX_L005",
-                    "flowcell": "HY7KNCCXX",
-                    "lane": "L005",
-                    "sampleId": "TUMOR",
-                    "rgpu": "HYVLCCCXX.L005.AGATCGCA",
-                    "barcode": "AGATCGCA"
+                    "readGroupId": "TUMOR_AGATCGCA_HY7KNCCXX_L005",
+                    "clientSampleId": "TUMOR",
+                    "readGroupPlatformUnit": "HYVLCCCXX.L005.AGATCGCA"
                 },
                 {
                     "fastqR1": " gs://YOUR_BUCKET/fastq/TUMOR_AGATCGCA_HYVLCCCXX_L006_001.R1.fastq.gz",
                     "fastqR2": " gs://YOUR_BUCKET/fastq/TUMOR_AGATCGCA_HYVLCCCXX_L006_001.R2.fastq.gz",
-                    "readgroupId": "TUMOR_AGATCGCA_HY7KNCCXX_L006",
-                    "flowcell": "HY7KNCCXX",
-                    "lane": "L006",
-                    "sampleId": "TUMOR",
-                    "rgpu": "HYVLCCCXX.L006.AGATCGCA",
-                    "barcode": "AGATCGCA"
+                    "readGroupId": "TUMOR_AGATCGCA_HY7KNCCXX_L006",
+                    "clientSampleId": "TUMOR",
+                    "readGroupPlatformUnit": "HYVLCCCXX.L006.AGATCGCA"
                 }
             ]
         }

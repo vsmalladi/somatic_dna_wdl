@@ -61,10 +61,10 @@ task GetIndex {
 workflow SomaticBamWorkflow {
     input {
         Boolean local = false
-        
+
         BwaReference bwaReference
         IndexedReference referenceFa
-        
+
         Boolean external = false
         Boolean production = true
 
@@ -270,7 +270,7 @@ workflow SomaticBamWorkflow {
                 fastNgsAdmixNind = fastNgsAdmixPopulationNind,
                 outprefix = normalSampleIds + "population"
         }
-        
+
         call germline.Germline {
             input:
                 finalBam = normalSampleBamInfo.finalBam,
@@ -368,14 +368,14 @@ workflow SomaticBamWorkflow {
         call GetIndex as germlineGetIndex {
             input:
                 sampleIds = normalSampleIds,
-                sampleId = pairInfo.normal
+                sampleId = pairInfo.normalId
         }
 
         call baf.Baf {
             input:
                 referenceFa = referenceFa,
                 pairName = pairInfo.pairId,
-                sampleId = pairInfo.normal,
+                sampleId = pairInfo.normalId,
                 tumorFinalBam = pairInfo.tumorFinalBam,
                 normalFinalBam = pairInfo.normalFinalBam,
                 germlineVcf = unFilteredGermlineAnnotate.haplotypecallerAnnotatedVcf[germlineGetIndex.index],
@@ -392,7 +392,7 @@ workflow SomaticBamWorkflow {
             input:
                 referenceFa = referenceFa,
                 finalBam = pairInfo.tumorFinalBam,
-                sampleId = pairInfo.tumor,
+                sampleId = pairInfo.tumorId,
                 diskSize = tumorDiskSize
         }
 
@@ -408,7 +408,7 @@ workflow SomaticBamWorkflow {
             input:
                 referenceFa = referenceFa,
                 finalBam = pairInfo.normalFinalBam,
-                sampleId = pairInfo.normal,
+                sampleId = pairInfo.normalId,
                 diskSize = normalDiskSize
         }
 
@@ -421,8 +421,8 @@ workflow SomaticBamWorkflow {
             input:
                 finalTumorBam = pairInfo.tumorFinalBam,
                 finalNormalBam = pairInfo.normalFinalBam,
-                tumor = pairInfo.tumor,
-                normal = pairInfo.normal,
+                tumor = pairInfo.tumorId,
+                normal = pairInfo.normalId,
                 pairName = pairInfo.pairId,
                 referenceFa = referenceFa,
                 markerBedFile = markerBedFile,
@@ -460,7 +460,7 @@ workflow SomaticBamWorkflow {
 
         call msi.Msi {
             input:
-                normal = pairInfo.normal,
+                normal = pairInfo.normalId,
                 pairName = pairInfo.pairId,
                 mantisBed = mantisBed,
                 intervalListBed = intervalListBed,
@@ -468,7 +468,7 @@ workflow SomaticBamWorkflow {
                 tumorFinalBam = pairInfo.tumorFinalBam,
                 normalFinalBam = pairInfo.normalFinalBam
         }
-        
+
         PreMergedPairVcfInfo preMergedPairVcfInfo = object {
             pairId : pairInfo.pairId,
             filteredMantaSV : Calling.filteredMantaSV,
@@ -476,8 +476,8 @@ workflow SomaticBamWorkflow {
             strelka2Indel : Calling.strelka2Indel,
             mutect2 : Calling.mutect2,
             lancet : Calling.lancet,
-            tumor : pairInfo.tumor,
-            normal : pairInfo.normal,
+            tumor : pairInfo.tumorId,
+            normal : pairInfo.normalId,
             tumorFinalBam : pairInfo.tumorFinalBam,
             normalFinalBam : pairInfo.normalFinalBam
 
@@ -493,8 +493,8 @@ workflow SomaticBamWorkflow {
             gridssVcf : Calling.gridssVcf,
             bicseq2Png : Calling.bicseq2Png,
             bicseq2 : Calling.bicseq2,
-            tumor : pairInfo.tumor,
-            normal : pairInfo.normal,
+            tumor : pairInfo.tumorId,
+            normal : pairInfo.normalId,
             tumorFinalBam : pairInfo.tumorFinalBam,
             normalFinalBam : pairInfo.normalFinalBam
 
@@ -535,8 +535,8 @@ workflow SomaticBamWorkflow {
                 unannotatedVcf = mergedVcf,
                 referenceFa = referenceFa,
                 production = production,
-                tumor = pairInfo.tumor,
-                normal = pairInfo.normal,
+                tumor = pairInfo.tumorId,
+                normal = pairInfo.normalId,
                 pairName = pairInfo.pairId,
                 vepGenomeBuild = vepGenomeBuild,
                 cosmicCoding = cosmicCoding,

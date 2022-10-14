@@ -7,10 +7,10 @@ task haplotypeCallerGatk4 {
     input {
         Bam finalBam
         IndexedReference referenceFa
-        String sampleId
+        String outputPrefix
         Int index
-        String haplotypecallerIntervalVcfPath = "~{sampleId}.~{index}.haplotypecaller.g.vcf.gz"
-        String bamOutPath = "~{sampleId}.bamout.bam"
+        String haplotypecallerIntervalVcfPath = "~{outputPrefix}.~{index}.haplotypecaller.g.vcf.gz"
+        String bamOutPath = "~{outputPrefix}.bamout.bam"
         Int memoryGb = 7
         Int diskSize
 
@@ -58,10 +58,10 @@ task GentotypeGvcfsGatk4 {
     input {
         IndexedReference referenceFa
         IndexedVcf sortedVcf
-        String sampleId
+        String outputPrefix
         String index
-        String haplotypecallerGenoVcfPath = "~{sampleId}.~{index}.haplotypecaller.gatk.genotypedGVCFs.vcf.gz"
-        String haplotypecallerFilteredGenoVcfPath = "~{sampleId}.~{index}.haplotypecaller.gatk.filtered.genotypedGVCFs.vcf.gz"
+        String haplotypecallerGenoVcfPath = "~{outputPrefix}.~{index}.haplotypecaller.gatk.genotypedGVCFs.vcf.gz"
+        String haplotypecallerFilteredGenoVcfPath = "~{outputPrefix}.~{index}.haplotypecaller.gatk.filtered.genotypedGVCFs.vcf.gz"
         File scatterIntervalsHc
 
         ## Inputs for haplotypecaller
@@ -93,14 +93,14 @@ task GentotypeGvcfsGatk4 {
         -V ~{haplotypecallerGenoVcfPath} \
         -R ~{referenceFa.fasta} \
         -L ~{scatterIntervalsHc} \
-        -O ~{sampleId}.haplotypecaller.annotated.vcf
+        -O ~{outputPrefix}.haplotypecaller.annotated.vcf
 
         ## Filter variant tranches
         /gatk/gatk \
         --java-options "-Xmx~{jvmHeap}m -XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10" \
         FilterVariantTranches \
         -L ~{scatterIntervalsHc} \
-        -V ~{sampleId}.haplotypecaller.annotated.vcf \
+        -V ~{outputPrefix}.haplotypecaller.annotated.vcf \
         -O ~{haplotypecallerFilteredGenoVcfPath} \
         --snp-tranche 99.9 --snp-tranche 99.95 \
         --indel-tranche 99.0 --indel-tranche 99.4 \
@@ -135,10 +135,10 @@ task GentotypeGvcfsGatk4 {
 
 task genotypeRefinementWorkflow {
     input {
-        String sampleId
+        String outputPrefix
         IndexedVcf genotypedGatk4
-        String haplotypecallerAfVcfPath = "~{sampleId}.haplotypecaller.gatk.af.vcf.gz"
-        String haplotypecallerAfGqFilteredVcfPath = "~{sampleId}.haplotypecaller.gatk.af-gq-filtered.vcf.gz"
+        String haplotypecallerAfVcfPath = "~{outputPrefix}.haplotypecaller.gatk.af.vcf.gz"
+        String haplotypecallerAfGqFilteredVcfPath = "~{outputPrefix}.haplotypecaller.gatk.af-gq-filtered.vcf.gz"
         IndexedReference referenceFa
         Int memoryGb = 16
         Int diskSize = (ceil( size(genotypedGatk4.vcf, "GB") ) * 4 ) + 20
@@ -162,22 +162,22 @@ task genotypeRefinementWorkflow {
         ## remove biallellic sites
         zcat ~{haplotypecallerAfVcfPath} \
         | awk '($5 !~ ",")' \
-        > ~{sampleId}.biallellic.vcf
+        > ~{outputPrefix}.biallellic.vcf
 
         ## Variant filtration
         /gatk/gatk \
         --java-options "-Xmx~{jvmHeap}m -XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10" \
         VariantFiltration \
         -R ~{referenceFa.fasta} \
-        -V ~{sampleId}.biallellic.vcf \
-        -O ~{sampleId}.haplotypecaller.af-gq-filtered.vcf.gz \
+        -V ~{outputPrefix}.biallellic.vcf \
+        -O ~{outputPrefix}.haplotypecaller.af-gq-filtered.vcf.gz \
         --genotype-filter-name "AlleleFraction" \
         --genotype-filter-expression "(AF < 0.25 && AF > 0.0) || AF > 0.75" \
         --genotype-filter-name "GQ20" \
         --genotype-filter-expression "GQ < 20"
 
         # filter with AF (deliver)
-        zcat ~{sampleId}.haplotypecaller.af-gq-filtered.vcf.gz \
+        zcat ~{outputPrefix}.haplotypecaller.af-gq-filtered.vcf.gz \
         | grep -v "AlleleFraction" \
         > ~{haplotypecallerAfGqFilteredVcfPath}
     }
@@ -200,6 +200,7 @@ task genotypeRefinementWorkflow {
 
 task filterHO {
         input {
+            String outputPrefix
             String sampleId
             IndexedVcf haplotypecallerAfVcf
             IndexedVcf nygcAf
@@ -209,7 +210,7 @@ task filterHO {
             IndexedVcf chdWhitelistVcf
             IndexedVcf deepIntronicsVcf
             IndexedVcf clinvarIntronicsVcf
-            String haplotypecallerFinalFilteredPath = "~{sampleId}.haplotypecaller.gatk.final.filtered.vcf.gz"
+            String haplotypecallerFinalFilteredPath = "~{outputPrefix}.haplotypecaller.gatk.final.filtered.vcf.gz"
             Int diskSize = 100
             Int threads = 2
             Int memoryGb = 8
@@ -231,72 +232,72 @@ task filterHO {
           --columns 'INFO/AF,INFO/AC_Hom' \
           -Oz \
           noaf.vcf.gz \
-          > ~{sampleId}.final.annotated.vcf.gz
+          > ~{outputPrefix}.final.annotated.vcf.gz
 
-          tabix -p vcf ~{sampleId}.final.annotated.vcf.gz
+          tabix -p vcf ~{outputPrefix}.final.annotated.vcf.gz
 
           ## filter variants >3% AF and >10 Homozygotes in NYGC vars
           bcftools filter \
           --exclude 'INFO/AF[*] > 0.03 || INFO/AC_Hom[*] > 10' \
-          ~{sampleId}.final.annotated.vcf.gz \
-          > ~{sampleId}.pop.filtered.vcf
+          ~{outputPrefix}.final.annotated.vcf.gz \
+          > ~{outputPrefix}.pop.filtered.vcf
 
-          bgzip ~{sampleId}.pop.filtered.vcf
-          tabix -p vcf ~{sampleId}.pop.filtered.vcf.gz
+          bgzip ~{outputPrefix}.pop.filtered.vcf
+          tabix -p vcf ~{outputPrefix}.pop.filtered.vcf.gz
 
           ## select whitelist variants
           bcftools view \
           -Oz \
           -R ~{whitelist.vcf} \
           ~{haplotypecallerAfVcf.vcf} \
-          > ~{sampleId}.whitelist.filtered.vcf.gz
+          > ~{outputPrefix}.whitelist.filtered.vcf.gz
 
-          tabix -p vcf ~{sampleId}.whitelist.filtered.vcf.gz
+          tabix -p vcf ~{outputPrefix}.whitelist.filtered.vcf.gz
 
           ## select pgx variants
           bcftools view \
           -Oz \
           -R ~{pgx.vcf} \
           ~{haplotypecallerAfVcf.vcf} \
-          > ~{sampleId}.pgx.filtered.vcf.gz
+          > ~{outputPrefix}.pgx.filtered.vcf.gz
 
-          tabix -p vcf ~{sampleId}.pgx.filtered.vcf.gz
+          tabix -p vcf ~{outputPrefix}.pgx.filtered.vcf.gz
 
           ## select chd whitelist variants
           bcftools view \
           -Oz \
           -R ~{chdWhitelistVcf.vcf} \
           ~{haplotypecallerAfVcf.vcf} \
-          > ~{sampleId}.chdwhitelist.filtered.vcf.gz
+          > ~{outputPrefix}.chdwhitelist.filtered.vcf.gz
 
-          tabix -p vcf ~{sampleId}.chdwhitelist.filtered.vcf.gz
+          tabix -p vcf ~{outputPrefix}.chdwhitelist.filtered.vcf.gz
 
           ## select rwgs pgx variants
           bcftools view \
           -Oz \
           -R ~{rwgsPgxBed.table} \
           ~{haplotypecallerAfVcf.vcf} \
-          > ~{sampleId}.rwgspgx.filtered.vcf.gz
+          > ~{outputPrefix}.rwgspgx.filtered.vcf.gz
 
-          tabix -p vcf ~{sampleId}.rwgspgx.filtered.vcf.gz
+          tabix -p vcf ~{outputPrefix}.rwgspgx.filtered.vcf.gz
 
           ## Select deep intronics
           bcftools view \
           -Oz \
           -R ~{deepIntronicsVcf.vcf} \
           ~{haplotypecallerAfVcf.vcf} \
-          > ~{sampleId}.deep_intronics.filtered.vcf.gz
+          > ~{outputPrefix}.deep_intronics.filtered.vcf.gz
 
-          tabix -p vcf ~{sampleId}.deep_intronics.filtered.vcf.gz
+          tabix -p vcf ~{outputPrefix}.deep_intronics.filtered.vcf.gz
 
           ## Select clinvar intronics
           bcftools view \
           -Oz \
           -R ~{clinvarIntronicsVcf.vcf} \
           ~{haplotypecallerAfVcf.vcf} \
-          > ~{sampleId}.clinvar_intronics.filtered.vcf.gz
+          > ~{outputPrefix}.clinvar_intronics.filtered.vcf.gz
 
-          tabix -p vcf ~{sampleId}.clinvar_intronics.filtered.vcf.gz
+          tabix -p vcf ~{outputPrefix}.clinvar_intronics.filtered.vcf.gz
 
           echo ~{sampleId} > samples.txt
 
@@ -304,13 +305,13 @@ task filterHO {
           bcftools concat \
           -a \
           -d all \
-          ~{sampleId}.pop.filtered.vcf.gz \
-          ~{sampleId}.whitelist.filtered.vcf.gz \
-          ~{sampleId}.pgx.filtered.vcf.gz \
-          ~{sampleId}.chdwhitelist.filtered.vcf.gz \
-          ~{sampleId}.rwgspgx.filtered.vcf.gz \
-          ~{sampleId}.deep_intronics.filtered.vcf.gz \
-          ~{sampleId}.clinvar_intronics.filtered.vcf.gz \
+          ~{outputPrefix}.pop.filtered.vcf.gz \
+          ~{outputPrefix}.whitelist.filtered.vcf.gz \
+          ~{outputPrefix}.pgx.filtered.vcf.gz \
+          ~{outputPrefix}.chdwhitelist.filtered.vcf.gz \
+          ~{outputPrefix}.rwgspgx.filtered.vcf.gz \
+          ~{outputPrefix}.deep_intronics.filtered.vcf.gz \
+          ~{outputPrefix}.clinvar_intronics.filtered.vcf.gz \
           | \
           bcftools view \
           -i 'GT[@samples.txt]="alt"' \

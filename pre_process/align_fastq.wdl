@@ -33,9 +33,10 @@ task Skewer {
         Fastqs skewerFastqs = object {
             fastqR1 : fastqOutR1Path,
             fastqR2 : fastqOutR2Path,
-            sampleId: fastqs.sampleId,
-            readgroupId: fastqs.readgroupId,
-            rgpu: fastqs.rgpu
+            clientSampleId: fastqs.clientSampleId,
+            limsLibraryName: fastqs.limsLibraryName,
+            readGroupId: fastqs.readGroupId,
+            readGroupPlatformUnit: fastqs.readGroupPlatformUnit
         }
     }
 
@@ -54,7 +55,7 @@ task AlignBwaMem2 {
         # command
         Fastqs fastqsAlign
         BwaMem2Reference bwamem2Reference
-        String laneBamPath = "~{fastqsAlign.readgroupId}.readgroup.bam"
+        String laneBamPath = "~{fastqsAlign.readGroupId}.readgroup.bam"
         # resources
         Int memoryGb
         Int threads = 4
@@ -66,15 +67,16 @@ task AlignBwaMem2 {
         # other sequencing platforms.
         String platform = "illumina"
         String machineType = "NovaSeq"
-        String center = "NYGenome"
+        String center = "NYGC"
     }
+    String libraryName = select_first([fastqsAlign.limsLibraryName, fastqsAlign.clientSampleId])
     command {
         set -e -o pipefail
         bwa-mem2 mem \
         -Y \
         -K 100000000 \
         -t ~{bwamem2Threads} \
-        -R '@RG\tID:~{fastqsAlign.readgroupId}\tPL:~{platform}\tPM:~{machineType}\tLB:~{fastqsAlign.sampleId}\tDS:hg38\tSM:~{fastqsAlign.sampleId}\tCN:~{center}\tPU:${fastqsAlign.rgpu}' \
+        -R '@RG\tID:~{fastqsAlign.readGroupId}\tPL:~{platform}\tPM:~{machineType}\tLB:~{libraryName}\tDS:hg38\tSM:~{fastqsAlign.clientSampleId}\tCN:~{center}\tPU:${fastqsAlign.readGroupPlatformUnit}' \
         ~{bwamem2Reference.fasta} \
         ~{fastqsAlign.fastqR1} \
         ~{fastqsAlign.fastqR2} \
@@ -106,7 +108,7 @@ task AlignMinimap2 {
         # command
         Fastqs fastqsAlign
         BwaReference bwaReference
-        String laneBamPath = "~{fastqsAlign.readgroupId}.readgroup.bam"
+        String laneBamPath = "~{fastqsAlign.readGroupId}.readgroup.bam"
         # resources
         Int memoryGb
         Int threads
@@ -118,17 +120,17 @@ task AlignMinimap2 {
         # other sequencing platforms.
         String platform = "illumina"
         String machineType = "NovaSeq"
-        String center = "NYGenome"
+        String center = "NYGC"
 
     }
-
+    String libraryName = select_first([fastqsAlign.limsLibraryName, fastqsAlign.clientSampleId])
     command {
         minimap2 \
         -a \
         -xsr \
         -Y \
         -t ~{minimapThreads} \
-        -R '@RG\tID:~{fastqsAlign.readgroupId}\tPL:~{platform}\tPM:~{machineType}\tLB:~{fastqsAlign.sampleId}\tDS:hg38\tSM:~{fastqsAlign.sampleId}\tCN:~{center}\tPU:${fastqsAlign.rgpu}' \
+        -R '@RG\tID:~{fastqsAlign.readGroupId}\tPL:~{platform}\tPM:~{machineType}\tLB:~{libraryName}\tDS:hg38\tSM:~{fastqsAlign.clientSampleId}\tCN:~{center}\tPU:${fastqsAlign.readGroupPlatformUnit}' \
         ~{bwaReference.fasta} \
         ~{fastqsAlign.fastqR1} \
         ~{fastqsAlign.fastqR2} \

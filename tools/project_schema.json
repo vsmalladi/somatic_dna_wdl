@@ -1,22 +1,20 @@
 {
     "$schema": "http://json-schema.org/draft/2019-09/schema#",
-    
+
     "type": "object",
-    
+
     "definitions": {
         "fastqPair": {
             "type": "object",
             "properties": {
                 "fastqR1": { "type": "string" },
                 "fastqR2": { "type": "string" },
-                "readgroupId": { "type": "string" },
-                "flowcell": { "type": "string" },
-                "lane": { "type": "string" },
-                "barcode": { "type": "string" },
-                "rgpu": {"type": "string"}
+                "readGroupId": { "type": "string" },
+                "readGroupPlatformUnit": {"type": "string"},
+                "clientSampleId": {"type": "string"},
+		"limsLibraryName": {"type": "string"}
             },
-            "required": ["fastqR1", "fastqR2", "readgroupId",
-                "flowcell", "lane", "barcode", "rgpu"]
+            "required": ["fastqR1", "fastqR2", "readGroupId", "readGroupPlatformUnit", "clientSampleId"]
         },
         "bam" : {
             "type": "object",
@@ -49,7 +47,7 @@
             "required": ["pairId", "tumor", "normal"]
         }
     },
-    
+
     "properties": {
         "pairIds" : {"type": "array",
             "items": {"type": "string"}},
@@ -66,15 +64,15 @@
         "project": { "type": "string"},
         "pairInfos": { "type": "array",
             "items": { "$ref": "#/definitions/pairInfo" }
-            
+
         },
         "sampleInfos": { "type": "array",
             "items": { "$ref": "#/definitions/sampleInfo" }
-            
+
         },
         "normalSampleInfos": { "type": "array",
             "items": { "$ref": "#/definitions/sampleInfo" }
-            
+
         },
         "library": { "type": "string",
             "enum": ["WGS", "Exome"]
@@ -85,6 +83,6 @@
         },
         "intervalList": { "type": "string"}
     },
-    
+
     "required": []
 }

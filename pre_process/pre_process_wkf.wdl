@@ -41,7 +41,7 @@ workflow Preprocess {
 
     Int bwamem2MemLow = 32
     Int novosortMemLow = 32
-    
+
     if (highMem) {
         Int novosortMemHigh = 80
         Int bwamem2MemHigh = 48

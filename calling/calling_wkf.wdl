@@ -16,7 +16,7 @@ workflow Calling {
     #   annotate
     input {
         Boolean local = false
-        
+
         pairInfo pairInfo
         #   mutect2
         Array[String]+ listOfChroms
@@ -59,8 +59,8 @@ workflow Calling {
             local = local,
             mutectJsonLogFilter = mutectJsonLogFilter,
             mutectJsonLog = mutectJsonLog,
-            tumor = pairInfo.tumor,
-            normal = pairInfo.normal,
+            tumor = pairInfo.tumorId,
+            normal = pairInfo.normalId,
             listOfChroms = listOfChroms,
             pairName = pairInfo.pairId,
             referenceFa = referenceFa,
@@ -72,8 +72,8 @@ workflow Calling {
     call manta.Manta {
         input:
             mantaJsonLog = mantaJsonLog,
-            tumor = pairInfo.tumor,
-            normal = pairInfo.normal,
+            tumor = pairInfo.tumorId,
+            normal = pairInfo.normalId,
             callRegions = callRegions,
             referenceFa = referenceFa,
             pairName = pairInfo.pairId,
@@ -86,8 +86,8 @@ workflow Calling {
         input:
             strelkaJsonLog = strelkaJsonLog,
             configureStrelkaSomaticWorkflow = configureStrelkaSomaticWorkflow,
-            tumor = pairInfo.tumor,
-            normal = pairInfo.normal,
+            tumor = pairInfo.tumorId,
+            normal = pairInfo.normalId,
             callRegions = callRegions,
             candidateSmallIndels = Manta.candidateSmallIndels,
             referenceFa = referenceFa,
@@ -99,8 +99,8 @@ workflow Calling {
     call lancet.Lancet {
         input:
             lancetJsonLog = lancetJsonLog,
-            tumor = pairInfo.tumor,
-            normal = pairInfo.normal,
+            tumor = pairInfo.tumorId,
+            normal = pairInfo.normalId,
             listOfChroms = listOfChroms,
             chromBedsWgs = chromBedsWgs,
             referenceFa = referenceFa,
@@ -111,8 +111,8 @@ workflow Calling {
 
     call gridss.Gridss {
         input:
-            tumor = pairInfo.tumor,
-            normal = pairInfo.normal,
+            tumor = pairInfo.tumorId,
+            normal = pairInfo.normalId,
             pairName = pairInfo.pairId,
             bwaReference = bwaReference,
             gridssAdditionalReference = gridssAdditionalReference,
@@ -128,8 +128,8 @@ workflow Calling {
 
     call bicseq2.BicSeq2 {
         input:
-            tumor = pairInfo.tumor,
-            normal = pairInfo.normal,
+            tumor = pairInfo.tumorId,
+            normal = pairInfo.normalId,
             readLength = readLength,
             coordReadLength = coordReadLength,
             uniqCoords = uniqCoords,

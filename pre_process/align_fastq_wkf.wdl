@@ -26,7 +26,7 @@ workflow AlignFastq {
         Int skewerDiskSize = (2 * fastqsSize) + additionalDiskSize
         Int alignDiskSize = (3 * fastqsSize) + additionalDiskSize
         Int fixmateDiskSize = (4 * fastqsSize) + additionalDiskSize
-        
+
         if (trim) {
             call alignFastq.Skewer {
                 input:
@@ -51,7 +51,7 @@ workflow AlignFastq {
         call alignFastq.ShortAlignMark {
             input:
                 laneBam = AlignBwaMem2.laneBam,
-                bamBase = fastqs.readgroupId,
+                bamBase = fastqs.readGroupId,
                 memoryGb = 16,
                 diskSize = alignDiskSize
         }
@@ -59,7 +59,7 @@ workflow AlignFastq {
         call alignFastq.Fixmate {
             input:
                 laneBamMark = ShortAlignMark.laneBamMark,
-                bamBase = fastqs.readgroupId,
+                bamBase = fastqs.readGroupId,
                 memoryGb = 8,
                 diskSize = fixmateDiskSize
         }

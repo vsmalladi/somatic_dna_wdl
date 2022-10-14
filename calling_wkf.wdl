@@ -69,8 +69,8 @@ workflow Calling {
     scatter(pairInfo in pairInfos) {
         call gridss.Gridss {
             input:
-                tumor = pairInfo.tumor,
-                normal = pairInfo.normal,
+                tumor = pairInfo.tumorId,
+                normal = pairInfo.normalId,
                 pairName = pairInfo.pairId,
                 bwaReference = bwaReference,
                 gridssAdditionalReference = gridssAdditionalReference,
@@ -79,12 +79,12 @@ workflow Calling {
                 bsGenome = bsGenome,
                 ponTarGz = ponTarGz,
                 highMem = highMem
-        }    
-    
+        }
+
         call bicseq2.BicSeq2 {
             input:
-                tumor = pairInfo.tumor,
-                normal = pairInfo.normal,
+                tumor = pairInfo.tumorId,
+                normal = pairInfo.normalId,
                 readLength = readLength,
                 coordReadLength = coordReadLength,
                 uniqCoords = uniqCoords,
@@ -100,13 +100,13 @@ workflow Calling {
                 normalMedianInsertSize = normalMedianInsertSize,
                 lambda = lambda
         }
-        
+
         call mutect2.Mutect2 {
             input:
                 mutectJsonLog = mutectJsonLog,
                 mutectJsonLogFilter = mutectJsonLogFilter,
-                tumor = pairInfo.tumor,
-                normal = pairInfo.normal,
+                tumor = pairInfo.tumorId,
+                normal = pairInfo.normalId,
                 listOfChroms = listOfChroms,
                 pairName = pairInfo.pairId,
                 referenceFa = referenceFa,
@@ -114,12 +114,12 @@ workflow Calling {
                 tumorFinalBam = pairInfo.tumorFinalBam,
                 highMem = highMem
         }
-        
+
         call manta.Manta {
             input:
                 mantaJsonLog = mantaJsonLog,
-                tumor = pairInfo.tumor,
-                normal = pairInfo.normal,
+                tumor = pairInfo.tumorId,
+                normal = pairInfo.normalId,
                 callRegions = callRegions,
                 referenceFa = referenceFa,
                 pairName = pairInfo.pairId,
@@ -127,13 +127,13 @@ workflow Calling {
                 tumorFinalBam = pairInfo.tumorFinalBam,
                 highMem = highMem
         }
-        
+
         call strelka2.Strelka2 {
             input:
                 strelkaJsonLog = strelkaJsonLog,
                 configureStrelkaSomaticWorkflow = configureStrelkaSomaticWorkflow,
-                tumor = pairInfo.tumor,
-                normal = pairInfo.normal,
+                tumor = pairInfo.tumorId,
+                normal = pairInfo.normalId,
                 callRegions = callRegions,
                 candidateSmallIndels = Manta.candidateSmallIndels,
                 referenceFa = referenceFa,
@@ -141,12 +141,12 @@ workflow Calling {
                 normalFinalBam = pairInfo.normalFinalBam,
                 tumorFinalBam = pairInfo.tumorFinalBam
         }
-        
+
         call lancet.Lancet {
             input:
                 lancetJsonLog = lancetJsonLog,
-                tumor = pairInfo.tumor,
-                normal = pairInfo.normal,
+                tumor = pairInfo.tumorId,
+                normal = pairInfo.normalId,
                 listOfChroms = listOfChroms,
                 chromBedsWgs = chromBedsWgs,
                 referenceFa = referenceFa,
@@ -170,7 +170,7 @@ workflow Calling {
         Array[IndexedVcf] diploidSV = Manta.diploidSV
         Array[IndexedVcf] somaticSV = Manta.somaticSV
         Array[IndexedVcf] candidateSV = Manta.candidateSV
-        Array[File] unfilteredMantaSV = Manta.unfilteredMantaSV 
+        Array[File] unfilteredMantaSV = Manta.unfilteredMantaSV
         Array[File] filteredMantaSV = Manta.filteredMantaSV
         # Strelka2
         Array[IndexedVcf] strelka2Snvs = Strelka2.strelka2Snvs

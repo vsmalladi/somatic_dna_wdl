@@ -89,8 +89,8 @@ workflow SomaticDNA {
         File chromLengths
         File hsMetricsIntervals
         File randomIntervals
-        Array[sampleInfo]+ normalSampleInfos
-        Array[sampleInfo]+ sampleInfos
+        Array[SampleInfo]+ normalSampleInfos
+        Array[SampleInfo]+ sampleInfos
         Array[PairRelationship]+ listOfPairRelationships
 
         Boolean trim = true
@@ -243,7 +243,7 @@ workflow SomaticDNA {
                 listOfFastqPairs = sampleInfoObj.listOfFastqPairs,
                 trim = trim,
                 adaptersFa = adaptersFa,
-                sampleId = sampleInfoObj.sampleId,
+                sampleId = sampleInfoObj.sampleAnalysisId,
                 bwamem2Reference = bwamem2Reference,
                 referenceFa = referenceFa,
                 MillsAnd1000G = MillsAnd1000G,
@@ -257,19 +257,21 @@ workflow SomaticDNA {
         }
 
         # for wdl version 1.0
-        String sampleIds = sampleInfoObj.sampleId
+        String sampleIds = sampleInfoObj.sampleAnalysisId
+
         # for wdl version 1.1
         # Pair[String, Bam] bamPairs = (sampleInfo.sampleId, Preprocess.finalBam)
 
     }
 
+
     scatter (sampleInfoObj in normalSampleInfos) {
-        String normalSampleIds = sampleInfoObj.sampleId
+        String normalSampleIds = sampleInfoObj.sampleAnalysisId
 
         call GetIndex as germlineRunGetIndex {
             input:
                 sampleIds = sampleIds,
-                sampleId = sampleInfoObj.sampleId
+                sampleId = sampleInfoObj.sampleAnalysisId
         }
 
         Boolean skipCoverageCheck = select_first([sampleInfoObj.skipCoverageCheck, false])
@@ -286,7 +288,7 @@ workflow SomaticDNA {
         if (bypassQcCheck || skipCoverageCheck || coveragePass ) {
             call kourami.Kourami {
                 input:
-                    sampleId = sampleInfoObj.sampleId,
+                    sampleId = sampleInfoObj.sampleAnalysisId,
                     kouramiReference = kouramiReference,
                     finalBam = Preprocess.finalBam[germlineRunGetIndex.index],
                     kouramiFastaGem1Index = kouramiFastaGem1Index,
@@ -320,7 +322,8 @@ workflow SomaticDNA {
             call germline.Germline {
                 input:
                     finalBam = Preprocess.finalBam[germlineRunGetIndex.index],
-                    normal = sampleInfoObj.sampleId,
+                    normal = sampleInfoObj.listOfFastqPairs[0].clientSampleId, # SM tag.
+                    outputPrefix = sampleInfoObj.sampleAnalysisId,
                     referenceFa = referenceFa,
                     listOfChroms = listOfChroms,
                     MillsAnd1000G = MillsAnd1000G,
@@ -345,7 +348,7 @@ workflow SomaticDNA {
                     unannotatedVcf = Germline.haplotypecallerFinalFiltered,
                     production = production,
                     referenceFa = referenceFa,
-                    normal = sampleInfoObj.sampleId,
+                    normal = sampleInfoObj.sampleAnalysisId,
                     listOfChroms = listOfChroms,
                     vepGenomeBuild = vepGenomeBuild,
                     cosmicCoding = cosmicCoding,
@@ -377,10 +380,10 @@ workflow SomaticDNA {
             call germlineAnnotate.GermlineAnnotate as unFilteredGermlineAnnotate {
                 input:
                     unannotatedVcf = Germline.haplotypecallerVcf,
-                    haplotypecallerAnnotatedVcfPath = "~{sampleInfoObj.sampleId}.haplotypecaller.gatk.annotated.unfiltered.vcf",
+                    haplotypecallerAnnotatedVcfPath = "~{sampleInfoObj.sampleAnalysisId}.haplotypecaller.gatk.annotated.unfiltered.vcf",
                     production = production,
                     referenceFa = referenceFa,
-                    normal = sampleInfoObj.sampleId,
+                    normal = sampleInfoObj.sampleAnalysisId,
                     listOfChroms = listOfChroms,
                     vepGenomeBuild = vepGenomeBuild,
                     cosmicCoding = cosmicCoding,
@@ -419,18 +422,18 @@ workflow SomaticDNA {
         call GetIndex as tumorBafGetIndex {
             input:
                 sampleIds = sampleIds,
-                sampleId = pairRelationship.tumor
+                sampleId = pairRelationship.tumorPrefix
         }
 
         call GetIndex as normalBafGetIndex {
             input:
                 sampleIds = sampleIds,
-                sampleId = pairRelationship.normal
+                sampleId = pairRelationship.normalPrefix
         }
         call GetIndex as germlineBafGetIndex {
             input:
                 sampleIds = normalSampleIds,
-                sampleId = pairRelationship.normal
+                sampleId = pairRelationship.normalPrefix
         }
 
         if ( size(unFilteredGermlineAnnotate.haplotypecallerAnnotatedVcf[germlineBafGetIndex.index]) > 0 ) {
@@ -438,7 +441,7 @@ workflow SomaticDNA {
                 input:
                     referenceFa = referenceFa,
                     pairName = pairRelationship.pairId,
-                    sampleId = pairRelationship.normal,
+                    sampleId = pairRelationship.normalId,
                     tumorFinalBam = Preprocess.finalBam[tumorBafGetIndex.index],
                     normalFinalBam = Preprocess.finalBam[normalBafGetIndex.index],
                     germlineVcf = unFilteredGermlineAnnotate.haplotypecallerAnnotatedVcf[germlineBafGetIndex.index],
@@ -452,29 +455,29 @@ workflow SomaticDNA {
         call GetIndex as tumorGetIndex {
             input:
                 sampleIds = sampleIds,
-                sampleId = pairRelationship.tumor
+                sampleId = pairRelationship.tumorPrefix
         }
 
         call GetIndex as normalGetIndex {
             input:
                 sampleIds = sampleIds,
-                sampleId = pairRelationship.normal
+                sampleId = pairRelationship.normalPrefix
         }
 
         pairInfo pairInfoObject = object {
             pairId : pairRelationship.pairId,
             tumorFinalBam : Preprocess.finalBam[tumorGetIndex.index],
             normalFinalBam : Preprocess.finalBam[normalGetIndex.index],
-            tumor : pairRelationship.tumor,
-            normal : pairRelationship.normal
+            tumorId : pairRelationship.tumorId,    # SM tag
+            normalId : pairRelationship.normalId   # SM tag
         }
 
         call conpair.Conpair {
             input:
                 finalTumorBam = Preprocess.finalBam[tumorGetIndex.index],
                 finalNormalBam = Preprocess.finalBam[normalGetIndex.index],
-                tumor = pairRelationship.tumor,
-                normal = pairRelationship.normal,
+                tumor = pairRelationship.tumorPrefix,
+                normal = pairRelationship.normalPrefix,
                 pairName = pairRelationship.pairId,
                 referenceFa = referenceFa,
                 markerBedFile = markerBedFile,
@@ -540,7 +543,7 @@ workflow SomaticDNA {
 
             call msi.Msi {
                 input:
-                    normal=pairRelationship.normal,
+                    normal=pairRelationship.normalId,
                     pairName=pairRelationship.pairId,
                     mantisBed=mantisBed,
                     intervalListBed=intervalListBed,
@@ -556,8 +559,8 @@ workflow SomaticDNA {
                 strelka2Indel : Calling.strelka2Indel,
                 mutect2 : Calling.mutect2,
                 lancet : Calling.lancet,
-                tumor : pairRelationship.tumor,
-                normal : pairRelationship.normal,
+                tumor : pairRelationship.tumorId,
+                normal : pairRelationship.normalId,
                 tumorFinalBam : Preprocess.finalBam[tumorGetIndex.index],
                 normalFinalBam : Preprocess.finalBam[normalGetIndex.index]
 
@@ -573,8 +576,8 @@ workflow SomaticDNA {
                 gridssVcf : Calling.gridssVcf,
                 bicseq2Png : Calling.bicseq2Png,
                 bicseq2 : Calling.bicseq2,
-                tumor : pairRelationship.tumor,
-                normal : pairRelationship.normal,
+                tumor : pairRelationship.tumorId,
+                normal : pairRelationship.normalId,
                 tumorFinalBam : Preprocess.finalBam[tumorGetIndex.index],
                 normalFinalBam : Preprocess.finalBam[normalGetIndex.index]
 
@@ -615,8 +618,8 @@ workflow SomaticDNA {
                     unannotatedVcf = mergedVcf,
                     referenceFa = referenceFa,
                     production = production,
-                    tumor = pairRelationship.tumor,
-                    normal = pairRelationship.normal,
+                    tumor = pairRelationship.tumorId,
+                    normal = pairRelationship.normalId,
                     pairName = pairRelationship.pairId,
                     vepGenomeBuild = vepGenomeBuild,
                     cosmicCoding = cosmicCoding,
@@ -680,8 +683,8 @@ workflow SomaticDNA {
 
           FinalVcfPairInfo finalPairInfos = object {
                 pairId : pairRelationship.pairId,
-                tumor : pairRelationship.tumor,
-                normal : pairRelationship.normal,
+                tumor : pairRelationship.tumorId,
+                normal : pairRelationship.normalId,
                 mainVcf : Annotate.pairVcfInfo.mainVcf,
                 supplementalVcf : Annotate.pairVcfInfo.supplementalVcf,
                 vcfAnnotatedTxt : Annotate.pairVcfInfo.vcfAnnotatedTxt,
@@ -717,11 +720,11 @@ workflow SomaticDNA {
         mantisExomeTxt: Msi.mantisExomeTxt,
         mantisStatusFinal: Msi.mantisStatusFinal,
         # SIGs
-        sigs: DeconstructSig.sigs,
-        counts: DeconstructSig.counts,
-        sig_input: DeconstructSig.sigInput,
-        reconstructed: DeconstructSig.reconstructed,
-        diff: DeconstructSig.diff,
+        deconstructSigSigs: DeconstructSig.sigs,
+        deconstructSigCounts: DeconstructSig.counts,
+        deconstructSigSigInput: DeconstructSig.sigInput,
+        deconstructSigReconstructed: DeconstructSig.reconstructed,
+        deconstructSigDiff: DeconstructSig.diff,
 
         #ancestry
         beagleFileContinental: fastNgsAdmixContinental.beagleFile,
@@ -821,7 +824,7 @@ task SomaticQcCheck {
     }
 
     command {
- 
+
         python /check_somatic_qc.py \
            --tumor_metrics_file ~{tumorWgsMetricsFile} \
            --tumor_expected_coverage ~{tumorExpectedCoverage} \

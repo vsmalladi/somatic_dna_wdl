@@ -82,13 +82,14 @@ struct Fastqs {
     String? md5sumR1
     File fastqR2
     String? md5sumR2
-    String sampleId
-    String readgroupId
-    String rgpu
+    String readGroupId              # file name prefix
+    String clientSampleId           # @RG.SM tag
+    String? limsLibraryName         # @RG.LB tag
+    String readGroupPlatformUnit    # @RG.PU tag
 }
 
-struct sampleInfo {
-    String sampleId
+struct SampleInfo {
+    String sampleAnalysisId
     Array[Fastqs] listOfFastqPairs
     Float expectedCoverage
     Boolean? skipCoverageCheck
@@ -209,16 +210,18 @@ struct FinalPairInfo {
 
 struct PairRelationship {
     String pairId
-    String tumor
-    String normal
+    String tumorPrefix
+    String normalPrefix
+    String tumorId    #ID in SM tag
+    String normalId
 }
 
 struct pairInfo {
     String pairId
     Bam tumorFinalBam
     Bam normalFinalBam
-    String tumor
-    String normal
+    String tumorId           # ID in SM tag
+    String normalId
 }
 
 struct pairCramInfo {
@@ -240,11 +243,17 @@ struct FinalWorkflowOutput {
     Array[File?] mantisExomeTxt
     Array[File?] mantisStatusFinal
     # SIGs
-    Array[File?] sigs
-    Array[File?] counts
-    Array[File?] sig_input
-    Array[File?] reconstructed
-    Array[File?] diff
+    Array[File?] deconstructSigSigs
+    Array[File?] deconstructSigCounts
+    Array[File?] deconstructSigSigInput
+    Array[File?] deconstructSigReconstructed
+    Array[File?] deconstructSigDiff
+
+    # ancestry
+    Array[File?] beagleFileContinental
+    Array[File?] fastNgsAdmixQoptContinental
+    Array[File?] beagleFilePopulation
+    Array[File?] fastNgsAdmixQoptPopulation
 
     # Preprocessing output
     Array[Bam] finalBams
@@ -322,7 +331,7 @@ struct PreprocessingOutput {
     Array[File] collectWgsMetrics
     Array[File] binestCov
     Array[File] normCoverageByChrPng
-    
+
     # Dedup metrics
     Array[File] collectWgsMetricsPreBqsr
     Array[File] qualityDistributionPdfPreBqsr

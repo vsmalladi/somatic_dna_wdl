@@ -12,6 +12,7 @@ workflow Germline {
         Bam finalBam
         IndexedReference referenceFa
         Array[String]+ listOfChroms
+        String outputPrefix
         String normal
 
         File excludeIntervalList
@@ -31,7 +32,7 @@ workflow Germline {
         IndexedVcf deepIntronicsVcf
         IndexedVcf clinvarIntronicsVcf
         IndexedVcf chdWhitelistVcf
-        
+
         Boolean highMem = false
 
         Int hcDiskSize = ceil( size(finalBam.bam, "GB") ) + 20
@@ -42,7 +43,7 @@ workflow Germline {
                 referenceFa = referenceFa,
                 finalBam = finalBam,
                 index = i,
-                sampleId = normal,
+                outputPrefix = outputPrefix,
                 excludeIntervalList = excludeIntervalList,
                 scatterIntervalsHc = scatterIntervalsHcs[i],
                 diskSize = hcDiskSize
@@ -55,16 +56,16 @@ workflow Germline {
     Array[File] haplotypecallerIntervalVcfs = haplotypecallerIntervalVcf
 
     Int lowMergeSortDiskSize = 80
-    
+
     if (highMem) {
         Int highMergeSortDiskSize = 200
     }
-    
+
     Int mergeSortDiskSize = select_first([highMergeSortDiskSize, lowMergeSortDiskSize])
-    
+
     call calling.Gatk4MergeSortVcf as haplotypecallerGatk4MergeSortVcf {
         input:
-            sortedVcfPath = "~{normal}.haplotypecaller.g.vcf",
+            sortedVcfPath = "~{outputPrefix}.haplotypecaller.g.vcf",
             tempChromVcfs = haplotypecallerIntervalVcfs,
             referenceFa = referenceFa,
             memoryGb = 16,
@@ -75,7 +76,7 @@ workflow Germline {
         input:
             vcf = haplotypecallerGatk4MergeSortVcf.sortedVcf.vcf
     }
-    
+
     call mergeVcf.IndexVcf as haplotypecallerIndexVcf {
         input:
             vcfCompressed = haplotypecallerCompressVcf.vcfCompressed
@@ -85,7 +86,7 @@ workflow Germline {
         call germline.GentotypeGvcfsGatk4 {
             input:
                 referenceFa = referenceFa,
-                sampleId = normal,
+                outputPrefix = outputPrefix,
                 index = i,
                 sortedVcf = haplotypecallerIndexVcf.vcfCompressedIndexed,
                 scatterIntervalsHc=scatterIntervalsHcs[i],
@@ -103,7 +104,7 @@ workflow Germline {
 
     call calling.Gatk4MergeSortVcf as genotypedFilteredMergeSortVcf {
         input:
-            sortedVcfPath = "~{normal}.haplotypecaller.gatk.filtered.genotypedGVCFs.vcf",
+            sortedVcfPath = "~{outputPrefix}.haplotypecaller.gatk.filtered.genotypedGVCFs.vcf",
             tempChromVcfs = haplotypecallerFilteredGenoVcfs,
             referenceFa = referenceFa,
             memoryGb = 16,
@@ -114,7 +115,7 @@ workflow Germline {
         input:
             vcf = genotypedFilteredMergeSortVcf.sortedVcf.vcf
     }
-    
+
     call mergeVcf.IndexVcf as genotypedFilteredIndexVcf {
         input:
             vcfCompressed = genotypedFilteredCompressVcf.vcfCompressed
@@ -123,7 +124,7 @@ workflow Germline {
     call germline.genotypeRefinementWorkflow {
         input:
             genotypedGatk4 = genotypedFilteredIndexVcf.vcfCompressedIndexed,
-            sampleId = normal,
+            outputPrefix = normal,
             referenceFa = referenceFa
     }
 
@@ -132,10 +133,11 @@ workflow Germline {
         Int highHoDiskSize = 16
     }
     Int hoDiskSize = select_first([highHoDiskSize, lowHoDiskSize])
-    
+
     call germline.filterHO as filterHO {
         input:
             sampleId = normal,
+            outputPrefix = outputPrefix,
             nygcAf = nygcAf,
             haplotypecallerAfVcf = genotypeRefinementWorkflow.haplotypecallerAfVcf,
             pgx = pgx,
