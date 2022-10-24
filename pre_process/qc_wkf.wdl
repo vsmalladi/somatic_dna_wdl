@@ -94,7 +94,7 @@ workflow QcMetrics {
 
     call qc.Binest as Binest {
         input:
-            finalBam = finalBam,
+            finalBamIndex = finalBam.bamIndex,
             sampleId = sampleId,
             outputDir = outputDir,
             diskSize = diskSize

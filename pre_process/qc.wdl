@@ -389,14 +389,14 @@ task Binest {
         String outputDir = "."
         String binestCovPath = "~{outputDir}/~{sampleId}.binest.coverage.txt"
         String binestSexPath = "~{outputDir}/~{sampleId}.binest.sex.txt"
-        Bam finalBam
+        File finalBamIndex
     }
 
     command {
         mkdir -p $(dirname ~{binestCovPath})
 
-        binest size ~{finalBam.bamIndex} > ~{binestCovPath}
-        binest sex ~{finalBam.bamIndex} > ~{binestSexPath}
+        binest size ~{finalBamIndex} > ~{binestCovPath}
+        binest sex ~{finalBamIndex} > ~{binestSexPath}
     }
 
     output {
