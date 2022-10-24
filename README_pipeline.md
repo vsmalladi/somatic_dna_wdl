@@ -158,7 +158,10 @@ QC and Contamination
 - Relative coverage estimate
   - SAMPLE_ID.binest.coverage.png
   - SAMPLE_ID.binest.coverage.txt
-  
+
+- Sex estimate
+  - SAMPLE_ID.sex.coverage.txt 
+
 - Ancestry estimation
   - SAMPLE_ID.beagle.gz
   - SAMPLE_ID.qopt

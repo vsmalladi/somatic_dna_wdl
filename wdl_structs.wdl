@@ -280,6 +280,7 @@ struct FinalWorkflowOutput {
     Array[File] collectOxoGMetrics
     Array[File] collectWgsMetrics
     Array[File] binestCov
+    Array[File] binestSex
     Array[File] normCoverageByChrPng
     # Dedup metrics
     Array[File] collectWgsMetricsPreBqsr
@@ -330,6 +331,7 @@ struct PreprocessingOutput {
     Array[File] collectOxoGMetrics
     Array[File] collectWgsMetrics
     Array[File] binestCov
+    Array[File] binestSex
     Array[File] normCoverageByChrPng
 
     # Dedup metrics

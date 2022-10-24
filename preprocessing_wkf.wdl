@@ -119,6 +119,7 @@ workflow PreprocessWrapper {
                                              collectOxoGMetrics: Preprocess.collectOxoGMetrics,
                                              collectWgsMetrics: Preprocess.collectWgsMetrics,
                                              binestCov: Preprocess.binestCov,
+                                             binestSex: Preprocess.binestSex,
                                              normCoverageByChrPng: Preprocess.normCoverageByChrPng,
                                              # Dedup metrics,
                                              collectWgsMetricsPreBqsr: Preprocess.collectWgsMetricsPreBqsr,

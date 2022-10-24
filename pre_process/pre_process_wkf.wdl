@@ -131,6 +131,7 @@ workflow Preprocess {
         File collectOxoGMetrics = QcMetrics.collectOxoGMetrics
         File collectWgsMetrics = QcMetrics.collectWgsMetrics
         File binestCov = QcMetrics.binestCov
+        File binestSex = QcMetrics.binestSex
         File normCoverageByChrPng = QcMetrics.normCoverageByChrPng
         # Dedup metrics.
         File collectWgsMetricsPreBqsr = MergeBams.collectWgsMetricsPreBqsr
