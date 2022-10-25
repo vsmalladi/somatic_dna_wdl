@@ -97,7 +97,8 @@ workflow QcMetrics {
             finalBamIndex = finalBam.bamIndex,
             sampleId = sampleId,
             outputDir = outputDir,
-            diskSize = diskSize
+            diskSize = diskSize,
+            referenceFai = referenceFa.index
     }
 
     call qc.PlotBinCov {
