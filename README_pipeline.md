@@ -160,7 +160,7 @@ QC and Contamination
   - SAMPLE_ID.binest.coverage.txt
 
 - Sex estimate
-  - SAMPLE_ID.sex.coverage.txt 
+  - SAMPLE_ID.binest.sex.txt 
 
 - Ancestry estimation
   - SAMPLE_ID.beagle.gz
