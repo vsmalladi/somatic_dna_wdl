@@ -18,6 +18,8 @@ task NovosortMarkDupExternal {
    }
 
     command {
+        mkdir -p ~{logDir}
+
         /bin/novosort \
         -m 9216M \
         -i \

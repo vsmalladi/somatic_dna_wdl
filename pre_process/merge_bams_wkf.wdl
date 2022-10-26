@@ -19,7 +19,7 @@ workflow MergeBams {
         #IndexedTable callRegions
         IndexedReference referenceFa
         File randomIntervals
-        String qcDir = '.'       # To pass to the two QC tasks.
+        String qcDir = '.'       # To pass to the two QC tasks and Novosort
         # resources
         Int novosortMem
         Int threads
@@ -33,6 +33,7 @@ workflow MergeBams {
             input:
                 laneBams = laneFixmateBams,
                 sampleId = sampleId,
+                logDir = qcDir,
                 memoryGb = novosortMem,
                 threads = threads,
                 # novosort uses a lot of memory and a lot of disk.
