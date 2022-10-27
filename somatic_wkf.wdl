@@ -248,6 +248,7 @@ workflow SomaticDNA {
                 referenceFa = referenceFa,
                 MillsAnd1000G = MillsAnd1000G,
                 gnomadBiallelic = gnomadBiallelic,
+                markerBedFile = markerBedFile,
                 hsMetricsIntervals = hsMetricsIntervals,
                 callRegions = bqsrCallRegions,
                 randomIntervals = randomIntervals,
@@ -474,13 +475,11 @@ workflow SomaticDNA {
 
         call conpair.Conpair {
             input:
-                finalTumorBam = Preprocess.finalBam[tumorGetIndex.index],
-                finalNormalBam = Preprocess.finalBam[normalGetIndex.index],
+                tumorPileupsConpair = Preprocess.pileupsConpair[tumorGetIndex.index],
+                normalPileupsConpair = Preprocess.pileupsConpair[normalGetIndex.index],
                 tumor = pairRelationship.tumorPrefix,
                 normal = pairRelationship.normalPrefix,
                 pairName = pairRelationship.pairId,
-                referenceFa = referenceFa,
-                markerBedFile = markerBedFile,
                 markerTxtFile = markerTxtFile
         }
 
@@ -709,7 +708,7 @@ workflow SomaticDNA {
       }
     }
 
-    FinalWorkflowOutput workflowOutput = object {
+    SomaticWorkflowOutput workflowOutput = object {
         # alignment and calling results (calling results may not exist if qc failed)
         # SNV INDELs CNV SV and BAM output
         finalPairInfo: finalPairInfos,
@@ -767,11 +766,10 @@ workflow SomaticDNA {
         dedupLog: Preprocess.dedupLog,
 
         # Conpair
+        pileupsConpair: Preprocess.pileupsConpair,
         concordanceAll: Conpair.concordanceAll,
         concordanceHomoz: Conpair.concordanceHomoz,
         contamination: Conpair.contamination,
-        tumorPileup: Conpair.tumorPileup,
-        normalPileup: Conpair.normalPileup,
 
         # Germline
         kouramiResult: Kourami.result,
@@ -783,7 +781,7 @@ workflow SomaticDNA {
     }
 
     output {
-       FinalWorkflowOutput finalOutput = workflowOutput
+       SomaticWorkflowOutput finalOutput = workflowOutput
        Array[Boolean] allQcPass = somaticQcPass
     }
 

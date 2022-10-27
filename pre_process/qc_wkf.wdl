@@ -14,6 +14,7 @@ workflow QcMetrics {
         File randomIntervals
         File chromLengths
         IndexedVcf gnomadBiallelic
+        File markerBedFile
         String outputDir = "."
     }
 
@@ -125,6 +126,17 @@ workflow QcMetrics {
             diskSize = diskSize
     }
 
+    call qc.ConpairPileup {
+        input:
+            markerBedFile = markerBedFile,
+            referenceFa = referenceFa,
+            finalBam = finalBam,
+            sampleId = sampleId,
+            memoryGb = 4,
+            threads = 1,
+            diskSize = diskSize
+    }
+
     output {
         File alignmentSummaryMetrics = MultipleMetrics.alignmentSummaryMetrics
         File qualityByCyclePdf = MultipleMetrics.qualityByCyclePdf
@@ -147,6 +159,7 @@ workflow QcMetrics {
         File collectWgsMetrics = CollectWgsMetrics.collectWgsMetrics
         File binestCov = BinestCov.binestCov
         File normCoverageByChrPng = PlotBinCov.normCoverageByChrPng
+        File pileupsConpair = ConpairPileup.pileupsConpair
     }
 
 }

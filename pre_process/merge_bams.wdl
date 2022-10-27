@@ -90,7 +90,7 @@ task NovosortMarkDup {
         cpus: threads
         cpu : threads
         memory : memoryGb + " GB"
-        docker :  "gcr.io/nygc-compbio/novosort@sha256:ec3b0a6b1293916df21e69ec668f6ee23f33ce643f8c455c21d5f4234be25193"
+        docker :  "gcr.io/nygc-compbio/novosort@sha256:2f6bba87745c5ef68d6b979ab27f0287af3f138460fec4f70ef986a88cb2497e"
         # Per clinical team novosort runs significantly faster with SSD
         disks: "local-disk " + diskSize + " LOCAL"
     }
