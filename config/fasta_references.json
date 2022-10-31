@@ -643,7 +643,7 @@
         "randomIntervals": {
             "type": "File",
             "description": "",
-            "object": "gs://nygc-comp-s-82ed-resources/Annotation/wgs_capture_intervals/GRCh38.autosomes.random.interval_list"
+            "object": "gs://nygc-resources-public/Annotation/wgs_capture_intervals/GRCh38.autosomes.random.interval_list"
         },
         "bsGenome": {
             "type": "String",
