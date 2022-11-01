@@ -92,12 +92,13 @@ workflow QcMetrics {
             diskSize = diskSize
     }
 
-    call qc.Binest as BinestCov {
+    call qc.Binest as Binest {
         input:
-            finalBam = finalBam,
+            finalBamIndex = finalBam.bamIndex,
             sampleId = sampleId,
             outputDir = outputDir,
-            diskSize = diskSize
+            diskSize = diskSize,
+            referenceFai = referenceFa.index
     }
 
     call qc.PlotBinCov {
@@ -105,7 +106,7 @@ workflow QcMetrics {
             chromLengths = chromLengths,
             sampleId = sampleId,
             outputDir = outputDir,
-            binestCov = BinestCov.binestCov
+            binestCov = Binest.binestCov
     }
 
     call qc.Pileup {
@@ -145,7 +146,8 @@ workflow QcMetrics {
         File autocorroutput1100 = Autocorrelations.autocorroutput1100
         File collectOxoGMetrics = CollectOxoGMetricsWgs.collectOxoGMetrics
         File collectWgsMetrics = CollectWgsMetrics.collectWgsMetrics
-        File binestCov = BinestCov.binestCov
+        File binestCov = Binest.binestCov
+        File binestSex = Binest.binestSex
         File normCoverageByChrPng = PlotBinCov.normCoverageByChrPng
     }
 
