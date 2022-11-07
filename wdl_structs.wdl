@@ -339,5 +339,5 @@ struct PreprocessingOutput {
     Array[File] qualityDistributionMetricsPreBqsr
 
     # Conpair
-    Array[File] pilupsConpair
+    Array[File] pileupsConpair
 }
