@@ -688,7 +688,7 @@
             "description": "NOTE: NYGC internal-only license",
             "object": {
                 "vcf": "gs://nygc-comp-s-82ed-resources/annotations/hgmd_pro_2020.3_hg38.ud10.vcf.gz",
-                "index": "gs:/nygc-comp-s-82ed-resources/annotations/hgmd_pro_2020.3_hg38.ud10.vcf.gz"
+                "index": "gs://nygc-comp-s-82ed-resources/annotations/hgmd_pro_2020.3_hg38.ud10.vcf.gz.tbi"
             }
         },
         "hgmdPro": {
