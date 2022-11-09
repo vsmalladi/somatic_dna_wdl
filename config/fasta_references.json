@@ -679,32 +679,32 @@
             "type": "IndexedVcf",
             "description": "NOTE: NYGC internal-only license",
             "object": {
-                "vcf": "gs://nygc-comp-s-82ed-resources/annotations/hgmd_genes_pro_2020_hg38.vcf.gz",
-                "index": "gs://nygc-comp-s-82ed-resources/annotations/hgmd_genes_pro_2020_hg38.vcf.gz.tbi"
+                "vcf": "gs://nygc-resources-internal/annotations/hgmd_genes_pro_2020_hg38.vcf.gz",
+                "index": "gs://nygc-resources-internal/annotations/hgmd_genes_pro_2020_hg38.vcf.gz.tbi"
             }
         },
         "hgmdUd10": {
             "type": "IndexedVcf",
             "description": "NOTE: NYGC internal-only license",
             "object": {
-                "vcf": "gs://nygc-comp-s-82ed-resources/annotations/hgmd_pro_2020.3_hg38.ud10.vcf.gz",
-                "index": "gs://nygc-comp-s-82ed-resources/annotations/hgmd_pro_2020.3_hg38.ud10.vcf.gz.tbi"
+                "vcf": "gs://nygc-resources-internal/annotations/hgmd_pro_2020.3_hg38.ud10.vcf.gz",
+                "index": "gs://nygc-resources-internal/annotations/hgmd_pro_2020.3_hg38.ud10.vcf.gz.tbi"
             }
         },
         "hgmdPro": {
             "type": "IndexedVcf",
             "description": "NOTE: NYGC internal-only license",
             "object": {
-                "vcf": "gs://nygc-comp-s-82ed-resources/annotations/hgmd_pro_2020.3_hg38.vcf.gz",
-                "index": "gs://nygc-comp-s-82ed-resources/annotations/hgmd_pro_2020.3_hg38.vcf.gz.tbi"
+                "vcf": "gs://nygc-resources-internal/annotations/hgmd_pro_2020.3_hg38.vcf.gz",
+                "index": "gs://nygc-resources-internal/annotations/hgmd_pro_2020.3_hg38.vcf.gz.tbi"
             }
         },
         "omimVcf": {
             "type": "IndexedVcf",
             "description": "NOTE: NYGC internal-only license",
             "object": {
-                "vcf": "gs://nygc-comp-s-82ed-resources/annotations/omim_latest/omim.vcf.gz",
-                "index": "gs://nygc-comp-s-82ed-resources/annotations/omim_latest/omim.vcf.gz.tbi"
+                "vcf": "gs://nygc-resources-internal/annotations/omim_latest/omim.vcf.gz",
+                "index": "gs://nygc-resources-internal/annotations/omim_latest/omim.vcf.gz.tbi"
             }
         },
         "chdGenesVcf": {
@@ -1499,32 +1499,32 @@
             "type": "IndexedVcf",
             "description": "NOTE: NYGC internal-only license",
             "object": {
-                "vcf": "gs://nygc-comp-s-82ed-resources/annotations/hgmd_genes_pro_2020_hg38.vcf.gz",
-                "index": "gs://nygc-comp-s-82ed-resources/annotations/hgmd_genes_pro_2020_hg38.vcf.gz.tbi"
+                "vcf": "gs://nygc-resources-internal/annotations/hgmd_genes_pro_2020_hg38.vcf.gz",
+                "index": "gs://nygc-resources-internal/annotations/hgmd_genes_pro_2020_hg38.vcf.gz.tbi"
             }
         },
         "hgmdUd10": {
             "type": "IndexedVcf",
             "description": "NOTE: NYGC internal-only license",
             "object": {
-                "vcf": "gs://nygc-comp-s-82ed-resources/annotations/hgmd_pro_2020.3_hg38.ud10.vcf.gz",
-                "index": "gs://nygc-comp-s-82ed-resources/annotations/hgmd_pro_2020.3_hg38.ud10.vcf.gz.tbi"
+                "vcf": "gs://nygc-resources-internal/annotations/hgmd_pro_2020.3_hg38.ud10.vcf.gz",
+                "index": "gs://nygc-resources-internal/annotations/hgmd_pro_2020.3_hg38.ud10.vcf.gz.tbi"
             }
         },
         "hgmdPro": {
             "type": "IndexedVcf",
             "description": "NOTE: NYGC internal-only license",
             "object": {
-                "vcf": "gs://nygc-comp-s-82ed-resources/annotations/hgmd_pro_2020.3_hg38.vcf.gz",
-                "index": "gs://nygc-comp-s-82ed-resources/annotations/hgmd_pro_2020.3_hg38.vcf.gz.tbi"
+                "vcf": "gs://nygc-resources-internal/annotations/hgmd_pro_2020.3_hg38.vcf.gz",
+                "index": "gs://nygc-resources-internal/annotations/hgmd_pro_2020.3_hg38.vcf.gz.tbi"
             }
         },
         "omimVcf": {
             "type": "IndexedVcf",
             "description": "NOTE: NYGC internal-only license",
             "object": {
-                "vcf": "gs://nygc-comp-s-82ed-resources/annotations/omim_latest/omim.vcf.gz",
-                "index": "gs://nygc-comp-s-82ed-resources/annotations/omim_latest/omim.vcf.gz.tbi"
+                "vcf": "gs://nygc-resources-internal/annotations/omim_latest/omim.vcf.gz",
+                "index": "gs://nygc-resources-internal/annotations/omim_latest/omim.vcf.gz.tbi"
             }
         },
         "chdGenesVcf": {
