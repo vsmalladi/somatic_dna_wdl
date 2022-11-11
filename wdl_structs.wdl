@@ -232,7 +232,7 @@ struct pairCramInfo {
     String normal
 }
 
-struct FinalWorkflowOutput {
+struct SomaticWorkflowOutput {
     # alignment and calling results (calling results may not exist if qc failed)
     # SNV INDELs CNV SV and BAM output
     Array[FinalVcfPairInfo?] finalPairInfo
@@ -256,7 +256,6 @@ struct FinalWorkflowOutput {
     Array[File?] fastNgsAdmixQoptPopulation
 
     # Preprocessing output
-    Array[Bam] finalBams
     Array[Cram] finalCrams
 
     # QC
@@ -291,11 +290,11 @@ struct FinalWorkflowOutput {
     Array[File] dedupLog
 
     # Conpair
+    Array[File] pileupsConpair   # per sample, not per pair
     Array[File] concordanceAll
     Array[File] concordanceHomoz
     Array[File] contamination
-    Array[File] normalPileup
-    Array[File] tumorPileup
+
 
     # Germline
     Array[File?] kouramiResult
@@ -341,4 +340,6 @@ struct PreprocessingOutput {
     Array[File] qualityByCyclePdfPreBqsr
     Array[File] qualityDistributionMetricsPreBqsr
 
+    # Conpair
+    Array[File] pileupsConpair
 }

@@ -31,6 +31,7 @@ workflow Preprocess {
         File randomIntervals
         File chromLengths
         IndexedVcf gnomadBiallelic
+        File markerBedFile
 
         # resources
         #    prep flowcell
@@ -86,6 +87,7 @@ workflow Preprocess {
             randomIntervals = randomIntervals,
             chromLengths = chromLengths,
             gnomadBiallelic = gnomadBiallelic,
+            markerBedFile = markerBedFile,
             outputDir = "Sample_~{sampleId}/qc"
     }
 
@@ -140,6 +142,7 @@ workflow Preprocess {
         File qualityByCyclePdfPreBqsr = MergeBams.qualityByCyclePdfPreBqsr
         File qualityDistributionMetricsPreBqsr = MergeBams.qualityDistributionMetricsPreBqsr
         File dedupLog = MergeBams.dedupLog
+        File pileupsConpair = QcMetrics.pileupsConpair
     }
 
 }

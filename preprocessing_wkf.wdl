@@ -127,6 +127,7 @@ workflow PreprocessWrapper {
                                              qualityByCycleMetricsPreBqsr: Preprocess.qualityByCycleMetricsPreBqsr,
                                              qualityByCyclePdfPreBqsr: Preprocess.qualityByCyclePdfPreBqsr,
                                              qualityDistributionMetricsPreBqsr: Preprocess.qualityDistributionMetricsPreBqsr,
+                                             pileupsConpair: Preprocess.pileupsConpair
                                          }
 
     output {

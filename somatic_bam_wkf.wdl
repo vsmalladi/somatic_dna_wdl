@@ -225,6 +225,19 @@ workflow SomaticBamWorkflow {
                 sampleId = bamInfo.sampleId,
                 diskSize = (ceil(size(bamInfo.finalBam.bam, "GB") * 1.7)) + 20 # 0.7 is estimated cram size
         }
+
+        call qc.ConpairPileup {
+            input:
+                markerBedFile = markerBedFile,
+                referenceFa = referenceFa,
+                finalBam = bamInfo.finalBam,
+                sampleId = bamInfo.sampleId,
+                memoryGb = 4,
+                threads = 1,
+                diskSize = ceil(size(bamInfo.finalBam.bam, "GB"))  + 20
+       }
+
+      String uniqueSampleIds = bamInfo.sampleId
     }
     if (createCramBasedObjects) {
         call cramConversion.UpdateCramInfos as updateCramInfo {
@@ -417,15 +430,25 @@ workflow SomaticBamWorkflow {
                 insertSizeMetrics = normalMultipleMetrics.insertSizeMetrics
         }
 
+        call GetIndex as tumorGetIndex {
+            input:
+                sampleIds = uniqueSampleIds,
+                sampleId = pairInfo.tumorId
+        }
+
+        call GetIndex as normalGetIndex {
+            input:
+                sampleIds = uniqueSampleIds,
+                sampleId = pairInfo.normalId
+        }
+
         call conpair.Conpair {
             input:
-                finalTumorBam = pairInfo.tumorFinalBam,
-                finalNormalBam = pairInfo.normalFinalBam,
+                tumorPileupsConpair = ConpairPileup.pileupsConpair[tumorGetIndex.index],
+                normalPileupsConpair = ConpairPileup.pileupsConpair[normalGetIndex.index],
                 tumor = pairInfo.tumorId,
                 normal = pairInfo.normalId,
                 pairName = pairInfo.pairId,
-                referenceFa = referenceFa,
-                markerBedFile = markerBedFile,
                 markerTxtFile = markerTxtFile
         }
 
@@ -651,8 +674,7 @@ workflow SomaticBamWorkflow {
         Array[File] concordanceAll = Conpair.concordanceAll
         Array[File] concordanceHomoz = Conpair.concordanceHomoz
         Array[File] contamination = Conpair.contamination
-        Array[File] tumorPileup = Conpair.tumorPileup
-        Array[File] normalPileup = Conpair.normalPileup
+        Array[File] pileupsConpair = ConpairPileup.pileupsConpair
 
         # Cram
          Array[SampleCramInfo] crams = bamToCram.cramInfo
