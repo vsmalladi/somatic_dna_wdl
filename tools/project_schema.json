@@ -27,13 +27,13 @@
         "sampleInfo": {
             "type": "object",
             "properties": {
-                "sampleId" : { "type": "string" },
+                "sampleAnalysisId" : { "type": "string" },
                 "expectedCoverage": { "type": "number" },
                 "listOfFastqPairs" : { "type": "array",
                     "items": { "$ref": "#/definitions/fastqPair" }
                 }
             },
-            "required": ["sampleId"]
+            "required": ["sampleAnalysisId"]
         },
         "pairInfo": {
             "type": "object",

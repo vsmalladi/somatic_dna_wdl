@@ -36,6 +36,10 @@ def fill_pair_relationship(row):
     pair_relationship = {'pairId' : row.pairId}
     pair_relationship['normal'] = row['normal']
     pair_relationship['tumor'] = row['tumor']
+    pair_relationship['normalId'] = row['normal']
+    pair_relationship['tumorId'] = row['tumor']
+    pair_relationship['normalPrefix'] = row['normal']
+    pair_relationship['tumorPrefix'] = row['tumor']
     return pair_relationship
 
 
