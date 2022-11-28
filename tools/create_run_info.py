@@ -34,8 +34,6 @@ def fill_pair_relationship(row):
     '''Add pair and sample level info to object
     PairRelationship '''
     pair_relationship = {'pairId' : row.pairId}
-    pair_relationship['normal'] = row['normal']
-    pair_relationship['tumor'] = row['tumor']
     pair_relationship['normalId'] = row['normal']
     pair_relationship['tumorId'] = row['tumor']
     pair_relationship['normalPrefix'] = row['normal']

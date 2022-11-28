@@ -77,8 +77,6 @@ def fill_pair_relationship(row):
     '''Add pair and sample level info to object
     PairRelationship '''
     pair_relationship = {"pairId" : row.pairId}
-    pair_relationship['normal'] = row['normal']
-    pair_relationship['tumor'] = row['tumor']
     pair_relationship['normalId'] = row['normal']
     pair_relationship['tumorId'] = row['tumor']
     pair_relationship['normalPrefix'] = row['normal']
@@ -124,10 +122,10 @@ def fill_in_pair_info(project_info, full_pairs, suffix='.bai'):
     normal_sample_infos = []
     if 'tumorBam' in full_pairs and 'normalBam' in full_pairs:
         for info in project_info['listOfPairRelationships']:
-            match = full_pairs[(full_pairs.tumor == info['tumor']) &
-                               (full_pairs.normal == info['normal'])]
-            pair_infos.append({'normal' : info['normal'],
-                               'tumor' : info['tumor'],
+            match = full_pairs[(full_pairs.tumor == info['tumorId']) &
+                               (full_pairs.normal == info['normalId'])]
+            pair_infos.append({'normal' : info['normalId'],
+                               'tumor' : info['tumorId'],
                                'pairId' : info['pairId'],
                                'tumorFinalBam' : {'bam': match.tumorBam.tolist()[0],
                                                   'bamIndex' : match.tumorBam.tolist()[0].replace('.bam', suffix)},
@@ -196,9 +194,9 @@ def populate(args, custom_inputs):
         # update pairing objects in project_info
         pair_ids = list(set([info['pairId'] for info in project_info['listOfPairRelationships']]))
         project_info = note_updates(key='pairIds', new_value=pair_ids, project_info=project_info)
-        normals = list(set([info['normal'] for info in project_info['listOfPairRelationships']]))
+        normals = list(set([info['normalId'] for info in project_info['listOfPairRelationships']]))
         project_info = note_updates(key='normals', new_value=normals, project_info=project_info)
-        tumors = list(set([info['tumor'] for info in project_info['listOfPairRelationships']]))
+        tumors = list(set([info['tumorId'] for info in project_info['listOfPairRelationships']]))
         project_info = note_updates(key='tumors', new_value=tumors, project_info=project_info)
     # fill in list of samples
     try:
