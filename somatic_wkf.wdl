@@ -488,6 +488,7 @@ workflow SomaticDNA {
             Boolean normalSkipCoverageCheck = select_first([sampleInfos[normalGetIndex.index].skipCoverageCheck, false])
             call SomaticQcCheck {
                 input:
+                    pairId = pairRelationship.pairId,
                     tumorWgsMetricsFile = Preprocess.collectWgsMetrics[tumorGetIndex.index],
                     tumorExpectedCoverage = sampleInfos[tumorGetIndex.index].expectedCoverage,
                     tumorSkipCoverageCheck = tumorSkipCoverageCheck,
@@ -810,6 +811,7 @@ task BamQcCheck {
 task SomaticQcCheck {
     # Check coverage, contamination and concordance in one go.
     input {
+        String pairId
         File tumorWgsMetricsFile
         File normalWgsMetricsFile
         Float tumorExpectedCoverage
@@ -835,10 +837,14 @@ task SomaticQcCheck {
            --max_contamination ~{maxContamination} \
            ${if tumorSkipCoverageCheck then "--skip_tumor_coverage" else " "} \
            ${if normalSkipCoverageCheck then "--skip_normal_coverage" else " "}
+
+        mv qc_summary.txt ~{pairId}.qc_summary.txt
+
     }
 
     output {
         Boolean qcPass = read_boolean(stdout())
+        File qcCheckReport = "~{pairId}.qc_summary.txt"
     }
 
     runtime {
