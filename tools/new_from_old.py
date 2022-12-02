@@ -41,14 +41,14 @@ class Lookup():
             try:
                 pair_merged_info = {'pairId' : pair_id,
                                      'unannotatedVcf' : self.available_by_pair[pair_id]['mergedVcf'],
-                                     'tumor' : pair_info['tumorId'],
-                                     'normal' : pair_info['normalId']
+                                     'tumorId' : pair_info['tumorId'],
+                                     'normalId' : pair_info['normalId']
                                      }
             except KeyError:
                 pair_merged_info = {'pairId' : pair_id,
                                  'unannotatedVcf' : self.available_by_pair[pair_id]['mergedVcfs'],
-                                 'tumor' : pair_info['tumorId'],
-                                 'normal' : pair_info['normalId']
+                                 'tumorId' : pair_info['tumorId'],
+                                 'normalId' : pair_info['normalId']
                                  }
             self.inputs['mergedPairVcfInfos'].append(pair_merged_info)
             
@@ -61,8 +61,8 @@ class Lookup():
 #             lancet : Calling.lancet,
 #             svabaSv : Calling.svabaSv,
 #             svabaIndel : Calling.svabaIndel,
-#             tumor : pairRelationship.tumor,
-#             normal : pairRelationship.normal,
+#             tumorId : pairRelationship.tumorId,
+#             normalId : pairRelationship.normalId,
 #             tumorFinalBam : Preprocess.finalBam[tumorGetIndex.index],
 #             normalFinalBam :
 
@@ -81,8 +81,8 @@ class Lookup():
                                      'lancet' : self.available_by_pair[pair_id]['lancet'],
                                      'svabaSv' : self.available_by_pair[pair_id]['svabaSv'],
                                      'svabaIndel' : self.available_by_pair[pair_id]['svabaIndel'],
-                                     'tumor' : pair_info['tumorId'],
-                                     'normal' : pair_info['normalId'],
+                                     'tumorId' : pair_info['tumorId'],
+                                     'normalId' : pair_info['normalId'],
                                      'tumorFinalBam' : pair_info['tumorFinalBam'],
                                      'normalFinalBam' : pair_info['normalFinalBam']
                                      }

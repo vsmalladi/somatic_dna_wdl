@@ -56,7 +56,7 @@ class Gather():
     
     def get_from_id(self, id, field='pairId'):
         '''Match probable id to id name options'''
-        match = self.pairs[(self.pairs.tumor == id) | (self.pairs.normal == id) | (self.pairs.pairId == id)]
+        match = self.pairs[(self.pairs.tumorId == id) | (self.pairs.normalId == id) | (self.pairs.pairId == id)]
         return match[field].tolist()[0]
     
     def get_project_data(self, row):
@@ -66,14 +66,14 @@ class Gather():
             project_data['sampleIds'] = [row.id]
             project_data['options'] = self.options
         else:
-            project_data['tumors'] = [self.get_from_id(row.id, field='tumor')]
-            project_data['normals'] = [self.get_from_id(row.id, field='normal')]
+            project_data['tumorIds'] = [self.get_from_id(row.id, field='tumorId')]
+            project_data['normalIds'] = [self.get_from_id(row.id, field='normalId')]
             project_data['pairId'] = [self.get_from_id(row.id, field='pairId')]
-            project_data['listOfPairRelationships'] = [{'tumor': project_data['tumors'][0],
-                                                       'normal' : project_data['normals'][0],
+            project_data['listOfPairRelationships'] = [{'tumorId': project_data['tumorIds'][0],
+                                                       'normalId' : project_data['normalIds'][0],
                                                        'pairId' : project_data['pairId'][0]}]
-            project_data['sampleIds'] = [project_data['tumors'][0],
-                                         project_data['normals'][0]]
+            project_data['sampleIds'] = [project_data['tumorIds'][0],
+                                         project_data['normalIds'][0]]
             project_data['options'] = self.options
             project_data['library'] = self.library
             project_data['genome'] = self.genome
@@ -123,7 +123,7 @@ def get_args():
                         )
     parser.add_argument('--pairs-file',
                         help='JSON file with items that are required to have '
-                        '"tumor", "normal" sample_ids defined. If not supplied '
+                        '"tumorId", "normalId" sample_ids defined. If not supplied '
                         'define pairing using --project-data',
                         required=False
                         )

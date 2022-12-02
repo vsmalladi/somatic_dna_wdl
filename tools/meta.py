@@ -63,9 +63,9 @@ def read(file):
 
 def load_pairs(file):
     pairs = pd.read_csv(file)
-    assert 'tumor' in pairs.columns and 'normal' in pairs.columns, 'Error: can not find tumor and normal columns in pairs file: ' + ' '.join(pairs.columns)
-    pairs['pairId'] = pairs.apply(lambda row: row.tumor + '--' + row.normal, axis=1)
-    return pairs[['tumor', 'normal', 'pairId']], pairs
+    assert 'tumorId' in pairs.columns and 'normalId' in pairs.columns, 'Error: can not find tumorId and normalId columns in pairs file: ' + ' '.join(pairs.columns)
+    pairs['pairId'] = pairs.apply(lambda row: row.tumorId + '--' + row.normalId, axis=1)
+    return pairs[['tumorId', 'normalId', 'pairId']], pairs
 
 def load_sample_ids(file):
     '''Return a deduplicated list of sample ids'''
@@ -77,10 +77,10 @@ def fill_pair_relationship(row):
     '''Add pair and sample level info to object
     PairRelationship '''
     pair_relationship = {"pairId" : row.pairId}
-    pair_relationship['normalId'] = row['normal']
-    pair_relationship['tumorId'] = row['tumor']
-    pair_relationship['normalPrefix'] = row['normal']
-    pair_relationship['tumorPrefix'] = row['tumor']
+    pair_relationship['normalId'] = row['normalId']
+    pair_relationship['tumorId'] = row['tumorId']
+    pair_relationship['normalPrefix'] = row['normalId']
+    pair_relationship['tumorPrefix'] = row['tumorId']
     return pair_relationship      
 
 def note_updates(key, new_value, project_info):
@@ -122,22 +122,22 @@ def fill_in_pair_info(project_info, full_pairs, suffix='.bai'):
     normal_sample_infos = []
     if 'tumorBam' in full_pairs and 'normalBam' in full_pairs:
         for info in project_info['listOfPairRelationships']:
-            match = full_pairs[(full_pairs.tumor == info['tumorId']) &
-                               (full_pairs.normal == info['normalId'])]
-            pair_infos.append({'normal' : info['normalId'],
-                               'tumor' : info['tumorId'],
+            match = full_pairs[(full_pairs.tumorId == info['tumorId']) &
+                               (full_pairs.normalId == info['normalId'])]
+            pair_infos.append({'normalId' : info['normalId'],
+                               'tumorId' : info['tumorId'],
                                'pairId' : info['pairId'],
                                'tumorFinalBam' : {'bam': match.tumorBam.tolist()[0],
                                                   'bamIndex' : match.tumorBam.tolist()[0].replace('.bam', suffix)},
                                'normalFinalBam' : {'bam': match.normalBam.tolist()[0],
                                                    'bamIndex' : match.normalBam.tolist()[0].replace('.bam', suffix)}
                                })
-            normal_sample_infos.append({'sampleId' : info['normal'],
+            normal_sample_infos.append({'sampleId' : info['normalId'],
                                         'finalBam' : {'bam': match.normalBam.tolist()[0],
                                                       'bamIndex' : match.normalBam.tolist()[0].replace('.bam', suffix)}
                                })
             project_info = note_updates(key='pairInfos', new_value=pair_infos, project_info=project_info)
-            project_info = note_updates(key='normalSampleBamInfos', new_value=normal_sample_infos, project_info=project_info)
+            project_info = note_updates(key='normalsampleBamInfos', new_value=normal_sample_infos, project_info=project_info)
     return project_info
         
     
@@ -175,18 +175,18 @@ def populate(args, custom_inputs):
         pairs, full_pairs = load_pairs(args['pairs_file'])
         pair_info = []
         pair_info_relationships = []
-        # update basic pairing information with tumor, normal and pairId from pairs file
+        # update basic pairing information with tumor, normalId and pairId from pairs file
         for index, row in pairs.iterrows():
             # add pairRelationship
             current_pair_info_relationship = fill_pair_relationship(row)
             pair_info_relationships.append(current_pair_info_relationship)   
         project_info = note_updates(key='listOfPairRelationships', new_value=pair_info_relationships, project_info=project_info)
-        # update BAM objects in project_info from custom inputs JSON (if pairInfos and normalSampleBamInfos  are in the custom json)
+        # update BAM objects in project_info from custom inputs JSON (if pairInfos and normalsampleBamInfos  are in the custom json)
         if custom_inputs:
             for alt_project_info_file in custom_inputs:
                 alt_project_info = read(alt_project_info_file)
                 project_info = note_custom_updates(key='pairInfos', alt_project_info=alt_project_info, project_info=project_info)
-                project_info = note_custom_updates(key='normalSampleBamInfos', alt_project_info=alt_project_info, project_info=project_info)
+                project_info = note_custom_updates(key='normalsampleBamInfos', alt_project_info=alt_project_info, project_info=project_info)
         # update BAM objects in project_info from sample sheet (if pairs file is a sample sheet)
         if not 'pairInfos' in project_info:
             if 'tumorBam' in full_pairs and 'normalBam' in full_pairs:
@@ -194,23 +194,23 @@ def populate(args, custom_inputs):
         # update pairing objects in project_info
         pair_ids = list(set([info['pairId'] for info in project_info['listOfPairRelationships']]))
         project_info = note_updates(key='pairIds', new_value=pair_ids, project_info=project_info)
-        normals = list(set([info['normalId'] for info in project_info['listOfPairRelationships']]))
-        project_info = note_updates(key='normals', new_value=normals, project_info=project_info)
-        tumors = list(set([info['tumorId'] for info in project_info['listOfPairRelationships']]))
-        project_info = note_updates(key='tumors', new_value=tumors, project_info=project_info)
+        normalIds = list(set([info['normalId'] for info in project_info['listOfPairRelationships']]))
+        project_info = note_updates(key='normalIds', new_value=normalIds, project_info=project_info)
+        tumorIds = list(set([info['tumorId'] for info in project_info['listOfPairRelationships']]))
+        project_info = note_updates(key='tumorIds', new_value=tumorIds, project_info=project_info)
     # fill in list of samples
     try:
         if args['samples_file']:
             sample_ids = load_sample_ids(args['samples_file'])
         else:
-            sample_ids = list(set(project_info['normals'] + project_info['tumors']))
+            sample_ids = list(set(project_info['normalIds'] + project_info['tumorIds']))
     except KeyError:
         sample_ids = []
     project_info = note_updates(key='sampleIds', new_value=sample_ids, project_info=project_info)
     if custom_inputs:
         for alt_project_info_file in custom_inputs:
                 alt_project_info = read(alt_project_info_file)
-                project_info = note_custom_updates(key='normalSampleInfos', alt_project_info=alt_project_info, project_info=project_info)
+                project_info = note_custom_updates(key='normalsampleInfos', alt_project_info=alt_project_info, project_info=project_info)
                 project_info = note_custom_updates(key='sampleInfos', alt_project_info=alt_project_info, project_info=project_info)
     return project_info
 
@@ -319,9 +319,9 @@ def get_args():
                         )
     parser.add_argument('--pairs-file',
                         help='CSV file with items that are required to have '
-                        '"tumor", "normal", "pairId" as columns '
+                        '"tumorId", "normalId", "pairId" as columns '
                         'Optionally, include "tumorBam", "normalBam" columns to create '
-                        '"pairInfos" and "normalSampleBamInfos" automatically.'
+                        '"pairInfos" and "normalsampleBamInfos" automatically.'
                         ,
                         required=False
                         )
