@@ -19,9 +19,9 @@ log.basicConfig(format='%(levelname)s:  %(message)s', level=log.INFO)
 
 def load_pairs(file):
     pairs = pd.read_csv(file)
-    assert 'tumor' in pairs.columns and 'normal' in pairs.columns, 'Error: can not find tumor and normal columns in pairs file: ' + ' '.join(pairs.columns)
-    pairs['pairId'] = pairs.apply(lambda row: row.tumor + '--' + row.normal, axis=1)
-    return pairs[['tumor', 'normal', 'pairId']], pairs
+    assert 'tumorId' in pairs.columns and 'normalId' in pairs.columns, 'Error: can not find tumorId and normalId columns in pairs file: ' + ' '.join(pairs.columns)
+    pairs['pairId'] = pairs.apply(lambda row: row.tumorId + '--' + row.normalId, axis=1)
+    return pairs[['tumorId', 'normalId', 'pairId']], pairs
 
 def load_sample_ids(file):
     '''Return a deduplicated list of sample ids'''
@@ -34,8 +34,10 @@ def fill_pair_relationship(row):
     '''Add pair and sample level info to object
     PairRelationship '''
     pair_relationship = {'pairId' : row.pairId}
-    pair_relationship['normal'] = row['normal']
-    pair_relationship['tumor'] = row['tumor']
+    pair_relationship['normalId'] = row['normalId']
+    pair_relationship['tumorId'] = row['tumorId']
+    pair_relationship['normalPrefix'] = row['normalId']
+    pair_relationship['tumorPrefix'] = row['tumorId']
     return pair_relationship
 
 
@@ -46,21 +48,21 @@ def populate(args):
     run_info['project_data'] = {'listOfPairRelationships' : [],
                                         'sampleIds' : [],
                                         'pairIds' : [],
-                                        'tumors' : [],
-                                        'normals' : [],
+                                        'tumorIds' : [],
+                                        'normalIds' : [],
                                 }
     if args['pairs_file'] in args:
         pairs, full_pairs = load_pairs(args['pairs_file'])
         assert 'pairId' in pairs.columns , 'Error: can not find "pairId" columns in pairs file: ' + ' '.join(pairs.columns)
-        assert 'tumor' in pairs.columns , 'Error: can not find "tumor" columns in pairs file: ' + ' '.join(pairs.columns)
-        assert 'normal' in pairs.columns , 'Error: can not find "normal" columns in pairs file: ' + ' '.join(pairs.columns)
+        assert 'tumorId' in pairs.columns , 'Error: can not find "tumorId" columns in pairs file: ' + ' '.join(pairs.columns)
+        assert 'normalId' in pairs.columns , 'Error: can not find "normalId" columns in pairs file: ' + ' '.join(pairs.columns)
         pair_info_relationships = []
-        # update basic pairing information with tumor, normal and pairId from pairs file
+        # update basic pairing information with tumorId, normalId and pairId from pairs file
         pairs['listOfPairRelationships'] = pairs.apply(lambda row: fill_pair_relationship(row), axis=1)
         run_info['listOfPairRelationships'] = pairs['listOfPairRelationships'].tolist()
         run_info['pairIds'] = pairs.pairId.tolist()
-        run_info['normals'] = pairs.normal.tolist()
-        run_info['tumors'] = pairs.tumor.tolist()
+        run_info['normalIds'] = pairs.normalId.tolist()
+        run_info['tumorIds'] = pairs.tumorId.tolist()
     if args['samples_file']:
         run_info['sampleIds'] = load_sample_ids(args['samples_file'])
     return run_info
@@ -82,7 +84,7 @@ def get_args():
                         )
     parser.add_argument('--pairs-file',
                         help='CSV file with items that are required to have '
-                        '"tumor", "normal", "pairId" as columns '
+                        '"tumorId", "normalId", "pairId" as columns '
                         ,
                         required=False
                         )

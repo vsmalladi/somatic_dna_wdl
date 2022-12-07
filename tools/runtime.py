@@ -784,15 +784,15 @@ class Runtime():
                 for identifier in possible_indentifiers:
                     # if both ids in a pair are in the command or if the pair
                     # or if the id is in the string
-                    if (pair_relationship['tumor'] in matched_sample_ids \
-                            and pair_relationship['normal'] in matched_sample_ids) \
+                    if (pair_relationship['tumorId'] in matched_sample_ids \
+                            and pair_relationship['normalId'] in matched_sample_ids) \
                             or self.id_matches(identifier, pair_id):
                         # but no other id is also in the input string
                         other_possible_match = any([self.id_matches(identifier, id) for id in self.other_file_pair_ids])
                         if not other_possible_match:
                                 matched_pair_ids.append(pair_id)
-                                all_matched_sample_ids.append(pair_relationship['tumor'])
-                                all_matched_sample_ids.append(pair_relationship['normal'])
+                                all_matched_sample_ids.append(pair_relationship['tumorId'])
+                                all_matched_sample_ids.append(pair_relationship['normalId'])
         return list(set(matched_pair_ids)), all_matched_sample_ids
  
     def search_ids(self, possible_indentifiers):
