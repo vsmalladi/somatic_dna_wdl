@@ -233,6 +233,8 @@ workflow SomaticDNA {
 
         Boolean highMem = false
 
+        # Specific mem values in GB
+        Int annotateBicSeq2CnvMem = 36
     }
 
     scatter (sampleInfoObj in sampleInfos) {
@@ -669,8 +671,8 @@ workflow SomaticDNA {
                     dgvBedpe=dgvBedpe,
                     thousandGVcf=thousandGVcf,
                     svPon=svPon,
-                    cosmicBedPe=cosmicBedPe
-
+                    cosmicBedPe=cosmicBedPe,
+                    annotateBicSeq2CnvMem = annotateBicSeq2CnvMem
           }
 
           call deconstructSigs.DeconstructSig {
