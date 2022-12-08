@@ -233,6 +233,8 @@ workflow SomaticDNA {
 
         Boolean highMem = false
 
+        # Specific mem values in GB
+        Int annotateBicSeq2CnvMem = 36
     }
 
     scatter (sampleInfoObj in sampleInfos) {
@@ -488,6 +490,7 @@ workflow SomaticDNA {
             Boolean normalSkipCoverageCheck = select_first([sampleInfos[normalGetIndex.index].skipCoverageCheck, false])
             call SomaticQcCheck {
                 input:
+                    pairId = pairRelationship.pairId,
                     tumorWgsMetricsFile = Preprocess.collectWgsMetrics[tumorGetIndex.index],
                     tumorExpectedCoverage = sampleInfos[tumorGetIndex.index].expectedCoverage,
                     tumorSkipCoverageCheck = tumorSkipCoverageCheck,
@@ -668,8 +671,8 @@ workflow SomaticDNA {
                     dgvBedpe=dgvBedpe,
                     thousandGVcf=thousandGVcf,
                     svPon=svPon,
-                    cosmicBedPe=cosmicBedPe
-
+                    cosmicBedPe=cosmicBedPe,
+                    annotateBicSeq2CnvMem = annotateBicSeq2CnvMem
           }
 
           call deconstructSigs.DeconstructSig {
@@ -810,6 +813,7 @@ task BamQcCheck {
 task SomaticQcCheck {
     # Check coverage, contamination and concordance in one go.
     input {
+        String pairId
         File tumorWgsMetricsFile
         File normalWgsMetricsFile
         Float tumorExpectedCoverage
@@ -835,10 +839,14 @@ task SomaticQcCheck {
            --max_contamination ~{maxContamination} \
            ${if tumorSkipCoverageCheck then "--skip_tumor_coverage" else " "} \
            ${if normalSkipCoverageCheck then "--skip_normal_coverage" else " "}
+
+        mv qc_summary.txt ~{pairId}.qc_summary.txt
+
     }
 
     output {
         Boolean qcPass = read_boolean(stdout())
+        File qcCheckReport = "~{pairId}.qc_summary.txt"
     }
 
     runtime {
