@@ -12,8 +12,8 @@ workflow Germline {
         Bam finalBam
         IndexedReference referenceFa
         Array[String]+ listOfChroms
-        String outputPrefix
         String normal
+        String outputPrefix = "~{normal}"
 
         File excludeIntervalList
         Array[File] scatterIntervalsHcs

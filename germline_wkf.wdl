@@ -85,9 +85,14 @@ workflow GermlineAll {
     }
 
     scatter (normalSampleBamInfo in normalSampleBamInfos) {
+        # using small disk size because the file is not localized (on servers that support this)
+        Int basicDiskSize = 4
+        
         call alignmentAnalysis.GetSampleName {
             input:
-                finalBam = normalSampleBamInfo.finalBam
+                finalBam = normalSampleBamInfo.finalBam.bam,
+                finalBai = normalSampleBamInfo.finalBam.bamIndex,
+                diskSize = basicDiskSize
         }
         
         if (GetSampleName.bamSampleId != normalSampleBamInfo.sampleId ) {
@@ -108,6 +113,7 @@ workflow GermlineAll {
             input:
                 finalBam = normalSampleBam,
                 normal = normalSampleBamInfo.sampleId,
+                outputPrefix = normalSampleBamInfo.sampleId,
                 referenceFa = referenceFa,
                 listOfChroms = listOfChroms,
                 MillsAnd1000G = MillsAnd1000G,
