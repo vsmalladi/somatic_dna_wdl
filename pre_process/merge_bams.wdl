@@ -100,6 +100,7 @@ task IndexBam {
     input {
         # command
         File bam
+        String bamIndexPath = sub(basename(bam), ".bam$", ".bai")
         # resources
         Int diskSize
    }
@@ -107,13 +108,14 @@ task IndexBam {
     command {
         samtools \
         index \
-        ~{bam}
+        ~{bam} \
+        ~{bamIndexPath}
     }
 
     output {
         Bam indexedBam = object {
                 bam : bam,
-                bamIndex : sub(basename(bam), ".bam$", ".bai")
+                bamIndex : bamIndexPath
             }
     }
 

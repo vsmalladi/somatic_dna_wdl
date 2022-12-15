@@ -4,7 +4,8 @@ import "../wdl_structs.wdl"
 
 task GetSampleName {
     input {
-        Bam finalBam
+        File finalBam
+        File finalBai
         String sampleIdPath = "sampleId.txt"
         Int memoryGb = 1
         Int diskSize
@@ -15,12 +16,13 @@ task GetSampleName {
             /gatk/gatk \
             --java-options "-Xmx~{jvmHeap}m -XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10" \
             GetSampleName \
-            -I ~{finalBam.bam} \
+            -I ~{finalBam} \
+            --read-index ~{finalBai} \
             -O ~{sampleIdPath}
     }
 
     output {
-        String bamSampleId = read_lines("~{sampleIdPath}")
+        String bamSampleId = read_string("~{sampleIdPath}")
     }
 
     runtime {
@@ -29,15 +31,26 @@ task GetSampleName {
         disks: "local-disk " + diskSize + " HDD"
         docker: "gcr.io/nygc-public/broadinstitute/gatk4@sha256:b3bde7bc74ab00ddce342bd511a9797007aaf3d22b9cfd7b52f416c893c3774c"
     }
+    
+    parameter_meta {
+        finalBam: {
+            localization_optional: true
+        }
+        
+        finalBai: {
+            localization_optional: true
+        }
+    }
 }
 
 task UpdateBamSampleName {
     input {
         Bam finalBam
         String sampleId
-        String outputPrefix
+        String outputPrefix = "~{sampleId}"
         String headerPath = "~{outputPrefix}.reheader.txt"
         String reheaderBamPath = "~{outputPrefix}.reheader.bam"
+        String bamIndexPath = "~{outputPrefix}.reheader.bai"
         # resources
         Int diskSize
         Int threads = 4
@@ -65,20 +78,25 @@ task UpdateBamSampleName {
         
         samtools \
         reheader \
-        -i ~{headerPath} \
+        ~{headerPath} \
         ~{finalBam.bam} \
         > ~{reheaderBamPath}
+        
+        ls -thl
         
         samtools \
         index \
         -@ ~{threads} \
-        ~{reheaderBamPath}
+        ~{reheaderBamPath} \
+        ~{bamIndexPath}
+        
+        ls -thl
     }
 
     output {
         Bam reheaderBam = object {
-            bam : "~{reheaderBamPath}",
-            bamIndex : sub(basename(reheaderBamPath), ".bam$", ".bai")
+            bam : reheaderBamPath,
+            bamIndex : bamIndexPath
         }
     }
 
