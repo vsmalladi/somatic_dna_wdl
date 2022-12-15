@@ -155,7 +155,7 @@ task UpdateCramInfos {
 
     output {
         Array[SampleCramInfo] normalSampleCramInfos = read_json('normal_cram_infos.json')
-        Array[pairCramInfo] pairCramInfos = read_json('pair_cram_infos.json')
+        Array[PairCramInfo] pairCramInfos = read_json('pair_cram_infos.json')
     }
 
     runtime {

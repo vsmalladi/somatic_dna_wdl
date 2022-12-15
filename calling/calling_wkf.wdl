@@ -17,7 +17,7 @@ workflow Calling {
     input {
         Boolean local = false
 
-        pairInfo pairInfo
+        PairInfo pairInfo
         #   mutect2
         Array[String]+ listOfChroms
         Array[String]+ listOfChromsFull
