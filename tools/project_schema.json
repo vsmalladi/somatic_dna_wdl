@@ -27,13 +27,13 @@
         "sampleInfo": {
             "type": "object",
             "properties": {
-                "sampleId" : { "type": "string" },
+                "sampleAnalysisId" : { "type": "string" },
                 "expectedCoverage": { "type": "number" },
                 "listOfFastqPairs" : { "type": "array",
                     "items": { "$ref": "#/definitions/fastqPair" }
                 }
             },
-            "required": ["sampleId"]
+            "required": ["sampleAnalysisId"]
         },
         "pairInfo": {
             "type": "object",
@@ -41,10 +41,10 @@
                 "pairId": {"type" : "string" },
                 "tumorFinalBam": {"$ref": "#/definitions/bam"},
                 "normalFinalBam": {"$ref": "#/definitions/bam"},
-                "tumor": {"type" : "string" },
-                "normal": {"type" : "string" }
+                "tumorId": {"type" : "string" },
+                "normalId": {"type" : "string" }
             },
-            "required": ["pairId", "tumor", "normal"]
+            "required": ["pairId", "tumorId", "normalId"]
         }
     },
 
@@ -53,9 +53,9 @@
             "items": {"type": "string"}},
         "sampleIds" : {"type": "array",
             "items": {"type": "string"}},
-        "normals" : {"type": "array",
+        "normalIds" : {"type": "array",
             "items": {"type": "string"}},
-        "tumors" : {"type": "array",
+        "tumorIds" : {"type": "array",
             "items": {"type": "string"}},
         "commit": { "type": "string"},
         "tag": { "type": "string"},

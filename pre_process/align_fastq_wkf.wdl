@@ -17,7 +17,7 @@ workflow AlignFastq {
         Int bwamem2Threads
     }
 
-    Int additionalDiskSize = 10
+    Int additionalDiskSize = 20
     scatter(fastqs in listOfFastqPairs) {
         Int fastqsSize = ceil(size(fastqs.fastqR1, "GB") + size (fastqs.fastqR2, "GB"))
 

@@ -312,7 +312,10 @@ if [ -z "$dry_run" ]; then
         submit_command="${submit_command} \
         -l ${labels_file}"
     fi
+    
+    cd ${log_dir}
     uuid=$( ${submit_command} )
+    cd -
 fi
 
 echo "Done" >&2
