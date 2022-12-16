@@ -467,7 +467,7 @@ workflow SomaticDNA {
                 sampleId = pairRelationship.normalPrefix
         }
 
-        pairInfo pairInfoObject = object {
+        PairInfo pairInfoObject = object {
             pairId : pairRelationship.pairId,
             tumorFinalBam : Preprocess.finalBam[tumorGetIndex.index],
             normalFinalBam : Preprocess.finalBam[normalGetIndex.index],

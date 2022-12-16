@@ -38,7 +38,7 @@ workflow SomaticBamWorkflow {
 
         Boolean production = true
 
-        Array[pairInfo]+ pairInfos
+        Array[PairInfo]+ pairInfos
 
         # For Tumor-Normal QC
         File markerBedFile

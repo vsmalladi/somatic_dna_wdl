@@ -74,7 +74,7 @@ workflow SomaticBamWorkflow {
         Boolean production = true
         Boolean external = false
 
-        Array[pairInfo]+ pairInfos
+        Array[PairInfo]+ pairInfos
 
         # calling
         Array[String]+ listOfChromsFull
