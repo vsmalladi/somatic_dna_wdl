@@ -27,10 +27,11 @@ import "tasks/reheader_bam_wkf.wdl" as reheaderBam
 # cannot be responsible for its use, misuse, or functionality.
 #
 #    Jennifer M Shelton (jshelton@nygenome.org)
+#    James Roche (jroche@nygenome.org)
 #    Nico Robine (nrobine@nygenome.org)
-#    Minita Shah (mshah@nygenome.org)
 #    Timothy Chu (tchu@nygenome.org)
 #    Will Hooper (whooper@nygenome.org)
+#    Minita Shah
 #
 # ================== /COPYRIGHT ===============================================
 

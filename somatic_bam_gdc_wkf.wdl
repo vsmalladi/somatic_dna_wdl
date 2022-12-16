@@ -7,22 +7,8 @@ import "merge_vcf/merge_vcf_wkf.wdl" as mergeVcf
 import "pre_process/qc.wdl" as qc
 import "annotate/annotate_wkf.wdl" as annotate
 import "annotate/annotate_cnv_sv_wkf.wdl" as annotate_cnv_sv
-
-# ================== COPYRIGHT ================================================
-# New York Genome Center
-# SOFTWARE COPYRIGHT NOTICE AGREEMENT
-# This software and its documentation are copyright (2021) by the New York
-# Genome Center. All rights are reserved. This software is supplied without
-# any warranty or guaranteed support whatsoever. The New York Genome Center
-# cannot be responsible for its use, misuse, or functionality.
-#
-#    Jennifer M Shelton (jshelton@nygenome.org)
-#    Nico Robine (nrobine@nygenome.org)
-#    Minita Shah (mshah@nygenome.org)
-#    Timothy Chu (tchu@nygenome.org)
-#    Will Hooper (whooper@nygenome.org)
-#
-# ================== /COPYRIGHT ===============================================
+import "tasks/bam_cram_conversion.wdl" as cramConversion
+import "tasks/reheader_bam_wkf.wdl" as reheaderBam
 
 
 # ================== COPYRIGHT ================================================
@@ -34,10 +20,11 @@ import "annotate/annotate_cnv_sv_wkf.wdl" as annotate_cnv_sv
 # cannot be responsible for its use, misuse, or functionality.
 #
 #    Jennifer M Shelton (jshelton@nygenome.org)
+#    James Roche (jroche@nygenome.org)
 #    Nico Robine (nrobine@nygenome.org)
-#    Minita Shah (mshah@nygenome.org)
 #    Timothy Chu (tchu@nygenome.org)
 #    Will Hooper (whooper@nygenome.org)
+#    Minita Shah
 #
 # ================== /COPYRIGHT ===============================================
 
@@ -179,16 +166,51 @@ workflow SomaticBamWorkflow {
 
         Boolean highMem = false
     }
+    
+    call cramConversion.UniqueBams as uniqueBams {
+        input:
+            pairInfosJson = write_json(pairInfos)
+    }
+    
+    scatter(bamInfo in uniqueBams.uniqueBams) {        
+        
+        call reheaderBam.Reheader {
+            input:
+                finalBam = bamInfo.finalBam,
+                sampleId = bamInfo.sampleId
+        }
+        
+        String uniqueSampleIds = bamInfo.sampleId
+    }
 
     scatter(pairInfo in pairInfos) {
+        call GetIndex as normalGetIndex {
+            input:
+                sampleIds = uniqueSampleIds,
+                sampleId = pairInfo.normalId
+        }
+        
+        call GetIndex as tumorGetIndex {
+            input:
+                sampleIds = uniqueSampleIds,
+                sampleId = pairInfo.tumorId
+        }
+        
+        PairInfo callingPairInfo = object {
+                pairId : pairInfo.pairId,
+                tumorFinalBam : Reheader.sampleBamMatched[tumorGetIndex.index],
+                normalFinalBam : Reheader.sampleBamMatched[normalGetIndex.index],
+                tumorId : pairInfo.tumorId,
+                normalId : pairInfo.normalId
+        }
 
         # tumor insert size
-        Int tumorDiskSize = ceil(size(pairInfo.tumorFinalBam.bam, "GB")) + 30
+        Int tumorDiskSize = ceil(size(Reheader.sampleBamMatched[tumorGetIndex.index].bam, "GB")) + 30
 
         call qc.MultipleMetrics as tumorMultipleMetrics {
             input:
                 referenceFa = referenceFa,
-                finalBam = pairInfo.tumorFinalBam,
+                finalBam = Reheader.sampleBamMatched[tumorGetIndex.index],
                 sampleId = pairInfo.tumorId,
                 diskSize = tumorDiskSize
         }
@@ -199,12 +221,12 @@ workflow SomaticBamWorkflow {
         }
 
         # normal insert size
-        Int normalDiskSize = ceil(size(pairInfo.normalFinalBam.bam, "GB")) + 30
+        Int normalDiskSize = ceil(size(Reheader.sampleBamMatched[normalGetIndex.index].bam, "GB")) + 30
 
         call qc.MultipleMetrics as normalMultipleMetrics {
             input:
                 referenceFa = referenceFa,
-                finalBam = pairInfo.normalFinalBam,
+                finalBam = Reheader.sampleBamMatched[normalGetIndex.index],
                 sampleId = pairInfo.normalId,
                 diskSize = normalDiskSize
         }
@@ -222,7 +244,7 @@ workflow SomaticBamWorkflow {
                 mutectJsonLogFilter = mutectJsonLogFilter,
                 strelkaJsonLog = strelkaJsonLog,
                 configureStrelkaSomaticWorkflow = configureStrelkaSomaticWorkflow,
-                pairInfo = pairInfo,
+                pairInfo = callingPairInfo,
                 listOfChroms = listOfChroms,
                 listOfChromsFull = listOfChromsFull,
                 referenceFa = referenceFa,
@@ -252,8 +274,8 @@ workflow SomaticBamWorkflow {
             lancet : Calling.lancet,
             tumor : pairInfo.tumor,
             normal : pairInfo.normal,
-            tumorFinalBam : pairInfo.tumorFinalBam,
-            normalFinalBam : pairInfo.normalFinalBam
+            tumorFinalBam : Reheader.sampleBamMatched[tumorGetIndex.index],
+            normalFinalBam : Reheader.sampleBamMatched[normalGetIndex.index]
 
         }
 
@@ -269,8 +291,8 @@ workflow SomaticBamWorkflow {
             bicseq2 : Calling.bicseq2,
             tumor : pairInfo.tumor,
             normal : pairInfo.normal,
-            tumorFinalBam : pairInfo.tumorFinalBam,
-            normalFinalBam : pairInfo.normalFinalBam
+            tumorFinalBam : Reheader.sampleBamMatched[tumorGetIndex.index],
+            normalFinalBam : Reheader.sampleBamMatched[normalGetIndex.index]
 
         }
 

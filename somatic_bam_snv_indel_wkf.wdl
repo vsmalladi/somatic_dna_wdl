@@ -8,6 +8,8 @@ import "merge_vcf/merge_vcf_wkf.wdl" as mergeVcf
 import "pre_process/qc.wdl" as qc
 import "annotate/annotate_wkf.wdl" as annotate
 import "variant_analysis/deconstruct_sigs_wkf.wdl" as deconstructSigs
+import "tasks/bam_cram_conversion.wdl" as cramConversion
+import "tasks/reheader_bam_wkf.wdl" as reheaderBam
 
 # ================== COPYRIGHT ================================================
 # New York Genome Center
@@ -18,15 +20,37 @@ import "variant_analysis/deconstruct_sigs_wkf.wdl" as deconstructSigs
 # cannot be responsible for its use, misuse, or functionality.
 #
 #    Jennifer M Shelton (jshelton@nygenome.org)
+#    James Roche (jroche@nygenome.org)
 #    Nico Robine (nrobine@nygenome.org)
-#    Minita Shah (mshah@nygenome.org)
 #    Timothy Chu (tchu@nygenome.org)
 #    Will Hooper (whooper@nygenome.org)
+#    Minita Shah
 #
 # ================== /COPYRIGHT ===============================================
 
 
 # for wdl version 1.0
+
+task GetIndex {
+    input {
+        String sampleId
+        Array[String] sampleIds
+    }
+
+    command {
+        python /get_index.py \
+        --sample-id ~{sampleId} \
+        --sample-ids ~{sep=' ' sampleIds}
+    }
+
+    output {
+        Int index = read_int(stdout())
+    }
+
+    runtime {
+        docker: "gcr.io/nygc-public/workflow_utils@sha256:40fa18ac3f9d9f3b9f037ec091cb0c2c26ad6c7cb5c32fb16c1c0cf2a5c9caea"
+    }
+}
 
 
 workflow SomaticBamWorkflow {
@@ -126,8 +150,44 @@ workflow SomaticBamWorkflow {
 
         Boolean highMem = false
     }
+    
+    call cramConversion.UniqueBams as uniqueBams {
+        input:
+            pairInfosJson = write_json(pairInfos)
+    }
+    
+    scatter(bamInfo in uniqueBams.uniqueBams) {        
+        
+        call reheaderBam.Reheader {
+            input:
+                finalBam = bamInfo.finalBam,
+                sampleId = bamInfo.sampleId
+        }
+        
+        String uniqueSampleIds = bamInfo.sampleId
+    }
 
     scatter(pairInfo in pairInfos) {
+    
+        call GetIndex as normalGetIndex {
+            input:
+                sampleIds = uniqueSampleIds,
+                sampleId = pairInfo.normalId
+        }
+        
+        call GetIndex as tumorGetIndex {
+            input:
+                sampleIds = uniqueSampleIds,
+                sampleId = pairInfo.tumorId
+        }
+        
+        PairInfo callingPairInfo = object {
+                pairId : pairInfo.pairId,
+                tumorFinalBam : Reheader.sampleBamMatched[tumorGetIndex.index],
+                normalFinalBam : Reheader.sampleBamMatched[normalGetIndex.index],
+                tumorId : pairInfo.tumorId,
+                normalId : pairInfo.normalId
+            }
 
         call calling.Calling {
             input:
@@ -137,7 +197,7 @@ workflow SomaticBamWorkflow {
                 mutectJsonLogFilter = mutectJsonLogFilter,
                 strelkaJsonLog = strelkaJsonLog,
                 configureStrelkaSomaticWorkflow = configureStrelkaSomaticWorkflow,
-                pairInfo = pairInfo,
+                pairInfo = callingPairInfo,
                 listOfChroms = listOfChroms,
                 listOfChromsFull = listOfChromsFull,
                 referenceFa = referenceFa,
@@ -154,8 +214,8 @@ workflow SomaticBamWorkflow {
                 mantisBed = mantisBed,
                 intervalListBed = intervalListBed,
                 referenceFa = referenceFa,
-                tumorFinalBam = pairInfo.tumorFinalBam,
-                normalFinalBam = pairInfo.normalFinalBam
+                tumorFinalBam = Reheader.sampleBamMatched[tumorGetIndex.index],
+                normalFinalBam = Reheader.sampleBamMatched[normalGetIndex.index]
         }
 
         PreMergedPairVcfInfo preMergedPairVcfInfo = object {
@@ -167,8 +227,8 @@ workflow SomaticBamWorkflow {
             lancet : Calling.lancet,
             tumor : pairInfo.tumorId,
             normal : pairInfo.normalId,
-            tumorFinalBam : pairInfo.tumorFinalBam,
-            normalFinalBam : pairInfo.normalFinalBam
+            tumorFinalBam : Reheader.sampleBamMatched[tumorGetIndex.index],
+            normalFinalBam : Reheader.sampleBamMatched[normalGetIndex.index]
 
         }
 
