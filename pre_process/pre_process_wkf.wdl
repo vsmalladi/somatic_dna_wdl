@@ -13,7 +13,6 @@ workflow Preprocess {
     #   merge lane level BAMs
     input {
         Boolean external = false
-        Boolean highMem = false
 
         Array[Fastqs] listOfFastqPairs
         Boolean trim = true
@@ -38,18 +37,11 @@ workflow Preprocess {
         Int threads = 16
         Int samtoolsThreads = 4
         Int bwamem2Threads = 32
+
+        Int bwamem2Mem = 32
+        Int novosortMem = 32
+
     }
-
-    Int bwamem2MemLow = 32
-    Int novosortMemLow = 32
-
-    if (highMem) {
-        Int novosortMemHigh = 80
-        Int bwamem2MemHigh = 48
-    }
-
-    Int novosortMem = select_first([novosortMemHigh, novosortMemLow])
-    Int bwamem2Mem = select_first([bwamem2MemHigh, bwamem2MemLow])
 
     call alignFastq.AlignFastq {
         input:

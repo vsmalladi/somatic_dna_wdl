@@ -26,11 +26,17 @@ workflow Gridss {
         Int threads = 8
 
         Boolean highMem = false
-
         Int preMemoryGb = 32
-        Int tumorDiskSize = ceil(size(tumorFinalBam.bam, "GB") * 3) + 20
-        Int normalDiskSize = ceil(size(normalFinalBam.bam, "GB") * 3) + 20
+        Int filterMemoryGb = 32
+        Int? inputTumorDiskSize
+        Int? inputNormalDiskSize
+
     }
+
+    Int defaultTumorDiskSize = ceil(size(tumorFinalBam.bam, "GB") * 3) + 20
+    Int defaultNormalDiskSize = ceil(size(normalFinalBam.bam, "GB") * 3) + 20
+    Int tumorDiskSize = select_first([inputTumorDiskSize, defaultTumorDiskSize])
+    Int normalDiskSize = select_first([inputNormalDiskSize, defaultNormalDiskSize])
 
     call calling.GridssPreprocess as tumorGridssPreprocess {
         input:
@@ -152,12 +158,8 @@ workflow Gridss {
 
     }
 
-    Int lowFilterDiskSize = ceil( size(GridssCalling.gridssUnfilteredVcf, "GB")) + 4
-    if (highMem) {
-        Int highFilterDiskSize = ceil( size(GridssCalling.gridssUnfilteredVcf, "GB")) + 30
-    }
-    Int filterDiskSize = select_first([highFilterDiskSize, lowFilterDiskSize])
 
+    Int filterDiskSize = ceil( size(GridssCalling.gridssUnfilteredVcf, "GB")) + 30
     call calling.FilterNonChroms {
         input:
             diskSize = filterDiskSize,
@@ -171,7 +173,7 @@ workflow Gridss {
     call calling.GridssFilter {
         input:
             threads = threads,
-            memoryGb = preMemoryGb,
+            memoryGb = filterMemoryGb,
             pairName = pairName,
             bsGenome = bsGenome,
             ponTarGz = ponTarGz,
