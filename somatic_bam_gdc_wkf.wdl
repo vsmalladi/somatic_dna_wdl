@@ -250,8 +250,8 @@ workflow SomaticBamWorkflow {
             strelka2Indel : Calling.strelka2Indel,
             mutect2 : Calling.mutect2,
             lancet : Calling.lancet,
-            tumor : pairInfo.tumor,
-            normal : pairInfo.normal,
+            tumor : pairInfo.tumorId,
+            normal : pairInfo.normalId,
             tumorFinalBam : pairInfo.tumorFinalBam,
             normalFinalBam : pairInfo.normalFinalBam
 
@@ -267,8 +267,8 @@ workflow SomaticBamWorkflow {
             gridssVcf : Calling.gridssVcf,
             bicseq2Png : Calling.bicseq2Png,
             bicseq2 : Calling.bicseq2,
-            tumor : pairInfo.tumor,
-            normal : pairInfo.normal,
+            tumor : pairInfo.tumorId,
+            normal : pairInfo.normalId,
             tumorFinalBam : pairInfo.tumorFinalBam,
             normalFinalBam : pairInfo.normalFinalBam
 
@@ -365,8 +365,8 @@ workflow SomaticBamWorkflow {
 
         FinalVcfPairInfo finalVcfPairInfo = object {
             pairId : pairInfo.pairId,
-            tumor : pairInfo.tumor,
-            normal : pairInfo.normal,
+            tumor : pairInfo.tumorId,
+            normal : pairInfo.normalId,
             mainVcf : Annotate.pairVcfInfo.mainVcf,
             supplementalVcf : Annotate.pairVcfInfo.supplementalVcf,
             vcfAnnotatedTxt : Annotate.pairVcfInfo.vcfAnnotatedTxt,
