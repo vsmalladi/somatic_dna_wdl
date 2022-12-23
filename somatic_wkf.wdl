@@ -234,10 +234,12 @@ workflow SomaticDNA {
         # Resources. Memory and  disk size are in GB
         Int bwamem2Mem = 32
         Int novosortMem = 32
+        Int preprocessAdditionalDiskSize = 20
+        Int printReadsPreemptible = 3
 
         # Use these to override the default disk size that's based on bam size.
-        Int? gridssTumorDiskSize
-        Int? gridssNormalDiskSize
+        Int? gridssTumorDiskSize = 740
+        Int? gridssNormalDiskSize = 740
         Int gridssPreMemoryGb = 32
         Int gridssFilterMemoryGb = 32
         Boolean gridssHighMem = false
@@ -254,6 +256,8 @@ workflow SomaticDNA {
                 external = external,
                 bwamem2Mem = bwamem2Mem,
                 novosortMem = novosortMem,
+                printReadsPreemptible = printReadsPreemptible,
+                additionalDiskSize = preprocessAdditionalDiskSize,
                 listOfFastqPairs = sampleInfoObj.listOfFastqPairs,
                 trim = trim,
                 adaptersFa = adaptersFa,

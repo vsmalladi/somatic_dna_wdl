@@ -40,6 +40,8 @@ workflow Preprocess {
 
         Int bwamem2Mem = 32
         Int novosortMem = 32
+        Int additionalDiskSize = 20
+        Int printReadsPreemptible = 3
 
     }
 
@@ -51,7 +53,8 @@ workflow Preprocess {
             bwamem2Reference = bwamem2Reference,
             bwamem2Mem = bwamem2Mem,
             threads = samtoolsThreads,
-            bwamem2Threads = bwamem2Threads
+            bwamem2Threads = bwamem2Threads,
+            additionalDiskSize = additionalDiskSize
     }
 
     call mergeBams.MergeBams {
@@ -67,7 +70,8 @@ workflow Preprocess {
             randomIntervals = randomIntervals,
             qcDir = "Sample_~{sampleId}/qc",
             novosortMem = novosortMem,
-            threads = threads
+            threads = threads,
+            additionalDiskSize = additionalDiskSize
     }
 
     call qc.QcMetrics {

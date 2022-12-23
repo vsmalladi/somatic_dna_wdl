@@ -15,9 +15,9 @@ workflow AlignFastq {
         Int bwamem2Mem
         Int threads
         Int bwamem2Threads
+        Int additionalDiskSize = 20
     }
 
-    Int additionalDiskSize = 20
     scatter(fastqs in listOfFastqPairs) {
         Int fastqsSize = ceil(size(fastqs.fastqR1, "GB") + size (fastqs.fastqR2, "GB"))
 
@@ -47,7 +47,7 @@ workflow AlignFastq {
                 diskSize = alignDiskSize
         }
 
-        Int shortMarkDiskSize = ceil( 4 *  size(AlignBwaMem2.laneBam)) + additionalDiskSize
+        Int shortMarkDiskSize = ceil( 4 *  size(AlignBwaMem2.laneBam, "GB")) + additionalDiskSize
         call alignFastq.ShortAlignMark {
             input:
                 laneBam = AlignBwaMem2.laneBam,
@@ -56,7 +56,7 @@ workflow AlignFastq {
                 diskSize = shortMarkDiskSize
         }
 
-        Int fixmateDiskSize = ceil( 4 *  size(ShortAlignMark.laneBamMark)) + additionalDiskSize
+        Int fixmateDiskSize = ceil( 4 *  size(ShortAlignMark.laneBamMark, "GB")) + additionalDiskSize
         call alignFastq.Fixmate {
             input:
                 laneBamMark = ShortAlignMark.laneBamMark,
