@@ -216,7 +216,7 @@ struct PairRelationship {
     String normalId
 }
 
-struct pairInfo {
+struct PairInfo {
     String pairId
     Bam tumorFinalBam
     Bam normalFinalBam
@@ -224,7 +224,7 @@ struct pairInfo {
     String normalId
 }
 
-struct pairCramInfo {
+struct PairCramInfo {
     String pairId
     Cram tumorFinalCram
     Cram normalFinalCram

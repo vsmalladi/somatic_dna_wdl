@@ -1,6 +1,7 @@
 version 1.0
 
 import "wdl_structs.wdl"
+import "alignment_analysis/alignment_analysis.wdl" as alignmentAnalysis
 import "germline/germline_wkf.wdl" as germline
 import "annotate/germline_annotate_wkf.wdl" as germlineAnnotate
 
@@ -84,10 +85,35 @@ workflow GermlineAll {
     }
 
     scatter (normalSampleBamInfo in normalSampleBamInfos) {
+        # using small disk size because the file is not localized (on servers that support this)
+        Int basicDiskSize = 4
+        
+        call alignmentAnalysis.GetSampleName {
+            input:
+                finalBam = normalSampleBamInfo.finalBam.bam,
+                finalBai = normalSampleBamInfo.finalBam.bamIndex,
+                diskSize = basicDiskSize
+        }
+        
+        if (GetSampleName.bamSampleId != normalSampleBamInfo.sampleId ) {
+            Int renameDiskSize = (ceil( size(normalSampleBamInfo.finalBam.bam, "GB") )  * 2 ) + 4
+            
+            call alignmentAnalysis.UpdateBamSampleName {
+                input:
+                    finalBam = normalSampleBamInfo.finalBam,
+                    sampleId = normalSampleBamInfo.sampleId,
+                    outputPrefix = normalSampleBamInfo.sampleId,
+                    diskSize = renameDiskSize
+            }
+        }
+        
+        Bam normalSampleBam = select_first([UpdateBamSampleName.reheaderBam, normalSampleBamInfo.finalBam])
+        
         call germline.Germline {
             input:
-                finalBam = normalSampleBamInfo.finalBam,
+                finalBam = normalSampleBam,
                 normal = normalSampleBamInfo.sampleId,
+                outputPrefix = normalSampleBamInfo.sampleId,
                 referenceFa = referenceFa,
                 listOfChroms = listOfChroms,
                 MillsAnd1000G = MillsAnd1000G,

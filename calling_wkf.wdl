@@ -33,7 +33,7 @@ workflow Calling {
     #   merge and filter raw VCFs
     #   annotate
     input {
-        Array[pairInfo]+ pairInfos
+        Array[PairInfo]+ pairInfos
         # strelka2
         File strelkaJsonLog
         File configureStrelkaSomaticWorkflow

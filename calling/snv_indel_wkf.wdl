@@ -14,7 +14,7 @@ workflow Calling {
     #   merge and filter raw VCFs
     #   annotate
     input {
-        pairInfo pairInfo
+        PairInfo pairInfo
         #   mutect2
         Array[String]+ listOfChroms
         Array[String]+ listOfChromsFull

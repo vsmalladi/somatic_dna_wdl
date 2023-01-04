@@ -27,7 +27,7 @@ workflow AlignmentAnalysis {
     #   merge and filter raw VCFs
     #   annotate
     input {
-        Array[pairInfo]+ pairInfos
+        Array[PairInfo]+ pairInfos
 
         # kourami
         BwaReference kouramiReference

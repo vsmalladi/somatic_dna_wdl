@@ -2,6 +2,103 @@ version 1.0
 
 import "../wdl_structs.wdl"
 
+task GetSampleName {
+    input {
+        File finalBam
+        File finalBai
+        String sampleIdPath = "sampleId.txt"
+        Int memoryGb = 1
+        Int diskSize
+    }
+
+    Int jvmHeap = memoryGb * 750  # Heap size in Megabytes. mem is in GB. (75% of mem)
+    command {
+            /gatk/gatk \
+            --java-options "-Xmx~{jvmHeap}m -XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10" \
+            GetSampleName \
+            -I ~{finalBam} \
+            --read-index ~{finalBai} \
+            -O ~{sampleIdPath}
+    }
+
+    output {
+        String bamSampleId = read_string("~{sampleIdPath}")
+    }
+
+    runtime {
+        mem: memoryGb + "G"
+        memory : memoryGb + "GB"
+        disks: "local-disk " + diskSize + " HDD"
+        docker: "gcr.io/nygc-public/broadinstitute/gatk4@sha256:b3bde7bc74ab00ddce342bd511a9797007aaf3d22b9cfd7b52f416c893c3774c"
+    }
+    
+    parameter_meta {
+        finalBam: {
+            localization_optional: true
+        }
+        
+        finalBai: {
+            localization_optional: true
+        }
+    }
+}
+
+task UpdateBamSampleName {
+    input {
+        Bam finalBam
+        String sampleId
+        String outputPrefix = "~{sampleId}"
+        String headerPath = "~{outputPrefix}.reheader.txt"
+        String reheaderBamPath = "~{outputPrefix}.reheader.bam"
+        String bamIndexPath = "~{outputPrefix}.reheader.bai"
+        # resources
+        Int diskSize
+        Int threads = 4
+        Int memoryGb = 8
+    }
+
+    command {
+    
+        set -e -o pipefail
+        
+        samtools \
+        view -H \
+        ~{finalBam.bam} \
+        | sed "/^@RG/ s/SM:\S+/SM:~{sampleId}/" \
+        > ~{headerPath}
+        
+        samtools \
+        reheader \
+        ~{headerPath} \
+        ~{finalBam.bam} \
+        > ~{reheaderBamPath}
+        
+        samtools \
+        index \
+        -@ ~{threads} \
+        ~{reheaderBamPath} \
+        ~{bamIndexPath}
+    }
+
+    output {
+        Bam reheaderBam = object {
+            bam : reheaderBamPath,
+            bamIndex : bamIndexPath
+        }
+    }
+
+    runtime {
+        docker : "gcr.io/nygc-public/samtools@sha256:32f29fcd7af01b3941e6f93095e8d899741e81b50bcc838329bd8df43e120cc3"
+        disks: "local-disk " + diskSize + " LOCAL"
+        memory: memoryGb + " GB"
+        mem: memoryGb + " G"
+        cpu: threads
+        cpus: threads
+    }
+}
+
+
+
 task BedtoolsIntersect {
     input {
         String mantisBedByIntervalListPath

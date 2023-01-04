@@ -7,7 +7,7 @@ import "tasks/bam_cram_conversion.wdl" as cramConversion
 workflow BamToCramWorkflow {
     input {
         IndexedReference referenceFa
-        Array[pairInfo]+ pairInfos
+        Array[PairInfo]+ pairInfos
         Array[SampleBamInfo]+ normalSampleBamInfos
     }
 
