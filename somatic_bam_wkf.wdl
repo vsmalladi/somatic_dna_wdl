@@ -303,6 +303,7 @@ workflow SomaticBamWorkflow {
             input:
                 finalBam = Reheader.sampleBamMatched[normalGetIndex.index],
                 normal = normalSampleBamInfo.sampleId,
+                outputPrefix = normalSampleBamInfo.sampleId,
                 referenceFa = referenceFa,
                 listOfChroms = listOfChroms,
                 MillsAnd1000G = MillsAnd1000G,
@@ -649,8 +650,8 @@ workflow SomaticBamWorkflow {
 
         FinalVcfPairInfo finalVcfPairInfo = object {
             pairId : pairInfo.pairId,
-            tumor : pairInfo.tumor,
-            normal : pairInfo.normal,
+            tumor : pairInfo.tumorId,
+            normal : pairInfo.normalId,
             mainVcf : Annotate.pairVcfInfo.mainVcf,
             supplementalVcf : Annotate.pairVcfInfo.supplementalVcf,
             vcfAnnotatedTxt : Annotate.pairVcfInfo.vcfAnnotatedTxt,
