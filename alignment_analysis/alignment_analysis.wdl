@@ -60,21 +60,12 @@ task UpdateBamSampleName {
     command {
     
         set -e -o pipefail
-    
-        samtools \
-        view \
-        -H ~{finalBam.bam} \
-        | grep -v "^@RG" \
-        > ~{headerPath}
         
         samtools \
-        view \
-        -H ~{finalBam.bam} \
-        | grep "^@RG" \
-        | sed \
-        -E \
-        "s/SM:\S+/SM:~{sampleId}/" \
-        >> ~{headerPath}
+        view -H \
+        ~{finalBam.bam} \
+        | sed "/^@RG/ s/SM:\S+/SM:~{sampleId}/" \
+        > ~{headerPath}
         
         samtools \
         reheader \
@@ -82,15 +73,11 @@ task UpdateBamSampleName {
         ~{finalBam.bam} \
         > ~{reheaderBamPath}
         
-        ls -thl
-        
         samtools \
         index \
         -@ ~{threads} \
         ~{reheaderBamPath} \
         ~{bamIndexPath}
-        
-        ls -thl
     }
 
     output {
