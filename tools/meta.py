@@ -243,14 +243,20 @@ def write_labels_json(args, project_info, labels_file,
         custom_labels = {}
     else:
         custom_labels = load_json(file)
-    labels = {'analysis_project': project_info['project_name'],  
-              'sample_analysis_group': ','.join(project_info['sampleIds']),
-              'sample_ids': ','.join(project_info['sampleIds']),
+    labels = {'analysis_project': project_info['project_name'],
               'category': 'Research',
               'customer': 'NYGC',
               'reference_genome': project_info['genome'],
               'workflow_version': project_info['commit_wdl'] + ' ' + project_info['branch_wdl'] ,
               'workflow_release': project_info['uniq_tag_wdl']}
+    ids = []
+    if 'sampleIds' in project_info:
+        ids.append(','.join(project_info['sampleIds']))
+    if 'pairIds' in project_info:
+        ids.append(','.join(project_info['pairIds']))
+        ids.append(','.join(project_info['tumorIds']))
+        ids.append(','.join(project_info['normalIds']))
+        labels['sample_analysis_group'] = ','.join(ids)
     for key in custom_labels:
         labels[key] = custom_lables[key]
     write_json(file_out=custom_labels_out, object=labels)
