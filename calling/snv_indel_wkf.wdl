@@ -3,7 +3,6 @@ version 1.0
 import "mutect2_wkf.wdl" as mutect2
 import "strelka2_wkf.wdl" as strelka2
 import "manta_wkf.wdl" as manta
-import "svaba_wkf.wdl" as svaba
 import "lancet_wkf.wdl" as lancet
 
 import "../wdl_structs.wdl"
@@ -21,8 +20,6 @@ workflow Calling {
         IndexedReference referenceFa
         #   Manta
         IndexedTable callRegions
-        #   Svaba
-        File dbsnpIndels
         BwaReference bwaReference
         #   Lancet
         Map[String, File] chromBedsWgs
@@ -30,7 +27,6 @@ workflow Calling {
         File lancetJsonLog
         File mantaJsonLog
         File strelkaJsonLog
-        File svabaJsonLog
         File mutectJsonLog
         File mutectJsonLogFilter
         File configureStrelkaSomaticWorkflow
@@ -78,20 +74,6 @@ workflow Calling {
             tumorFinalBam = pairInfo.tumorFinalBam
     }
 
-    call svaba.Svaba {
-        input:
-            svabaJsonLog = svabaJsonLog,
-            tumor = pairInfo.tumorId,
-            normal = pairInfo.normalId,
-            dbsnpIndels = dbsnpIndels,
-            bwaReference = bwaReference,
-            callRegions = callRegions,
-            pairName = pairInfo.pairId,
-            normalFinalBam = pairInfo.normalFinalBam,
-            tumorFinalBam = pairInfo.tumorFinalBam,
-            highMem = highMem
-    }
-
     call lancet.Lancet {
         input:
             lancetJsonLog = lancetJsonLog,
@@ -121,11 +103,6 @@ workflow Calling {
         IndexedVcf strelka2Indels = Strelka2.strelka2Indels
         File strelka2Snv = Strelka2.strelka2Snv
         File strelka2Indel = Strelka2.strelka2Indel
-        # Svaba
-        File svabaRawGermlineIndel = Svaba.svabaRawGermlineIndel
-        File svabaRawGermlineSv = Svaba.svabaRawGermlineSv
-        File svabaSv = Svaba.svabaSv
-        File svabaIndel = Svaba.svabaIndel
         # Lancet
         File lancet = Lancet.lancet
     }
