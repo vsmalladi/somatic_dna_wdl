@@ -244,10 +244,12 @@ def write_labels_json(args, project_info, labels_file,
     else:
         custom_labels = load_json(file)
     labels = {'analysis_project': project_info['project_name'],
-              'category': 'Research',
+              'category': 'CompBio',
               'customer': 'NYGC',
               'reference_genome': project_info['genome'],
-              'workflow_version': project_info['commit_wdl'] + ' ' + project_info['branch_wdl'] ,
+              'workflow_version': project_info['tag_wdl'],
+              'workflow_commit': project_info['commit_wdl'] ,
+              'workflow_branch': project_info['branch_wdl'] ,
               'workflow_release': project_info['uniq_tag_wdl']}
     ids = []
     if 'sampleIds' in project_info:
