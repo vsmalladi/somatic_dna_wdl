@@ -130,7 +130,7 @@ task UniqueBams {
     }
 
     runtime {
-        docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:2d61578c9bc8e5ef4a4b25c1e6a32883c67e0fcff6259e43c7da91dbc9c100d7"
+        docker : "gcr.io/nygc-comp-s-fd4e/somatic_dna_tool@sha256:2d61578c9bc8e5ef4a4b25c1e6a32883c67e0fcff6259e43c7da91dbc9c100d7"
         disks: "local-disk 10 HDD"
         memory: "1GB"
         mem: "1G"
@@ -159,7 +159,7 @@ task UpdateCramInfos {
     }
 
     runtime {
-        docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:2d61578c9bc8e5ef4a4b25c1e6a32883c67e0fcff6259e43c7da91dbc9c100d7"
+        docker : "gcr.io/nygc-comp-s-fd4e/somatic_dna_tool@sha256:2d61578c9bc8e5ef4a4b25c1e6a32883c67e0fcff6259e43c7da91dbc9c100d7"
         disks: "local-disk 10 HDD"
         memory: "1GB"
         mem: "1G"

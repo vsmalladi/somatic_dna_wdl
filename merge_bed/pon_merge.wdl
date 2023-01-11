@@ -49,7 +49,7 @@ task MakeSinglePon {
         cpu : threads
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:2d61578c9bc8e5ef4a4b25c1e6a32883c67e0fcff6259e43c7da91dbc9c100d7"
+        docker : "gcr.io/nygc-comp-s-fd4e/somatic_dna_tool@sha256:2d61578c9bc8e5ef4a4b25c1e6a32883c67e0fcff6259e43c7da91dbc9c100d7"
     }
 }
 
@@ -82,7 +82,7 @@ task MergePons {
         cpu : threads
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
-        docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:2d61578c9bc8e5ef4a4b25c1e6a32883c67e0fcff6259e43c7da91dbc9c100d7"
+        docker : "gcr.io/nygc-comp-s-fd4e/somatic_dna_tool@sha256:2d61578c9bc8e5ef4a4b25c1e6a32883c67e0fcff6259e43c7da91dbc9c100d7"
     }
 }
 
