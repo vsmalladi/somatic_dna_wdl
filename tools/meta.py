@@ -192,7 +192,6 @@ def populate(args, custom_inputs):
             if 'tumorBam' in full_pairs and 'normalBam' in full_pairs:
                 project_info = fill_in_pair_info(project_info, full_pairs)
         # update pairing objects in project_info
-        print('alt 5')
         pair_ids = list(set([info['pairId'] for info in project_info['listOfPairRelationships']]))
         project_info = note_updates(key='pairIds', new_value=pair_ids, project_info=project_info)
         normalIds = list(set([info['normalId'] for info in project_info['listOfPairRelationships']]))
@@ -200,7 +199,6 @@ def populate(args, custom_inputs):
         tumorIds = list(set([info['tumorId'] for info in project_info['listOfPairRelationships']]))
         project_info = note_updates(key='tumorIds', new_value=tumorIds, project_info=project_info)
     # fill in list of samples
-    print('alt 6')
     try:
         if args['samples_file']:
             sample_ids = load_sample_ids(args['samples_file'])
@@ -208,14 +206,12 @@ def populate(args, custom_inputs):
             sample_ids = list(set(project_info['normalIds'] + project_info['tumorIds']))
     except KeyError:
         sample_ids = []
-    print('alt 6')
     project_info = note_updates(key='sampleIds', new_value=sample_ids, project_info=project_info)
     if custom_inputs:
         for alt_project_info_file in custom_inputs:
                 alt_project_info = read(alt_project_info_file)
                 project_info = note_custom_updates(key='normalsampleInfos', alt_project_info=alt_project_info, project_info=project_info)
                 project_info = note_custom_updates(key='sampleInfos', alt_project_info=alt_project_info, project_info=project_info)
-    print('alt 7')
     return project_info
 
 def load_json(file):
@@ -275,7 +271,6 @@ def write_wdl_json(args, project_info, custom_inputs,
         pipeline_input = parent_dir + '/../config/pipeline_references.json'
         interval_input = parent_dir + '/../config/interval_references.json'
         genome_input = parent_dir + '/../config/fasta_references.json'
-    print('parse.Wdl')
     input = parse.Wdl(args['wdl_file'], 
                       genome_input=genome_input,
                       interval_input=interval_input,
@@ -285,7 +280,6 @@ def write_wdl_json(args, project_info, custom_inputs,
                       validate=not args['skip_validate'],
                       project_info=project_info,
                       local=args['local'])
-    print('parse.Wdl done')
     file_out = custom_inputs_out
     write_json(file_out=file_out, object=input.final_inputs)
                 
