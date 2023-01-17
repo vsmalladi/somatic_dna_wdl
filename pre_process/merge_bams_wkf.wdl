@@ -23,7 +23,8 @@ workflow MergeBams {
         # resources
         Int novosortMem
         Int threads
-
+        Int additionalDiskSize = 20
+        Int printReadsPreemptible = 3
     }
 
     Int laneFixmateBamsSize = ceil(size(laneFixmateBams, "GB"))
@@ -66,7 +67,7 @@ workflow MergeBams {
             collectWgsMetricsPath = "~{qcDir}/~{sampleId}.CollectWgsMetrics.dedup.txt",
             referenceFa = referenceFa,
             randomIntervals = randomIntervals,
-            diskSize = ceil(size(mergedDedupBam.bam, "GB")) + 10
+            diskSize = ceil(size(mergedDedupBam.bam, "GB") * 1.5) + additionalDiskSize
     }
 
     call qc.MultipleMetricsPreBqsr {
@@ -75,14 +76,14 @@ workflow MergeBams {
             mergedDedupBam = mergedDedupBam,
             outputDir = qcDir,
             sampleId = sampleId,
-            diskSize = ceil(size(mergedDedupBam.bam, "GB")) + 10
+            diskSize = ceil(size(mergedDedupBam.bam, "GB") * 1.5) + additionalDiskSize
     }
 
     call mergeBams.Downsample {
         input:
             mergedDedupBam = mergedDedupBam,
             sampleId = sampleId,
-            diskSize = ceil(size(mergedDedupBam.bam, "GB") * 1.5)
+            diskSize = ceil(size(mergedDedupBam.bam, "GB") * 1.5) + additionalDiskSize
     }
     call mergeBams.Bqsr38 {
         input:
@@ -93,7 +94,7 @@ workflow MergeBams {
             dbsnp = dbsnp,
             callRegions = callRegions,
             sampleId = sampleId,
-            diskSize = ceil(size(Downsample.downsampleMergedDedupBam.bam, "GB")) + 20
+            diskSize = ceil(size(Downsample.downsampleMergedDedupBam.bam, "GB") * 1.5) + additionalDiskSize
     }
 
     call mergeBams.PrintReads {
@@ -102,7 +103,7 @@ workflow MergeBams {
             mergedDedupBam = mergedDedupBam,
             recalGrp = Bqsr38.recalGrp,
             sampleId = sampleId,
-            diskSize = (3 * laneFixmateBamsSize) + 10
+            diskSize = ceil(3 * laneFixmateBamsSize)  + additionalDiskSize
     }
 
     output {

@@ -50,9 +50,14 @@ workflow Calling {
         File mutectJsonLogFilter
         File configureStrelkaSomaticWorkflow
 
-        Boolean highMem = false
-        Int gridssTumorDiskSize = 740
-        Int gridssNormalDiskSize = 740
+        # Gridss resources need a lot of fine grained control
+        Int? gridssTumorDiskSize
+        Int? gridssNormalDiskSize
+        Int gridssPreMemoryGb = 32
+        Int gridssFilterMemoryGb = 32
+        Boolean gridssHighMem = false
+        Boolean mantaHighMem = false
+        Boolean mutect2HighMem = false
     }
     call mutect2.Mutect2 {
         input:
@@ -66,7 +71,7 @@ workflow Calling {
             referenceFa = referenceFa,
             normalFinalBam = pairInfo.normalFinalBam,
             tumorFinalBam = pairInfo.tumorFinalBam,
-            highMem = highMem
+            highMem = mutect2HighMem
     }
 
     call manta.Manta {
@@ -79,7 +84,7 @@ workflow Calling {
             pairName = pairInfo.pairId,
             normalFinalBam = pairInfo.normalFinalBam,
             tumorFinalBam = pairInfo.tumorFinalBam,
-            highMem = highMem
+            highMem = mantaHighMem
     }
 
     call strelka2.Strelka2 {
@@ -121,9 +126,10 @@ workflow Calling {
             tumorFinalBam = pairInfo.tumorFinalBam,
             bsGenome = bsGenome,
             ponTarGz = ponTarGz,
-            tumorDiskSize = gridssTumorDiskSize,
-            normalDiskSize = gridssNormalDiskSize,
-            highMem = highMem
+            inputTumorDiskSize = gridssTumorDiskSize,
+            inputNormalDiskSize = gridssNormalDiskSize,
+            preMemoryGb = gridssPreMemoryGb,
+            filterMemoryGb = gridssFilterMemoryGb
     }
 
     call bicseq2.BicSeq2 {
