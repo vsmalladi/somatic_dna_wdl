@@ -18,6 +18,8 @@ import "variant_analysis/deconstruct_sigs_wkf.wdl" as deconstructSigs
 import "tasks/bam_cram_conversion.wdl" as cramConversion
 import "tasks/reheader_bam_wkf.wdl" as reheaderBam
 
+import "tasks/utils.wdl" as utils
+
 # ================== COPYRIGHT ================================================
 # New York Genome Center
 # SOFTWARE COPYRIGHT NOTICE AGREEMENT
@@ -34,30 +36,6 @@ import "tasks/reheader_bam_wkf.wdl" as reheaderBam
 #    Minita Shah
 #
 # ================== /COPYRIGHT ===============================================
-
-
-# for wdl version 1.0
-
-task GetIndex {
-    input {
-        String sampleId
-        Array[String] sampleIds
-    }
-
-    command {
-        python /get_index.py \
-        --sample-id ~{sampleId} \
-        --sample-ids ~{sep=' ' sampleIds}
-    }
-
-    output {
-        Int index = read_int(stdout())
-    }
-
-    runtime {
-        docker: "gcr.io/nygc-public/workflow_utils@sha256:40fa18ac3f9d9f3b9f037ec091cb0c2c26ad6c7cb5c32fb16c1c0cf2a5c9caea"
-    }
-}
 
 
 workflow SomaticBamWorkflow {
@@ -82,12 +60,14 @@ workflow SomaticBamWorkflow {
         Array[String]+ listOfChroms
         IndexedTable callRegions
         Map[String, File] chromBedsWgs
+        Map[String, File] chromBeds
         File lancetJsonLog
         File mantaJsonLog
         File strelkaJsonLog
         File mutectJsonLog
         File mutectJsonLogFilter
         File configureStrelkaSomaticWorkflow
+        File intervalList
 
         #   BicSeq2
         Int readLength
@@ -260,7 +240,7 @@ workflow SomaticBamWorkflow {
     scatter (normalSampleBamInfo in normalSampleBamInfos) {
         String normalSampleIds = normalSampleBamInfo.sampleId
         
-        call GetIndex as normalGetIndex {
+        call utils.GetIndex as normalGetIndex {
             input:
                 sampleIds = uniqueSampleIds,
                 sampleId = normalSampleBamInfo.sampleId
@@ -394,13 +374,13 @@ workflow SomaticBamWorkflow {
     }
 
     scatter(pairInfo in pairInfos) {
-        call GetIndex as germlineGetIndex {
+        call utils.GetIndex as germlineGetIndex {
             input:
                 sampleIds = normalSampleIds,
                 sampleId = pairInfo.normalId
         }
         
-        call GetIndex as tumorGetIndex {
+        call utils.GetIndex as tumorGetIndex {
             input:
                 sampleIds = uniqueSampleIds,
                 sampleId = pairInfo.tumorId
@@ -419,13 +399,13 @@ workflow SomaticBamWorkflow {
     }
 
     scatter(pairInfo in pairInfos) {
-        call GetIndex as tumorCallingGetIndex {
+        call utils.GetIndex as tumorCallingGetIndex {
             input:
                 sampleIds = uniqueSampleIds,
                 sampleId = pairInfo.tumorId
         }
 
-        call GetIndex as normalCallingGetIndex {
+        call utils.GetIndex as normalCallingGetIndex {
             input:
                 sampleIds = uniqueSampleIds,
                 sampleId = pairInfo.normalId
@@ -489,6 +469,7 @@ workflow SomaticBamWorkflow {
                 mutectJsonLogFilter = mutectJsonLogFilter,
                 strelkaJsonLog = strelkaJsonLog,
                 configureStrelkaSomaticWorkflow = configureStrelkaSomaticWorkflow,
+                intervalList = intervalList,
                 pairInfo = callingPairInfo,
                 listOfChroms = listOfChroms,
                 listOfChromsFull = listOfChromsFull,
@@ -507,7 +488,9 @@ workflow SomaticBamWorkflow {
                 bsGenome = bsGenome,
                 ponTarGz = ponTarGz,
                 gridssAdditionalReference = gridssAdditionalReference,
-                highMem = highMem
+                chromBeds = chromBeds,
+                highMem = highMem,
+                library = library
         }
 
         call msi.Msi {
@@ -556,6 +539,7 @@ workflow SomaticBamWorkflow {
             call mergeVcf.MergeVcf as wgsMergeVcf {
                 input:
                     external = external,
+                    library = library,
                     preMergedPairVcfInfo = preMergedPairVcfInfo,
                     referenceFa = referenceFa,
                     listOfChroms = listOfChroms,

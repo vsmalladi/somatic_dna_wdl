@@ -7,10 +7,12 @@ workflow Lancet {
     # command
     #   run Lancet caller
     input {
+        String library
         String tumor
         String normal
         Array[String]+ listOfChroms
         Map[String, File] chromBedsWgs
+        Map[String, File] chromBeds
         String pairName
         IndexedReference referenceFa
         Bam normalFinalBam
@@ -24,10 +26,20 @@ workflow Lancet {
     }
 
     scatter(chrom in listOfChroms) {
+        if (library == 'WGS') {
+            File chromBedWgs = chromBedsWgs[chrom]
+        }
+        
+        if (library == 'Exome') {
+            File chromBedExome = chromBeds[chrom]
+        }
+        
+        File chromBed = select_first([chromBedWgs, chromBedExome])
+        
         call calling.LancetWGSRegional {
             input:
                 chrom = chrom,
-                chromBed = chromBedsWgs[chrom],
+                chromBed = chromBed,
                 referenceFa = referenceFa,
                 normalFinalBam = normalFinalBam,
                 tumorFinalBam = tumorFinalBam,

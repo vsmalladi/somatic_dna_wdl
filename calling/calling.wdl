@@ -383,10 +383,11 @@ task FilterNonpassPon {
         IndexedVcf vcf
     }
 
+    Int jvmHeap = memoryGb * 750  # Heap size in Megabytes. mem is in GB. (75% of mem)
     command {
         gatk \
         SelectVariants \
-        --java-options "-XX:ParallelGCThreads=4" \
+        --java-options "-Xmx~{jvmHeap}m -XX:ParallelGCThreads=4" \
         -R ~{referenceFa.fasta} \
         -V ~{vcf.vcf} \
         -O ~{outVcfPath} \
@@ -462,6 +463,101 @@ task Strelka2 {
         docker : "gcr.io/nygc-public/strelka@sha256:eb71db1fbe25d67c025251823ae5d5e9dbf5a6861a98298b47ecd722dfa5bd14"
     }
 }
+
+task Strelka2Exome {
+    input {
+        Int threads
+        Int memoryGb
+        Int diskSize
+        String pairName
+        String intHVmem = "unlimited"
+        IndexedReference referenceFa
+        Bam normalFinalBam
+        IndexedTable callRegions
+        Bam tumorFinalBam
+        File configureStrelkaSomaticWorkflow
+    }
+
+    command {
+        set -e -o pipefail
+
+        mkdir ~{pairName}.Strelka2Raw
+
+        configureStrelkaSomaticWorkflow.py \
+        --normalBam ~{normalFinalBam.bam} \
+        --tumorBam ~{tumorFinalBam.bam} \
+        --referenceFasta ~{referenceFa.fasta} \
+        --callRegions ~{callRegions.table} \
+        --config ~{configureStrelkaSomaticWorkflow} \
+        --runDir ~{pairName}.Strelka2Raw \
+        --exome
+
+        "~{pairName}.Strelka2Raw/runWorkflow.py" \
+        --mode local \
+        --job ~{threads} \
+        --memGb ~{intHVmem}
+    }
+
+    output {
+        IndexedVcf strelka2Snvs = object {
+                vcf : "~{pairName}.Strelka2Raw/results/variants/somatic.snvs.vcf.gz",
+                index : "~{pairName}.Strelka2Raw/results/variants/somatic.snvs.vcf.gz.tbi"
+            }
+        IndexedVcf strelka2Indels = object {
+                vcf : "~{pairName}.Strelka2Raw/results/variants/somatic.indels.vcf.gz",
+                index : "~{pairName}.Strelka2Raw/results/variants/somatic.indels.vcf.gz.tbi"
+            }
+    }
+
+    runtime {
+        mem: memoryGb + "G"
+        cpus: threads
+        cpu : threads
+        disks: "local-disk " + diskSize + " LOCAL"
+        memory : memoryGb + "GB"
+        docker : "gcr.io/nygc-public/strelka@sha256:eb71db1fbe25d67c025251823ae5d5e9dbf5a6861a98298b47ecd722dfa5bd14"
+    }
+}
+
+task SelectVariants {
+    input {
+        Int threads = 4
+        Int memoryGb = 8
+        Int diskSize
+        String pairName
+        String outVcfPath = "~{pairName}.selected.vcf"
+        IndexedReference referenceFa
+        File intervalList
+        File vcf
+        Int padding = 200
+    }
+
+    Int jvmHeap = memoryGb * 750  # Heap size in Megabytes. mem is in GB. (75% of mem)
+    command {
+        gatk \
+        SelectVariants \
+        --java-options "-Xmx~{jvmHeap}m -XX:ParallelGCThreads=4" \
+        -R ~{referenceFa.fasta} \
+        -V ~{vcf} \
+        -O ~{outVcfPath} \
+        --intervals ~{intervalList} \
+        --interval-padding ~{padding}
+    }
+
+    output {
+        File outVcf = "~{outVcfPath}"
+    }
+
+    runtime {
+        mem: memoryGb + "G"
+        cpus: threads
+        cpu : threads
+        disks: "local-disk " + diskSize + " HDD"
+        memory : memoryGb + "GB"
+        docker : "gcr.io/nygc-public/broadinstitute/gatk4@sha256:b3bde7bc74ab00ddce342bd511a9797007aaf3d22b9cfd7b52f416c893c3774c"
+    }
+}
+
 
 task LancetWGSRegional {
     input {
@@ -593,6 +689,53 @@ task Mutect2Wgs {
         disks: "local-disk " + diskSize + " LOCAL"
     }
 }
+
+task Mutect2Exome {
+    input {
+        Int memoryGb = 4
+        Int diskSize
+        String chrom
+        String tumor
+        String normal
+        String pairName
+        String mutect2ChromRawVcfPath = "~{pairName}_~{chrom}.mutect2.raw.vcf"
+        String mutect2ChromRawStatsPath = "~{pairName}_~{chrom}.mutect2.raw.vcf.stats"
+        IndexedReference referenceFa
+        Bam normalFinalBam
+        Bam tumorFinalBam
+        Int padding = 200
+        File chromBed
+    }
+
+    Int jvmHeap = memoryGb * 750  # Heap size in Megabytes. mem is in GB. (75% of mem)
+
+    command {
+        gatk \
+        Mutect2 \
+        --java-options "-Xmx~{jvmHeap}m -XX:ParallelGCThreads=4" \
+        --reference ~{referenceFa.fasta} \
+        --intervals ~{chromBed} \
+        --interval-padding ~{padding} \
+        -I ~{tumorFinalBam.bam} \
+        -I ~{normalFinalBam.bam} \
+        -tumor ~{tumor} \
+        -normal ~{normal} \
+        -O ~{mutect2ChromRawVcfPath}
+    }
+
+    output {
+        File mutect2ChromRawVcf = "~{mutect2ChromRawVcfPath}"
+        File mutect2ChromRawStats = "~{mutect2ChromRawStatsPath}"
+    }
+
+    runtime {
+        mem: memoryGb + "G"
+        memory : memoryGb + "GB"
+        docker : "gcr.io/nygc-public/broadinstitute/gatk4@sha256:b3bde7bc74ab00ddce342bd511a9797007aaf3d22b9cfd7b52f416c893c3774c"
+        disks: "local-disk " + diskSize + " LOCAL"
+    }
+}
+
 
 task Mutect2WgsPon {
     input {

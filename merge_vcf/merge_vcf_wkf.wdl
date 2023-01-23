@@ -3,6 +3,7 @@ version 1.0
 import "prep_merge_vcf_wkf.wdl" as prepMergeVcf
 import "merge_callers_wkf.wdl" as mergeCallers
 import "merge_chroms_wkf.wdl" as mergeChroms
+import "../tasks/utils.wdl" as utils
 import "../wdl_structs.wdl"
 
 workflow MergeVcf {
@@ -12,6 +13,7 @@ workflow MergeVcf {
     #   annotate
     input {
         Boolean external = false
+        String library
         PreMergedPairVcfInfo preMergedPairVcfInfo
         IndexedReference referenceFa
         Array[String]+ listOfChroms
@@ -22,16 +24,37 @@ workflow MergeVcf {
         IndexedVcf germFile
     }
     
-    call prepMergeVcf.PrepMergeVcf as filteredMantaSVPrepMergeVcf {
-        input:
-            callerVcf=preMergedPairVcfInfo.filteredMantaSV,
-            tumor=preMergedPairVcfInfo.tumor,
-            normal=preMergedPairVcfInfo.normal,
-            tool='manta',
-            pairName=preMergedPairVcfInfo.pairId,
-            referenceFa=referenceFa
-            
+    if (library == 'WGS') {
+        call prepMergeVcf.PrepMergeVcf as filteredMantaSVPrepMergeVcf {
+            input:
+                callerVcf=preMergedPairVcfInfo.filteredMantaSV,
+                tumor=preMergedPairVcfInfo.tumor,
+                normal=preMergedPairVcfInfo.normal,
+                tool='manta',
+                pairName=preMergedPairVcfInfo.pairId,
+                referenceFa=referenceFa
+                
+        }
     }
+    
+    if (library == 'Exome') {
+        call utils.CreateBlankFile as createVcf {
+                input:
+                fileId = "~{preMergedPairVcfInfo.pairId}_nonMantaSvVcf_"
+        }
+        
+        call utils.CreateBlankFile as createVcfIndex {
+            input:
+                fileId = "~{preMergedPairVcfInfo.pairId}_nonMantaSvVcfIndex_"
+        }
+        
+        IndexedVcf nonfilteredMantaSV = object {
+                vcf : createVcf.blankFile,
+                index : createVcfIndex.blankFile
+        }
+    }
+    
+    IndexedVcf preppedFilteredMantaSV = select_first([filteredMantaSVPrepMergeVcf.preppedVcf, nonfilteredMantaSV])
     
     call prepMergeVcf.PrepMergeVcf as strelka2SnvPrepMergeVcf {
         input:
@@ -77,6 +100,23 @@ workflow MergeVcf {
             
     }
     
+    if (library == 'WGS') {
+        Array[IndexedVcf] allVcfCompressedWgs = [preppedFilteredMantaSV, 
+                    strelka2SnvPrepMergeVcf.preppedVcf,
+                    strelka2IndelPrepMergeVcf.preppedVcf,
+                    mutect2PrepMergeVcf.preppedVcf,
+                    lancetPrepMergeVcf.preppedVcf]
+    }
+    
+    if (library == 'Exome') {
+        Array[IndexedVcf] allVcfCompressedExome = [strelka2SnvPrepMergeVcf.preppedVcf,
+                    strelka2IndelPrepMergeVcf.preppedVcf,
+                    mutect2PrepMergeVcf.preppedVcf,
+                    lancetPrepMergeVcf.preppedVcf]
+    }
+    
+    Array[IndexedVcf] allVcfCompressed = select_first([allVcfCompressedWgs, allVcfCompressedExome])
+    
     call mergeCallers.MergeCallers {
         input:
             external=external,
@@ -90,11 +130,7 @@ workflow MergeVcf {
             tumorFinalBam=preMergedPairVcfInfo.tumorFinalBam,
             ponFile=ponFile,
             germFile=germFile,
-            allVcfCompressed=[filteredMantaSVPrepMergeVcf.preppedVcf, 
-                strelka2SnvPrepMergeVcf.preppedVcf,
-                strelka2IndelPrepMergeVcf.preppedVcf,
-                mutect2PrepMergeVcf.preppedVcf,
-                lancetPrepMergeVcf.preppedVcf]
+            allVcfCompressed=allVcfCompressed
         
     }
     
