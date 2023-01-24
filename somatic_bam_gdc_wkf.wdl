@@ -9,7 +9,7 @@ import "annotate/annotate_wkf.wdl" as annotate
 import "annotate/annotate_cnv_sv_wkf.wdl" as annotate_cnv_sv
 import "tasks/bam_cram_conversion.wdl" as cramConversion
 import "tasks/reheader_bam_wkf.wdl" as reheaderBam
-
+import "tasks/utils.wdl" as utils
 
 # ================== COPYRIGHT ================================================
 # New York Genome Center
@@ -27,30 +27,6 @@ import "tasks/reheader_bam_wkf.wdl" as reheaderBam
 #    Minita Shah
 #
 # ================== /COPYRIGHT ===============================================
-
-
-# for wdl version 1.0
-
-task GetIndex {
-    input {
-        String sampleId
-        Array[String] sampleIds
-    }
-
-    command {
-        python /get_index.py \
-        --sample-id ~{sampleId} \
-        --sample-ids ~{sep=' ' sampleIds}
-    }
-
-    output {
-        Int index = read_int(stdout())
-    }
-
-    runtime {
-        docker: "gcr.io/nygc-public/workflow_utils@sha256:40fa18ac3f9d9f3b9f037ec091cb0c2c26ad6c7cb5c32fb16c1c0cf2a5c9caea"
-    }
-}
 
 
 workflow SomaticBamWorkflow {
@@ -184,13 +160,13 @@ workflow SomaticBamWorkflow {
     }
 
     scatter(pairInfo in pairInfos) {
-        call GetIndex as normalGetIndex {
+        call utils.GetIndex as normalGetIndex {
             input:
                 sampleIds = uniqueSampleIds,
                 sampleId = pairInfo.normalId
         }
         
-        call GetIndex as tumorGetIndex {
+        call utils.GetIndex as tumorGetIndex {
             input:
                 sampleIds = uniqueSampleIds,
                 sampleId = pairInfo.tumorId

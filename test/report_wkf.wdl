@@ -3,26 +3,6 @@ version 1.0
 import "tests.wdl" as tests
 import "../wdl_structs.wdl"
 
-task GetIndex {
-    input {
-        String sampleId
-        Array[String] sampleIds
-    }
-    
-    command {
-        python /get_index.py \
-        --sample-id ~{sampleId} \
-        --sample-ids ~{sep=' ' sampleIds}
-    }
-    
-    output {
-        Int index = read_int(stdout())
-    }
-    
-    runtime {
-        docker: "gcr.io/nygc-public/workflow_utils@sha256:40fa18ac3f9d9f3b9f037ec091cb0c2c26ad6c7cb5c32fb16c1c0cf2a5c9caea"
-    }
-}
 
 workflow SampleReport {
     input {

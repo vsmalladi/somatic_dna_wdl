@@ -16,6 +16,7 @@ import "annotate/germline_annotate_wkf.wdl" as germlineAnnotate
 import "baf/baf_wkf.wdl" as baf
 import "variant_analysis/deconstruct_sigs_wkf.wdl" as deconstructSigs
 import "alignment_analysis/fastngsadmix_wkf.wdl" as fastNgsAdmix
+import "tasks/utils.wdl" as utils
 
 # ================== COPYRIGHT ================================================
 # New York Genome Center
@@ -26,52 +27,14 @@ import "alignment_analysis/fastngsadmix_wkf.wdl" as fastNgsAdmix
 # cannot be responsible for its use, misuse, or functionality.
 #
 #    Jennifer M Shelton (jshelton@nygenome.org)
+#    James Roche (jroche@nygenome.org)
 #    Nico Robine (nrobine@nygenome.org)
-#    Minita Shah (mshah@nygenome.org)
 #    Timothy Chu (tchu@nygenome.org)
 #    Will Hooper (whooper@nygenome.org)
+#    Minita Shah
 #
 # ================== /COPYRIGHT ===============================================
 
-# ================== COPYRIGHT ================================================
-# New York Genome Center
-# SOFTWARE COPYRIGHT NOTICE AGREEMENT
-# This software and its documentation are copyright (2021) by the New York
-# Genome Center. All rights are reserved. This software is supplied without
-# any warranty or guaranteed support whatsoever. The New York Genome Center
-# cannot be responsible for its use, misuse, or functionality.
-#
-#    Jennifer M Shelton (jshelton@nygenome.org)
-#    Nico Robine (nrobine@nygenome.org)
-#    Minita Shah (mshah@nygenome.org)
-#    Timothy Chu (tchu@nygenome.org)
-#    Will Hooper (whooper@nygenome.org)
-#
-# ================== /COPYRIGHT ===============================================
-
-
-# for wdl version 1.0
-
-task GetIndex {
-    input {
-        String sampleId
-        Array[String] sampleIds
-    }
-
-    command {
-        python /get_index.py \
-        --sample-id ~{sampleId} \
-        --sample-ids ~{sep=' ' sampleIds}
-    }
-
-    output {
-        Int index = read_int(stdout())
-    }
-
-    runtime {
-        docker: "gcr.io/nygc-public/workflow_utils@sha256:40fa18ac3f9d9f3b9f037ec091cb0c2c26ad6c7cb5c32fb16c1c0cf2a5c9caea"
-    }
-}
 
 
 workflow SomaticDNA {
@@ -271,7 +234,7 @@ workflow SomaticDNA {
     scatter (sampleInfoObj in normalSampleInfos) {
         String normalSampleIds = sampleInfoObj.sampleAnalysisId
 
-        call GetIndex as germlineRunGetIndex {
+        call utils.GetIndex as germlineRunGetIndex {
             input:
                 sampleIds = sampleIds,
                 sampleId = sampleInfoObj.sampleAnalysisId
@@ -422,18 +385,18 @@ workflow SomaticDNA {
 
     scatter (pairRelationship in listOfPairRelationships) {
         # for wdl version 1.0
-        call GetIndex as tumorBafGetIndex {
+        call utils.GetIndex as tumorBafGetIndex {
             input:
                 sampleIds = sampleIds,
                 sampleId = pairRelationship.tumorPrefix
         }
 
-        call GetIndex as normalBafGetIndex {
+        call utils.GetIndex as normalBafGetIndex {
             input:
                 sampleIds = sampleIds,
                 sampleId = pairRelationship.normalPrefix
         }
-        call GetIndex as germlineBafGetIndex {
+        call utils.GetIndex as germlineBafGetIndex {
             input:
                 sampleIds = normalSampleIds,
                 sampleId = pairRelationship.normalPrefix
@@ -455,13 +418,13 @@ workflow SomaticDNA {
 
     scatter (pairRelationship in listOfPairRelationships) {
         # for wdl version 1.0
-        call GetIndex as tumorGetIndex {
+        call utils.GetIndex as tumorGetIndex {
             input:
                 sampleIds = sampleIds,
                 sampleId = pairRelationship.tumorPrefix
         }
 
-        call GetIndex as normalGetIndex {
+        call utils.GetIndex as normalGetIndex {
             input:
                 sampleIds = sampleIds,
                 sampleId = pairRelationship.normalPrefix
