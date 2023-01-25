@@ -17,17 +17,18 @@ print_help() {
 }
 
 print_usage() {
-  echo "USAGE: uuid=\$( submit.sh -u URL -w WORKFLOW -o OPTIONS_JSON -i INPUTS -d DEPENDENCIES -p PROJECT_DATA [-l LABLES] )" >&2
+  echo "USAGE: uuid=\$( submit.sh -u URL -w WORKFLOW -o OPTIONS_JSON -i INPUTS -d DEPENDENCIES -p PROJECT_DATA -f FILE_OUT_PREFIX [-l LABLES] )" >&2
   exit 1
 }
 
-while getopts 'u:w:o:d:p:i:lh' flag; do
+while getopts 'u:w:o:d:p:f:i:l:h' flag; do
   case "${flag}" in
     u) url="${OPTARG}" ;;
     w) workflow="${OPTARG}" ;;
     o) options="${OPTARG}" ;;
     d) dependencies="${OPTARG}" ;;
     p) project_data="${OPTARG}" ;;
+    f) file_out_prefix="${OPTARG}" ;;
     i) inputs="${OPTARG}" ;;
     l) labels="${OPTARG}" ;;
     h) print_help ;;
@@ -67,6 +68,7 @@ response=$( eval $cmd )
 
 # report status command and return UUID
 uuid=$( echo ${response}  | jq -r ".id")
+run_info_json="${file_out_prefix}.${uuid}.RunInfo.json"
 
 # display submission status check command...
 echo "# To print the current status of the run: " >&2
@@ -89,4 +91,5 @@ echo ${uuid}
 python ${script_dir}/log.py \
 --project-data ${project_data} \
 --uuid ${uuid} \
---inputs ${inputs}
+--inputs ${inputs} \
+--file-out ${run_info_json}

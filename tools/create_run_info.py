@@ -77,6 +77,10 @@ def get_args():
                         help='Cromwell workflow uuid',
                         required=True
                         )
+    parser.add_argument('--output',
+                        help='Output file name',
+                        required=True
+                        )
     parser.add_argument('--project-name',
                         help='Project name associated with account. If not supplied '
                         'define genome using --project-data',
@@ -107,7 +111,7 @@ def main():
     args = get_args()
     # project, run and sample related metadata (run_info)
     run_info = populate(args)
-    file_out = args['project_name'].replace(' ', '_') + '.' + args['uuid'] + '.RunInfo.json'
+    file_out = args['output']
     # print run json
     write_json(dictionary=run_info,
                file_out=file_out)

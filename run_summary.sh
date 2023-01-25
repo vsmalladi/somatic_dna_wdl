@@ -27,8 +27,7 @@ RED='\033[0;31m'
 NC='\033[0m'
 
 init_wdl_dir=$(dirname "$0")
-cd ${init_wdl_dir}
-wdl_dir=$( pwd )
+wdl_dir=$( realpath ${init_wdl_dir})
 
 
 help_long="-h, --help          Show this help message and exit
@@ -139,6 +138,9 @@ if [ -z "$log_dir" ]; then
     exit 1
 fi
 
+log_dir=$( realpath ${log_dir})
+mkdir -p ${log_dir}
+
 if [ -z "$url" ]; then
     echo "Error: Missing required value for -u cromwell server URL" >&2
     print_usage
@@ -158,6 +160,7 @@ if [ -z "$uuid" ]; then
         echo "Looking up the most recent RunInfo.json file..."
         cd ${log_dir}
         run_info_json=$( find . -name "*.RunInfo.json" -print0 | xargs -r -0 ls -1 -t | head -1)
+        cd -
     fi
 fi
 
@@ -179,7 +182,11 @@ cd ${log_dir}
 # Define variables
 if [[ $start_from_uuid == 'True' ]]; then
     workflow_uuid=${uuid}
-    command="python ${wdl_dir}/tools/create_run_info.py --uuid ${uuid} --project-name ${project_name}"
+    run_info_json="${log_dir}/${project_name}.${workflow_uuid}.RunInfo.json"
+    command="python ${wdl_dir}/tools/create_run_info.py \
+    --uuid ${uuid} \
+    --project-name ${project_name} \
+    --output ${run_info_json}"
     if [ ! -z "$pairs_file" ]; then
         command="${command} \
         --pairs-file ${pairs_file}"
@@ -190,7 +197,6 @@ if [[ $start_from_uuid == 'True' ]]; then
     fi
     echo "Make relevant input json..."
     eval ${command}
-    run_info_json="${project_name}.${workflow_uuid}.RunInfo.json"
 else
     workflow_uuid=$( cat ${run_info_json} | jq .workflow_uuid | sed 's/"//g')
 fi
@@ -263,23 +269,28 @@ else
 fi
 
 # plotting (optional)
+any_jobs_ran=$(grep -c "sample_workflow_run_time_h" ${plot_metrics_file})
 #skip if monitoring_image not in options
 monitored=$( cat ${output_info_file} | jq ".options.monitoring_image")
 if [ ! "$monitored" = "null" ]; then
     echo "Plot usage metrics..."
-    python ${wdl_dir}/tools/plot_runtime.py \
-        --name ${project_name} \
-        --output-info ${output_info_file} \
-        --metrics ${plot_metrics_file} \
-        --non-retry-metrics ${non_retried_metrics_file} \
-        --plot ${plot_file}
-        
-    time bash ${wdl_dir}/tools/html_printer.sh \
-        ${md} \
-        ${html} \
-        ${header} \
-        ${nav} \
-        ${pandoc_dir}
+    if [ ${any_jobs_ran} -eq 1 ] ; then
+        python ${wdl_dir}/tools/plot_runtime.py \
+            --name ${project_name} \
+            --output-info ${output_info_file} \
+            --metrics ${plot_metrics_file} \
+            --non-retry-metrics ${non_retried_metrics_file} \
+            --plot ${plot_file}
+            
+        time bash ${wdl_dir}/tools/html_printer.sh \
+            ${md} \
+            ${html} \
+            ${header} \
+            ${nav} \
+            ${pandoc_dir}
+    else
+        echo "Skipping plot usage metrics because no job accually started on a VM"
+    fi
 else
     echo "Skipping plot usage metrics because no monitoring image was declared in options json"
 fi
