@@ -70,6 +70,8 @@ workflow SomaticDNA {
         Array[String]+ listOfChroms
         IndexedTable callRegions
         Map[String, File] chromBedsWgs
+        Map[String, File] chromBeds
+        File intervalList
         File lancetJsonLog
         File mantaJsonLog
         File strelkaJsonLog
@@ -107,7 +109,6 @@ workflow SomaticDNA {
 
         # mantis
         File mantisBed
-        File intervalListBed
 
         #fastNgsAdmix
         File fastNgsAdmixChroms
@@ -503,7 +504,10 @@ workflow SomaticDNA {
                     bsGenome = bsGenome,
                     ponTarGz = ponTarGz,
                     gridssAdditionalReference = gridssAdditionalReference,
-                    highMem = highMem
+                    highMem = highMem,
+                    library = library,
+                    intervalList = intervalList,
+                    chromBeds = chromBeds
             }
 
             call msi.Msi {
@@ -557,7 +561,8 @@ workflow SomaticDNA {
                         listOfChroms = listOfChroms,
                         intervalListBed = intervalListBed,
                         ponFile = ponWGSFile,
-                        germFile = germFile
+                        germFile = germFile,
+                        library = library
 
                 }
             }
@@ -571,7 +576,8 @@ workflow SomaticDNA {
                         listOfChroms = listOfChroms,
                         intervalListBed = intervalListBed,
                         ponFile = ponExomeFile,
-                        germFile = germFile
+                        germFile = germFile,
+                        library = library
 
                 }
             }
