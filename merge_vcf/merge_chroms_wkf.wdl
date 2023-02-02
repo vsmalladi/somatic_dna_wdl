@@ -6,8 +6,8 @@ import "../wdl_structs.wdl"
 
 workflow MergeChroms {
     input {
-        String tumor
-        String normal
+        String tumorId
+        String normalId
         String pairName
         String sortedVcfPath = "~{pairName}.sorted.merged.v7.vcf"
         String orderedVcfPath = "~{pairName}.merged.v7.vcf"
@@ -26,8 +26,8 @@ workflow MergeChroms {
 
     call calling.ReorderVcfColumns {
         input:
-            tumor = tumor,
-            normal = normal,
+            tumor = tumorId,
+            normal = normalId,
             rawVcf = Gatk4MergeSortVcf.sortedVcf.vcf,
             orderedVcfPath = orderedVcfPath,
             memoryGb = 4,

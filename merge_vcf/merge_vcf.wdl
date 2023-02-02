@@ -4,6 +4,188 @@ import "../wdl_structs.wdl"
 
 # General tasks
 
+task getIntersection {
+    input {
+        String pairName
+        String intersectedVcfPath = "~{pairName}.wgs_in_exonic.vcf"
+        File intervalListBed
+        File wgsVcf
+        Int memoryGb = 16
+        Int diskSize = 20
+    }
+
+    command {
+        bedtools \
+        intersect \
+        -header \
+        -a ~{wgsVcf} \
+        -b ~{intervalListBed} \
+        -F 1 \
+        > ~{intersectedVcfPath}
+    }
+
+    output {
+        File intersectedVcf = "~{intersectedVcfPath}"
+    }
+
+    runtime {
+        mem: memoryGb + "G"
+        disks: "local-disk " + diskSize + " HDD"
+        memory : memoryGb + "GB"
+        docker : "gcr.io/nygc-public/bedtools@sha256:9e737f5c96c00cf3b813d419d7a7b474c4013c9aa9dfe704eb36417570c6474e"
+    }
+}
+
+task RenameExomeWgsMetadata {
+    input {
+        String pairName
+        File callerVcf
+        String renameMetaVcfPath = sub(basename(callerVcf), "$", ".rename_metadata.vcf")
+        String tool
+        Int memoryGb = 16
+        Int diskSize = (ceil( size(callerVcf, "GB") )  * 2 ) + 4
+        # public copy avilable in
+        # https://bitbucket.nygenome.org/projects/WDL/repos/somatic_dna_wdl/browse/tools/rename_center_metadata.py?at=refs%2Fheads%2Fexome_wgs_merge
+        File renameExomeWgsMetadata = "/gpfs/commons/projects/TCGA/gdc-awg/MILD/WGS/scripts/exome/somatic_dna_wdl/tools/rename_exome_wgs_metadata.py"
+    }
+
+    command {
+        python \
+        ~{renameExomeWgsMetadata} \
+        ~{callerVcf} \
+        ~{renameMetaVcfPath} \
+        ~{tool}
+    }
+
+    output {
+        File renameMetaVcf = "~{renameMetaVcfPath}"
+    }
+
+    runtime {
+        mem: memoryGb + "G"
+        disks: "local-disk " + diskSize + " HDD"
+        memory : memoryGb + "GB"
+        docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:1b0d465258d8926d8db1deb7991dc23436fce0d4343eb76c10c307c18de4a89e"
+    }
+}
+
+task MergePrepExomeWgs {
+    input {
+        String pairName
+        File renameMetaVcf
+        String prepCallerVcfPath = sub(basename(renameMetaVcf, ".gz"), ".rename_metadata.vcf$", ".merge_prep.vcf")
+        String tool
+        Int memoryGb = 16
+        Int diskSize = (ceil( size(renameMetaVcf, "GB") )  * 2 ) + 4
+        # public copy avilable in
+        # https://bitbucket.nygenome.org/projects/WDL/repos/somatic_dna_wdl/browse/tools/merge_exome_wgs_prep.py?at=refs%2Fheads%2Fexome_wgs_merge
+        File mergeExomeWgsPrep = "/gpfs/commons/projects/TCGA/gdc-awg/MILD/WGS/scripts/exome/somatic_dna_wdl/tools/merge_exome_wgs_prep.py"
+    }
+
+    command {
+        python \
+        ~{mergeExomeWgsPrep} \
+        --vcf ~{renameMetaVcf} \
+        --out ~{prepCallerVcfPath} \
+        --tool ~{tool}
+    }
+
+    output {
+        File prepCallerVcf = "~{prepCallerVcfPath}"
+    }
+
+    runtime {
+        mem: memoryGb + "G"
+        disks: "local-disk " + diskSize + " HDD"
+        memory : memoryGb + "GB"
+        docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:1b0d465258d8926d8db1deb7991dc23436fce0d4343eb76c10c307c18de4a89e"
+    }
+}
+
+task MergeExomeWgsCallers {
+    input {
+        String chrom
+        String pairName
+        String mergedChromVcfPath = "~{pairName}.merged_supported.v7.~{chrom}.vcf"
+        Array[IndexedVcf] allVcfCompressed
+        Array[File] allVcfCompressedList
+        Int threads = 8
+        Int memoryGb = 16
+        Int diskSize = 20
+    }
+
+    command {
+        bcftools \
+        merge \
+        -r ~{chrom} \
+        --force-samples \
+        --no-version \
+        --threads ~{threads} \
+        -f PASS \
+        -F x \
+        -m none \
+        -o ~{mergedChromVcfPath} \
+        -i called_by:join,num_callers:sum,MNV_ID:join \
+        ~{sep=" " allVcfCompressedList}
+    }
+
+    output {
+        File mergedChromVcf = "~{mergedChromVcfPath}"
+    }
+
+    runtime {
+        mem: memoryGb + "G"
+        cpus: threads
+        cpu : threads
+        disks: "local-disk " + diskSize + " HDD"
+        memory : memoryGb + "GB"
+        docker : "gcr.io/nygc-public/bcftools@sha256:d9b84254b8cc29fcae76b728a5a9a9a0ef0662ee52893d8d82446142876fb400"
+    }
+}
+
+task SnvstomnvsAnnotateExomeWgsCalled {
+    input {
+        String pairName
+        String chrom
+        String finalChromVcfPath = "~{pairName}.mnv.final.v7.filtered.~{chrom}.vcf"
+        File filteredOutFile
+        Int memoryGb = 16
+        Int diskSize = 4
+        
+        File snvsToMnvs = "/gpfs/commons/projects/TCGA/gdc-awg/MILD/WGS/scripts/exome/somatic_dna_wdl/tools/SNVsToMNVs_AnnotateExomeWgsCalled.py"
+        File classes = "/gpfs/commons/projects/TCGA/gdc-awg/MILD/WGS/scripts/exome/somatic_dna_tools/Classes.py"
+    }
+
+    command {
+        set -e -o pipefail
+        
+        cp \
+        ~{snvsToMnvs} \
+        SNVsToMNVs_AnnotateExomeWgsCalled.py
+        
+        cp \
+        ~{classes} \
+        Classes.py
+        
+        python \
+        SNVsToMNVs_AnnotateExomeWgsCalled.py \
+        -i ~{filteredOutFile} \
+        -o ~{finalChromVcfPath} \
+    }
+
+    output {
+        File finalChromVcf = "~{finalChromVcfPath}"
+    }
+
+    runtime {
+        mem: memoryGb + "G"
+        disks: "local-disk " + diskSize + " HDD"
+        memory : memoryGb + "GB"
+        docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:1b0d465258d8926d8db1deb7991dc23436fce0d4343eb76c10c307c18de4a89e"
+    }
+}
+
+
 task CompressVcf {
     input {
         File vcf
@@ -172,8 +354,8 @@ task RenameVcf {
         File prepCallerVcf
         String pairName
         String renameVcfPath = sub(basename(prepCallerVcf, ".gz"), ".merge_prep.vcf$", ".rename.vcf")
-        String normal
-        String tumor
+        String normalId
+        String tumorId
         String tool
         Int memoryGb = 16
         Int diskSize = (ceil( size(prepCallerVcf, "GB") )  * 2 ) + 4
@@ -184,8 +366,8 @@ task RenameVcf {
         /rename_vcf.py \
         ~{prepCallerVcf} \
         ~{renameVcfPath} \
-        ~{normal} \
-        ~{tumor} \
+        ~{normalId} \
+        ~{tumorId} \
         ~{tool}
     }
 
@@ -655,8 +837,8 @@ task MergeColumns {
         String pairName
         String chrom
         String columnChromVcfPath = "~{pairName}.single_column.v7.~{chrom}.vcf"
-        String tumor
-        String normal
+        String tumorId
+        String normalId
         File supportedChromVcf
         Int memoryGb = 16
         Int diskSize = 4
@@ -667,8 +849,8 @@ task MergeColumns {
         /merge_columns.py \
         ~{supportedChromVcf} \
         ~{columnChromVcfPath} \
-        ~{tumor} \
-        ~{normal}
+        ~{tumorId} \
+        ~{normalId}
     }
 
     output {

@@ -136,8 +136,8 @@ workflow MergeVcf {
     
     call mergeChroms.MergeChroms {
         input:
-            tumor=preMergedPairVcfInfo.tumor,
-            normal=preMergedPairVcfInfo.normal,
+            tumorId=preMergedPairVcfInfo.tumor,
+            normalId=preMergedPairVcfInfo.normal,
             pairName=preMergedPairVcfInfo.pairId,
             referenceFa=referenceFa,
             finalChromVcf=MergeCallers.finalChromVcf,

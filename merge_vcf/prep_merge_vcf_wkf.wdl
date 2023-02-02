@@ -40,8 +40,8 @@ workflow PrepMergeVcf {
     call merge_vcf.RenameVcf {
         input:
             pairName = pairName,
-            tumor = tumor,
-            normal = normal,
+            tumorId = tumor,
+            normalId = normal,
             tool = tool,
             prepCallerVcf = select_first([MergePrepSupport.prepCallerVcf, MergePrep.prepCallerVcf])
     }
