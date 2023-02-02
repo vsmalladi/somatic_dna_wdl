@@ -263,7 +263,7 @@ if [ ! -z "$custom_inputs" ]; then
     --custom-inputs ${custom_inputs}"
 fi
 if [ ! -z "$labels_file" ]; then
-    meta_command="${submit_command} \
+    meta_command="${meta_command} \
     --labels ${labels_file}"
 fi
 if [ ! -z "$pairs_file" ]; then

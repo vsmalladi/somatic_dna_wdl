@@ -187,10 +187,13 @@ def populate(args, custom_inputs):
                 alt_project_info = read(alt_project_info_file)
                 project_info = note_custom_updates(key='pairInfos', alt_project_info=alt_project_info, project_info=project_info)
                 project_info = note_custom_updates(key='normalsampleBamInfos', alt_project_info=alt_project_info, project_info=project_info)
+#                 print('0', project_info['normalsampleBamInfos'])
         # update BAM objects in project_info from sample sheet (if pairs file is a sample sheet)
-        if not 'pairInfos' in project_info:
+        if not 'pairInfos' in project_info \
+                    or not 'normalsampleBamInfos' in project_info:
             if 'tumorBam' in full_pairs and 'normalBam' in full_pairs:
                 project_info = fill_in_pair_info(project_info, full_pairs)
+#                 print('1', project_info['normalsampleBamInfos'])
         # update pairing objects in project_info
         pair_ids = list(set([info['pairId'] for info in project_info['listOfPairRelationships']]))
         project_info = note_updates(key='pairIds', new_value=pair_ids, project_info=project_info)
@@ -210,8 +213,9 @@ def populate(args, custom_inputs):
     if custom_inputs:
         for alt_project_info_file in custom_inputs:
                 alt_project_info = read(alt_project_info_file)
-                project_info = note_custom_updates(key='normalsampleInfos', alt_project_info=alt_project_info, project_info=project_info)
+                project_info = note_custom_updates(key='normalSampleBamInfos', alt_project_info=alt_project_info, project_info=project_info)
                 project_info = note_custom_updates(key='sampleInfos', alt_project_info=alt_project_info, project_info=project_info)
+                print('3', project_info['normalsampleBamInfos'])
     return project_info
 
 def load_json(file):
@@ -223,7 +227,7 @@ def write_json(file_out, object):
     with open(file_out, 'w') as input_info_file:
         json.dump(object, input_info_file, indent=4)
 
-def write_labels_json(args, project_info, labels_file,
+def write_labels_json(args, project_info, labels_files,
                  custom_labels_out):
     '''
     'analysis_project' : The name of the analysis project to associate the workflow with. Workflows and samples will be grouped under this project in Tugboat
@@ -235,10 +239,12 @@ def write_labels_json(args, project_info, labels_file,
     workflow_version: The workflow version being run, e.g. 1.0.0
     workflow_release: The release tag of the workflow version, e.g. 20221213. SWENG will create multiple releases of a workflow version if we change an underlying dependency and we typically tag it with the date. This is not required if it's the same as workflow version
     '''
-    if labels_file == None:
-        custom_labels = {}
-    else:
-        custom_labels = load_json(file)
+    custom_labels = {}
+    if labels_files != None:
+        for labels_file in labels_files:
+            custom_labels_dict = load_json(labels_file)
+            for key in custom_labels_dict:
+                custom_labels[key] = custom_labels_dict[key]
     labels = {'analysis_project': project_info['project_name'],
               'category': 'CompBio',
               'customer': 'NYGC',
@@ -256,7 +262,7 @@ def write_labels_json(args, project_info, labels_file,
         ids.append(','.join(project_info['normalIds']))
         labels['sample_analysis_group'] = ','.join(ids)
     for key in custom_labels:
-        labels[key] = custom_lables[key]
+        labels[key] = custom_labels[key]
     write_json(file_out=custom_labels_out, object=labels)
 
 def write_wdl_json(args, project_info, custom_inputs,
@@ -445,7 +451,7 @@ def main():
                        custom_inputs_out=args['custom_inputs_out'],
                        local=args['local'])
         write_labels_json(args, project_info,
-                          labels_file=labels,
+                          labels_files=labels,
                           custom_labels_out=args['custom_labels_out'])
 
 if __name__ == "__main__":
