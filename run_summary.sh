@@ -16,7 +16,7 @@
 #
 #    Jennifer M Shelton (jshelton@nygenome.org)
 #    Nico Robine (nrobine@nygenome.org)
-#    Minita Shah (mshah@nygenome.org)
+#    Minita Shah 
 #    Timothy Chu (tchu@nygenome.org)
 #    Will Hooper (whooper@nygenome.org)
 #    James Roche (jroche@nygenome.org)
@@ -45,7 +45,7 @@ help_long="-h, --help          Show this help message and exit
   --project-name PROJECT_NAME  Project name associated with account.
   --pairs-file PAIRS_FILE
                                Optional, CSV file with items that are required to have
-                               \"tumor\", \"normal\" and \"pairId\" in the columns.
+                               \"tumorId\", \"normalId\" and \"pairId\" in the columns.
                                Optionally, include \"tumorBam\", \"normalBam\" columns to create
                                \"pairInfos\" and \"normalSampleBamInfos\" automatically.
   --samples-file [SAMPLES_FILE]
@@ -198,7 +198,7 @@ if [[ $start_from_uuid == 'True' ]]; then
     echo "Make relevant input json..."
     eval ${command}
 else
-    workflow_uuid=$( cat ${run_info_json} | jq .workflow_uuid | sed 's/"//g')
+    workflow_uuid=$( cat ${run_info_json} | jq .workflow_uuid | sed 's|\\||g' | sed 's|"||g')
 fi
 
 output_info_file="${log_dir}/${project_name}.${workflow_uuid}_outputInfo.json"

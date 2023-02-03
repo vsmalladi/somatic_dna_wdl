@@ -554,6 +554,7 @@ workflow SomaticBamWorkflow {
             call mergeVcf.MergeVcf as exomeMergeVcf {
                 input:
                     external = external,
+                    library = library,
                     preMergedPairVcfInfo = preMergedPairVcfInfo,
                     referenceFa = referenceFa,
                     listOfChroms = listOfChroms,

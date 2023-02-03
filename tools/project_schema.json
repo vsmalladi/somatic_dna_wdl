@@ -1,22 +1,26 @@
 {
     "$schema": "http://json-schema.org/draft/2019-09/schema#",
-
+    
     "type": "object",
-
+    
     "definitions": {
-        "fastqPair": {
+        "Fastqs": {
             "type": "object",
             "properties": {
                 "fastqR1": { "type": "string" },
+                "md5sumR1": { "type": "string" },
                 "fastqR2": { "type": "string" },
+                "md5sumR2": { "type": "string" },
                 "readGroupId": { "type": "string" },
-                "readGroupPlatformUnit": {"type": "string"},
-                "clientSampleId": {"type": "string"},
-		"limsLibraryName": {"type": "string"}
+                "clientSampleId": { "type": "string" },
+                "limsLibraryName": { "type": "string" },
+                "readGroupPlatformUnit": { "type": "string" }
             },
-            "required": ["fastqR1", "fastqR2", "readGroupId", "readGroupPlatformUnit", "clientSampleId"]
+            "required": ["fastqR1", "fastqR2", "readGroupId",
+                "clientSampleId",
+                "readGroupPlatformUnit"]
         },
-        "bam" : {
+        "Bam" : {
             "type": "object",
             "properties": {
                 "bam": { "type": "string" },
@@ -24,30 +28,31 @@
             },
             "required": ["bam"]
         },
-        "sampleInfo": {
+        "SampleInfo": {
             "type": "object",
             "properties": {
                 "sampleAnalysisId" : { "type": "string" },
                 "expectedCoverage": { "type": "number" },
                 "listOfFastqPairs" : { "type": "array",
-                    "items": { "$ref": "#/definitions/fastqPair" }
-                }
+                    "items": { "$ref": "#/definitions/Fastqs" }
+                },
+                "skipCoverageCheck": { "type": "boolean" }
             },
-            "required": ["sampleAnalysisId"]
+            "required": ["sampleAnalysisId", "expectedCoverage", "listOfFastqPairs" ]
         },
-        "pairInfo": {
+        "PairInfo": {
             "type": "object",
             "properties": {
                 "pairId": {"type" : "string" },
-                "tumorFinalBam": {"$ref": "#/definitions/bam"},
-                "normalFinalBam": {"$ref": "#/definitions/bam"},
+                "tumorFinalBam": {"$ref": "#/definitions/Bam"},
+                "normalFinalBam": {"$ref": "#/definitions/Bam"},
                 "tumorId": {"type" : "string" },
                 "normalId": {"type" : "string" }
             },
-            "required": ["pairId", "tumorId", "normalId"]
+            "required": ["pairId", "tumorId", "normalId", "tumorFinalBam", "normalFinalBam"]
         }
     },
-
+    
     "properties": {
         "pairIds" : {"type": "array",
             "items": {"type": "string"}},
@@ -63,16 +68,16 @@
         "branch": { "type": "string"},
         "project": { "type": "string"},
         "pairInfos": { "type": "array",
-            "items": { "$ref": "#/definitions/pairInfo" }
-
+            "items": { "$ref": "#/definitions/PairInfo" }
+            
         },
         "sampleInfos": { "type": "array",
-            "items": { "$ref": "#/definitions/sampleInfo" }
-
+            "items": { "$ref": "#/definitions/SampleInfo" }
+            
         },
         "normalSampleInfos": { "type": "array",
-            "items": { "$ref": "#/definitions/sampleInfo" }
-
+            "items": { "$ref": "#/definitions/SampleInfo" }
+            
         },
         "library": { "type": "string",
             "enum": ["WGS", "Exome"]
@@ -83,6 +88,6 @@
         },
         "intervalList": { "type": "string"}
     },
-
+    
     "required": []
 }
