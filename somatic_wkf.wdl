@@ -68,10 +68,12 @@ workflow SomaticDNA {
         # calling
         Array[String]+ listOfChromsFull
         Array[String]+ listOfChroms
+        Array[String]+ callerIntervals
         IndexedTable callRegions
         Map[String, File] chromBedsWgs
         Map[String, File] chromBeds
-        File intervalList
+        File intervalListBed
+        File invertedIntervalListBed
         File lancetJsonLog
         File mantaJsonLog
         File strelkaJsonLog
@@ -92,9 +94,6 @@ workflow SomaticDNA {
         String bsGenome
         File ponTarGz
         Array[File] gridssAdditionalReference
-
-        # merge callers
-        File intervalListBed
 
         String library
         File ponWGSFile
@@ -506,7 +505,9 @@ workflow SomaticDNA {
                     gridssAdditionalReference = gridssAdditionalReference,
                     highMem = highMem,
                     library = library,
-                    intervalList = intervalList,
+                    intervalListBed = intervalListBed,
+                    callerIntervals = callerIntervals,
+                    invertedIntervalListBed = invertedIntervalListBed,
                     chromBeds = chromBeds
             }
 

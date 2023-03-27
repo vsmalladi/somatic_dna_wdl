@@ -26,58 +26,6 @@ task GetInsertSize {
     }
 }
 
-task Gatk4MergeSortCompressVcf {
-    input {
-        Int diskSize = 10
-        Int memoryGb = 8
-        String sortedVcfPath
-        Array[File] tempChromVcfs
-        IndexedReference referenceFa
-    }
-
-    Int jvmHeap = memoryGb * 750  # Heap size in Megabytes. mem is in GB. (75% of mem)
-
-    command {
-        gatk \
-        SortVcf \
-        --java-options "-Xmx~{jvmHeap}m -XX:ParallelGCThreads=4" \
-        -SD ~{referenceFa.dict} \
-        -I ~{sep=" -I " tempChromVcfs} \
-        -O ~{sortedVcfPath}
-    }
-
-    output {
-        IndexedVcf sortedIndexedVcf = object {
-                vcf : "~{sortedVcfPath}",
-                index : "~{sortedVcfPath}.tbi"
-            }
-    }
-
-    parameter_meta {
-        sortedVcfPath: {
-            description: "Output VCF filename for file in compressed format. Must end in .gz. Corresponding index file will end in .tbi",
-            category: "other"
-        }
-
-        tempChromVcfs: {
-            description: "Input VCF filenames",
-            category: "required"
-        }
-
-        referenceFa: {
-            description: "Fasta object (the dictionary will be used to order the final VCF)",
-            category: "required"
-        }
-    }
-
-    runtime {
-        mem: memoryGb + "G"
-        disks: "local-disk " + diskSize + " HDD"
-        memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/broadinstitute/gatk4@sha256:b3bde7bc74ab00ddce342bd511a9797007aaf3d22b9cfd7b52f416c893c3774c"
-    }
-}
-
 task Gatk4MergeSortVcf {
     input {
         Int diskSize = 10
@@ -527,7 +475,7 @@ task SelectVariants {
         String pairName
         String outVcfPath = "~{pairName}.selected.vcf"
         IndexedReference referenceFa
-        File intervalList
+        File intervalListBed
         File vcf
         Int padding = 200
     }
@@ -540,7 +488,7 @@ task SelectVariants {
         -R ~{referenceFa.fasta} \
         -V ~{vcf} \
         -O ~{outVcfPath} \
-        --intervals ~{intervalList} \
+        --intervals ~{intervalListBed} \
         --interval-padding ~{padding}
     }
 
@@ -686,7 +634,27 @@ task Mutect2Wgs {
         mem: memoryGb + "G"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/broadinstitute/gatk4@sha256:b3bde7bc74ab00ddce342bd511a9797007aaf3d22b9cfd7b52f416c893c3774c"
-        disks: "local-disk " + diskSize + " LOCAL"
+        disks: "local-disk " + diskSize + " HDD"
+    }
+    
+    parameter_meta {
+        tumorFinalBam: {
+            description: "Input tumor BAM",
+            category: "required",
+            localization_optional: true
+        }
+        
+        normalFinalBam: {
+            description: "Input normal BAM",
+            category: "required",
+            localization_optional: true
+        }
+        
+        referenceFa: {
+            description: "Fasta object (the dictionary will be used to order the final VCF)",
+            category: "required",
+            localization_optional: true
+        }
     }
 }
 
@@ -704,7 +672,7 @@ task Mutect2Exome {
         Bam normalFinalBam
         Bam tumorFinalBam
         Int padding = 200
-        File chromBed
+        File invertedIntervalListBed
     }
 
     Int jvmHeap = memoryGb * 750  # Heap size in Megabytes. mem is in GB. (75% of mem)
@@ -714,8 +682,9 @@ task Mutect2Exome {
         Mutect2 \
         --java-options "-Xmx~{jvmHeap}m -XX:ParallelGCThreads=4" \
         --reference ~{referenceFa.fasta} \
-        --intervals ~{chromBed} \
+        --intervals ~{chrom} \
         --interval-padding ~{padding} \
+        --exclude-intervals ~{invertedIntervalListBed} \
         -I ~{tumorFinalBam.bam} \
         -I ~{normalFinalBam.bam} \
         -tumor ~{tumor} \
@@ -732,7 +701,27 @@ task Mutect2Exome {
         mem: memoryGb + "G"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/broadinstitute/gatk4@sha256:b3bde7bc74ab00ddce342bd511a9797007aaf3d22b9cfd7b52f416c893c3774c"
-        disks: "local-disk " + diskSize + " LOCAL"
+        disks: "local-disk " + diskSize + " HDD"
+    }
+    
+    parameter_meta {
+        tumorFinalBam: {
+            description: "Input tumor BAM",
+            category: "required",
+            localization_optional: true
+        }
+        
+        normalFinalBam: {
+            description: "Input normal BAM",
+            category: "required",
+            localization_optional: true
+        }
+        
+        referenceFa: {
+            description: "Fasta object (the dictionary will be used to order the final VCF)",
+            category: "required",
+            localization_optional: true
+        }
     }
 }
 
@@ -771,6 +760,74 @@ task Mutect2WgsPon {
         docker : "gcr.io/nygc-public/broadinstitute/gatk4@sha256:b3bde7bc74ab00ddce342bd511a9797007aaf3d22b9cfd7b52f416c893c3774c"
         disks: "local-disk " + diskSize + " HDD"
     }
+    
+    parameter_meta {
+        tumorFinalBam: {
+            description: "Input tumor BAM",
+            category: "required",
+            localization_optional: true
+        }
+        
+        referenceFa: {
+            description: "Fasta object (the dictionary will be used to order the final VCF)",
+            category: "required",
+            localization_optional: true
+        }
+    }
+}
+
+task Mutect2ExomePon {
+    input {
+        Int memoryGb = 4
+        Int diskSize
+        String chrom
+        String tumor
+        String mutect2ChromRawStatsPath = "~{tumor}_~{chrom}.mutect2.raw.vcf.stats"
+        String mutect2ChromRawVcfPath = "~{tumor}_~{chrom}.mutect2.raw.vcf"
+        IndexedReference referenceFa
+        Bam tumorFinalBam
+        File invertedIntervalListBed
+        Int padding = 200
+    }
+
+    command {
+        gatk \
+        Mutect2 \
+        --java-options "-XX:ParallelGCThreads=4" \
+        --reference ~{referenceFa.fasta} \
+        --intervals ~{chrom} \
+        --interval-padding ~{padding} \
+        --exclude-intervals ~{invertedIntervalListBed} \
+        -I ~{tumorFinalBam.bam} \
+        -tumor ~{tumor} \
+        -O ~{mutect2ChromRawVcfPath}
+    }
+
+    output {
+        File mutect2ChromRawVcf = "~{mutect2ChromRawVcfPath}"
+        File mutect2ChromRawStats = "~{mutect2ChromRawStatsPath}"
+    }
+
+    runtime {
+        mem: memoryGb + "G"
+        memory : memoryGb + "GB"
+        docker : "gcr.io/nygc-public/broadinstitute/gatk4@sha256:b3bde7bc74ab00ddce342bd511a9797007aaf3d22b9cfd7b52f416c893c3774c"
+        disks: "local-disk " + diskSize + " HDD"
+    }
+    
+    parameter_meta {
+        tumorFinalBam: {
+            description: "Input tumor BAM",
+            category: "required",
+            localization_optional: true
+        }
+        
+        referenceFa: {
+            description: "Fasta object (the dictionary will be used to order the final VCF)",
+            category: "required",
+            localization_optional: true
+        }
+    }
 }
 
 task Mutect2Filter {
@@ -805,6 +862,15 @@ task Mutect2Filter {
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/broadinstitute/gatk4@sha256:b3bde7bc74ab00ddce342bd511a9797007aaf3d22b9cfd7b52f416c893c3774c"
         disks: "local-disk " + diskSize + " HDD"
+    }
+    
+    parameter_meta {
+
+        referenceFa: {
+            description: "Fasta object (the dictionary will be used to order the final VCF)",
+            category: "required",
+            localization_optional: false
+        }
     }
 }
 

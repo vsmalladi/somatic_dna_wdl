@@ -3,10 +3,12 @@ version 1.0
 import "calling/calling.wdl" as callingTasks
 import "calling/mutect2_pon_wkf.wdl" as mutect2Pon
 import "calling/manta_pon_wkf.wdl" as mantaPon
-import "merge_vcf/merge_vcf_pon_wkf.wdl" as MergeVcfPon
+import "merge_vcf/merge_vcf_pon_wkf.wdl" as MergerVcfPonWgs
+import "merge_vcf/merge_vcf_exome_pon_wkf.wdl" as MergerVcfPonExome
 import "annotate/annotate.wdl" as annotate
 import "annotate/variantEffectPredictor.wdl" as variantEffectPredictor
 import "merge_vcf/merge_vcf.wdl" as mergeVcf
+
 
 # ================== COPYRIGHT ================================================
 # New York Genome Center
@@ -33,6 +35,7 @@ workflow CallingPon {
     #   annotate
     input {
         Boolean production = true
+        String library
         Array[SampleBamInfo]+ tumorInfos
         # strelka2
         File strelkaJsonLog
@@ -40,6 +43,8 @@ workflow CallingPon {
         #   mutect2
         File mutectJsonLog
         Array[String]+ listOfChroms
+        Array[String]+ callerIntervals
+        File invertedIntervalListBed
         IndexedReference referenceFa
         #   Manta
         IndexedTable callRegions
@@ -89,38 +94,58 @@ workflow CallingPon {
                 mutectJsonLog = mutectJsonLog,
                 mutectJsonLogFilter = mutectJsonLogFilter,
                 tumor = tumorInfo.sampleId,
-                listOfChroms = listOfChroms,
+                callerIntervals = callerIntervals,
                 referenceFa = referenceFa,
                 tumorFinalBam = tumorInfo.finalBam,
-                highMem = highMem
+                highMem = highMem,
+                invertedIntervalListBed = invertedIntervalListBed,
+                library = library
         }
         
-        call mantaPon.MantaPon {
-            input:
-                mantaJsonLog = mantaJsonLog,
-                tumor = tumorInfo.sampleId,
-                callRegions = callRegions,
-                referenceFa = referenceFa,
-                tumorFinalBam = tumorInfo.finalBam,
-                highMem = highMem
+        if (library == 'WGS') {
+            call mantaPon.MantaPon {
+                input:
+                    mantaJsonLog = mantaJsonLog,
+                    tumor = tumorInfo.sampleId,
+                    callRegions = callRegions,
+                    referenceFa = referenceFa,
+                    tumorFinalBam = tumorInfo.finalBam,
+                    highMem = highMem
+            }
+            
+            call MergerVcfPonWgs.MergeVcfPonWgs {
+                        input:
+                            tumor = tumorInfo.sampleId,
+                            filteredMantaSV = MantaPon.filteredMantaSV,
+                            mutect2 = Mutect2Pon.mutect2,
+                            
+                            referenceFa = referenceFa,
+                            listOfChroms = listOfChroms,
+                            
+                            renameVcfPon = renameVcfPon,
+                            mergeColumnsPon = mergeColumnsPon
+            }
         }
         
-        call MergeVcfPon.MergeVcfPon as wgsMergeVcfPon {
-                    input:
-                        tumor = tumorInfo.sampleId,
-                        filteredMantaSV = MantaPon.filteredMantaSV,
-                        mutect2 = Mutect2Pon.mutect2,
-                        
-                        referenceFa = referenceFa,
-                        listOfChroms = listOfChroms,
-                        
-                        renameVcfPon = renameVcfPon,
-                        mergeColumnsPon = mergeColumnsPon
+        if (library == 'Exome') {
+            call MergerVcfPonExome.MergeVcfPonExome {
+                        input:
+                            tumor = tumorInfo.sampleId,
+                            mutect2 = Mutect2Pon.mutect2,
+                            
+                            referenceFa = referenceFa,
+                            listOfChroms = listOfChroms,
+                            
+                            renameVcfPon = renameVcfPon,
+                            mergeColumnsPon = mergeColumnsPon
+            }
         }
+        
+        File mergedVcf = select_first([MergeVcfPonWgs.mergedVcf, MergeVcfPonExome.mergedVcf])
         
         call mergeVcf.CompressVcf as unannotatedCompressVcf {
             input:
-                vcf = wgsMergeVcfPon.mergedVcf
+                vcf = mergedVcf
         }
     
         call mergeVcf.IndexVcf as unannotatedIndexVcf {
@@ -195,7 +220,7 @@ workflow CallingPon {
         # Mutect2
         Array[File] mutect2 = Mutect2Pon.mutect2
         # Manta 
-        Array[File] filteredMantaSV = MantaPon.filteredMantaSV
+        Array[File?] filteredMantaSV = MantaPon.filteredMantaSV
 
     }
 }

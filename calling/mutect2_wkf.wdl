@@ -11,14 +11,14 @@ workflow Mutect2 {
         String library
         String tumor
         String normal
-        Array[String]+ listOfChroms
+        Array[String]+ callerIntervals
         String pairName
         IndexedReference referenceFa
         Bam normalFinalBam
         # Exome
-        Map[String, File] chromBeds
+        File invertedIntervalListBed
         Bam tumorFinalBam
-        Int diskSize = ceil( size(tumorFinalBam.bam, "GB") + size(normalFinalBam.bam, "GB")) + 20
+        Int diskSize = 10
         File mutectJsonLog
         File mutectJsonLogFilter
         
@@ -28,12 +28,12 @@ workflow Mutect2 {
     
     Int lowCallMemoryGb = 20
     Int lowFilterMemoryGb = 20
-    Int lowFilterDiskSize = 5
+    Int lowFilterDiskSize = 10
     
     if (highMem) {
         Int highCallMemoryGb = 40
         Int highFilterMemoryGb = 20
-        Int highFilterDiskSize = 10
+        Int highFilterDiskSize = 20
     }
     
     if (local) {
@@ -43,11 +43,11 @@ workflow Mutect2 {
     Int filterMemoryGb = select_first([highFilterMemoryGb, lowFilterMemoryGb])
     Int filterDiskSize = select_first([highFilterDiskSize, lowFilterDiskSize])
 
-    scatter(chrom in listOfChroms) {
+    scatter(callerInterval in callerIntervals) {
         if (library == 'WGS') {
             call calling.Mutect2Wgs {
                 input:
-                    chrom = chrom,
+                    chrom = callerInterval,
                     tumor = tumor,
                     normal = normal,
                     pairName = pairName,
@@ -62,14 +62,14 @@ workflow Mutect2 {
         if (library == 'Exome') {
             call calling.Mutect2Exome {
                 input:
-                    chrom = chrom,
+                    chrom = callerInterval,
                     tumor = tumor,
                     normal = normal,
                     pairName = pairName,
                     referenceFa = referenceFa,
                     normalFinalBam = normalFinalBam,
                     tumorFinalBam = tumorFinalBam,
-                    chromBed = chromBeds[chrom],
+                    invertedIntervalListBed = invertedIntervalListBed,
                     memoryGb = callMemoryGb,
                     diskSize = diskSize
             }
@@ -81,7 +81,7 @@ workflow Mutect2 {
 
         call calling.Mutect2Filter {
             input:
-                chrom = chrom,
+                chrom = callerInterval,
                 pairName = pairName,
                 referenceFa = referenceFa,
                 mutect2ChromRawVcf = mutect2ChromRawVcfInput,

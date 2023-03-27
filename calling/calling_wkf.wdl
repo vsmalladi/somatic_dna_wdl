@@ -42,12 +42,14 @@ workflow Calling {
         #   mutect2
         Array[String]+ listOfChroms
         Array[String]+ listOfChromsFull
-        Map[String, File] chromBeds
+        Array[String]+ callerIntervals
+        File invertedIntervalListBed
         IndexedReference referenceFa
         #   Manta
         IndexedTable callRegions
         #   Lancet
         Map[String, File] chromBedsWgs
+        Map[String, File] chromBeds
         #   BicSeq2
         Int readLength
         Int coordReadLength
@@ -65,7 +67,7 @@ workflow Calling {
         Array[File] gridssAdditionalReference
         # Strelka2
         File configureStrelkaSomaticWorkflow
-        File intervalList
+        File intervalListBed
 
         File lancetJsonLog
         File mantaJsonLog
@@ -81,12 +83,12 @@ workflow Calling {
         input:
             local = local,
             library = library,
-            chromBeds = chromBeds,
+            invertedIntervalListBed = invertedIntervalListBed,
+            callerIntervals = callerIntervals,
             mutectJsonLogFilter = mutectJsonLogFilter,
             mutectJsonLog = mutectJsonLog,
             tumor = pairInfo.tumorId,
             normal = pairInfo.normalId,
-            listOfChroms = listOfChroms,
             pairName = pairInfo.pairId,
             referenceFa = referenceFa,
             normalFinalBam = pairInfo.normalFinalBam,
@@ -116,7 +118,7 @@ workflow Calling {
                 tumor = pairInfo.tumorId,
                 normal = pairInfo.normalId,
                 callRegions = callRegions,
-                intervalList = intervalList,
+                intervalListBed = intervalListBed,
                 candidateSmallIndels = Manta.candidateSmallIndels,
                 referenceFa = referenceFa,
                 pairName = pairInfo.pairId,
@@ -149,7 +151,7 @@ workflow Calling {
                 tumor = pairInfo.tumorId,
                 normal = pairInfo.normalId,
                 callRegions = callRegions,
-                intervalList = intervalList,
+                intervalListBed = intervalListBed,
                 candidateSmallIndels = nonMantaCandidateSmallIndels,
                 referenceFa = referenceFa,
                 pairName = pairInfo.pairId,

@@ -5,12 +5,17 @@
             "intervalList" : {
                 "type" : "File",
                 "description" : "",
-                "object" : "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/SureSelect_V6plusCOSMIC.target.GRCh38_full_analysis_set_plus_decoy_hla.interval_list"
+                "object" : "gs://nygc-comp-s-fd4e-input/somatic/SureSelect_V6plusCOSMIC.target.GRCh38_full_analysis_set_plus_decoy_hla.canonical.interval_list"
             },
             "intervalListBed" : {
                 "type" : "File",
                 "description" : "Interval list in BED format",
-                "object" : "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/SureSelect_V6plusCOSMIC.target.GRCh38_full_analysis_set_plus_decoy_hla.interval_list.bed"
+                "object" : "gs://nygc-comp-s-fd4e-input/somatic/SureSelect_V6plusCOSMIC.target.GRCh38_full_analysis_set_plus_decoy_hla.canonical.interval_list.bed"
+            },
+            "invertedIntervalListBed" : {
+                "type" : "File",
+                "description" : "Inverted interval list in BED format gs://nygc-comp-s-fd4e-input/somatic/SureSelect_V6plusCOSMIC.target.GRCh38_full_analysis_set_plus_decoy_hla.interval_list.inverted.bed.README.md",
+                "object" : "gs://nygc-comp-s-fd4e-input/somatic/SureSelect_V6plusCOSMIC.target.GRCh38_full_analysis_set_plus_decoy_hla.interval_list.inverted.bed"
             },
             "excavator2Bed" : {
                 "type" : "File",
@@ -60,12 +65,17 @@
             "intervalList" : {
                 "type" : "File",
                 "description" : "",
-                "object" : "gs://nygc-comp-s-82ed-resources/GRCh38_full_analysis_set_plus_decoy_hla/internal/SureSelect_V6plusCOSMIC.target.GRCh38_full_analysis_set_plus_decoy_hla.interval_list"
+                "object" : "gs://nygc-comp-s-fd4e-input/somatic/SureSelect_V6plusCOSMIC.target.GRCh38_full_analysis_set_plus_decoy_hla.canonical.interval_list"
             },
             "intervalListBed" : {
                 "type" : "File",
                 "description" : "Interval list in BED format",
-                "object" : "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/SureSelect_V6plusCOSMIC.target.GRCh38_full_analysis_set_plus_decoy_hla.interval_list.bed"
+                "object" : "gs://nygc-comp-s-fd4e-input/somatic/SureSelect_V6plusCOSMIC.target.GRCh38_full_analysis_set_plus_decoy_hla.canonical.interval_list.bed"
+            },
+            "invertedIntervalListBed" : {
+                "type" : "File",
+                "description" : "Inverted interval list in BED format gs://nygc-comp-s-fd4e-input/somatic/SureSelect_V6plusCOSMIC.target.GRCh38_full_analysis_set_plus_decoy_hla.interval_list.inverted.bed.README.md",
+                "object" : "gs://nygc-comp-s-fd4e-input/somatic/SureSelect_V6plusCOSMIC.target.GRCh38_full_analysis_set_plus_decoy_hla.interval_list.inverted.bed"
             },
             "excavator2Bed" : {
                 "type" : "File",

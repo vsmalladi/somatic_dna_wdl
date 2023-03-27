@@ -14,7 +14,7 @@ workflow Strelka2 {
         IndexedReference referenceFa
         # candidateSmallIndels may need to be a dummy file (if you want to require it for the task)
         IndexedVcf candidateSmallIndels
-        File intervalList
+        File intervalListBed
         Bam normalFinalBam
         IndexedTable callRegions
         Bam tumorFinalBam
@@ -66,7 +66,7 @@ workflow Strelka2 {
                 referenceFa = referenceFa,
                 pairName = pairName,
                 vcf =  Strelka2Exome.strelka2Indels.vcf,
-                intervalList = intervalList,
+                intervalListBed = intervalListBed,
                 memoryGb = memoryGb,
                 diskSize = diskSize,
                 threads = threads
@@ -77,7 +77,7 @@ workflow Strelka2 {
                 referenceFa = referenceFa,
                 pairName = pairName,
                 vcf =  Strelka2Exome.strelka2Snvs.vcf,
-                intervalList = intervalList,
+                intervalListBed = intervalListBed,
                 memoryGb = memoryGb,
                 diskSize = diskSize,
                 threads = threads

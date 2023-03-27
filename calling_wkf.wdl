@@ -37,11 +37,11 @@ workflow Calling {
         # strelka2
         File strelkaJsonLog
         File configureStrelkaSomaticWorkflow
-        File intervalList
+        File intervalListBed
         #   mutect2
         File mutectJsonLog
         Array[String]+ listOfChroms
-        Map[String, File] chromBeds
+        Array[String]+ callerIntervals
         IndexedReference referenceFa
         #   Manta
         IndexedTable callRegions
@@ -55,6 +55,7 @@ workflow Calling {
         Array[String]+ listOfChromsFull
         Int readLength
         Int coordReadLength
+        Map[String, File] chromBeds
         Map[Int, Map[String, File]] uniqCoords
         File bicseq2ConfigFile
         File bicseq2SegConfigFile
@@ -117,10 +118,11 @@ workflow Calling {
                 pairInfo = callingPairInfo,
                 listOfChroms = listOfChroms,
                 listOfChromsFull = listOfChromsFull,
+                callerIntervals = callerIntervals,
                 chromBeds = chromBeds,
                 referenceFa = referenceFa,
                 callRegions = callRegions,
-                intervalList = intervalList,
+                intervalListBed = intervalListBed,
                 bwaReference = bwaReference,
                 chromBedsWgs = chromBedsWgs,
                 highMem = highMem,

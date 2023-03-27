@@ -6,7 +6,7 @@ import "merge_vcf.wdl" as merge_vcf
 import "../wdl_structs.wdl"
 
 
-workflow MergeVcfPon {
+workflow MergeVcfPonWgs {
     # command
     #   Call variants in BAMs
     #   merge and filter raw VCFs

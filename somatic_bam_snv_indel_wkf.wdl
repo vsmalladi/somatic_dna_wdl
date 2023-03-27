@@ -49,6 +49,8 @@ workflow SomaticBamWorkflow {
         # calling
         Array[String]+ listOfChromsFull
         Array[String]+ listOfChroms
+        Array[String]+ callerIntervals
+        File invertedIntervalListBed
         IndexedTable callRegions
         Map[String, File] chromBedsWgs
         Map[String, File] chromBeds
@@ -58,10 +60,6 @@ workflow SomaticBamWorkflow {
         File mutectJsonLog
         File mutectJsonLogFilter
         File configureStrelkaSomaticWorkflow
-        File intervalList
-
-
-        # merge callers
         File intervalListBed
 
         String library
@@ -177,7 +175,9 @@ workflow SomaticBamWorkflow {
                 mutectJsonLogFilter = mutectJsonLogFilter,
                 strelkaJsonLog = strelkaJsonLog,
                 configureStrelkaSomaticWorkflow = configureStrelkaSomaticWorkflow,
-                intervalList = intervalList,
+                intervalListBed = intervalListBed,
+                callerIntervals = callerIntervals,
+                invertedIntervalListBed = invertedIntervalListBed,
                 pairInfo = callingPairInfo,
                 listOfChroms = listOfChroms,
                 listOfChromsFull = listOfChromsFull,

@@ -20,13 +20,16 @@ workflow Calling {
         #   mutect2
         Array[String]+ listOfChroms
         Array[String]+ listOfChromsFull
-        Map[String, File] chromBeds
+        Array[String]+ callerIntervals
+        File intervalListBed
+        File invertedIntervalListBed
         IndexedReference referenceFa
         #   Manta
         IndexedTable callRegions
         BwaReference bwaReference
         #   Lancet
         Map[String, File] chromBedsWgs
+        Map[String, File] chromBeds
 
         File lancetJsonLog
         File mantaJsonLog
@@ -34,7 +37,6 @@ workflow Calling {
         File mutectJsonLog
         File mutectJsonLogFilter
         File configureStrelkaSomaticWorkflow
-        File intervalList
 
         Boolean highMem = false
     }
@@ -42,18 +44,17 @@ workflow Calling {
         input:
             local = local,
             library = library,
-            chromBeds = chromBeds,
+            invertedIntervalListBed = invertedIntervalListBed,
+            callerIntervals = callerIntervals,
             mutectJsonLogFilter = mutectJsonLogFilter,
             mutectJsonLog = mutectJsonLog,
             tumor = pairInfo.tumorId,
             normal = pairInfo.normalId,
-            listOfChroms = listOfChroms,
             pairName = pairInfo.pairId,
             referenceFa = referenceFa,
             normalFinalBam = pairInfo.normalFinalBam,
             tumorFinalBam = pairInfo.tumorFinalBam,
-            highMem = highMem,
-            chromBeds = chromBeds
+            highMem = highMem
     }
 
     if (library == 'WGS') {
@@ -78,7 +79,7 @@ workflow Calling {
                 tumor = pairInfo.tumorId,
                 normal = pairInfo.normalId,
                 callRegions = callRegions,
-                intervalList = intervalList,
+                intervalListBed = intervalListBed,
                 candidateSmallIndels = Manta.candidateSmallIndels,
                 referenceFa = referenceFa,
                 pairName = pairInfo.pairId,
@@ -111,7 +112,7 @@ workflow Calling {
                 tumor = pairInfo.tumorId,
                 normal = pairInfo.normalId,
                 callRegions = callRegions,
-                intervalList = intervalList,
+                intervalListBed = intervalListBed,
                 candidateSmallIndels = nonMantaCandidateSmallIndels,
                 referenceFa = referenceFa,
                 pairName = pairInfo.pairId,
