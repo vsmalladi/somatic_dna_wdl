@@ -1269,7 +1269,7 @@ task GridssPreprocess {
         disks: "local-disk " + diskSize + " LOCAL"
         cpu : threads
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/gridss@sha256:bf4a0367accd33911a5658491e42e5ee52440cd196ea96e538511e88a71dee1f"
+        docker : "gcr.io/nygc-public/gridss@sha256:881fc36138ef58103526dc05643bfb7ca5a6a4de346f04a19e02231a89d24dc6"
     }
 }
 
@@ -1346,7 +1346,7 @@ task GridssAssembleChunk {
         disks: "local-disk " + diskSize + " LOCAL"
         cpu : threads
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/gridss@sha256:bf4a0367accd33911a5658491e42e5ee52440cd196ea96e538511e88a71dee1f"
+        docker : "gcr.io/nygc-public/gridss@sha256:881fc36138ef58103526dc05643bfb7ca5a6a4de346f04a19e02231a89d24dc6"
     }
 }
 
@@ -1431,7 +1431,7 @@ task GridssAssemble {
         disks: "local-disk " + diskSize + " LOCAL"
         cpu : threads
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/gridss@sha256:bf4a0367accd33911a5658491e42e5ee52440cd196ea96e538511e88a71dee1f"
+        docker : "gcr.io/nygc-public/gridss@sha256:881fc36138ef58103526dc05643bfb7ca5a6a4de346f04a19e02231a89d24dc6"
     }
 }
 
@@ -1526,7 +1526,7 @@ task GridssCalling {
         disks: "local-disk " + diskSize + " LOCAL"
         cpu : threads
         memory : memoryGb + "GB"
-        docker: "gcr.io/nygc-public/gridss@sha256:bf4a0367accd33911a5658491e42e5ee52440cd196ea96e538511e88a71dee1f"
+        docker: "gcr.io/nygc-public/gridss@sha256:881fc36138ef58103526dc05643bfb7ca5a6a4de346f04a19e02231a89d24dc6"
     }
 }
 
@@ -1604,6 +1604,6 @@ task GridssFilter {
         disks: "local-disk " + diskSize + " HDD"
         cpu : threads
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/gridss@sha256:bf4a0367accd33911a5658491e42e5ee52440cd196ea96e538511e88a71dee1f"
+        docker : "gcr.io/nygc-public/gridss@sha256:881fc36138ef58103526dc05643bfb7ca5a6a4de346f04a19e02231a89d24dc6"
     }
 }
