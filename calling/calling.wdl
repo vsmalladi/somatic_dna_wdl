@@ -1332,7 +1332,7 @@ task GridssPreprocess {
     runtime {
         mem: memoryGb + "G"
         cpus: threads
-        disks: "local-disk " + diskSize + " LOCAL"
+        disks: "local-disk " + diskSize + " HDD"
         cpu : threads
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/gridss@sha256:881fc36138ef58103526dc05643bfb7ca5a6a4de346f04a19e02231a89d24dc6"
@@ -1409,7 +1409,7 @@ task GridssAssembleChunk {
     runtime {
         mem: memoryGb + "G"
         cpus: threads
-        disks: "local-disk " + diskSize + " LOCAL"
+        disks: "local-disk " + diskSize + " HDD"
         cpu : threads
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/gridss@sha256:881fc36138ef58103526dc05643bfb7ca5a6a4de346f04a19e02231a89d24dc6"
@@ -1494,7 +1494,7 @@ task GridssAssemble {
     runtime {
         mem: memoryGb + "G"
         cpus: threads
-        disks: "local-disk " + diskSize + " LOCAL"
+        disks: "local-disk " + diskSize + " HDD"
         cpu : threads
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/gridss@sha256:881fc36138ef58103526dc05643bfb7ca5a6a4de346f04a19e02231a89d24dc6"
@@ -1589,7 +1589,7 @@ task GridssCalling {
     runtime {
         mem: memoryGb + "G"
         cpus: threads
-        disks: "local-disk " + diskSize + " LOCAL"
+        disks: "local-disk " + diskSize + " HDD"
         cpu : threads
         memory : memoryGb + "GB"
         docker: "gcr.io/nygc-public/gridss@sha256:881fc36138ef58103526dc05643bfb7ca5a6a4de346f04a19e02231a89d24dc6"
