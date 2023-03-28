@@ -35,7 +35,7 @@ workflow Germline {
 
         Boolean highMem = false
 
-        Int hcDiskSize = ceil( size(finalBam.bam, "GB") ) + 20
+        Int hcDiskSize = 20
     }
     scatter (i in range(length(scatterIntervalsHcs))) {
         call germline.haplotypeCallerGatk4 {
@@ -130,7 +130,7 @@ workflow Germline {
 
     Int lowHoDiskSize = 100
     if (highMem) {
-        Int highHoDiskSize = 16
+        Int highHoDiskSize = 150
     }
     Int hoDiskSize = select_first([highHoDiskSize, lowHoDiskSize])
 
