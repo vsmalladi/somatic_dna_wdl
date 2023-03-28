@@ -18,7 +18,7 @@ workflow Lancet {
         Bam normalFinalBam
         Bam tumorFinalBam
         # resources
-        Int threads = 8
+        Int threads = 16
         Int diskSize = ceil( size(tumorFinalBam.bam, "GB") + size(normalFinalBam.bam, "GB")) + 20
         Int memoryGb = 40
         File lancetJsonLog
