@@ -18,7 +18,7 @@ workflow Mutect2 {
         # Exome
         File invertedIntervalListBed
         Bam tumorFinalBam
-        Int diskSize = 10
+        Int diskSize = 20
         File mutectJsonLog
         File mutectJsonLogFilter
         
