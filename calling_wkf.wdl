@@ -67,7 +67,12 @@ workflow Calling {
         String bsGenome
         File ponTarGz
         Array[File] gridssAdditionalReference
-        Boolean highMem = false
+
+        Int gridssPreMemoryGb = 60
+        Int gridssFilterMemoryGb = 32
+        Boolean gridssHighMem = false
+        Boolean mantaHighMem = false
+        Boolean mutect2HighMem = false
     }
     
     call cramConversion.UniqueBams as uniqueBams {
@@ -125,7 +130,11 @@ workflow Calling {
                 intervalListBed = intervalListBed,
                 bwaReference = bwaReference,
                 chromBedsWgs = chromBedsWgs,
-                highMem = highMem,
+                gridssPreMemoryGb = gridssPreMemoryGb,
+                gridssFilterMemoryGb = gridssFilterMemoryGb,
+                gridssHighMem = gridssHighMem,
+                mantaHighMem = mantaHighMem,
+                mutect2HighMem = mutect2HighMem,
                 library = library
         }
     }

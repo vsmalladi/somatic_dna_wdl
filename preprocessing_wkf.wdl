@@ -28,7 +28,6 @@ import "pre_process/qc_wkf.wdl" as qc
 workflow PreprocessWrapper {
     input {
         Boolean external = false
-        Boolean highMem = false
 
         BwaMem2Reference bwamem2Reference
         IndexedReference referenceFa
@@ -44,13 +43,14 @@ workflow PreprocessWrapper {
         Array[SampleInfo]+ sampleInfos
 
         Boolean trim = true
+        Int preprocessAdditionalDiskSize = 20
     }
 
     scatter (sampleInfoObj in sampleInfos) {
         call preProcess.Preprocess {
             input:
                 external = external,
-                highMem = highMem,
+                additionalDiskSize = preprocessAdditionalDiskSize,
                 listOfFastqPairs = sampleInfoObj.listOfFastqPairs,
                 trim = trim,
                 adaptersFa = adaptersFa,
