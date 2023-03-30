@@ -26,9 +26,11 @@ workflow Gridss {
         Int threads = 8
 
         Boolean highMem = false
+        
+        Int preMemoryGb = 60
+        Int filterMemoryGb = 32
     }
     
-    Int preMemoryGb = 60
     Int tumorDiskSize = ceil(size(tumorFinalBam.bam, "GB") * 3) + 100
     Int normalDiskSize = ceil(size(normalFinalBam.bam, "GB") * 3) + 20
 
@@ -151,13 +153,7 @@ workflow Gridss {
             diskSize = assembleDiskSize
 
     }
-
-    Int lowFilterDiskSize = ceil( size(GridssCalling.gridssUnfilteredVcf, "GB")) + 30
-    if (highMem) {
-        Int highFilterDiskSize = ceil( size(GridssCalling.gridssUnfilteredVcf, "GB")) + 60
-    }
-    Int filterDiskSize = select_first([highFilterDiskSize, lowFilterDiskSize])
-
+    
     call calling.FilterNonChroms {
         input:
             diskSize = filterDiskSize,
@@ -166,12 +162,17 @@ workflow Gridss {
             gridssUnfilteredVcf = GridssCalling.gridssUnfilteredVcf,
             listOfChroms = listOfChroms
     }
-
+    
+    Int lowFilterDiskSize = ceil( size(GridssCalling.gridssUnfilteredVcf, "GB")) + 30
+    if (highMem) {
+        Int highFilterDiskSize = ceil( size(GridssCalling.gridssUnfilteredVcf, "GB")) + 60
+    }
+    Int filterDiskSize = select_first([highFilterDiskSize, lowFilterDiskSize])
 
     call calling.GridssFilter {
         input:
             threads = threads,
-            memoryGb = preMemoryGb,
+            memoryGb = filterMemoryGb,
             pairName = pairName,
             bsGenome = bsGenome,
             ponTarGz = ponTarGz,

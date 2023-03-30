@@ -191,8 +191,17 @@ workflow SomaticBamWorkflow {
         # signatures
         File cosmicSigs
 
-        Boolean highMem = false
         Boolean createCramBasedObjects = false
+
+        Int gridssPreMemoryGb = 32
+        Int gridssFilterMemoryGb = 32
+        Boolean gridssHighMem = false
+        Boolean mantaHighMem = false
+        Boolean mutect2HighMem = false
+        Boolean germlineHighMem = false
+
+        Int annotateBicSeq2CnvMem = 36
+
     }
 
     # need to find UNIQUE bams (don't convert if part of more than one pair)
@@ -302,7 +311,7 @@ workflow SomaticBamWorkflow {
                 chdWhitelistVcf = chdWhitelistVcf,
                 deepIntronicsVcf = deepIntronicsVcf,
                 clinvarIntronicsVcf = clinvarIntronicsVcf,
-                highMem = highMem
+                highMem = germlineHighMem
         }
 
         call germlineAnnotate.GermlineAnnotate as filteredGermlineAnnotate {
@@ -493,8 +502,12 @@ workflow SomaticBamWorkflow {
                 ponTarGz = ponTarGz,
                 gridssAdditionalReference = gridssAdditionalReference,
                 chromBeds = chromBeds,
-                highMem = highMem,
-                library = library
+                library = library,
+                gridssPreMemoryGb = gridssPreMemoryGb,
+                gridssFilterMemoryGb = gridssFilterMemoryGb,
+                gridssHighMem = gridssHighMem,
+                mantaHighMem = mantaHighMem,
+                mutect2HighMem = mutect2HighMem
         }
 
         call msi.Msi {

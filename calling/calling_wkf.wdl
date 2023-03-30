@@ -75,7 +75,13 @@ workflow Calling {
         File mutectJsonLog
         File mutectJsonLogFilter
 
-        Boolean highMem = false
+        # Gridss resources need a lot of fine grained control
+        Int gridssPreMemoryGb = 60
+        Int gridssFilterMemoryGb = 32
+        Boolean gridssHighMem = false
+        Boolean mantaHighMem = false
+        Boolean mutect2HighMem = false
+
     }
     call mutect2.Mutect2 {
         input:
@@ -91,7 +97,7 @@ workflow Calling {
             referenceFa = referenceFa,
             normalFinalBam = pairInfo.normalFinalBam,
             tumorFinalBam = pairInfo.tumorFinalBam,
-            highMem = highMem
+            highMem = mutect2HighMem
     }
 
     if (library == 'WGS') {
@@ -105,7 +111,7 @@ workflow Calling {
                 pairName = pairInfo.pairId,
                 normalFinalBam = pairInfo.normalFinalBam,
                 tumorFinalBam = pairInfo.tumorFinalBam,
-                highMem = highMem
+                highMem = mantaHighMem
         }
         
         call strelka2.Strelka2 as strelka2Wgs {
@@ -192,7 +198,9 @@ workflow Calling {
             tumorFinalBam = pairInfo.tumorFinalBam,
             bsGenome = bsGenome,
             ponTarGz = ponTarGz,
-            highMem = highMem
+            highMem = gridssHighMem,
+            preMemoryGb = gridssPreMemoryGb,
+            filterMemoryGb = gridssFilterMemoryGb
     }
     
     if (library == 'WGS') {

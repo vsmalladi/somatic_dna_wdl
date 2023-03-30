@@ -194,9 +194,18 @@ workflow SomaticDNA {
         # signatures
         File cosmicSigs
 
-        Boolean highMem = false
+        # Resources. Memory and  disk size are in GB
+        Int bwamem2Mem = 32
+        Int novosortMem = 32
+        Int preprocessAdditionalDiskSize = 20
+        Int printReadsPreemptible = 3
+        Int gridssPreMemoryGb = 60
+        Int gridssFilterMemoryGb = 32
+        Boolean gridssHighMem = false
+        Boolean mantaHighMem = false
+        Boolean mutect2HighMem = false
+        Boolean germlineHighMem = false
 
-        # Specific mem values in GB
         Int annotateBicSeq2CnvMem = 36
     }
 
@@ -204,7 +213,10 @@ workflow SomaticDNA {
         call preProcess.Preprocess {
             input:
                 external = external,
-                highMem = highMem,
+                bwamem2Mem = bwamem2Mem,
+                novosortMem = novosortMem,
+                printReadsPreemptible = printReadsPreemptible,
+                additionalDiskSize = preprocessAdditionalDiskSize,
                 listOfFastqPairs = sampleInfoObj.listOfFastqPairs,
                 trim = trim,
                 adaptersFa = adaptersFa,
@@ -306,7 +318,7 @@ workflow SomaticDNA {
                     chdWhitelistVcf=chdWhitelistVcf,
                     deepIntronicsVcf=deepIntronicsVcf,
                     clinvarIntronicsVcf=clinvarIntronicsVcf,
-                    highMem=highMem
+                    highMem=germlineHighMem
             }
 
             call germlineAnnotate.GermlineAnnotate as filteredGermlineAnnotate {
@@ -503,12 +515,16 @@ workflow SomaticDNA {
                     bsGenome = bsGenome,
                     ponTarGz = ponTarGz,
                     gridssAdditionalReference = gridssAdditionalReference,
-                    highMem = highMem,
                     library = library,
                     intervalListBed = intervalListBed,
                     callerIntervals = callerIntervals,
                     invertedIntervalListBed = invertedIntervalListBed,
-                    chromBeds = chromBeds
+                    chromBeds = chromBeds,
+                    gridssPreMemoryGb = gridssPreMemoryGb,
+                    gridssFilterMemoryGb = gridssFilterMemoryGb,
+                    gridssHighMem = gridssHighMem,
+                    mantaHighMem = mantaHighMem,
+                    mutect2HighMem = mutect2HighMem
             }
 
             call msi.Msi {

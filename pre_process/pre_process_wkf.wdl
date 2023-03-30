@@ -13,7 +13,6 @@ workflow Preprocess {
     #   merge lane level BAMs
     input {
         Boolean external = false
-        Boolean highMem = false
 
         Array[Fastqs] listOfFastqPairs
         Boolean trim = true
@@ -38,18 +37,13 @@ workflow Preprocess {
         Int threads = 16
         Int samtoolsThreads = 4
         Int bwamem2Threads = 32
+
+        Int bwamem2Mem = 32
+        Int novosortMem = 32
+        Int additionalDiskSize = 20
+        Int printReadsPreemptible = 3
+
     }
-
-    Int bwamem2MemLow = 32
-    Int novosortMemLow = 32
-
-    if (highMem) {
-        Int novosortMemHigh = 80
-        Int bwamem2MemHigh = 48
-    }
-
-    Int novosortMem = select_first([novosortMemHigh, novosortMemLow])
-    Int bwamem2Mem = select_first([bwamem2MemHigh, bwamem2MemLow])
 
     call alignFastq.AlignFastq {
         input:
@@ -59,7 +53,8 @@ workflow Preprocess {
             bwamem2Reference = bwamem2Reference,
             bwamem2Mem = bwamem2Mem,
             threads = samtoolsThreads,
-            bwamem2Threads = bwamem2Threads
+            bwamem2Threads = bwamem2Threads,
+            additionalDiskSize = additionalDiskSize
     }
 
     call mergeBams.MergeBams {
@@ -75,7 +70,8 @@ workflow Preprocess {
             randomIntervals = randomIntervals,
             qcDir = "Sample_~{sampleId}/qc",
             novosortMem = novosortMem,
-            threads = threads
+            threads = threads,
+            additionalDiskSize = additionalDiskSize
     }
 
     call qc.QcMetrics {
