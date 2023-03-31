@@ -65,7 +65,7 @@ task RenameExomeWgsMetadata {
         mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:ffc8cfe7dd42baf87b56f121e2f3ad72b6897a31c56328c989d56379c9fbc7ae"
+        docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:20a48e2c422a43ce35e197243bda8dbf06c9a7b3175094524f74f8835cce85b6"
     }
 }
 
@@ -98,7 +98,7 @@ task MergePrepExomeWgs {
         mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:ffc8cfe7dd42baf87b56f121e2f3ad72b6897a31c56328c989d56379c9fbc7ae"
+        docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:20a48e2c422a43ce35e197243bda8dbf06c9a7b3175094524f74f8835cce85b6"
     }
 }
 
@@ -181,7 +181,7 @@ task SnvstomnvsAnnotateExomeWgsCalled {
         mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:ffc8cfe7dd42baf87b56f121e2f3ad72b6897a31c56328c989d56379c9fbc7ae"
+        docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:20a48e2c422a43ce35e197243bda8dbf06c9a7b3175094524f74f8835cce85b6"
     }
 }
 
@@ -284,7 +284,7 @@ task RenameMetadata {
         mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:ffc8cfe7dd42baf87b56f121e2f3ad72b6897a31c56328c989d56379c9fbc7ae"
+        docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:20a48e2c422a43ce35e197243bda8dbf06c9a7b3175094524f74f8835cce85b6"
     }
 }
 
@@ -315,7 +315,7 @@ task MergePrepSupport {
         mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:ffc8cfe7dd42baf87b56f121e2f3ad72b6897a31c56328c989d56379c9fbc7ae"
+        docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:20a48e2c422a43ce35e197243bda8dbf06c9a7b3175094524f74f8835cce85b6"
     }
 }
 
@@ -345,7 +345,7 @@ task MergePrep {
         mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:ffc8cfe7dd42baf87b56f121e2f3ad72b6897a31c56328c989d56379c9fbc7ae"
+        docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:20a48e2c422a43ce35e197243bda8dbf06c9a7b3175094524f74f8835cce85b6"
     }
 }
 
@@ -379,7 +379,7 @@ task RenameVcf {
         mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:ffc8cfe7dd42baf87b56f121e2f3ad72b6897a31c56328c989d56379c9fbc7ae"
+        docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:20a48e2c422a43ce35e197243bda8dbf06c9a7b3175094524f74f8835cce85b6"
     }
 }
 
@@ -411,7 +411,7 @@ task RenameVcfPon {
         mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:ffc8cfe7dd42baf87b56f121e2f3ad72b6897a31c56328c989d56379c9fbc7ae"
+        docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:20a48e2c422a43ce35e197243bda8dbf06c9a7b3175094524f74f8835cce85b6"
     }
 }
 
@@ -516,7 +516,7 @@ task SplitMnv {
         mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:ffc8cfe7dd42baf87b56f121e2f3ad72b6897a31c56328c989d56379c9fbc7ae"
+        docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:20a48e2c422a43ce35e197243bda8dbf06c9a7b3175094524f74f8835cce85b6"
     }
 }
 
@@ -561,7 +561,7 @@ task RemoveContig {
         mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:ffc8cfe7dd42baf87b56f121e2f3ad72b6897a31c56328c989d56379c9fbc7ae"
+        docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:20a48e2c422a43ce35e197243bda8dbf06c9a7b3175094524f74f8835cce85b6"
     }
 }
 
@@ -707,7 +707,7 @@ task GetCandidates {
         mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:ffc8cfe7dd42baf87b56f121e2f3ad72b6897a31c56328c989d56379c9fbc7ae"
+        docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:20a48e2c422a43ce35e197243bda8dbf06c9a7b3175094524f74f8835cce85b6"
     }
 }
 
@@ -740,7 +740,7 @@ task VcfToBed {
         mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:ffc8cfe7dd42baf87b56f121e2f3ad72b6897a31c56328c989d56379c9fbc7ae"
+        docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:20a48e2c422a43ce35e197243bda8dbf06c9a7b3175094524f74f8835cce85b6"
     }
 }
 
@@ -861,7 +861,7 @@ task MergeColumns {
         mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:ffc8cfe7dd42baf87b56f121e2f3ad72b6897a31c56328c989d56379c9fbc7ae"
+        docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:20a48e2c422a43ce35e197243bda8dbf06c9a7b3175094524f74f8835cce85b6"
     }
 }
 
@@ -892,7 +892,7 @@ task MergeColumnsPon {
         mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:ffc8cfe7dd42baf87b56f121e2f3ad72b6897a31c56328c989d56379c9fbc7ae"
+        docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:20a48e2c422a43ce35e197243bda8dbf06c9a7b3175094524f74f8835cce85b6"
     }
 }
 
@@ -927,7 +927,7 @@ task AddNygcAlleleCountsToVcf {
         mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:ffc8cfe7dd42baf87b56f121e2f3ad72b6897a31c56328c989d56379c9fbc7ae"
+        docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:20a48e2c422a43ce35e197243bda8dbf06c9a7b3175094524f74f8835cce85b6"
     }
 }
 
@@ -956,7 +956,7 @@ task AddFinalAlleleCountsToVcf {
         mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:ffc8cfe7dd42baf87b56f121e2f3ad72b6897a31c56328c989d56379c9fbc7ae"
+        docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:20a48e2c422a43ce35e197243bda8dbf06c9a7b3175094524f74f8835cce85b6"
     }
 }
 
@@ -988,7 +988,7 @@ task FilterPon {
         mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:ffc8cfe7dd42baf87b56f121e2f3ad72b6897a31c56328c989d56379c9fbc7ae"
+        docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:20a48e2c422a43ce35e197243bda8dbf06c9a7b3175094524f74f8835cce85b6"
     }
 }
 
@@ -1019,7 +1019,7 @@ task FilterVcf {
         mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:ffc8cfe7dd42baf87b56f121e2f3ad72b6897a31c56328c989d56379c9fbc7ae"
+        docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:20a48e2c422a43ce35e197243bda8dbf06c9a7b3175094524f74f8835cce85b6"
     }
 }
 
@@ -1048,6 +1048,6 @@ task SnvstomnvsCountsbasedfilterAnnotatehighconf {
         mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:ffc8cfe7dd42baf87b56f121e2f3ad72b6897a31c56328c989d56379c9fbc7ae"
+        docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:20a48e2c422a43ce35e197243bda8dbf06c9a7b3175094524f74f8835cce85b6"
     }
 }
