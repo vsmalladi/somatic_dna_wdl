@@ -228,12 +228,14 @@ workflow SomaticBamWorkflow {
         }
         
         if (fileType == "bam") {
-            call cramConversion.SamtoolsBamToCram as bamToCram {
-                input:
-                    inputBam = Reheader.sampleBamMatched,
-                    referenceFa = referenceFa,
-                    sampleId = bamInfo.sampleId,
-                    diskSize = (ceil(size(Reheader.sampleBamMatched.bam, "GB") * 1.7)) + 20 # 0.7 is estimated cram size
+            if (createCramBasedObjects) {
+                call cramConversion.SamtoolsBamToCram as bamToCram {
+                    input:
+                        inputBam = Reheader.sampleBamMatched,
+                        referenceFa = referenceFa,
+                        sampleId = bamInfo.sampleId,
+                        diskSize = (ceil(size(Reheader.sampleBamMatched.bam, "GB") * 1.7)) + 20 # 0.7 is estimated cram size
+                }
             }
         }
         
