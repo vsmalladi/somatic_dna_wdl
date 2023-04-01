@@ -138,7 +138,7 @@
             "object" : "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/DGV.GRCh38_hg38_variants_2020-02-25.bedpe"
         },
         "callerIntervals" :{
-            "Type" "Array[String]",
+            "type" : "Array[String]",
             "description" : "String versions of the coordinates for calling (from 50 intervals to divide the genome into for parallel calling)",
             "object" : [
                 "chr1:10001-207666",
@@ -502,7 +502,7 @@
                 "chrX:122000000-144425606",
                 "chrX:144475607-156030895"
               ]
-        }
+        },
         "gap" :{
             "type": "File",
             "description" : "",
@@ -1334,7 +1334,7 @@
                 "gs://nygc-resources-public/GRCh38_tcga/scattered.tcga.9.interval_list"]
         },
         "callerIntervals" :{
-            "Type" "Array[String]",
+            "type" : "Array[String]",
             "description" : "String versions of the coordinates for calling (from 50 intervals to divide the genome into for parallel calling)",
             "object" : [
                 "chr1:10001-207666",
@@ -1698,7 +1698,7 @@
                 "chrX:122000000-144425606",
                 "chrX:144475607-156030895"
               ]
-        }
+        },
         "dgvBedpe" :{
             "type": "File",
             "description" : "gs://nygc-resources-public/GRCh38_full_analysis_set_plus_decoy_hla/internal/DGV.GRCh38_hg38_variants_2020-02-25.README.txt",

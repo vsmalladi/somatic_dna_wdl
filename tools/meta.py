@@ -67,11 +67,13 @@ def load_pairs(file):
     pairs['pairId'] = pairs.apply(lambda row: row.tumorId + '--' + row.normalId, axis=1)
     return pairs[['tumorId', 'normalId', 'pairId']], pairs
 
+
 def load_sample_ids(file):
     '''Return a deduplicated list of sample ids'''
     sample_ids = pd.read_csv(file)
     assert 'sampleId' in sample_ids.columns , 'Error: can not find "sampleId" columns in samples file: ' + ' '.join(sample_ids.columns)
     return sample_ids.sampleId.unique().tolist()
+
 
 def fill_pair_relationship(row):
     '''Add pair and sample level info to object
@@ -82,6 +84,7 @@ def fill_pair_relationship(row):
     pair_relationship['normalPrefix'] = row['normalId']
     pair_relationship['tumorPrefix'] = row['tumorId']
     return pair_relationship      
+
 
 def note_updates(key, new_value, project_info):
     ''' Add/replace value in project_info with value from flag'''
@@ -136,8 +139,8 @@ def fill_in_pair_info(project_info, full_pairs, suffix='.bai'):
                                         'finalBam' : {'bam': match.normalBam.tolist()[0],
                                                       'bamIndex' : match.normalBam.tolist()[0].replace('.bam', suffix)}
                                })
-            project_info = note_updates(key='pairInfos', new_value=pair_infos, project_info=project_info)
-            project_info = note_updates(key='normalsampleBamInfos', new_value=normal_sample_infos, project_info=project_info)
+        project_info = note_updates(key='pairInfos', new_value=pair_infos, project_info=project_info)
+        project_info = note_updates(key='normalSampleBamInfos', new_value=normal_sample_infos, project_info=project_info)
     return project_info
         
     
@@ -181,19 +184,17 @@ def populate(args, custom_inputs):
             current_pair_info_relationship = fill_pair_relationship(row)
             pair_info_relationships.append(current_pair_info_relationship)  
         project_info = note_updates(key='listOfPairRelationships', new_value=pair_info_relationships, project_info=project_info)
-        # update BAM objects in project_info from custom inputs JSON (if pairInfos and normalsampleBamInfos  are in the custom json)
+        # update BAM objects in project_info from custom inputs JSON (if pairInfos and normalSampleBamInfos  are in the custom json)
         if custom_inputs:
             for alt_project_info_file in custom_inputs:
                 alt_project_info = read(alt_project_info_file)
                 project_info = note_custom_updates(key='pairInfos', alt_project_info=alt_project_info, project_info=project_info)
-                project_info = note_custom_updates(key='normalsampleBamInfos', alt_project_info=alt_project_info, project_info=project_info)
-#                 print('0', project_info['normalsampleBamInfos'])
+                project_info = note_custom_updates(key='normalSampleBamInfos', alt_project_info=alt_project_info, project_info=project_info)
         # update BAM objects in project_info from sample sheet (if pairs file is a sample sheet)
         if not 'pairInfos' in project_info \
-                    or not 'normalsampleBamInfos' in project_info:
-            if 'tumorBam' in full_pairs and 'normalBam' in full_pairs:
+                    or not 'normalSampleBamInfos' in project_info:
+            if 'tumorBam' in full_pairs.columns and 'normalBam' in full_pairs.columns:
                 project_info = fill_in_pair_info(project_info, full_pairs)
-#                 print('1', project_info['normalsampleBamInfos'])
         # update pairing objects in project_info
         pair_ids = list(set([info['pairId'] for info in project_info['listOfPairRelationships']]))
         project_info = note_updates(key='pairIds', new_value=pair_ids, project_info=project_info)
@@ -215,7 +216,6 @@ def populate(args, custom_inputs):
                 alt_project_info = read(alt_project_info_file)
                 project_info = note_custom_updates(key='normalSampleBamInfos', alt_project_info=alt_project_info, project_info=project_info)
                 project_info = note_custom_updates(key='sampleInfos', alt_project_info=alt_project_info, project_info=project_info)
-                print('3', project_info['normalsampleBamInfos'])
     return project_info
 
 def load_json(file):
@@ -370,7 +370,7 @@ def get_args():
                         help='CSV file with items that are required to have '
                         '"tumorId", "normalId", "pairId" as columns '
                         'Optionally, include "tumorBam", "normalBam" columns to create '
-                        '"pairInfos" and "normalsampleBamInfos" automatically.'
+                        '"pairInfos" and "normalSampleBamInfos" automatically.'
                         ,
                         required=False
                         )
