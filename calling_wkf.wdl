@@ -85,7 +85,8 @@ workflow Calling {
         call reheaderBam.Reheader {
             input:
                 finalBam = bamInfo.finalBam,
-                sampleId = bamInfo.sampleId
+                sampleId = bamInfo.sampleId,
+                referenceFa = referenceFa
         }
         
         String uniqueSampleIds = bamInfo.sampleId

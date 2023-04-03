@@ -139,6 +139,7 @@ workflow SomaticBamWorkflow {
         call reheaderBam.Reheader {
             input:
                 finalBam = bamInfo.finalBam,
+                referenceFa = referenceFa,
                 sampleId = bamInfo.sampleId
         }
         

@@ -6,6 +6,7 @@ task GetSampleName {
     input {
         File finalBam
         File finalBai
+        IndexedReference referenceFa
         String sampleIdPath = "sampleId.txt"
         Int memoryGb = 1
         Int diskSize
@@ -16,6 +17,7 @@ task GetSampleName {
             /gatk/gatk \
             --java-options "-Xmx~{jvmHeap}m -XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10" \
             GetSampleName \
+            -R ~{referenceFa.fasta} \
             -I ~{finalBam} \
             --read-index ~{finalBai} \
             -O ~{sampleIdPath}
@@ -38,6 +40,10 @@ task GetSampleName {
         }
         
         finalBai: {
+            localization_optional: true
+        }
+        
+        referenceFa: {
             localization_optional: true
         }
     }
@@ -64,7 +70,7 @@ task UpdateBamSampleName {
         samtools \
         view -H \
         ~{finalBam.bam} \
-        | sed "/^@RG/ s/SM:\S+/SM:~{sampleId}/" \
+        | sed "/^@RG/ s/SM:\S*/SM:~{sampleId}/" \
         > ~{headerPath}
         
         samtools \
