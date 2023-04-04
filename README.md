@@ -430,7 +430,17 @@ We are in the process of setting up a public issue tracker. In the mean time  pl
 
 New tag releases are made for any new/changed step in the main alignment, calling, merging, annotation, or addtional 
 analysis (e.g. MSI, HLA, etc) pipeline.
-
+[7.4.1](https://bitbucket.nygenome.org/rest/api/latest/projects/WDL/repos/somatic_dna_wdl/archive?at=refs%2Ftags%2F7.4.1&format=zip) Minor adjustments:
+    - Minor changes to resource requests and naming conventions
+    
+[7.4.0](https://bitbucket.nygenome.org/rest/api/latest/projects/WDL/repos/somatic_dna_wdl/archive?at=refs%2Ftags%2F7.4.0&format=zip) Log4j fix, remove SvABA, 1000g PON:
+    - Ability to skip coverage check for a sample.
+    - Add bam-to-cram conversion.
+    - Remove Svaba as SV caller
+    - Switch to SSD for callers
+    - Add WGS PON from 1000g deep coverage samples
+    - Update Gatk and Gridss versions to avoid log4j security bug     
+    
 [7.3.10](https://bitbucket.nygenome.org/rest/api/latest/projects/WDL/repos/somatic_dna_wdl/archive?at=refs%2Ftags%2F7.3.10&format=zip) Ancestry pipeline:
     - add fastngsadmix ancestry analysis as standalone workflow and to somatic_bam_wkf
     - add ancestry to somatic_wkf.wdl
