@@ -38,8 +38,6 @@ SNV/INDEL/SV
   - TUMOR--NORMAL.mutect2.vcf
   - TUMOR--NORMAL.sv.gridss.vcf.bgz
   - TUMOR--NORMAL.sv.gridss.vcf.bgz.tbi
-  - TUMOR--NORMAL.sv.svaba.vcf
-  - TUMOR--NORMAL.indel.svaba.vcf
   - TUMOR--NORMAL.bicseq2.png
   - TUMOR--NORMAL.bicseq2.txt
  
@@ -208,8 +206,8 @@ in the tumor-only mode.
 #### Variant detection
 The tumor and normal bam files are processed through NYGC’s variant calling pipeline which
 consists of MuTect2 (GATK 4.0.5.1) ([6](#6))), Strelka2 (2.9.3) ([7](#7)) and Lancet (1.0.7) ([8](#8))] for calling
-Single Nucleotide Variants (SNVs) and short Insertion-or-Deletion (Indels), SvABA (0.2.1) ([9](#9))
-for calling Indels and Structural variants (SVs), both Manta (1.4.0) ([10](#10)) and GRIDSS (2.12.0) ([11](#11), [12](#12)) for
+Single Nucleotide Variants (SNVs) and short Insertion-or-Deletion (Indels), both Manta (1.4.0) ([10](#10)) 
+and GRIDSS (2.12.0) ([11](#11), [12](#12)) for
 calling SVs and BIC-Seq2 (0.2.6) ([13](#13)) for calling Copy-number variants (CNVs). Manta also
 outputs a candidate set of Indels which is provided as input to Strelka2 (following the developers
 recommendation, as it improves Strelka2’s sensitivity for calling indels >20nt). Due to its
@@ -256,14 +254,14 @@ data from normal samples from we used the 2504 unrelated resequenced 1000G indiv
 preparation on the Illumina Novaseq-6000 to a targeted depth of of 30X (mean 34X). Samples 
 were aligned to GRCh38 with BWA-MEM and base quality scores were recalibrated with GATK BQSR.
 
-We ran MuTect2 in artifact detection mode and Manta and Svaba in single sample mode on these
+We ran MuTect2 in artifact detection mode and Manta and SvABA ([9](#9)) in single sample mode on these
 samples with our [PON workflow](https://bitbucket.nygenome.org/projects/WDL/repos/somatic_dna_wdl/browse/pon_wkf.wdl). 
 For SNVs and indels, we created a PON list file with sites that were seen in two or
 more individuals.
 
 For SVs, we used the resequenced 1000G individuals as the basis for the new SV PON.Four structural 
 variant callers were run in single sample mode with default parameters: GRIDSS, Manta, 
-LUMPY (0.2.13) ([18](#18)), and SvABA (1.1.3). Of these four callers, GRIDSS, Manta, and Svaba are used 
+LUMPY (0.2.13) ([18](#18)), and SvABA (1.1.3). Of these four callers, GRIDSS and Manta are used 
 in somatic SV calling. LUMPY was included after it was determined that it improved artifact detection sensitivity. 
 
 A three-step merge process was performed, collapsing 12808 VCFs to a single VCF. SURVIVOR was used for merging at each 
@@ -318,10 +316,7 @@ SNVs, and for indels less than 10nt in length, these are computed as the number 
 read-pairs supporting each allele using the pileup method, with minimum mapping quality and
 base quality thresholds of 10 each.
 For larger indels and complex (deletion-insertion) events, we choose the final allele counts
-reported by the individual callers Strelka2, MuTect2, Lancet, in that order. For indels larger than
-10nt that are only called by SvABA, we do not report final allele counts and allele frequencies
-because SvABA does not report the reference allele count, making it difficult to estimate the
-variant allele frequency.
+reported by the individual callers Strelka2, MuTect2, Lancet, in that order.
 We then use these final chosen allele counts and frequencies to filter the somatic callset.
 Specifically, we filter any variant for which the variant allele frequency (VAF) in the tumor
 sample is less than 0.0001, or if the VAF in the normal sample is greater than 0.2, or if the depth
