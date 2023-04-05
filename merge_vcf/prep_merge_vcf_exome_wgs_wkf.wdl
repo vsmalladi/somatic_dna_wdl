@@ -5,45 +5,35 @@ import "../wdl_structs.wdl"
 
 workflow PrepMergeVcf {
     input {
-        String tumor
-        String normal
+        String tumorId
+        String normalId
         String tool
         File callerVcf
         String pairName
         IndexedReference referenceFa
     }
     
-    call merge_vcf.RenameMetadata {
+    call merge_vcf.RenameExomeWgsMetadata {
         input:
             callerVcf = callerVcf,
             tool=tool,
             pairName=pairName
     }
-    if (tool == 'manta') {
-        call merge_vcf.MergePrepSupport {
-            input:
-                pairName = pairName,
-                tool = tool,
-                renameMetaVcf = RenameMetadata.renameMetaVcf
-        }
-    }
-    if (tool != 'manta') {
-        call merge_vcf.MergePrep {
-            input:
-                pairName = pairName,
-                tool = tool,
-                renameMetaVcf = RenameMetadata.renameMetaVcf
-        }
-
-    }
     
+    call merge_vcf.MergePrepExomeWgs {
+        input:
+            pairName = pairName,
+            tool = tool,
+            renameMetaVcf = RenameExomeWgsMetadata.renameMetaVcf
+    }
+
     call merge_vcf.RenameVcf {
         input:
             pairName = pairName,
-            tumorId = tumor,
-            normalId = normal,
+            tumorId = tumorId,
+            normalId = normalId,
             tool = tool,
-            prepCallerVcf = select_first([MergePrepSupport.prepCallerVcf, MergePrep.prepCallerVcf])
+            prepCallerVcf = MergePrepExomeWgs.prepCallerVcf
     }
     
     call merge_vcf.CompressVcf as renameCompressVcf {
@@ -73,18 +63,10 @@ workflow PrepMergeVcf {
             
     }
     
-    if (tool == 'svaba') {
-        call merge_vcf.RemoveContig {
-            input:
-                mnvVcfPath = sub(basename(renameIndexVcf.vcfCompressedIndexed.vcf), ".rename.vcf.gz$", ".split.vcf"),
-                removeChromVcf = SplitMnv.mnvVcf
-        }
-    }
-    
     call merge_vcf.Gatk4MergeSortVcf {
         input:
-            tempVcfs = [select_first([RemoveContig.removeContigVcf, SplitMnv.mnvVcf])],
-            sortedVcfPath = sub(basename(select_first([RemoveContig.removeContigVcf, SplitMnv.mnvVcf])), "$", ".gz"),
+            tempVcfs = [SplitMnv.mnvVcf],
+            sortedVcfPath = sub(basename(SplitMnv.mnvVcf), "$", ".gz"),
             referenceFa = referenceFa,
             gzipped = true,
             threads = 4,

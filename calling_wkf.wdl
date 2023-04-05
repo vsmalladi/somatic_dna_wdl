@@ -1,13 +1,11 @@
 version 1.0
 
-import "calling/gridss_wkf.wdl" as gridss
-import "calling/bicseq2_wkf.wdl" as bicseq2
-import "calling/mutect2_wkf.wdl" as mutect2
-import "calling/strelka2_wkf.wdl" as strelka2
-import "calling/manta_wkf.wdl" as manta
-import "calling/lancet_wkf.wdl" as lancet
-import "calling/gridss_wkf.wdl" as gridss
-import "calling/bicseq2_wkf.wdl" as bicseq2
+import "calling/calling_wkf.wdl" as calling
+import "tasks/bam_cram_conversion.wdl" as cramConversion
+import "tasks/reheader_bam_wkf.wdl" as reheaderBam
+import "tasks/utils.wdl" as utils
+
+import "wdl_structs.wdl"
 
 # ================== COPYRIGHT ================================================
 # New York Genome Center
@@ -18,6 +16,7 @@ import "calling/bicseq2_wkf.wdl" as bicseq2
 # cannot be responsible for its use, misuse, or functionality.
 #
 #    Jennifer M Shelton (jshelton@nygenome.org)
+#    James Roche (jroche@nygenome.org)
 #    Nico Robine (nrobine@nygenome.org)
 #    Minita Shah (mshah@nygenome.org)
 #    Timothy Chu (tchu@nygenome.org)
@@ -25,21 +24,24 @@ import "calling/bicseq2_wkf.wdl" as bicseq2
 #
 # ================== /COPYRIGHT ===============================================
 
-import "wdl_structs.wdl"
-
 workflow Calling {
     # command
     #   Call variants in BAMs
     #   merge and filter raw VCFs
     #   annotate
     input {
+        Boolean local = false
+        String library
+        
         Array[PairInfo]+ pairInfos
         # strelka2
         File strelkaJsonLog
         File configureStrelkaSomaticWorkflow
+        File intervalListBed
         #   mutect2
         File mutectJsonLog
         Array[String]+ listOfChroms
+        Array[String]+ callerIntervals
         IndexedReference referenceFa
         #   Manta
         IndexedTable callRegions
@@ -53,6 +55,7 @@ workflow Calling {
         Array[String]+ listOfChromsFull
         Int readLength
         Int coordReadLength
+        Map[String, File] chromBeds
         Map[Int, Map[String, File]] uniqCoords
         File bicseq2ConfigFile
         File bicseq2SegConfigFile
@@ -64,120 +67,101 @@ workflow Calling {
         String bsGenome
         File ponTarGz
         Array[File] gridssAdditionalReference
-        Boolean highMem = false
+
+        Int gridssPreMemoryGb = 60
+        Int gridssFilterMemoryGb = 32
+        Boolean gridssHighMem = false
+        Boolean mantaHighMem = false
+        Boolean mutect2HighMem = false
     }
+    
+    call cramConversion.UniqueBams as uniqueBams {
+        input:
+            pairInfosJson = write_json(pairInfos)
+    }
+    
+    scatter(bamInfo in uniqueBams.uniqueBams) {        
+        
+        call reheaderBam.Reheader {
+            input:
+                finalBam = bamInfo.finalBam,
+                sampleId = bamInfo.sampleId,
+                referenceFa = referenceFa
+        }
+        
+        String uniqueSampleIds = bamInfo.sampleId
+    }
+    
     scatter(pairInfo in pairInfos) {
-        call gridss.Gridss {
+        call utils.GetIndex as normalGetIndex {
             input:
-                tumor = pairInfo.tumorId,
-                normal = pairInfo.normalId,
-                pairName = pairInfo.pairId,
-                bwaReference = bwaReference,
-                gridssAdditionalReference = gridssAdditionalReference,
-                normalFinalBam = pairInfo.normalFinalBam,
-                tumorFinalBam = pairInfo.tumorFinalBam,
-                bsGenome = bsGenome,
-                ponTarGz = ponTarGz,
-                highMem = highMem
+                sampleIds = uniqueSampleIds,
+                sampleId = pairInfo.normalId
         }
-
-        call bicseq2.BicSeq2 {
+        
+        call utils.GetIndex as tumorGetIndex {
             input:
-                tumor = pairInfo.tumorId,
-                normal = pairInfo.normalId,
-                readLength = readLength,
-                coordReadLength = coordReadLength,
-                uniqCoords = uniqCoords,
-                bicseq2ConfigFile = bicseq2ConfigFile,
-                bicseq2SegConfigFile = bicseq2SegConfigFile,
-                chromFastas = chromFastas,
-                listOfChromsFull = listOfChromsFull,
-                pairName = pairInfo.pairId,
-                referenceFa = referenceFa,
-                normalFinalBam = pairInfo.normalFinalBam,
-                tumorFinalBam = pairInfo.tumorFinalBam,
-                tumorMedianInsertSize = tumorMedianInsertSize,
-                normalMedianInsertSize = normalMedianInsertSize,
-                lambda = lambda
+                sampleIds = uniqueSampleIds,
+                sampleId = pairInfo.tumorId
         }
-
-        call mutect2.Mutect2 {
-            input:
-                mutectJsonLog = mutectJsonLog,
-                mutectJsonLogFilter = mutectJsonLogFilter,
-                tumor = pairInfo.tumorId,
-                normal = pairInfo.normalId,
-                listOfChroms = listOfChroms,
-                pairName = pairInfo.pairId,
-                referenceFa = referenceFa,
-                normalFinalBam = pairInfo.normalFinalBam,
-                tumorFinalBam = pairInfo.tumorFinalBam,
-                highMem = highMem
-        }
-
-        call manta.Manta {
+        
+        PairInfo callingPairInfo = object {
+                pairId : pairInfo.pairId,
+                tumorFinalBam : Reheader.sampleBamMatched[tumorGetIndex.index],
+                normalFinalBam : Reheader.sampleBamMatched[normalGetIndex.index],
+                tumorId : pairInfo.tumorId,
+                normalId : pairInfo.normalId
+            }
+            
+        call calling.Calling {
             input:
                 mantaJsonLog = mantaJsonLog,
-                tumor = pairInfo.tumorId,
-                normal = pairInfo.normalId,
-                callRegions = callRegions,
-                referenceFa = referenceFa,
-                pairName = pairInfo.pairId,
-                normalFinalBam = pairInfo.normalFinalBam,
-                tumorFinalBam = pairInfo.tumorFinalBam,
-                highMem = highMem
-        }
-
-        call strelka2.Strelka2 {
-            input:
+                lancetJsonLog = lancetJsonLog,
+                mutectJsonLog = mutectJsonLog,
+                mutectJsonLogFilter = mutectJsonLogFilter,
                 strelkaJsonLog = strelkaJsonLog,
                 configureStrelkaSomaticWorkflow = configureStrelkaSomaticWorkflow,
-                tumor = pairInfo.tumorId,
-                normal = pairInfo.normalId,
-                callRegions = callRegions,
-                candidateSmallIndels = Manta.candidateSmallIndels,
-                referenceFa = referenceFa,
-                pairName = pairInfo.pairId,
-                normalFinalBam = pairInfo.normalFinalBam,
-                tumorFinalBam = pairInfo.tumorFinalBam
-        }
-
-        call lancet.Lancet {
-            input:
-                lancetJsonLog = lancetJsonLog,
-                tumor = pairInfo.tumorId,
-                normal = pairInfo.normalId,
+                pairInfo = callingPairInfo,
                 listOfChroms = listOfChroms,
-                chromBedsWgs = chromBedsWgs,
+                listOfChromsFull = listOfChromsFull,
+                callerIntervals = callerIntervals,
+                chromBeds = chromBeds,
                 referenceFa = referenceFa,
-                pairName = pairInfo.pairId,
-                normalFinalBam = pairInfo.normalFinalBam,
-                tumorFinalBam = pairInfo.tumorFinalBam
+                callRegions = callRegions,
+                intervalListBed = intervalListBed,
+                bwaReference = bwaReference,
+                chromBedsWgs = chromBedsWgs,
+                gridssPreMemoryGb = gridssPreMemoryGb,
+                gridssFilterMemoryGb = gridssFilterMemoryGb,
+                gridssHighMem = gridssHighMem,
+                mantaHighMem = mantaHighMem,
+                mutect2HighMem = mutect2HighMem,
+                library = library
         }
     }
 
     output {
         # Gridss
-        Array[IndexedVcf] gridssVcf = Gridss.gridssVcf
+        Array[IndexedVcf] gridssVcf = Calling.gridssVcf
         # Bicseq2
-        Array[File] bicseq2Png = BicSeq2.bicseq2Png
-        Array[File] bicseq2 = BicSeq2.bicseq2
+        Array[File?] bicseq2Png = Calling.bicseq2Png
+        Array[File?] bicseq2 = Calling.bicseq2
         # Mutect2
-        Array[File] mutect2 = Mutect2.mutect2
-        Array[File] mutect2Unfiltered = Mutect2.mutect2_unfiltered
+        Array[File] mutect2 = Calling.mutect2
+        Array[File] mutect2Unfiltered = Calling.mutect2Unfiltered
         # Manta
-        Array[IndexedVcf] candidateSmallIndels = Manta.candidateSmallIndels
-        Array[IndexedVcf] diploidSV = Manta.diploidSV
-        Array[IndexedVcf] somaticSV = Manta.somaticSV
-        Array[IndexedVcf] candidateSV = Manta.candidateSV
-        Array[File] unfilteredMantaSV = Manta.unfilteredMantaSV
-        Array[File] filteredMantaSV = Manta.filteredMantaSV
+        Array[IndexedVcf?] candidateSmallIndels = Calling.candidateSmallIndels
+        Array[IndexedVcf?] diploidSV = Calling.diploidSV
+        Array[IndexedVcf?] somaticSV = Calling.somaticSV
+        Array[IndexedVcf?] candidateSV = Calling.candidateSV
+        Array[File?] unfilteredMantaSV = Calling.unfilteredMantaSV
+        Array[File?] filteredMantaSV = Calling.filteredMantaSV
         # Strelka2
-        Array[IndexedVcf] strelka2Snvs = Strelka2.strelka2Snvs
-        Array[IndexedVcf] strelka2Indels = Strelka2.strelka2Indels
-        Array[File] strelka2Snv = Strelka2.strelka2Snv
-        Array[File] strelka2Indel = Strelka2.strelka2Indel
+        Array[IndexedVcf] strelka2Snvs = Calling.strelka2Snvs
+        Array[IndexedVcf] strelka2Indels = Calling.strelka2Indels
+        Array[File] strelka2Snv = Calling.strelka2Snv
+        Array[File] strelka2Indel = Calling.strelka2Indel
         # Lancet
-        Array[File] lancet = Lancet.lancet
+        Array[File] lancet = Calling.lancet
     }
 }

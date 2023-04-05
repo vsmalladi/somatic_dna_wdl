@@ -8,16 +8,17 @@ workflow Mutect2 {
     #   run Mutect2 caller
     input {
         Boolean local = false
+        String library
         String tumor
         String normal
-        Array[String]+ listOfChroms
+        Array[String]+ callerIntervals
         String pairName
         IndexedReference referenceFa
         Bam normalFinalBam
-        # Add when Exome are added
-        # Map[String, File] chromBeds
+        # Exome
+        File invertedIntervalListBed
         Bam tumorFinalBam
-        Int diskSize = ceil( size(tumorFinalBam.bam, "GB") + size(normalFinalBam.bam, "GB")) + 20
+        Int diskSize = 20
         File mutectJsonLog
         File mutectJsonLogFilter
         
@@ -27,12 +28,12 @@ workflow Mutect2 {
     
     Int lowCallMemoryGb = 20
     Int lowFilterMemoryGb = 20
-    Int lowFilterDiskSize = 5
+    Int lowFilterDiskSize = 10
     
     if (highMem) {
         Int highCallMemoryGb = 40
         Int highFilterMemoryGb = 20
-        Int highFilterDiskSize = 10
+        Int highFilterDiskSize = 20
     }
     
     if (local) {
@@ -42,28 +43,50 @@ workflow Mutect2 {
     Int filterMemoryGb = select_first([highFilterMemoryGb, lowFilterMemoryGb])
     Int filterDiskSize = select_first([highFilterDiskSize, lowFilterDiskSize])
 
-    scatter(chrom in listOfChroms) {
-        call calling.Mutect2Wgs {
-            input:
-                chrom = chrom,
-                tumor = tumor,
-                normal = normal,
-                pairName = pairName,
-                referenceFa = referenceFa,
-                normalFinalBam = normalFinalBam,
-                tumorFinalBam = tumorFinalBam,
-                memoryGb = callMemoryGb,
-                diskSize = diskSize
+    scatter(callerInterval in callerIntervals) {
+        if (library == 'WGS') {
+            call calling.Mutect2Wgs {
+                input:
+                    chrom = callerInterval,
+                    tumor = tumor,
+                    normal = normal,
+                    pairName = pairName,
+                    referenceFa = referenceFa,
+                    normalFinalBam = normalFinalBam,
+                    tumorFinalBam = tumorFinalBam,
+                    memoryGb = callMemoryGb,
+                    diskSize = diskSize
+            }
         }
+        
+        if (library == 'Exome') {
+            call calling.Mutect2Exome {
+                input:
+                    chrom = callerInterval,
+                    tumor = tumor,
+                    normal = normal,
+                    pairName = pairName,
+                    referenceFa = referenceFa,
+                    normalFinalBam = normalFinalBam,
+                    tumorFinalBam = tumorFinalBam,
+                    invertedIntervalListBed = invertedIntervalListBed,
+                    memoryGb = callMemoryGb,
+                    diskSize = diskSize
+            }
+        }
+        
+        File mutect2ChromRawVcfInput = select_first([Mutect2Wgs.mutect2ChromRawVcf, Mutect2Exome.mutect2ChromRawVcf])
+        File mutect2ChromRawStats = select_first([Mutect2Wgs.mutect2ChromRawStats, Mutect2Exome.mutect2ChromRawStats])
+        
 
         call calling.Mutect2Filter {
             input:
-                chrom = chrom,
+                chrom = callerInterval,
                 pairName = pairName,
                 referenceFa = referenceFa,
-                # mutect2ChromRawVcf = select_first([Mutect2Wgs.mutect2ChromRawVcf, Mutect2Exome.mutect2ChromRawVcf])
-                mutect2ChromRawVcf = Mutect2Wgs.mutect2ChromRawVcf,
-                mutect2ChromRawStats = Mutect2Wgs.mutect2ChromRawStats,
+                mutect2ChromRawVcf = mutect2ChromRawVcfInput,
+                #mutect2ChromRawVcf = mutect2ChromRawVcfInput,
+                mutect2ChromRawStats = mutect2ChromRawStats,
                 memoryGb = filterMemoryGb,
                 diskSize = filterDiskSize
         }
@@ -101,7 +124,7 @@ workflow Mutect2 {
     call calling.Gatk4MergeSortVcf as unfilteredGatk4MergeSortVcf {
         input:
             sortedVcfPath = "~{pairName}.mutect2.unfiltered.sorted.vcf",
-            tempChromVcfs = Mutect2Wgs.mutect2ChromRawVcf,
+            tempChromVcfs = mutect2ChromRawVcfInput,
             referenceFa = referenceFa,
             memoryGb = 8,
             diskSize = 10

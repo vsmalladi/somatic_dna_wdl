@@ -133,8 +133,8 @@ workflow MergeCallers {
         call mergeVcf.RenameVcf {
             input:
                 pairName = pairName,
-                tumor = tumor,
-                normal = normal,
+                tumorId = tumor,
+                normalId = normal,
                 tool = "lancet",
                 prepCallerVcf = MergePrepSupport.prepCallerVcf
         }
@@ -207,8 +207,8 @@ workflow MergeCallers {
         call mergeVcf.MergeColumns {
             input:
                 chrom = chrom,
-                tumor = tumor,
-                normal = normal,
+                tumorId = tumor,
+                normalId = normal,
                 pairName = pairName,
                 supportedChromVcf = lancetMergeCallers.mergedChromVcf
         }

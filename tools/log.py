@@ -8,7 +8,8 @@ class Log():
     def __init__(self,
                  project_data, 
                  uuid, 
-                 inputs):
+                 inputs,
+                 file_out):
         self.project_data_file = project_data
         self.uuid = uuid
         self.input_files = inputs
@@ -22,17 +23,16 @@ class Log():
             for key in input:
                 self.inputs[key] = input[key]
         self.run_info['inputs'] = self.inputs
-        self.write()
+        self.write(file_out=file_out)
         
     def load_json(self, file):
         with open(file) as input:
             inputs = json.load(input)
             return inputs
 
-    def write(self):
+    def write(self, file_out):
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
         self.run_info['project_data']['run_date'] = timestamp
-        file_out = os.path.basename(self.project_data_file).replace('_projectInfo.json', '') + '.' +  timestamp + '.RunInfo.json'
         with open(file_out, 'w') as input_info_file:
             json.dump(self.run_info, input_info_file, indent=4)
         
@@ -55,9 +55,13 @@ def get_args():
                         required=True,
                         nargs='+'
                         )
+    parser.add_argument('--file-out',
+                        help='JSON file(s) with outputs from cromwell run',
+                        required=True,
+                        )
     args_namespace = parser.parse_args()
     return args_namespace.__dict__
         
 if __name__ == "__main__":
     args = get_args()
-    Log(args['project_data'], args['uuid'], args['inputs'])    
+    Log(args['project_data'], args['uuid'], args['inputs'], args['file_out'])

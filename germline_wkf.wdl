@@ -92,6 +92,7 @@ workflow GermlineAll {
             input:
                 finalBam = normalSampleBamInfo.finalBam.bam,
                 finalBai = normalSampleBamInfo.finalBam.bamIndex,
+                referenceFa = referenceFa,
                 diskSize = basicDiskSize
         }
         

@@ -155,6 +155,11 @@ DESCRIPTION: validate workflow, create input json and submit workflow to cromwel
   --options OPTIONS     Options json file for cromwell (required)
   --wdl-file WDL_FILE   WDL workflow. An input JSON that matches this
                         WDL workflow will be created (required)
+  --file-out FILE_OUT   Output file for project info
+  --custom-inputs-out CUSTOM_INPUTS_OUT
+                        Output file for custom workflow inputs
+  --custom-labels-out CUSTOM_LABELS_OUT
+                        Output file for workflow labels
   --library {WGS,Exome}
                         Sequence library type.
   --genome {Human_GRCh38_full_analysis_set_plus_decoy_hla, Human_GRCh38_tcga}
@@ -206,7 +211,10 @@ cd ${working-dir}
 --library WGS \
 --genome Human_GRCh38_full_analysis_set_plus_decoy_hla \
 --wdl-file somatic_dna_wdl/somatic_wkf.wdl \
---options options.json
+--options options.json \
+--custom-inputs-out ${lab_quote_number}.inputs.json \
+--custom-labels-out ${lab_quote_number}.labels.json \
+--file-out ${lab_quote_number}.projectInfo.json
 ```
 
 

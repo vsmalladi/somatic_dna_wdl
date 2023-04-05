@@ -24,6 +24,7 @@ workflow Reheader {
         
         Bam finalBam
         String sampleId
+        IndexedReference referenceFa
     
     }
 
@@ -34,6 +35,7 @@ workflow Reheader {
         input:
             finalBam = finalBam.bam,
             finalBai = finalBam.bamIndex,
+            referenceFa = referenceFa,
             diskSize = basicDiskSize
     }
     

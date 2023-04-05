@@ -26,17 +26,13 @@ workflow Gridss {
         Int threads = 8
 
         Boolean highMem = false
-        Int preMemoryGb = 32
+        
+        Int preMemoryGb = 60
         Int filterMemoryGb = 32
-        Int? inputTumorDiskSize
-        Int? inputNormalDiskSize
-
     }
-
-    Int defaultTumorDiskSize = ceil(size(tumorFinalBam.bam, "GB") * 3) + 20
-    Int defaultNormalDiskSize = ceil(size(normalFinalBam.bam, "GB") * 3) + 20
-    Int tumorDiskSize = select_first([inputTumorDiskSize, defaultTumorDiskSize])
-    Int normalDiskSize = select_first([inputNormalDiskSize, defaultNormalDiskSize])
+    
+    Int tumorDiskSize = ceil(size(tumorFinalBam.bam, "GB") * 3) + 100
+    Int normalDiskSize = ceil(size(normalFinalBam.bam, "GB") * 3) + 20
 
     call calling.GridssPreprocess as tumorGridssPreprocess {
         input:
@@ -58,12 +54,12 @@ workflow Gridss {
             diskSize = normalDiskSize
     }
 
-    Int lowAssembleMemoryGb = 48
+    Int lowAssembleMemoryGb = 60
     Int lowAssembleDiskSize = ceil( size(tumorFinalBam.bam, "GB") * 1.4 ) + ceil( size(normalFinalBam.bam, "GB")  * 1.4)
 
     if (highMem) {
         Int highAssembleMemoryGb = 100
-        Int highAssembleDiskSize = ceil( size(tumorFinalBam.bam, "GB") * 2 ) + ceil( size(normalFinalBam.bam, "GB")  * 2) + 20
+        Int highAssembleDiskSize = ceil( size(tumorFinalBam.bam, "GB") * 1.4 ) + ceil( size(normalFinalBam.bam, "GB")  * 1.4) + 20
     }
 
     Int assembleMemoryGb = select_first([highAssembleMemoryGb, lowAssembleMemoryGb])
@@ -157,9 +153,7 @@ workflow Gridss {
             diskSize = assembleDiskSize
 
     }
-
-
-    Int filterDiskSize = ceil( size(GridssCalling.gridssUnfilteredVcf, "GB")) + 30
+    
     call calling.FilterNonChroms {
         input:
             diskSize = filterDiskSize,
@@ -168,7 +162,12 @@ workflow Gridss {
             gridssUnfilteredVcf = GridssCalling.gridssUnfilteredVcf,
             listOfChroms = listOfChroms
     }
-
+    
+    Int lowFilterDiskSize = ceil( size(GridssCalling.gridssUnfilteredVcf, "GB")) + 30
+    if (highMem) {
+        Int highFilterDiskSize = ceil( size(GridssCalling.gridssUnfilteredVcf, "GB")) + 60
+    }
+    Int filterDiskSize = select_first([highFilterDiskSize, lowFilterDiskSize])
 
     call calling.GridssFilter {
         input:

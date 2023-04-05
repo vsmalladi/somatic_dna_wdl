@@ -6,6 +6,7 @@ task GetSampleName {
     input {
         File finalBam
         File finalBai
+        IndexedReference referenceFa
         String sampleIdPath = "sampleId.txt"
         Int memoryGb = 1
         Int diskSize
@@ -16,6 +17,7 @@ task GetSampleName {
             /gatk/gatk \
             --java-options "-Xmx~{jvmHeap}m -XX:GCTimeLimit=50 -XX:GCHeapFreeLimit=10" \
             GetSampleName \
+            -R ~{referenceFa.fasta} \
             -I ~{finalBam} \
             --read-index ~{finalBai} \
             -O ~{sampleIdPath}
@@ -38,6 +40,10 @@ task GetSampleName {
         }
         
         finalBai: {
+            localization_optional: true
+        }
+        
+        referenceFa: {
             localization_optional: true
         }
     }
@@ -64,7 +70,7 @@ task UpdateBamSampleName {
         samtools \
         view -H \
         ~{finalBam.bam} \
-        | sed "/^@RG/ s/SM:\S+/SM:~{sampleId}/" \
+        | sed "/^@RG/ s/SM:\S*/SM:~{sampleId}/" \
         > ~{headerPath}
         
         samtools \
@@ -90,8 +96,8 @@ task UpdateBamSampleName {
     runtime {
         docker : "gcr.io/nygc-public/samtools@sha256:32f29fcd7af01b3941e6f93095e8d899741e81b50bcc838329bd8df43e120cc3"
         disks: "local-disk " + diskSize + " LOCAL"
-        memory: memoryGb + " GB"
-        mem: memoryGb + " G"
+        memory: memoryGb + "GB"
+        mem: memoryGb + "G"
         cpu: threads
         cpus: threads
     }
@@ -233,7 +239,7 @@ task MantisRethreshold {
     }
 
     runtime {
-        docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:1b0d465258d8926d8db1deb7991dc23436fce0d4343eb76c10c307c18de4a89e"
+        docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:20a48e2c422a43ce35e197243bda8dbf06c9a7b3175094524f74f8835cce85b6"
     }
 }
 

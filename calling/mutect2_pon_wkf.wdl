@@ -7,13 +7,14 @@ workflow Mutect2Pon {
     # command
     #   run Mutect2 caller
     input {
+        String library
         String tumor
-        Array[String]+ listOfChroms
+        Array[String]+ callerIntervals
+        File invertedIntervalListBed
         IndexedReference referenceFa
-        # Add when Exome are added
-        # Map[String, File] chromBeds
+        # Files for when Exome PONs are added
         Bam tumorFinalBam
-        Int diskSize = ceil( size(tumorFinalBam.bam, "GB")) + 20
+        Int diskSize = 10
         Int memoryGb = 8
         File mutectJsonLog
         File mutectJsonLogFilter
@@ -24,36 +25,53 @@ workflow Mutect2Pon {
     
     Int lowCallMemoryGb = 4
     Int lowFilterMemoryGb = 4
-    Int lowFilterDiskSize = 5
+    Int lowFilterDiskSize = 10
     
     if (highMem) {
         Int highCallMemoryGb = 8
         Int highFilterMemoryGb = 4
-        Int highFilterDiskSize = 10
+        Int highFilterDiskSize = 20
     }
     Int callMemoryGb = select_first([highCallMemoryGb, lowCallMemoryGb])
     Int filterMemoryGb = select_first([highFilterMemoryGb, lowFilterMemoryGb])
     Int filterDiskSize = select_first([highFilterDiskSize, lowFilterDiskSize])
 
-    scatter(chrom in listOfChroms) {
-        call calling.Mutect2WgsPon {
-            input:
-                chrom = chrom,
-                tumor = tumor,
-                referenceFa = referenceFa,
-                tumorFinalBam = tumorFinalBam,
-                memoryGb = callMemoryGb,
-                diskSize = diskSize
+    scatter(callerInterval in callerIntervals) {
+        if (library == 'WGS') {
+            call calling.Mutect2WgsPon {
+                input:
+                    chrom = callerInterval,
+                    tumor = tumor,
+                    referenceFa = referenceFa,
+                    tumorFinalBam = tumorFinalBam,
+                    memoryGb = callMemoryGb,
+                    diskSize = diskSize
+            }
         }
+        
+        if (library == 'Exome') {
+            call calling.Mutect2ExomePon {
+                input:
+                    chrom = callerInterval,
+                    invertedIntervalListBed = invertedIntervalListBed,
+                    tumor = tumor,
+                    referenceFa = referenceFa,
+                    tumorFinalBam = tumorFinalBam,
+                    memoryGb = callMemoryGb,
+                    diskSize = diskSize
+            }
+        }
+        
+        File mutect2ChromRawVcfInput = select_first([Mutect2WgsPon.mutect2ChromRawVcf, Mutect2ExomePon.mutect2ChromRawVcf])
+        File mutect2ChromRawStats = select_first([Mutect2WgsPon.mutect2ChromRawStats, Mutect2ExomePon.mutect2ChromRawStats])
 
         call calling.Mutect2Filter {
             input:
-                chrom = chrom,
+                chrom = callerInterval,
                 pairName = tumor,
                 referenceFa = referenceFa,
-                # mutect2ChromRawVcf = select_first([Mutect2WgsPon.mutect2ChromRawVcf]),
-                mutect2ChromRawStats = Mutect2WgsPon.mutect2ChromRawStats,
-                mutect2ChromRawVcf = Mutect2WgsPon.mutect2ChromRawVcf,
+                mutect2ChromRawStats = mutect2ChromRawStats,
+                mutect2ChromRawVcf = mutect2ChromRawVcfInput,
                 memoryGb = callMemoryGb,
                 diskSize = filterDiskSize
         }

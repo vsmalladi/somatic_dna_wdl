@@ -18,6 +18,8 @@ import "variant_analysis/deconstruct_sigs_wkf.wdl" as deconstructSigs
 import "tasks/bam_cram_conversion.wdl" as cramConversion
 import "tasks/reheader_bam_wkf.wdl" as reheaderBam
 
+import "tasks/utils.wdl" as utils
+
 # ================== COPYRIGHT ================================================
 # New York Genome Center
 # SOFTWARE COPYRIGHT NOTICE AGREEMENT
@@ -34,30 +36,6 @@ import "tasks/reheader_bam_wkf.wdl" as reheaderBam
 #    Minita Shah
 #
 # ================== /COPYRIGHT ===============================================
-
-
-# for wdl version 1.0
-
-task GetIndex {
-    input {
-        String sampleId
-        Array[String] sampleIds
-    }
-
-    command {
-        python /get_index.py \
-        --sample-id ~{sampleId} \
-        --sample-ids ~{sep=' ' sampleIds}
-    }
-
-    output {
-        Int index = read_int(stdout())
-    }
-
-    runtime {
-        docker: "gcr.io/nygc-public/workflow_utils@sha256:40fa18ac3f9d9f3b9f037ec091cb0c2c26ad6c7cb5c32fb16c1c0cf2a5c9caea"
-    }
-}
 
 
 workflow SomaticBamWorkflow {
@@ -80,14 +58,18 @@ workflow SomaticBamWorkflow {
         # calling
         Array[String]+ listOfChromsFull
         Array[String]+ listOfChroms
+        Array[String]+ callerIntervals
         IndexedTable callRegions
         Map[String, File] chromBedsWgs
+        Map[String, File] chromBeds
         File lancetJsonLog
         File mantaJsonLog
         File strelkaJsonLog
         File mutectJsonLog
         File mutectJsonLogFilter
         File configureStrelkaSomaticWorkflow
+        File intervalListBed
+        File invertedIntervalListBed
 
         #   BicSeq2
         Int readLength
@@ -211,8 +193,6 @@ workflow SomaticBamWorkflow {
 
         Boolean createCramBasedObjects = false
 
-        Int? gridssTumorDiskSize = 740
-        Int? gridssNormalDiskSize = 740
         Int gridssPreMemoryGb = 32
         Int gridssFilterMemoryGb = 32
         Boolean gridssHighMem = false
@@ -230,31 +210,65 @@ workflow SomaticBamWorkflow {
             pairInfosJson = write_json(pairInfos)
     }
 
-    scatter(bamInfo in uniqueBams.uniqueBams) {        
+    scatter(bamInfo in uniqueBams.uniqueBams) {
+        String alignmentFilename = basename(bamInfo.finalBam.bam)
+        String cramAlignmentFilename = sub(basename(bamInfo.finalBam.bam), ".bam$", ".cram")
+        if (alignmentFilename == cramAlignmentFilename) {
+            String fileTypeCram = "cram"
+        }
+        if (alignmentFilename != cramAlignmentFilename) {
+            String fileTypeBam = "bam"
+        }
+        String fileType = select_first([fileTypeCram, fileTypeBam])
         
         call reheaderBam.Reheader {
             input:
                 finalBam = bamInfo.finalBam,
+                referenceFa = referenceFa,
                 sampleId = bamInfo.sampleId
         }
         
-        call cramConversion.SamtoolsBamToCram as bamToCram {
-            input:
-                inputBam = Reheader.sampleBamMatched,
-                referenceFa = referenceFa,
-                sampleId = bamInfo.sampleId,
-                diskSize = (ceil(size(Reheader.sampleBamMatched.bam, "GB") * 1.7)) + 20 # 0.7 is estimated cram size
+        if (fileType == "bam") {
+            if (createCramBasedObjects) {
+                call cramConversion.SamtoolsBamToCram as bamToCram {
+                    input:
+                        inputBam = Reheader.sampleBamMatched,
+                        referenceFa = referenceFa,
+                        sampleId = bamInfo.sampleId,
+                        diskSize = (ceil(size(Reheader.sampleBamMatched.bam, "GB") * 1.7)) + 20 # 0.7 is estimated cram size
+                }
+            }
         }
+        
+        String newAlignmentFilename = basename(Reheader.sampleBamMatched.bam)
+        if (alignmentFilename == newAlignmentFilename) {
+            if (fileType == "cram") {
+                Cram renamedFinalCram = object {
+                    cram : Reheader.sampleBamMatched.bam,
+                    cramIndex : Reheader.sampleBamMatched.bamIndex,
+                }
+                call cramConversion.SamtoolsCramToBam as cramToBam {
+                    input:
+                        inputCram = renamedFinalCram,
+                        referenceFa = referenceFa,
+                        sampleId = bamInfo.sampleId,
+                        diskSize = (ceil(size(renamedFinalCram.cram, "GB") * 3)) + 20
+                }
+                Bam inputSampleBamMatch = select_first([cramToBam.bamInfo.finalBam, Reheader.sampleBamMatched])
+            }
+        }
+        
+        Bam inputSampleBamMatched = select_first([inputSampleBamMatch, Reheader.sampleBamMatched])
 
         call qc.ConpairPileup {
             input:
                 markerBedFile = markerBedFile,
                 referenceFa = referenceFa,
-                finalBam = Reheader.sampleBamMatched,
+                finalBam = inputSampleBamMatched,
                 sampleId = bamInfo.sampleId,
                 memoryGb = 4,
                 threads = 1,
-                diskSize = ceil(size(Reheader.sampleBamMatched.bam, "GB"))  + 20
+                diskSize = ceil(size(inputSampleBamMatched.bam, "GB"))  + 20
        }
 
       String uniqueSampleIds = bamInfo.sampleId
@@ -271,7 +285,7 @@ workflow SomaticBamWorkflow {
     scatter (normalSampleBamInfo in normalSampleBamInfos) {
         String normalSampleIds = normalSampleBamInfo.sampleId
         
-        call GetIndex as normalGetIndex {
+        call utils.GetIndex as normalGetIndex {
             input:
                 sampleIds = uniqueSampleIds,
                 sampleId = normalSampleBamInfo.sampleId
@@ -281,14 +295,14 @@ workflow SomaticBamWorkflow {
             input:
                 sampleId = normalSampleBamInfo.sampleId,
                 kouramiReference = kouramiReference,
-                finalBam = Reheader.sampleBamMatched[normalGetIndex.index],
+                finalBam = inputSampleBamMatched[normalGetIndex.index],
                 kouramiFastaGem1Index = kouramiFastaGem1Index,
                 referenceFa = referenceFa
         }
 
         call fastNgsAdmix.FastNgsAdmix as fastNgsAdmixContinental{
             input:
-                normalFinalBam = Reheader.sampleBamMatched[normalGetIndex.index],
+                normalFinalBam = inputSampleBamMatched[normalGetIndex.index],
                 fastNgsAdmixSites = fastNgsAdmixContinentalSites,
                 fastNgsAdmixSitesBin = fastNgsAdmixContinentalSitesBin,
                 fastNgsAdmixSitesIdx = fastNgsAdmixContinentalSitesIdx,
@@ -300,7 +314,7 @@ workflow SomaticBamWorkflow {
 
         call fastNgsAdmix.FastNgsAdmix as fastNgsAdmixPopulation{
             input:
-                normalFinalBam = Reheader.sampleBamMatched[normalGetIndex.index],
+                normalFinalBam = inputSampleBamMatched[normalGetIndex.index],
                 fastNgsAdmixSites = fastNgsAdmixPopulationSites,
                 fastNgsAdmixSitesBin = fastNgsAdmixPopulationSitesBin,
                 fastNgsAdmixSitesIdx = fastNgsAdmixPopulationSitesIdx,
@@ -312,7 +326,7 @@ workflow SomaticBamWorkflow {
 
         call germline.Germline {
             input:
-                finalBam = Reheader.sampleBamMatched[normalGetIndex.index],
+                finalBam = inputSampleBamMatched[normalGetIndex.index],
                 normal = normalSampleBamInfo.sampleId,
                 outputPrefix = normalSampleBamInfo.sampleId,
                 referenceFa = referenceFa,
@@ -405,13 +419,13 @@ workflow SomaticBamWorkflow {
     }
 
     scatter(pairInfo in pairInfos) {
-        call GetIndex as germlineGetIndex {
+        call utils.GetIndex as germlineGetIndex {
             input:
                 sampleIds = normalSampleIds,
                 sampleId = pairInfo.normalId
         }
         
-        call GetIndex as tumorGetIndex {
+        call utils.GetIndex as tumorGetIndex {
             input:
                 sampleIds = uniqueSampleIds,
                 sampleId = pairInfo.tumorId
@@ -422,33 +436,33 @@ workflow SomaticBamWorkflow {
                 referenceFa = referenceFa,
                 pairName = pairInfo.pairId,
                 sampleId = pairInfo.normalId,
-                tumorFinalBam = Reheader.sampleBamMatched[tumorGetIndex.index],
-                normalFinalBam = Reheader.sampleBamMatched[germlineGetIndex.index],
+                tumorFinalBam = inputSampleBamMatched[tumorGetIndex.index],
+                normalFinalBam = inputSampleBamMatched[germlineGetIndex.index],
                 germlineVcf = unFilteredGermlineAnnotate.haplotypecallerAnnotatedVcf[germlineGetIndex.index],
                 listOfChroms = listOfChroms
         }
     }
 
     scatter(pairInfo in pairInfos) {
-        call GetIndex as tumorCallingGetIndex {
+        call utils.GetIndex as tumorCallingGetIndex {
             input:
                 sampleIds = uniqueSampleIds,
                 sampleId = pairInfo.tumorId
         }
 
-        call GetIndex as normalCallingGetIndex {
+        call utils.GetIndex as normalCallingGetIndex {
             input:
                 sampleIds = uniqueSampleIds,
                 sampleId = pairInfo.normalId
         }
 
         # tumor insert size
-        Int tumorDiskSize = ceil(size(Reheader.sampleBamMatched[tumorCallingGetIndex.index].bam, "GB")) + 30
+        Int tumorDiskSize = ceil(size(inputSampleBamMatched[tumorCallingGetIndex.index].bam, "GB")) + 30
 
         call qc.MultipleMetrics as tumorMultipleMetrics {
             input:
                 referenceFa = referenceFa,
-                finalBam = Reheader.sampleBamMatched[tumorCallingGetIndex.index],
+                finalBam = inputSampleBamMatched[tumorCallingGetIndex.index],
                 sampleId = pairInfo.tumorId,
                 diskSize = tumorDiskSize
         }
@@ -459,12 +473,12 @@ workflow SomaticBamWorkflow {
         }
 
         # normal insert size
-        Int normalDiskSize = ceil(size(Reheader.sampleBamMatched[normalCallingGetIndex.index].bam, "GB")) + 30
+        Int normalDiskSize = ceil(size(inputSampleBamMatched[normalCallingGetIndex.index].bam, "GB")) + 30
 
         call qc.MultipleMetrics as normalMultipleMetrics {
             input:
                 referenceFa = referenceFa,
-                finalBam = Reheader.sampleBamMatched[normalCallingGetIndex.index],
+                finalBam = inputSampleBamMatched[normalCallingGetIndex.index],
                 sampleId = pairInfo.normalId,
                 diskSize = normalDiskSize
         }
@@ -486,8 +500,8 @@ workflow SomaticBamWorkflow {
         
         PairInfo callingPairInfo = object {
                 pairId : pairInfo.pairId,
-                tumorFinalBam : Reheader.sampleBamMatched[tumorCallingGetIndex.index],
-                normalFinalBam : Reheader.sampleBamMatched[normalCallingGetIndex.index],
+                tumorFinalBam : inputSampleBamMatched[tumorCallingGetIndex.index],
+                normalFinalBam : inputSampleBamMatched[normalCallingGetIndex.index],
                 tumorId : pairInfo.tumorId,
                 normalId : pairInfo.normalId
             }
@@ -500,6 +514,9 @@ workflow SomaticBamWorkflow {
                 mutectJsonLogFilter = mutectJsonLogFilter,
                 strelkaJsonLog = strelkaJsonLog,
                 configureStrelkaSomaticWorkflow = configureStrelkaSomaticWorkflow,
+                intervalListBed = intervalListBed,
+                callerIntervals = callerIntervals,
+                invertedIntervalListBed = invertedIntervalListBed,
                 pairInfo = callingPairInfo,
                 listOfChroms = listOfChroms,
                 listOfChromsFull = listOfChromsFull,
@@ -518,14 +535,13 @@ workflow SomaticBamWorkflow {
                 bsGenome = bsGenome,
                 ponTarGz = ponTarGz,
                 gridssAdditionalReference = gridssAdditionalReference,
-                gridssTumorDiskSize = gridssTumorDiskSize,
-                gridssNormalDiskSize = gridssNormalDiskSize,
+                chromBeds = chromBeds,
+                library = library,
                 gridssPreMemoryGb = gridssPreMemoryGb,
                 gridssFilterMemoryGb = gridssFilterMemoryGb,
                 gridssHighMem = gridssHighMem,
                 mantaHighMem = mantaHighMem,
                 mutect2HighMem = mutect2HighMem
-
         }
 
         call msi.Msi {
@@ -535,8 +551,8 @@ workflow SomaticBamWorkflow {
                 mantisBed = mantisBed,
                 intervalListBed = intervalListBed,
                 referenceFa = referenceFa,
-                tumorFinalBam = Reheader.sampleBamMatched[tumorCallingGetIndex.index],
-                normalFinalBam = Reheader.sampleBamMatched[normalCallingGetIndex.index]
+                tumorFinalBam = inputSampleBamMatched[tumorCallingGetIndex.index],
+                normalFinalBam = inputSampleBamMatched[normalCallingGetIndex.index]
         }
 
         PreMergedPairVcfInfo preMergedPairVcfInfo = object {
@@ -548,8 +564,8 @@ workflow SomaticBamWorkflow {
             lancet : Calling.lancet,
             tumor : pairInfo.tumorId,
             normal : pairInfo.normalId,
-            tumorFinalBam : Reheader.sampleBamMatched[tumorCallingGetIndex.index],
-            normalFinalBam : Reheader.sampleBamMatched[normalCallingGetIndex.index]
+            tumorFinalBam : inputSampleBamMatched[tumorCallingGetIndex.index],
+            normalFinalBam : inputSampleBamMatched[normalCallingGetIndex.index]
 
         }
 
@@ -565,8 +581,8 @@ workflow SomaticBamWorkflow {
             bicseq2 : Calling.bicseq2,
             tumor : pairInfo.tumorId,
             normal : pairInfo.normalId,
-            tumorFinalBam : Reheader.sampleBamMatched[tumorCallingGetIndex.index],
-            normalFinalBam : Reheader.sampleBamMatched[normalCallingGetIndex.index]
+            tumorFinalBam : inputSampleBamMatched[tumorCallingGetIndex.index],
+            normalFinalBam : inputSampleBamMatched[normalCallingGetIndex.index]
 
         }
 
@@ -574,6 +590,7 @@ workflow SomaticBamWorkflow {
             call mergeVcf.MergeVcf as wgsMergeVcf {
                 input:
                     external = external,
+                    library = library,
                     preMergedPairVcfInfo = preMergedPairVcfInfo,
                     referenceFa = referenceFa,
                     listOfChroms = listOfChroms,
@@ -588,6 +605,7 @@ workflow SomaticBamWorkflow {
             call mergeVcf.MergeVcf as exomeMergeVcf {
                 input:
                     external = external,
+                    library = library,
                     preMergedPairVcfInfo = preMergedPairVcfInfo,
                     referenceFa = referenceFa,
                     listOfChroms = listOfChroms,
@@ -724,6 +742,6 @@ workflow SomaticBamWorkflow {
         Array[File] pileupsConpair = ConpairPileup.pileupsConpair
 
         # Cram
-         Array[SampleCramInfo] crams = bamToCram.cramInfo
+         Array[SampleCramInfo?] crams = bamToCram.cramInfo
     }
 }

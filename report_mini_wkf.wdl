@@ -2,6 +2,7 @@ version 1.0
 
 import "test/report_mini_wkf.wdl" as reports
 import "test/tests.wdl" as tests
+import "tasks/utils.wdl" as utils
 import "wdl_structs.wdl"
 
 # ================== COPYRIGHT ================================================
@@ -13,35 +14,16 @@ import "wdl_structs.wdl"
 # cannot be responsible for its use, misuse, or functionality.
 #
 #    Jennifer M Shelton (jshelton@nygenome.org)
+#    James Roche (jroche@nygenome.org)
 #    Nico Robine (nrobine@nygenome.org)
-#    Minita Shah (mshah@nygenome.org)
 #    Timothy Chu (tchu@nygenome.org)
 #    Will Hooper (whooper@nygenome.org)
+#    Minita Shah
 #
 # ================== /COPYRIGHT ===============================================
 
 # for wdl version 1.0
 
-task GetIndex {
-    input {
-        String sampleId
-        Array[String] sampleIds
-    }
-
-    command {
-        python /get_index.py \
-        --sample-id ~{sampleId} \
-        --sample-ids ~{sep=' ' sampleIds}
-    }
-
-    output {
-        Int index = read_int(stdout())
-    }
-
-    runtime {
-        docker: "gcr.io/nygc-public/workflow_utils@sha256:40fa18ac3f9d9f3b9f037ec091cb0c2c26ad6c7cb5c32fb16c1c0cf2a5c9caea"
-    }
-}
 
 workflow PipelineReports {
     input {

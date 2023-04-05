@@ -10,6 +10,7 @@ import "annotate/annotate_wkf.wdl" as annotate
 import "variant_analysis/deconstruct_sigs_wkf.wdl" as deconstructSigs
 import "tasks/bam_cram_conversion.wdl" as cramConversion
 import "tasks/reheader_bam_wkf.wdl" as reheaderBam
+import "tasks/utils.wdl" as utils
 
 # ================== COPYRIGHT ================================================
 # New York Genome Center
@@ -29,33 +30,10 @@ import "tasks/reheader_bam_wkf.wdl" as reheaderBam
 # ================== /COPYRIGHT ===============================================
 
 
-# for wdl version 1.0
-
-task GetIndex {
-    input {
-        String sampleId
-        Array[String] sampleIds
-    }
-
-    command {
-        python /get_index.py \
-        --sample-id ~{sampleId} \
-        --sample-ids ~{sep=' ' sampleIds}
-    }
-
-    output {
-        Int index = read_int(stdout())
-    }
-
-    runtime {
-        docker: "gcr.io/nygc-public/workflow_utils@sha256:40fa18ac3f9d9f3b9f037ec091cb0c2c26ad6c7cb5c32fb16c1c0cf2a5c9caea"
-    }
-}
-
-
 workflow SomaticBamWorkflow {
     input {
         Boolean external = false
+        String library
 
         BwaReference bwaReference
         IndexedReference referenceFa
@@ -71,17 +49,17 @@ workflow SomaticBamWorkflow {
         # calling
         Array[String]+ listOfChromsFull
         Array[String]+ listOfChroms
+        Array[String]+ callerIntervals
+        File invertedIntervalListBed
         IndexedTable callRegions
         Map[String, File] chromBedsWgs
+        Map[String, File] chromBeds
         File lancetJsonLog
         File mantaJsonLog
         File strelkaJsonLog
         File mutectJsonLog
         File mutectJsonLogFilter
         File configureStrelkaSomaticWorkflow
-
-
-        # merge callers
         File intervalListBed
 
         String library
@@ -161,6 +139,7 @@ workflow SomaticBamWorkflow {
         call reheaderBam.Reheader {
             input:
                 finalBam = bamInfo.finalBam,
+                referenceFa = referenceFa,
                 sampleId = bamInfo.sampleId
         }
         
@@ -169,13 +148,13 @@ workflow SomaticBamWorkflow {
 
     scatter(pairInfo in pairInfos) {
     
-        call GetIndex as normalGetIndex {
+        call utils.GetIndex as normalGetIndex {
             input:
                 sampleIds = uniqueSampleIds,
                 sampleId = pairInfo.normalId
         }
         
-        call GetIndex as tumorGetIndex {
+        call utils.GetIndex as tumorGetIndex {
             input:
                 sampleIds = uniqueSampleIds,
                 sampleId = pairInfo.tumorId
@@ -197,6 +176,9 @@ workflow SomaticBamWorkflow {
                 mutectJsonLogFilter = mutectJsonLogFilter,
                 strelkaJsonLog = strelkaJsonLog,
                 configureStrelkaSomaticWorkflow = configureStrelkaSomaticWorkflow,
+                intervalListBed = intervalListBed,
+                callerIntervals = callerIntervals,
+                invertedIntervalListBed = invertedIntervalListBed,
                 pairInfo = callingPairInfo,
                 listOfChroms = listOfChroms,
                 listOfChromsFull = listOfChromsFull,
@@ -204,7 +186,9 @@ workflow SomaticBamWorkflow {
                 callRegions = callRegions,
                 bwaReference = bwaReference,
                 chromBedsWgs = chromBedsWgs,
-                highMem = highMem
+                chromBeds = chromBeds,
+                highMem = highMem,
+                library = library
         }
 
         call msi.Msi {
@@ -217,10 +201,19 @@ workflow SomaticBamWorkflow {
                 tumorFinalBam = Reheader.sampleBamMatched[tumorGetIndex.index],
                 normalFinalBam = Reheader.sampleBamMatched[normalGetIndex.index]
         }
+        
+        if (library == 'Exome') {
+            call utils.CreateBlankFile as createVcf {
+                input:
+                    fileId = "~{pairInfo.pairId}_nonVcfFile_"
+            }
+        }
+        
+        File filteredMantaSVFinal = select_first([Calling.filteredMantaSV, createVcf.blankFile])
 
         PreMergedPairVcfInfo preMergedPairVcfInfo = object {
             pairId : pairInfo.pairId,
-            filteredMantaSV : Calling.filteredMantaSV,
+            filteredMantaSV : filteredMantaSVFinal,
             strelka2Snv : Calling.strelka2Snv,
             strelka2Indel : Calling.strelka2Indel,
             mutect2 : Calling.mutect2,
@@ -232,36 +225,36 @@ workflow SomaticBamWorkflow {
 
         }
 
-        if (library == 'WGS') {
-            call mergeVcf.MergeVcf as wgsMergeVcf {
-                input:
-                    external = external,
-                    preMergedPairVcfInfo = preMergedPairVcfInfo,
-                    referenceFa = referenceFa,
-                    listOfChroms = listOfChroms,
-                    intervalListBed = intervalListBed,
-                    ponFile = ponWGSFile,
-                    germFile = germFile
-
-            }
-        }
-
         if (library == 'Exome') {
-            call mergeVcf.MergeVcf as exomeMergeVcf {
+            call mergeVcf.MergeVcf as MergeVcfExome {
                 input:
                     external = external,
+                    library = library,
                     preMergedPairVcfInfo = preMergedPairVcfInfo,
                     referenceFa = referenceFa,
                     listOfChroms = listOfChroms,
                     intervalListBed = intervalListBed,
                     ponFile = ponExomeFile,
                     germFile = germFile
-
+            }
+        }
+        
+        if (library == 'WGS') {
+            call mergeVcf.MergeVcf as MergeVcfWgs {
+                input:
+                    external = external,
+                    library = library,
+                    preMergedPairVcfInfo = preMergedPairVcfInfo,
+                    referenceFa = referenceFa,
+                    listOfChroms = listOfChroms,
+                    intervalListBed = intervalListBed,
+                    ponFile = ponWGSFile,
+                    germFile = germFile
             }
         }
 
-        File mergedVcf = select_first([wgsMergeVcf.mergedVcf, exomeMergeVcf.mergedVcf])
-
+        File mergedVcf = select_first([MergeVcfExome.mergedVcf, MergeVcfWgs.mergedVcf])
+        
         call annotate.Annotate {
             input:
                 unannotatedVcf = mergedVcf,
@@ -316,7 +309,7 @@ workflow SomaticBamWorkflow {
         Array[File] mainVcf = runMainVcf
         Array[File] supplementalVcf = runSupplementalVcf
         Array[File] vcfAnnotatedTxt = runVcfAnnotatedTxt
-        Array[File] filteredMantaSV = Calling.filteredMantaSV
+        Array[File?] filteredMantaSV = Calling.filteredMantaSV
         Array[File] strelka2Snv = Calling.strelka2Snv
         Array[File] strelka2Indel = Calling.strelka2Indel
         Array[File] mutect2 = Calling.mutect2

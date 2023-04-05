@@ -26,58 +26,6 @@ task GetInsertSize {
     }
 }
 
-task Gatk4MergeSortCompressVcf {
-    input {
-        Int diskSize = 10
-        Int memoryGb = 8
-        String sortedVcfPath
-        Array[File] tempChromVcfs
-        IndexedReference referenceFa
-    }
-
-    Int jvmHeap = memoryGb * 750  # Heap size in Megabytes. mem is in GB. (75% of mem)
-
-    command {
-        gatk \
-        SortVcf \
-        --java-options "-Xmx~{jvmHeap}m -XX:ParallelGCThreads=4" \
-        -SD ~{referenceFa.dict} \
-        -I ~{sep=" -I " tempChromVcfs} \
-        -O ~{sortedVcfPath}
-    }
-
-    output {
-        IndexedVcf sortedIndexedVcf = object {
-                vcf : "~{sortedVcfPath}",
-                index : "~{sortedVcfPath}.tbi"
-            }
-    }
-
-    parameter_meta {
-        sortedVcfPath: {
-            description: "Output VCF filename for file in compressed format. Must end in .gz. Corresponding index file will end in .tbi",
-            category: "other"
-        }
-
-        tempChromVcfs: {
-            description: "Input VCF filenames",
-            category: "required"
-        }
-
-        referenceFa: {
-            description: "Fasta object (the dictionary will be used to order the final VCF)",
-            category: "required"
-        }
-    }
-
-    runtime {
-        mem: memoryGb + "G"
-        disks: "local-disk " + diskSize + " HDD"
-        memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/broadinstitute/gatk4@sha256:b3bde7bc74ab00ddce342bd511a9797007aaf3d22b9cfd7b52f416c893c3774c"
-    }
-}
-
 task Gatk4MergeSortVcf {
     input {
         Int diskSize = 10
@@ -164,7 +112,7 @@ task AddCommandReorderColumnsVcf {
         mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:1b0d465258d8926d8db1deb7991dc23436fce0d4343eb76c10c307c18de4a89e"
+        docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:20a48e2c422a43ce35e197243bda8dbf06c9a7b3175094524f74f8835cce85b6"
     }
 }
 
@@ -194,7 +142,7 @@ task ReorderVcfColumns {
         mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:1b0d465258d8926d8db1deb7991dc23436fce0d4343eb76c10c307c18de4a89e"
+        docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:20a48e2c422a43ce35e197243bda8dbf06c9a7b3175094524f74f8835cce85b6"
     }
 }
 
@@ -223,7 +171,7 @@ task AddVcfCommand {
         mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:1b0d465258d8926d8db1deb7991dc23436fce0d4343eb76c10c307c18de4a89e"
+        docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:20a48e2c422a43ce35e197243bda8dbf06c9a7b3175094524f74f8835cce85b6"
     }
 }
 
@@ -283,7 +231,7 @@ task MantaWgs {
         mem: memoryGb + "G"
         cpus: threads
         cpu : threads
-        disks: "local-disk " + diskSize + " LOCAL"
+        disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/manta@sha256:e171112cccf6758693b7a8aab80000fe6121d6969ce83e14a4e15fbc5f2f3662"
     }
@@ -383,10 +331,11 @@ task FilterNonpassPon {
         IndexedVcf vcf
     }
 
+    Int jvmHeap = memoryGb * 750  # Heap size in Megabytes. mem is in GB. (75% of mem)
     command {
         gatk \
         SelectVariants \
-        --java-options "-XX:ParallelGCThreads=4" \
+        --java-options "-Xmx~{jvmHeap}m -XX:ParallelGCThreads=4" \
         -R ~{referenceFa.fasta} \
         -V ~{vcf.vcf} \
         -O ~{outVcfPath} \
@@ -457,11 +406,106 @@ task Strelka2 {
         mem: memoryGb + "G"
         cpus: threads
         cpu : threads
-        disks: "local-disk " + diskSize + " LOCAL"
+        disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/strelka@sha256:eb71db1fbe25d67c025251823ae5d5e9dbf5a6861a98298b47ecd722dfa5bd14"
     }
 }
+
+task Strelka2Exome {
+    input {
+        Int threads
+        Int memoryGb
+        Int diskSize
+        String pairName
+        String intHVmem = "unlimited"
+        IndexedReference referenceFa
+        Bam normalFinalBam
+        IndexedTable callRegions
+        Bam tumorFinalBam
+        File configureStrelkaSomaticWorkflow
+    }
+
+    command {
+        set -e -o pipefail
+
+        mkdir ~{pairName}.Strelka2Raw
+
+        configureStrelkaSomaticWorkflow.py \
+        --normalBam ~{normalFinalBam.bam} \
+        --tumorBam ~{tumorFinalBam.bam} \
+        --referenceFasta ~{referenceFa.fasta} \
+        --callRegions ~{callRegions.table} \
+        --config ~{configureStrelkaSomaticWorkflow} \
+        --runDir ~{pairName}.Strelka2Raw \
+        --exome
+
+        "~{pairName}.Strelka2Raw/runWorkflow.py" \
+        --mode local \
+        --job ~{threads} \
+        --memGb ~{intHVmem}
+    }
+
+    output {
+        IndexedVcf strelka2Snvs = object {
+                vcf : "~{pairName}.Strelka2Raw/results/variants/somatic.snvs.vcf.gz",
+                index : "~{pairName}.Strelka2Raw/results/variants/somatic.snvs.vcf.gz.tbi"
+            }
+        IndexedVcf strelka2Indels = object {
+                vcf : "~{pairName}.Strelka2Raw/results/variants/somatic.indels.vcf.gz",
+                index : "~{pairName}.Strelka2Raw/results/variants/somatic.indels.vcf.gz.tbi"
+            }
+    }
+
+    runtime {
+        mem: memoryGb + "G"
+        cpus: threads
+        cpu : threads
+        disks: "local-disk " + diskSize + " HDD"
+        memory : memoryGb + "GB"
+        docker : "gcr.io/nygc-public/strelka@sha256:eb71db1fbe25d67c025251823ae5d5e9dbf5a6861a98298b47ecd722dfa5bd14"
+    }
+}
+
+task SelectVariants {
+    input {
+        Int threads = 4
+        Int memoryGb = 8
+        Int diskSize
+        String pairName
+        String outVcfPath = "~{pairName}.selected.vcf"
+        IndexedReference referenceFa
+        File intervalListBed
+        File vcf
+        Int padding = 200
+    }
+
+    Int jvmHeap = memoryGb * 750  # Heap size in Megabytes. mem is in GB. (75% of mem)
+    command {
+        gatk \
+        SelectVariants \
+        --java-options "-Xmx~{jvmHeap}m -XX:ParallelGCThreads=4" \
+        -R ~{referenceFa.fasta} \
+        -V ~{vcf} \
+        -O ~{outVcfPath} \
+        --intervals ~{intervalListBed} \
+        --interval-padding ~{padding}
+    }
+
+    output {
+        File outVcf = "~{outVcfPath}"
+    }
+
+    runtime {
+        mem: memoryGb + "G"
+        cpus: threads
+        cpu : threads
+        disks: "local-disk " + diskSize + " HDD"
+        memory : memoryGb + "GB"
+        docker : "gcr.io/nygc-public/broadinstitute/gatk4@sha256:b3bde7bc74ab00ddce342bd511a9797007aaf3d22b9cfd7b52f416c893c3774c"
+    }
+}
+
 
 task LancetWGSRegional {
     input {
@@ -501,7 +545,7 @@ task LancetWGSRegional {
         mem: memoryGb + "G"
         cpus: threads
         cpu : threads
-        disks: "local-disk " + diskSize + " LOCAL"
+        disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/lancet@sha256:25169d34b41de9564e03f02ebcbfb4655cf536449592b0bd58773195f9376e61"
     }
@@ -545,7 +589,7 @@ task LancetExome {
         mem: memoryGb + "G"
         cpus: threads
         cpu : threads
-        disks: "local-disk " + diskSize + " LOCAL"
+        disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/lancet@sha256:25169d34b41de9564e03f02ebcbfb4655cf536449592b0bd58773195f9376e61"
     }
@@ -590,9 +634,97 @@ task Mutect2Wgs {
         mem: memoryGb + "G"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/broadinstitute/gatk4@sha256:b3bde7bc74ab00ddce342bd511a9797007aaf3d22b9cfd7b52f416c893c3774c"
-        disks: "local-disk " + diskSize + " LOCAL"
+        disks: "local-disk " + diskSize + " HDD"
+    }
+    
+    parameter_meta {
+        tumorFinalBam: {
+            description: "Input tumor BAM",
+            category: "required",
+            localization_optional: true
+        }
+        
+        normalFinalBam: {
+            description: "Input normal BAM",
+            category: "required",
+            localization_optional: true
+        }
+        
+        referenceFa: {
+            description: "Fasta object (the dictionary will be used to order the final VCF)",
+            category: "required",
+            localization_optional: true
+        }
     }
 }
+
+task Mutect2Exome {
+    input {
+        Int memoryGb = 4
+        Int diskSize
+        String chrom
+        String tumor
+        String normal
+        String pairName
+        String mutect2ChromRawVcfPath = "~{pairName}_~{chrom}.mutect2.raw.vcf"
+        String mutect2ChromRawStatsPath = "~{pairName}_~{chrom}.mutect2.raw.vcf.stats"
+        IndexedReference referenceFa
+        Bam normalFinalBam
+        Bam tumorFinalBam
+        Int padding = 200
+        File invertedIntervalListBed
+    }
+
+    Int jvmHeap = memoryGb * 750  # Heap size in Megabytes. mem is in GB. (75% of mem)
+
+    command {
+        gatk \
+        Mutect2 \
+        --java-options "-Xmx~{jvmHeap}m -XX:ParallelGCThreads=4" \
+        --reference ~{referenceFa.fasta} \
+        --intervals ~{chrom} \
+        --interval-padding ~{padding} \
+        --exclude-intervals ~{invertedIntervalListBed} \
+        -I ~{tumorFinalBam.bam} \
+        -I ~{normalFinalBam.bam} \
+        -tumor ~{tumor} \
+        -normal ~{normal} \
+        -O ~{mutect2ChromRawVcfPath}
+    }
+
+    output {
+        File mutect2ChromRawVcf = "~{mutect2ChromRawVcfPath}"
+        File mutect2ChromRawStats = "~{mutect2ChromRawStatsPath}"
+    }
+
+    runtime {
+        mem: memoryGb + "G"
+        memory : memoryGb + "GB"
+        docker : "gcr.io/nygc-public/broadinstitute/gatk4@sha256:b3bde7bc74ab00ddce342bd511a9797007aaf3d22b9cfd7b52f416c893c3774c"
+        disks: "local-disk " + diskSize + " HDD"
+    }
+    
+    parameter_meta {
+        tumorFinalBam: {
+            description: "Input tumor BAM",
+            category: "required",
+            localization_optional: true
+        }
+        
+        normalFinalBam: {
+            description: "Input normal BAM",
+            category: "required",
+            localization_optional: true
+        }
+        
+        referenceFa: {
+            description: "Fasta object (the dictionary will be used to order the final VCF)",
+            category: "required",
+            localization_optional: true
+        }
+    }
+}
+
 
 task Mutect2WgsPon {
     input {
@@ -628,6 +760,74 @@ task Mutect2WgsPon {
         docker : "gcr.io/nygc-public/broadinstitute/gatk4@sha256:b3bde7bc74ab00ddce342bd511a9797007aaf3d22b9cfd7b52f416c893c3774c"
         disks: "local-disk " + diskSize + " HDD"
     }
+    
+    parameter_meta {
+        tumorFinalBam: {
+            description: "Input tumor BAM",
+            category: "required",
+            localization_optional: true
+        }
+        
+        referenceFa: {
+            description: "Fasta object (the dictionary will be used to order the final VCF)",
+            category: "required",
+            localization_optional: true
+        }
+    }
+}
+
+task Mutect2ExomePon {
+    input {
+        Int memoryGb = 4
+        Int diskSize
+        String chrom
+        String tumor
+        String mutect2ChromRawStatsPath = "~{tumor}_~{chrom}.mutect2.raw.vcf.stats"
+        String mutect2ChromRawVcfPath = "~{tumor}_~{chrom}.mutect2.raw.vcf"
+        IndexedReference referenceFa
+        Bam tumorFinalBam
+        File invertedIntervalListBed
+        Int padding = 200
+    }
+
+    command {
+        gatk \
+        Mutect2 \
+        --java-options "-XX:ParallelGCThreads=4" \
+        --reference ~{referenceFa.fasta} \
+        --intervals ~{chrom} \
+        --interval-padding ~{padding} \
+        --exclude-intervals ~{invertedIntervalListBed} \
+        -I ~{tumorFinalBam.bam} \
+        -tumor ~{tumor} \
+        -O ~{mutect2ChromRawVcfPath}
+    }
+
+    output {
+        File mutect2ChromRawVcf = "~{mutect2ChromRawVcfPath}"
+        File mutect2ChromRawStats = "~{mutect2ChromRawStatsPath}"
+    }
+
+    runtime {
+        mem: memoryGb + "G"
+        memory : memoryGb + "GB"
+        docker : "gcr.io/nygc-public/broadinstitute/gatk4@sha256:b3bde7bc74ab00ddce342bd511a9797007aaf3d22b9cfd7b52f416c893c3774c"
+        disks: "local-disk " + diskSize + " HDD"
+    }
+    
+    parameter_meta {
+        tumorFinalBam: {
+            description: "Input tumor BAM",
+            category: "required",
+            localization_optional: true
+        }
+        
+        referenceFa: {
+            description: "Fasta object (the dictionary will be used to order the final VCF)",
+            category: "required",
+            localization_optional: true
+        }
+    }
 }
 
 task Mutect2Filter {
@@ -662,6 +862,15 @@ task Mutect2Filter {
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/broadinstitute/gatk4@sha256:b3bde7bc74ab00ddce342bd511a9797007aaf3d22b9cfd7b52f416c893c3774c"
         disks: "local-disk " + diskSize + " HDD"
+    }
+    
+    parameter_meta {
+
+        referenceFa: {
+            description: "Fasta object (the dictionary will be used to order the final VCF)",
+            category: "required",
+            localization_optional: false
+        }
     }
 }
 
@@ -703,7 +912,7 @@ task SvabaWgs {
         mem: memoryGb + "G"
         cpus: threads
         cpu : threads
-        disks: "local-disk " + diskSize + " LOCAL"
+        disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/svaba@sha256:48f6bd86e933ca88fd74d8effc66e93eee5b40945ee37612b80d7edaadc567f3"
         preemptible: preemptible
@@ -737,7 +946,7 @@ task PopulateCache {
 
     runtime {
         mem: memoryGb + "G"
-        disks: "local-disk " + diskSize + " LOCAL"
+        disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/samtools@sha256:e1149e965e8379f4a75b120d832b84e87dbb97bd5510ed581113400f768e5940"
     }
@@ -775,7 +984,7 @@ task SvabaIndex {
 
     runtime {
         mem: memoryGb + "G"
-        disks: "local-disk " + diskSize + " LOCAL"
+        disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/svaba@sha256:48f6bd86e933ca88fd74d8effc66e93eee5b40945ee37612b80d7edaadc567f3"
     }
@@ -953,7 +1162,7 @@ task UniqReads {
 
     runtime {
         mem: memoryGb + "G"
-        disks: "local-disk " + diskSize + " LOCAL"
+        disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/bicseq2@sha256:3d110b672df0385f761fb64fcf63e98685e6d810c5560043efed5ab94961f3a9"
     }
@@ -1011,7 +1220,7 @@ task Bicseq2Norm {
 
     runtime {
         mem: memoryGb + "G"
-        disks: "local-disk " + diskSize + " LOCAL"
+        disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/bicseq2@sha256:3d110b672df0385f761fb64fcf63e98685e6d810c5560043efed5ab94961f3a9"
     }
@@ -1062,7 +1271,7 @@ task Bicseq2Wgs {
 
     runtime {
         mem: memoryGb + "G"
-        disks: "local-disk " + diskSize + " LOCAL"
+        disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/bicseq2@sha256:3d110b672df0385f761fb64fcf63e98685e6d810c5560043efed5ab94961f3a9"
     }
@@ -1123,10 +1332,10 @@ task GridssPreprocess {
     runtime {
         mem: memoryGb + "G"
         cpus: threads
-        disks: "local-disk " + diskSize + " LOCAL"
+        disks: "local-disk " + diskSize + " HDD"
         cpu : threads
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/gridss@sha256:bf4a0367accd33911a5658491e42e5ee52440cd196ea96e538511e88a71dee1f"
+        docker : "gcr.io/nygc-public/gridss@sha256:881fc36138ef58103526dc05643bfb7ca5a6a4de346f04a19e02231a89d24dc6"
     }
 }
 
@@ -1200,10 +1409,10 @@ task GridssAssembleChunk {
     runtime {
         mem: memoryGb + "G"
         cpus: threads
-        disks: "local-disk " + diskSize + " LOCAL"
+        disks: "local-disk " + diskSize + " HDD"
         cpu : threads
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/gridss@sha256:bf4a0367accd33911a5658491e42e5ee52440cd196ea96e538511e88a71dee1f"
+        docker : "gcr.io/nygc-public/gridss@sha256:881fc36138ef58103526dc05643bfb7ca5a6a4de346f04a19e02231a89d24dc6"
     }
 }
 
@@ -1285,10 +1494,10 @@ task GridssAssemble {
     runtime {
         mem: memoryGb + "G"
         cpus: threads
-        disks: "local-disk " + diskSize + " LOCAL"
+        disks: "local-disk " + diskSize + " HDD"
         cpu : threads
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/gridss@sha256:bf4a0367accd33911a5658491e42e5ee52440cd196ea96e538511e88a71dee1f"
+        docker : "gcr.io/nygc-public/gridss@sha256:881fc36138ef58103526dc05643bfb7ca5a6a4de346f04a19e02231a89d24dc6"
     }
 }
 
@@ -1380,10 +1589,10 @@ task GridssCalling {
     runtime {
         mem: memoryGb + "G"
         cpus: threads
-        disks: "local-disk " + diskSize + " LOCAL"
+        disks: "local-disk " + diskSize + " HDD"
         cpu : threads
         memory : memoryGb + "GB"
-        docker: "gcr.io/nygc-public/gridss@sha256:bf4a0367accd33911a5658491e42e5ee52440cd196ea96e538511e88a71dee1f"
+        docker: "gcr.io/nygc-public/gridss@sha256:881fc36138ef58103526dc05643bfb7ca5a6a4de346f04a19e02231a89d24dc6"
     }
 }
 
@@ -1412,7 +1621,7 @@ task FilterNonChroms {
     runtime {
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:1b0d465258d8926d8db1deb7991dc23436fce0d4343eb76c10c307c18de4a89e"
+        docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:20a48e2c422a43ce35e197243bda8dbf06c9a7b3175094524f74f8835cce85b6"
     }
 }
 
@@ -1461,6 +1670,6 @@ task GridssFilter {
         disks: "local-disk " + diskSize + " HDD"
         cpu : threads
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/gridss@sha256:bf4a0367accd33911a5658491e42e5ee52440cd196ea96e538511e88a71dee1f"
+        docker : "gcr.io/nygc-public/gridss@sha256:881fc36138ef58103526dc05643bfb7ca5a6a4de346f04a19e02231a89d24dc6"
     }
 }

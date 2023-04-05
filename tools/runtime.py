@@ -688,7 +688,10 @@ class Runtime():
                     .to_dataframe(bqstorage_client=self.bqstorageclient)
                 )
                 metrics_dfs.append(metrics)
-            self.metrics = pd.concat(metrics_dfs)
+            if len(metrics_dfs) > 0:
+                self.metrics = pd.concat(metrics_dfs)
+            else:
+                self.metrics = pd.DataFrame({})
         log.info('Done loading Metrics')
                 
     def id_matches(self, identifier, id):

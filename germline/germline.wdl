@@ -52,6 +52,20 @@ task haplotypeCallerGatk4 {
         disks: "local-disk " + diskSize + " HDD"
         docker: "gcr.io/nygc-public/broadinstitute/gatk4@sha256:b3bde7bc74ab00ddce342bd511a9797007aaf3d22b9cfd7b52f416c893c3774c"
     }
+    
+    parameter_meta {
+        finalBam: {
+            description: "Input normal BAM",
+            category: "required",
+            localization_optional: true
+        }
+        
+        referenceFa: {
+            description: "Fasta object (the dictionary will be used to order the final VCF)",
+            category: "required",
+            localization_optional: true
+        }
+    }
 }
 
 task GentotypeGvcfsGatk4 {

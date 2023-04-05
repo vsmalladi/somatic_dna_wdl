@@ -6,14 +6,12 @@ import "merge_vcf.wdl" as merge_vcf
 import "../wdl_structs.wdl"
 
 
-workflow MergeVcfPonWgs {
+workflow MergeVcfPonExome {
     # command
     #   Call variants in BAMs
     #   merge and filter raw VCFs
     #   annotate
     input {
-        
-        File filteredMantaSV 
         File mutect2
         String tumor
         
@@ -23,16 +21,6 @@ workflow MergeVcfPonWgs {
         # Script
         File renameVcfPon
         File mergeColumnsPon
-    }
-    
-    call prepMergeVcfPon.PrepMergeVcfPon as filteredMantaSVPrepMergeVcfPon {
-        input:
-            callerVcf=filteredMantaSV,
-            tumor=tumor,
-            tool='manta',
-            renameVcfPon = renameVcfPon,
-            referenceFa=referenceFa
-            
     }
     
     call prepMergeVcfPon.PrepMergeVcfPon as mutect2PrepMergeVcfPon {
@@ -45,9 +33,9 @@ workflow MergeVcfPonWgs {
             
     }
     
-    Array[IndexedVcf] allVcfCompressed = [filteredMantaSVPrepMergeVcfPon.preppedVcf, mutect2PrepMergeVcfPon.preppedVcf]
+    Array[IndexedVcf] allVcfCompressed = [mutect2PrepMergeVcfPon.preppedVcf]
     
-
+    
     call mergeCallersPon.MergeCallersPon {
         input:
             tumor = tumor,

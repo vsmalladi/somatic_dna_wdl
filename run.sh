@@ -237,6 +237,7 @@ workflow_dir=$( realpath ${workflow_dir})
 
 workflow_name=$( basename ${workflow} | sed 's/\.wdl//' )
 submission_inputs=${log_dir}/${workflow_name}Input.json
+submission_labels=${log_dir}/${workflow_name}Labels.json
 project_info=${log_dir}/${project_name}_projectInfo.json
 
 echo "Validate workflow..." >&2
@@ -251,6 +252,7 @@ echo "Create input json and confirm files exist..." >&2
 meta_command="python ${script_dir}/tools/meta.py \
     --project-name ${project_name} \
     --custom-inputs-out ${submission_inputs} \
+    --custom-labels-out ${submission_labels} \
     --file-out ${project_info} \
     --library ${library} \
     --genome ${genome} \
@@ -259,6 +261,10 @@ meta_command="python ${script_dir}/tools/meta.py \
 if [ ! -z "$custom_inputs" ]; then
     meta_command="${meta_command} \
     --custom-inputs ${custom_inputs}"
+fi
+if [ ! -z "$labels_file" ]; then
+    meta_command="${meta_command} \
+    --labels ${labels_file}"
 fi
 if [ ! -z "$pairs_file" ]; then
     meta_command="${meta_command} \
@@ -306,12 +312,9 @@ if [ -z "$dry_run" ]; then
         -o ${options} \
         -d ${workflow_dir}/dependencies.zip \
         -p ${project_info} \
-        -i ${submission_inputs}"
-        
-    if [ ! -z "$labels_file" ]; then
-        submit_command="${submit_command} \
-        -l ${labels_file}"
-    fi
+        -i ${submission_inputs} \
+        -l ${submission_labels}
+        "
     
     cd ${log_dir}
     uuid=$( ${submit_command} )

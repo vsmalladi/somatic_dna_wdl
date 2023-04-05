@@ -7,11 +7,14 @@ workflow Strelka2 {
     # command
     #   run Strelka2 caller
     input {
+        String library
         String tumor
         String normal
         String intHVmem = "unlimited"
         IndexedReference referenceFa
+        # candidateSmallIndels may need to be a dummy file (if you want to require it for the task)
         IndexedVcf candidateSmallIndels
+        File intervalListBed
         Bam normalFinalBam
         IndexedTable callRegions
         Bam tumorFinalBam
@@ -26,24 +29,69 @@ workflow Strelka2 {
         File strelkaJsonLog
     }
 
-    call calling.Strelka2 {
-        input:
-            configureStrelkaSomaticWorkflow = configureStrelkaSomaticWorkflow,
-            intHVmem = intHVmem,
-            referenceFa = referenceFa,
-            callRegions = callRegions,
-            pairName = pairName,
-            candidateSmallIndels = candidateSmallIndels,
-            normalFinalBam = normalFinalBam,
-            tumorFinalBam = tumorFinalBam,
-            memoryGb = memoryGb,
-            diskSize = diskSize,
-            threads = threads
+    if (library == 'WGS') {
+        call calling.Strelka2 {
+            input:
+                configureStrelkaSomaticWorkflow = configureStrelkaSomaticWorkflow,
+                intHVmem = intHVmem,
+                referenceFa = referenceFa,
+                callRegions = callRegions,
+                pairName = pairName,
+                candidateSmallIndels = candidateSmallIndels,
+                normalFinalBam = normalFinalBam,
+                tumorFinalBam = tumorFinalBam,
+                memoryGb = memoryGb,
+                diskSize = diskSize,
+                threads = threads
+        }
+    }
+    
+    if (library == 'Exome') {
+        call calling.Strelka2Exome {
+            input:
+                configureStrelkaSomaticWorkflow = configureStrelkaSomaticWorkflow,
+                intHVmem = intHVmem,
+                referenceFa = referenceFa,
+                callRegions = callRegions,
+                pairName = pairName,
+                normalFinalBam = normalFinalBam,
+                tumorFinalBam = tumorFinalBam,
+                memoryGb = memoryGb,
+                diskSize = diskSize,
+                threads = threads
+        }
+        
+        call calling.SelectVariants as selectVariantsIndel {
+            input:
+                referenceFa = referenceFa,
+                pairName = pairName,
+                vcf =  Strelka2Exome.strelka2Indels.vcf,
+                intervalListBed = intervalListBed,
+                memoryGb = memoryGb,
+                diskSize = diskSize,
+                threads = threads
+        }
+        
+        call calling.SelectVariants as selectVariantsSnv {
+            input:
+                referenceFa = referenceFa,
+                pairName = pairName,
+                vcf =  Strelka2Exome.strelka2Snvs.vcf,
+                intervalListBed = intervalListBed,
+                memoryGb = memoryGb,
+                diskSize = diskSize,
+                threads = threads
+        }
     }
 
+    IndexedVcf strelka2SnvsFinal = select_first([Strelka2.strelka2Snvs, Strelka2Exome.strelka2Snvs])
+    IndexedVcf strelka2IndelsFinal = select_first([Strelka2.strelka2Indels, Strelka2Exome.strelka2Indels])
+    File strelka2SnvsVcf = select_first([strelka2SnvsFinal.vcf, selectVariantsSnv.outVcf])
+    File strelka2IndelsVcf = select_first([strelka2IndelsFinal.vcf, selectVariantsIndel.outVcf])
+    
     call calling.AddVcfCommand as strelka2SnvAddVcfCommand {
         input:
-            inVcf = Strelka2.strelka2Snvs.vcf,
+            inVcf = strelka2SnvsVcf,
             jsonLog = strelkaJsonLog,
             memoryGb = 4,
             diskSize = 10
@@ -61,7 +109,7 @@ workflow Strelka2 {
 
     call calling.AddVcfCommand as strelka2IndelAddVcfCommand {
         input:
-            inVcf = Strelka2.strelka2Indels.vcf,
+            inVcf = strelka2IndelsVcf,
             jsonLog = strelkaJsonLog,
             memoryGb = 4,
             diskSize = 10
@@ -78,8 +126,8 @@ workflow Strelka2 {
     }
 
     output {
-        IndexedVcf strelka2Snvs = Strelka2.strelka2Snvs
-        IndexedVcf strelka2Indels = Strelka2.strelka2Indels
+        IndexedVcf strelka2Snvs = strelka2SnvsFinal
+        IndexedVcf strelka2Indels = strelka2IndelsFinal
         File strelka2Snv = strelka2SnvReorderVcfColumns.orderedVcf
         File strelka2Indel = strelka2IndelReorderVcfColumns.orderedVcf
     }

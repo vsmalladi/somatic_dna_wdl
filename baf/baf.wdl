@@ -69,7 +69,7 @@ task FilterBaf {
         mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:1b0d465258d8926d8db1deb7991dc23436fce0d4343eb76c10c307c18de4a89e"
+        docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:20a48e2c422a43ce35e197243bda8dbf06c9a7b3175094524f74f8835cce85b6"
     }
 }
 
@@ -106,7 +106,7 @@ task AlleleCounts {
         mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:1b0d465258d8926d8db1deb7991dc23436fce0d4343eb76c10c307c18de4a89e"
+        docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:20a48e2c422a43ce35e197243bda8dbf06c9a7b3175094524f74f8835cce85b6"
     }
 }
 
@@ -134,6 +134,6 @@ task CalcBaf {
         mem: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
-        docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:1b0d465258d8926d8db1deb7991dc23436fce0d4343eb76c10c307c18de4a89e"
+        docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:20a48e2c422a43ce35e197243bda8dbf06c9a7b3175094524f74f8835cce85b6"
     }
 }

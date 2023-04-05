@@ -67,11 +67,13 @@ def load_pairs(file):
     pairs['pairId'] = pairs.apply(lambda row: row.tumorId + '--' + row.normalId, axis=1)
     return pairs[['tumorId', 'normalId', 'pairId']], pairs
 
+
 def load_sample_ids(file):
     '''Return a deduplicated list of sample ids'''
     sample_ids = pd.read_csv(file)
     assert 'sampleId' in sample_ids.columns , 'Error: can not find "sampleId" columns in samples file: ' + ' '.join(sample_ids.columns)
     return sample_ids.sampleId.unique().tolist()
+
 
 def fill_pair_relationship(row):
     '''Add pair and sample level info to object
@@ -82,6 +84,7 @@ def fill_pair_relationship(row):
     pair_relationship['normalPrefix'] = row['normalId']
     pair_relationship['tumorPrefix'] = row['tumorId']
     return pair_relationship      
+
 
 def note_updates(key, new_value, project_info):
     ''' Add/replace value in project_info with value from flag'''
@@ -136,8 +139,8 @@ def fill_in_pair_info(project_info, full_pairs, suffix='.bai'):
                                         'finalBam' : {'bam': match.normalBam.tolist()[0],
                                                       'bamIndex' : match.normalBam.tolist()[0].replace('.bam', suffix)}
                                })
-            project_info = note_updates(key='pairInfos', new_value=pair_infos, project_info=project_info)
-            project_info = note_updates(key='normalsampleBamInfos', new_value=normal_sample_infos, project_info=project_info)
+        project_info = note_updates(key='pairInfos', new_value=pair_infos, project_info=project_info)
+        project_info = note_updates(key='normalSampleBamInfos', new_value=normal_sample_infos, project_info=project_info)
     return project_info
         
     
@@ -179,17 +182,18 @@ def populate(args, custom_inputs):
         for index, row in pairs.iterrows():
             # add pairRelationship
             current_pair_info_relationship = fill_pair_relationship(row)
-            pair_info_relationships.append(current_pair_info_relationship)   
+            pair_info_relationships.append(current_pair_info_relationship)  
         project_info = note_updates(key='listOfPairRelationships', new_value=pair_info_relationships, project_info=project_info)
-        # update BAM objects in project_info from custom inputs JSON (if pairInfos and normalsampleBamInfos  are in the custom json)
+        # update BAM objects in project_info from custom inputs JSON (if pairInfos and normalSampleBamInfos  are in the custom json)
         if custom_inputs:
             for alt_project_info_file in custom_inputs:
                 alt_project_info = read(alt_project_info_file)
                 project_info = note_custom_updates(key='pairInfos', alt_project_info=alt_project_info, project_info=project_info)
-                project_info = note_custom_updates(key='normalsampleBamInfos', alt_project_info=alt_project_info, project_info=project_info)
+                project_info = note_custom_updates(key='normalSampleBamInfos', alt_project_info=alt_project_info, project_info=project_info)
         # update BAM objects in project_info from sample sheet (if pairs file is a sample sheet)
-        if not 'pairInfos' in project_info:
-            if 'tumorBam' in full_pairs and 'normalBam' in full_pairs:
+        if not 'pairInfos' in project_info \
+                    or not 'normalSampleBamInfos' in project_info:
+            if 'tumorBam' in full_pairs.columns and 'normalBam' in full_pairs.columns:
                 project_info = fill_in_pair_info(project_info, full_pairs)
         # update pairing objects in project_info
         pair_ids = list(set([info['pairId'] for info in project_info['listOfPairRelationships']]))
@@ -210,9 +214,56 @@ def populate(args, custom_inputs):
     if custom_inputs:
         for alt_project_info_file in custom_inputs:
                 alt_project_info = read(alt_project_info_file)
-                project_info = note_custom_updates(key='normalsampleInfos', alt_project_info=alt_project_info, project_info=project_info)
+                project_info = note_custom_updates(key='normalSampleBamInfos', alt_project_info=alt_project_info, project_info=project_info)
                 project_info = note_custom_updates(key='sampleInfos', alt_project_info=alt_project_info, project_info=project_info)
     return project_info
+
+def load_json(file):
+    with open(file) as input:
+        inputs = json.load(input)
+        return inputs
+
+def write_json(file_out, object):
+    with open(file_out, 'w') as input_info_file:
+        json.dump(object, input_info_file, indent=4)
+
+def write_labels_json(args, project_info, labels_files,
+                 custom_labels_out):
+    '''
+    'analysis_project' : The name of the analysis project to associate the workflow with. Workflows and samples will be grouped under this project in Tugboat
+    'sample_ids':  # comma separeted in the final output
+    sample_analysis_group:  The name of the group of samples being analyzed. This is typically the name of the sample for a singleton group or a comma separated list of sample names for multi-sample groups, or some common identifying attribute for the samples like the participant id. Samples will be organized by sample analysis group name in Tugboat
+    category: The category of the project, e.g. Production, Clinical, Research
+    customer: The customer identifier associated with the project, typically first initial + last name. Some projects just use NYGC if there's no external customer
+    reference_genome: The reference genome used for the samples
+    workflow_version: The workflow version being run, e.g. 1.0.0
+    workflow_release: The release tag of the workflow version, e.g. 20221213. SWENG will create multiple releases of a workflow version if we change an underlying dependency and we typically tag it with the date. This is not required if it's the same as workflow version
+    '''
+    custom_labels = {}
+    if labels_files != None:
+        for labels_file in labels_files:
+            custom_labels_dict = load_json(labels_file)
+            for key in custom_labels_dict:
+                custom_labels[key] = custom_labels_dict[key]
+    labels = {'analysis_project': project_info['project_name'],
+              'category': 'CompBio',
+              'customer': 'NYGC',
+              'reference_genome': project_info['genome'],
+              'workflow_version': project_info['tag_wdl'],
+              'workflow_commit': project_info['commit_wdl'] ,
+              'workflow_branch': project_info['branch_wdl'] ,
+              'workflow_release': project_info['uniq_tag_wdl']}
+    ids = []
+    if 'sampleIds' in project_info:
+        ids.append(','.join(project_info['sampleIds']))
+    if 'pairIds' in project_info:
+        ids.append(','.join(project_info['pairIds']))
+        ids.append(','.join(project_info['tumorIds']))
+        ids.append(','.join(project_info['normalIds']))
+        labels['sample_analysis_group'] = ','.join(ids)
+    for key in custom_labels:
+        labels[key] = custom_labels[key]
+    write_json(file_out=custom_labels_out, object=labels)
 
 def write_wdl_json(args, project_info, custom_inputs,
                    custom_inputs_out,
@@ -236,13 +287,7 @@ def write_wdl_json(args, project_info, custom_inputs,
                       project_info=project_info,
                       local=args['local'])
     file_out = custom_inputs_out
-    with open(file_out, 'w') as input_info_file:
-        json.dump(input.final_inputs, input_info_file, indent=4)
-            
-            
-def write_json(args, project_info, file_out):
-    with open(file_out, 'w') as project_info_file:
-        json.dump(project_info, project_info_file, indent=4)
+    write_json(file_out=file_out, object=input.final_inputs)
                 
                 
 def test_schema(json_data):
@@ -298,6 +343,10 @@ def get_args():
                         help='Output file for custom workflow inputs',
                         required=True
                         )
+    parser.add_argument('--custom-labels-out',
+                        help='Output file for workflow labels',
+                        required=True
+                        )
     parser.add_argument('--library',
                         help='Sequence library type. If not supplied '
                             'define library using --project-data',
@@ -321,7 +370,7 @@ def get_args():
                         help='CSV file with items that are required to have '
                         '"tumorId", "normalId", "pairId" as columns '
                         'Optionally, include "tumorBam", "normalBam" columns to create '
-                        '"pairInfos" and "normalsampleBamInfos" automatically.'
+                        '"pairInfos" and "normalSampleBamInfos" automatically.'
                         ,
                         required=False
                         )
@@ -341,16 +390,22 @@ def get_args():
                         choices=['SureSelect_V6plusCOSMIC.target.GRCh38_full_analysis_set_plus_decoy_hla'],
                         required=False
                         )
+    parser.add_argument('--labels',
+                        help='Optional comma separated list of JSON files with custom labels. '
+                        'By default analysis_project,  sample_analysis_group, sample_ids, category '
+                        'customer, reference_genome, workflow_version, workflow_release '
+                        'will be filled in using as much available information as possible. '
+                        'If the labels json include any of these that value will override the auto-generated value.'
+                        'By default the input will be added to the top-level workflow.',
+                        required=False,
+                        default=False
+                        )
     parser.add_argument('--custom-inputs',
                         help='Optional comma separated list of JSON files with custom input variables. '
                         'The name of the variable in the input file must match the '
                         'name of the variable in the WDL workflow. '
                         'It is not required that the input specify the workflow. '
-                        'By default the input will be added to the top-level workflow.'
-                        'If you upload a manifest for a command you will need to login to '
-                        'Script also requires a default_credentials_JSON to be created by the user '
-                        'Run the following to generate a default credentials file: '
-                        '     $ gcloud auth application-default login',
+                        'By default the input will be added to the top-level workflow.',
                         required=False,
                         default=False
                         )
@@ -378,19 +433,26 @@ def main():
         custom_inputs = args['custom_inputs'].split(',')
     else:
         custom_inputs = None
+    if args['labels']:
+        labels = args['labels'].split(',')
+    else:
+        labels = None
     # project, run and sample related metadata (project_info)
     project_info = populate(args, custom_inputs)
     passed = test_schema(project_info)
     if passed:
         file_out = args['file_out']
         # print project json
-        write_json(args, project_info,
-                   file_out=file_out)
+        write_json(file_out=file_out,
+                   object=project_info)
         # create/print WDL inputs JSON
         write_wdl_json(args, project_info,
                        custom_inputs=custom_inputs,
                        custom_inputs_out=args['custom_inputs_out'],
                        local=args['local'])
+        write_labels_json(args, project_info,
+                          labels_files=labels,
+                          custom_labels_out=args['custom_labels_out'])
 
 if __name__ == "__main__":
     main()       
