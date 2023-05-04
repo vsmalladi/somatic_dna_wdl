@@ -114,7 +114,7 @@ task vepSvnIndel {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         cpus: threads
         cpu : threads
         memory : memoryGb + "GB"
@@ -229,7 +229,7 @@ task vepPublicSvnIndel {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         cpus: threads
         cpu : threads
         memory : memoryGb + "GB"

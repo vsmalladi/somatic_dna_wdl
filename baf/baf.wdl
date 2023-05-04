@@ -38,7 +38,7 @@ task FilterForHetSnps {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
         docker: "gcr.io/nygc-public/broadinstitute/gatk4@sha256:b3bde7bc74ab00ddce342bd511a9797007aaf3d22b9cfd7b52f416c893c3774c"
@@ -66,7 +66,7 @@ task FilterBaf {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:20a48e2c422a43ce35e197243bda8dbf06c9a7b3175094524f74f8835cce85b6"
@@ -103,7 +103,7 @@ task AlleleCounts {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:20a48e2c422a43ce35e197243bda8dbf06c9a7b3175094524f74f8835cce85b6"
@@ -131,7 +131,7 @@ task CalcBaf {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:20a48e2c422a43ce35e197243bda8dbf06c9a7b3175094524f74f8835cce85b6"

@@ -38,7 +38,7 @@ task NovosortMarkDupExternal {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         cpus: threads
         cpu : threads
         memory : memoryGb + " GB"
@@ -86,7 +86,7 @@ task NovosortMarkDup {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         cpus: threads
         cpu : threads
         memory : memoryGb + " GB"
@@ -163,7 +163,7 @@ task Bqsr38 {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         cpus: threads
         cpu : threads
         memory : memoryGb + " GB"
@@ -201,7 +201,7 @@ task Downsample{
         }
     }
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         cpus: threads
         cpu: threads
         memory: memoryGb + "GB"
@@ -243,7 +243,7 @@ task PrintReads {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         cpus: threads
         cpu : threads
         memory : memoryGb + "GB"

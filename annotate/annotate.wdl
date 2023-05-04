@@ -29,7 +29,7 @@ task RemoveSpanning {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         cpus: threads
         cpu : threads
         disks: "local-disk " + diskSize + " HDD"
@@ -61,7 +61,7 @@ task AddCosmic {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:20a48e2c422a43ce35e197243bda8dbf06c9a7b3175094524f74f8835cce85b6"
@@ -91,7 +91,7 @@ task AddCancerResistanceMutations {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:20a48e2c422a43ce35e197243bda8dbf06c9a7b3175094524f74f8835cce85b6"
@@ -121,7 +121,7 @@ task AddCancerResistanceMutationsFinal {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:20a48e2c422a43ce35e197243bda8dbf06c9a7b3175094524f74f8835cce85b6"
@@ -149,7 +149,7 @@ task AnnotateId {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:20a48e2c422a43ce35e197243bda8dbf06c9a7b3175094524f74f8835cce85b6"
@@ -177,7 +177,7 @@ task RenameCsqVcf {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:20a48e2c422a43ce35e197243bda8dbf06c9a7b3175094524f74f8835cce85b6"
@@ -205,7 +205,7 @@ task MainVcf {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:20a48e2c422a43ce35e197243bda8dbf06c9a7b3175094524f74f8835cce85b6"
@@ -236,7 +236,7 @@ task TableVcf {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:20a48e2c422a43ce35e197243bda8dbf06c9a7b3175094524f74f8835cce85b6"
@@ -274,7 +274,7 @@ task VcfToMaf {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:20a48e2c422a43ce35e197243bda8dbf06c9a7b3175094524f74f8835cce85b6"
@@ -325,7 +325,7 @@ task annotateBicSeq2Cnv {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/sv_cnv@sha256:1c14a50d131323a2a4bab323cf224879776af8de37f93df79292fd2e63269274"
@@ -371,7 +371,7 @@ task mergeSv {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/sv_cnv@sha256:1c14a50d131323a2a4bab323cf224879776af8de37f93df79292fd2e63269274"
@@ -416,7 +416,7 @@ task annotateSv {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/sv_cnv@sha256:1c14a50d131323a2a4bab323cf224879776af8de37f93df79292fd2e63269274"
@@ -453,7 +453,7 @@ task annotateGenesSv {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/sv_cnv@sha256:1c14a50d131323a2a4bab323cf224879776af8de37f93df79292fd2e63269274"
@@ -490,7 +490,7 @@ task annotateGenesSvSupplemental {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/sv_cnv@sha256:1c14a50d131323a2a4bab323cf224879776af8de37f93df79292fd2e63269274"
@@ -524,7 +524,7 @@ task annotateWithCnvSv {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/sv_cnv@sha256:1c14a50d131323a2a4bab323cf224879776af8de37f93df79292fd2e63269274"
@@ -559,7 +559,7 @@ task filterBedPe {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/sv_cnv@sha256:1c14a50d131323a2a4bab323cf224879776af8de37f93df79292fd2e63269274"

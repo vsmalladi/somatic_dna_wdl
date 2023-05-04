@@ -52,7 +52,7 @@ task SamtoolsBamToCram {
         docker : "gcr.io/nygc-public/samtools@sha256:32f29fcd7af01b3941e6f93095e8d899741e81b50bcc838329bd8df43e120cc3"
         disks: "local-disk " + diskSize + " LOCAL"
         memory: memoryGb + "GB"
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         cpu: threads
         cpus: threads
         max_retries: 3
@@ -108,7 +108,7 @@ task SamtoolsCramToBam {
         docker : "gcr.io/nygc-public/samtools@sha256:32f29fcd7af01b3941e6f93095e8d899741e81b50bcc838329bd8df43e120cc3"
         disks: "local-disk " + diskSize + " HDD"
         memory: memoryGb + "GB"
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         cpu: threads
         cpus: threads
     }
@@ -133,7 +133,7 @@ task UniqueBams {
         docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:20a48e2c422a43ce35e197243bda8dbf06c9a7b3175094524f74f8835cce85b6"
         disks: "local-disk 10 HDD"
         memory: "1GB"
-        mem: "1G"
+        memory: "1G"
         cpu: "1"
         cpus: "1"
     }
@@ -162,7 +162,7 @@ task UpdateCramInfos {
         docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:20a48e2c422a43ce35e197243bda8dbf06c9a7b3175094524f74f8835cce85b6"
         disks: "local-disk 10 HDD"
         memory: "1GB"
-        mem: "1G"
+        memory: "1G"
         cpu: "1"
         cpus: "1"
     }

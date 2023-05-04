@@ -70,7 +70,7 @@ task Gatk4MergeSortVcf {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/broadinstitute/gatk4@sha256:b3bde7bc74ab00ddce342bd511a9797007aaf3d22b9cfd7b52f416c893c3774c"
@@ -109,7 +109,7 @@ task AddCommandReorderColumnsVcf {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:20a48e2c422a43ce35e197243bda8dbf06c9a7b3175094524f74f8835cce85b6"
@@ -139,7 +139,7 @@ task ReorderVcfColumns {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:20a48e2c422a43ce35e197243bda8dbf06c9a7b3175094524f74f8835cce85b6"
@@ -168,7 +168,7 @@ task AddVcfCommand {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:20a48e2c422a43ce35e197243bda8dbf06c9a7b3175094524f74f8835cce85b6"
@@ -228,7 +228,7 @@ task MantaWgs {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         cpus: threads
         cpu : threads
         disks: "local-disk " + diskSize + " HDD"
@@ -275,7 +275,7 @@ task MantaWgsPon {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         cpus: threads
         cpu : threads
         disks: "local-disk " + diskSize + " HDD"
@@ -311,7 +311,7 @@ task FilterNonpass {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         cpus: threads
         cpu : threads
         disks: "local-disk " + diskSize + " HDD"
@@ -347,7 +347,7 @@ task FilterNonpassPon {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         cpus: threads
         cpu : threads
         disks: "local-disk " + diskSize + " HDD"
@@ -403,7 +403,7 @@ task Strelka2 {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         cpus: threads
         cpu : threads
         disks: "local-disk " + diskSize + " HDD"
@@ -458,7 +458,7 @@ task Strelka2Exome {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         cpus: threads
         cpu : threads
         disks: "local-disk " + diskSize + " HDD"
@@ -497,7 +497,7 @@ task SelectVariants {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         cpus: threads
         cpu : threads
         disks: "local-disk " + diskSize + " HDD"
@@ -542,7 +542,7 @@ task LancetWGSRegional {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         cpus: threads
         cpu : threads
         disks: "local-disk " + diskSize + " HDD"
@@ -586,7 +586,7 @@ task LancetExome {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         cpus: threads
         cpu : threads
         disks: "local-disk " + diskSize + " HDD"
@@ -631,7 +631,7 @@ task Mutect2Wgs {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/broadinstitute/gatk4@sha256:b3bde7bc74ab00ddce342bd511a9797007aaf3d22b9cfd7b52f416c893c3774c"
         disks: "local-disk " + diskSize + " HDD"
@@ -698,7 +698,7 @@ task Mutect2Exome {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/broadinstitute/gatk4@sha256:b3bde7bc74ab00ddce342bd511a9797007aaf3d22b9cfd7b52f416c893c3774c"
         disks: "local-disk " + diskSize + " HDD"
@@ -755,7 +755,7 @@ task Mutect2WgsPon {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/broadinstitute/gatk4@sha256:b3bde7bc74ab00ddce342bd511a9797007aaf3d22b9cfd7b52f416c893c3774c"
         disks: "local-disk " + diskSize + " HDD"
@@ -809,7 +809,7 @@ task Mutect2ExomePon {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/broadinstitute/gatk4@sha256:b3bde7bc74ab00ddce342bd511a9797007aaf3d22b9cfd7b52f416c893c3774c"
         disks: "local-disk " + diskSize + " HDD"
@@ -858,7 +858,7 @@ task Mutect2Filter {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/broadinstitute/gatk4@sha256:b3bde7bc74ab00ddce342bd511a9797007aaf3d22b9cfd7b52f416c893c3774c"
         disks: "local-disk " + diskSize + " HDD"
@@ -909,7 +909,7 @@ task SvabaWgs {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         cpus: threads
         cpu : threads
         disks: "local-disk " + diskSize + " HDD"
@@ -945,7 +945,7 @@ task PopulateCache {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/samtools@sha256:e1149e965e8379f4a75b120d832b84e87dbb97bd5510ed581113400f768e5940"
@@ -983,7 +983,7 @@ task SvabaIndex {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/svaba@sha256:48f6bd86e933ca88fd74d8effc66e93eee5b40945ee37612b80d7edaadc567f3"
@@ -1034,7 +1034,7 @@ task SvabaWgsPon {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         cpus: threads
         cpu : threads
         disks: "local-disk " + diskSize + " HDD"
@@ -1087,7 +1087,7 @@ task SvabaWgsPonNoL {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         cpus: threads
         cpu : threads
         disks: "local-disk " + diskSize + " HDD"
@@ -1131,7 +1131,7 @@ task ReheaderVcf {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/bcftools@sha256:d9b84254b8cc29fcae76b728a5a9a9a0ef0662ee52893d8d82446142876fb400"
@@ -1161,7 +1161,7 @@ task UniqReads {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/bicseq2@sha256:3d110b672df0385f761fb64fcf63e98685e6d810c5560043efed5ab94961f3a9"
@@ -1219,7 +1219,7 @@ task Bicseq2Norm {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/bicseq2@sha256:3d110b672df0385f761fb64fcf63e98685e6d810c5560043efed5ab94961f3a9"
@@ -1270,7 +1270,7 @@ task Bicseq2Wgs {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/bicseq2@sha256:3d110b672df0385f761fb64fcf63e98685e6d810c5560043efed5ab94961f3a9"
@@ -1330,7 +1330,7 @@ task GridssPreprocess {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         cpus: threads
         disks: "local-disk " + diskSize + " HDD"
         cpu : threads
@@ -1407,7 +1407,7 @@ task GridssAssembleChunk {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         cpus: threads
         disks: "local-disk " + diskSize + " HDD"
         cpu : threads
@@ -1492,7 +1492,7 @@ task GridssAssemble {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         cpus: threads
         disks: "local-disk " + diskSize + " HDD"
         cpu : threads
@@ -1587,7 +1587,7 @@ task GridssCalling {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         cpus: threads
         disks: "local-disk " + diskSize + " HDD"
         cpu : threads
@@ -1665,7 +1665,7 @@ task GridssFilter {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         cpus: threads
         disks: "local-disk " + diskSize + " HDD"
         cpu : threads

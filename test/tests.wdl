@@ -22,7 +22,7 @@ task FilterHighConfidence {
     }
     
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
         docker: "gcr.io/nygc-internal-tools/somatic_dna_reports@sha256:20873cab366a1a19b104e8f0674d19240a2c548a2d073a16400a5b2a61b67079"
@@ -56,7 +56,7 @@ task SummarizeMantis {
     }
     
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
         docker: "gcr.io/nygc-internal-tools/somatic_dna_reports@sha256:20873cab366a1a19b104e8f0674d19240a2c548a2d073a16400a5b2a61b67079"
@@ -90,7 +90,7 @@ task SummarizeQualityByCycle {
     }
     
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
         docker: "gcr.io/nygc-internal-tools/somatic_dna_reports@sha256:20873cab366a1a19b104e8f0674d19240a2c548a2d073a16400a5b2a61b67079"
@@ -126,7 +126,7 @@ task SummarizeInsertSizeMetrics {
     }
     
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
         docker: "gcr.io/nygc-internal-tools/somatic_dna_reports@sha256:20873cab366a1a19b104e8f0674d19240a2c548a2d073a16400a5b2a61b67079"
@@ -161,7 +161,7 @@ task SummarizeCollectWgsMetrics {
     }
     
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
         docker: "gcr.io/nygc-internal-tools/somatic_dna_reports@sha256:20873cab366a1a19b104e8f0674d19240a2c548a2d073a16400a5b2a61b67079"
@@ -197,7 +197,7 @@ task SummarizeSvs {
     }
     
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
         docker: "gcr.io/nygc-internal-tools/somatic_dna_reports@sha256:20873cab366a1a19b104e8f0674d19240a2c548a2d073a16400a5b2a61b67079"
@@ -231,7 +231,7 @@ task SummarizeFlagStat {
     }
     
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
         docker: "gcr.io/nygc-internal-tools/somatic_dna_reports@sha256:20873cab366a1a19b104e8f0674d19240a2c548a2d073a16400a5b2a61b67079"
@@ -280,7 +280,7 @@ task PrintReport {
     }
     
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
         docker: "gcr.io/nygc-public/pandoc@sha256:c8a87674b9f3d51d2f370fda9f9669f021072d32a90a376bcfb3c0394b578fdd"
@@ -371,7 +371,7 @@ task DraftSampleReport {
     }
     
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
         docker: "gcr.io/nygc-internal-tools/somatic_dna_reports@sha256:20873cab366a1a19b104e8f0674d19240a2c548a2d073a16400a5b2a61b67079"
@@ -407,7 +407,7 @@ task DescribeBedPe {
     }
     
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
         docker: "gcr.io/nygc-internal-tools/somatic_dna_reports@sha256:20873cab366a1a19b104e8f0674d19240a2c548a2d073a16400a5b2a61b67079"
@@ -442,7 +442,7 @@ task DescribeBedPeGenes {
     }
     
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
         docker: "gcr.io/nygc-internal-tools/somatic_dna_reports@sha256:20873cab366a1a19b104e8f0674d19240a2c548a2d073a16400a5b2a61b67079"
@@ -484,7 +484,7 @@ task SummarizeFinalVcf {
     }
     
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
         docker: "gcr.io/nygc-internal-tools/somatic_dna_reports@sha256:20873cab366a1a19b104e8f0674d19240a2c548a2d073a16400a5b2a61b67079"
@@ -521,7 +521,7 @@ task SummarizeFinalGermVcf {
     }
     
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
         docker: "gcr.io/nygc-internal-tools/somatic_dna_reports@sha256:20873cab366a1a19b104e8f0674d19240a2c548a2d073a16400a5b2a61b67079"
@@ -561,7 +561,7 @@ task DescribeBed {
     }
     
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
         docker: "gcr.io/nygc-internal-tools/somatic_dna_reports@sha256:20873cab366a1a19b104e8f0674d19240a2c548a2d073a16400a5b2a61b67079"
@@ -596,7 +596,7 @@ task DescribeBedGenes {
     }
     
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
         docker: "gcr.io/nygc-internal-tools/somatic_dna_reports@sha256:20873cab366a1a19b104e8f0674d19240a2c548a2d073a16400a5b2a61b67079"
@@ -635,7 +635,7 @@ task SummarizeHla {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
         docker: "gcr.io/nygc-internal-tools/somatic_dna_reports@sha256:20873cab366a1a19b104e8f0674d19240a2c548a2d073a16400a5b2a61b67079"
@@ -669,7 +669,7 @@ task CompareCnvGenes {
     }
     
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
         docker: "gcr.io/nygc-internal-tools/somatic_dna_reports@sha256:20873cab366a1a19b104e8f0674d19240a2c548a2d073a16400a5b2a61b67079"
@@ -703,7 +703,7 @@ task CompareSvGenes {
     }
     
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
         docker: "gcr.io/nygc-internal-tools/somatic_dna_reports@sha256:20873cab366a1a19b104e8f0674d19240a2c548a2d073a16400a5b2a61b67079"
@@ -735,7 +735,7 @@ task ConcateTables {
     }
     
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
         docker: "gcr.io/nygc-public/somatic_dna_tools@sha256:20a48e2c422a43ce35e197243bda8dbf06c9a7b3175094524f74f8835cce85b6"
@@ -770,7 +770,7 @@ task SummarizeFlagstat {
     }
     
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
         docker: "gcr.io/nygc-internal-tools/somatic_dna_reports@sha256:20873cab366a1a19b104e8f0674d19240a2c548a2d073a16400a5b2a61b67079"
@@ -806,7 +806,7 @@ task SummarizeMsi {
     }
     
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
         docker: "gcr.io/nygc-internal-tools/somatic_dna_reports@sha256:20873cab366a1a19b104e8f0674d19240a2c548a2d073a16400a5b2a61b67079"
@@ -849,7 +849,7 @@ task SummarizeVcf {
     }
     
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
         docker: "gcr.io/nygc-internal-tools/somatic_dna_reports@sha256:20873cab366a1a19b104e8f0674d19240a2c548a2d073a16400a5b2a61b67079"
@@ -915,7 +915,7 @@ task DraftComparison {
     }
     
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
         docker: "gcr.io/nygc-internal-tools/somatic_dna_reports@sha256:20873cab366a1a19b104e8f0674d19240a2c548a2d073a16400a5b2a61b67079"
@@ -958,7 +958,7 @@ task SomPy {
     }
     
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
         docker: "gcr.io/nygc-public/hap@sha256:6fc9a90c944d4e8434977909d0a175bde9f0cbcdd8a8e6806a65d1aa24b4a683"
@@ -1007,7 +1007,7 @@ task VcfToBedPe {
     }
     
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
         docker : "gcr.io/nygc-public/sv_cnv@sha256:1c14a50d131323a2a4bab323cf224879776af8de37f93df79292fd2e63269274"
@@ -1050,7 +1050,7 @@ task CompareBedPe {
     }
     
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
         docker : "gcr.io/nygc-public/sv_cnv@sha256:1c14a50d131323a2a4bab323cf224879776af8de37f93df79292fd2e63269274"
@@ -1091,7 +1091,7 @@ task CompareBed {
     }
     
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
         docker : "gcr.io/nygc-public/sv_cnv@sha256:1c14a50d131323a2a4bab323cf224879776af8de37f93df79292fd2e63269274"

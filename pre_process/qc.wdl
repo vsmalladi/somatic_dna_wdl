@@ -45,7 +45,7 @@ task MultipleMetrics {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         cpus: threads
         cpu : threads
         memory : memoryGb + "GB"
@@ -90,7 +90,7 @@ task MultipleMetricsPreBqsr {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         cpus: threads
         cpu : threads
         memory : memoryGb + "GB"
@@ -135,7 +135,7 @@ task CollectGcBiasMetrics {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         cpus: threads
         cpu : threads
         memory : memoryGb + "GB"
@@ -173,7 +173,7 @@ task Flagstat {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         cpus: threads
         cpu : threads
         memory : memoryGb + "GB"
@@ -222,7 +222,7 @@ task HsMetrics {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         cpus: threads
         cpu : threads
         memory : memoryGb + "GB"
@@ -254,7 +254,7 @@ task FormatHsMetrics {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         cpus: threads
         cpu : threads
         memory : memoryGb + "GB"
@@ -287,7 +287,7 @@ task Autocorrelations {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         cpus: threads
         cpu : threads
         memory : memoryGb + "GB"
@@ -325,7 +325,7 @@ task CollectOxoGMetricsWgs {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         cpus: threads
         cpu : threads
         memory : memoryGb + "GB"
@@ -370,7 +370,7 @@ task CollectWgsMetrics {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         cpus: threads
         cpu : threads
         memory : memoryGb + "GB"
@@ -406,7 +406,7 @@ task Binest {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         cpus: threads
         cpu : threads
         memory : memoryGb + "GB"
@@ -440,7 +440,7 @@ task PlotBinCov {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         cpus: threads
         cpu : threads
         memory : memoryGb + "GB"
@@ -477,7 +477,7 @@ task Pileup {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         cpus: threads
         cpu: threads
         memory : memoryGb + "GB"
@@ -512,7 +512,7 @@ task CalculateContamination {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         cpus: threads
         cpu : threads
         memory : memoryGb + "GB"
@@ -548,7 +548,7 @@ task CalculateContaminationPaired {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         cpus: threads
         cpu : threads
         memory : memoryGb + "GB"
@@ -591,7 +591,7 @@ task ConpairPileup {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         cpus: threads
         cpu : threads
         memory : memoryGb + "GB"
@@ -627,7 +627,7 @@ task VerifyConcordanceAll {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         cpus: threads
         cpu : threads
         memory : memoryGb + "GB"
@@ -664,7 +664,7 @@ task VerifyConcordanceHomoz {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         cpus: threads
         cpu : threads
         memory : memoryGb + "GB"
@@ -700,7 +700,7 @@ task Contamination {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         cpus: threads
         cpu : threads
         memory : memoryGb + "GB"

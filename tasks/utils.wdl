@@ -19,7 +19,7 @@ task CreateBlankFile {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
         docker: "gcr.io/nygc-public/genome-utils@sha256:59603ab0aeda571c38811d6d1820d1b546a69fc342120bef75597bfd7905ea1f"

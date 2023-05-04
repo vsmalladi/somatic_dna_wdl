@@ -47,7 +47,7 @@ task haplotypeCallerGatk4 {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
         docker: "gcr.io/nygc-public/broadinstitute/gatk4@sha256:b3bde7bc74ab00ddce342bd511a9797007aaf3d22b9cfd7b52f416c893c3774c"
@@ -139,7 +139,7 @@ task GentotypeGvcfsGatk4 {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
         docker : "gcr.io/nygc-public/broadinstitute/gatk4@sha256:b3bde7bc74ab00ddce342bd511a9797007aaf3d22b9cfd7b52f416c893c3774c"
@@ -205,7 +205,7 @@ task genotypeRefinementWorkflow {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
         docker : "gcr.io/nygc-public/broadinstitute/gatk4@sha256:b3bde7bc74ab00ddce342bd511a9797007aaf3d22b9cfd7b52f416c893c3774c"
@@ -338,7 +338,7 @@ task filterHO {
     >>>
 
     runtime {
-      mem: memoryGb + "G"
+      memory: memoryGb + "G"
       cpus: threads
       memory: memoryGb + " GB"
       cpu: threads

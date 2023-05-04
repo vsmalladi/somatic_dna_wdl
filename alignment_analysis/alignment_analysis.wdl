@@ -28,7 +28,7 @@ task GetSampleName {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
         docker: "gcr.io/nygc-public/broadinstitute/gatk4@sha256:b3bde7bc74ab00ddce342bd511a9797007aaf3d22b9cfd7b52f416c893c3774c"
@@ -97,7 +97,7 @@ task UpdateBamSampleName {
         docker : "gcr.io/nygc-public/samtools@sha256:32f29fcd7af01b3941e6f93095e8d899741e81b50bcc838329bd8df43e120cc3"
         disks: "local-disk " + diskSize + " LOCAL"
         memory: memoryGb + "GB"
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         cpu: threads
         cpus: threads
     }
@@ -127,7 +127,7 @@ task BedtoolsIntersect {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/bedtools@sha256:9e737f5c96c00cf3b813d419d7a7b474c4013c9aa9dfe704eb36417570c6474e"
     }
@@ -209,7 +209,7 @@ task MantisExome {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         cpus: threads
         cpu : threads
         disks: "local-disk " + diskSize + " HDD"
@@ -259,7 +259,7 @@ task GetChr6Contigs {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
         docker : "gcr.io/nygc-public/hla_prep@sha256:a490cf449eeb98b997f0dd87ff1c23ff77d724c7c2072b6c44f75a713ecc2d36"
@@ -325,7 +325,7 @@ task GemSelect {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         cpus: threads
         cpu : threads
         memory : memoryGb + "GB"
@@ -364,7 +364,7 @@ task LookUpMates {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
         docker : "gcr.io/nygc-public/hla_prep@sha256:a490cf449eeb98b997f0dd87ff1c23ff77d724c7c2072b6c44f75a713ecc2d36"
@@ -410,7 +410,7 @@ task GetMates {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         cpus: threads
         cpu : threads
         disks: "local-disk " + diskSize + " HDD"
@@ -452,7 +452,7 @@ task SortFastqs {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         memory : memoryGb + "GB"
         disks: "local-disk " + diskSize + " HDD"
         docker : "gcr.io/nygc-public/hla_prep@sha256:a490cf449eeb98b997f0dd87ff1c23ff77d724c7c2072b6c44f75a713ecc2d36"
@@ -493,7 +493,7 @@ task AlignToPanel {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         cpus: threads
         cpu : threads
         disks: "local-disk " + diskSize + " HDD"
@@ -530,7 +530,7 @@ task Kourami {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         cpus: threads
         cpu : threads
         memory : memoryGb + "GB"
@@ -571,7 +571,7 @@ task Angsd {
 
     runtime {
         memory: memoryGb + "G"
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         cpu: threads
         cpus: threads
         docker: "gcr.io/nygc-public/angsd@sha256:cd13820de0bc8d400c3e3ff96be6b885b6d3289d53fda56de30bd08508a0bac7"
@@ -610,7 +610,7 @@ task FastNgsAdmix {
 
     runtime {
         memory: memoryGb + "G"
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         cpu: threads
         cpus: threads
         docker: "gcr.io/nygc-public/fastngsadmix@sha256:f0a336e9f193ab1b4f1484cbec56e1abef063913102d3126f4b3a6ed7784d7f1"

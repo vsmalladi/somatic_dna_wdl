@@ -41,7 +41,7 @@ task Skewer {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         cpus: threads
         cpu : threads
         memory : memoryGb + " GB"
@@ -90,7 +90,7 @@ task AlignBwaMem2 {
         File laneBam = laneBamPath
     }
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         cpus: totalThreads
         cpu : totalThreads
         memory : memoryGb + " GB"
@@ -146,7 +146,7 @@ task AlignMinimap2 {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         cpus: totalThreads
         cpu : totalThreads
         memory : memoryGb + " GB"
@@ -185,7 +185,7 @@ task ShortAlignMark {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         memory : memoryGb + " GB"
         docker : "gcr.io/nygc-public/nygc-short-alignment-marking@sha256:8adc1ac0417d080cb6d6dd8901a5282c3cca497cff1b9800c2f51b0058b15bde"
         disks: "local-disk " + diskSize + " HDD"
@@ -223,7 +223,7 @@ task Fixmate {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         memory : memoryGb + " GB"
         docker : "gcr.io/nygc-public/broadinstitute/gatk4@sha256:b3bde7bc74ab00ddce342bd511a9797007aaf3d22b9cfd7b52f416c893c3774c"
         disks: "local-disk " + diskSize + " HDD"

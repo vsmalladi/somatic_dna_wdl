@@ -29,7 +29,7 @@ task getIntersection {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/bedtools@sha256:9e737f5c96c00cf3b813d419d7a7b474c4013c9aa9dfe704eb36417570c6474e"
@@ -62,7 +62,7 @@ task RenameExomeWgsMetadata {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:20a48e2c422a43ce35e197243bda8dbf06c9a7b3175094524f74f8835cce85b6"
@@ -95,7 +95,7 @@ task MergePrepExomeWgs {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:20a48e2c422a43ce35e197243bda8dbf06c9a7b3175094524f74f8835cce85b6"
@@ -134,7 +134,7 @@ task MergeExomeWgsCallers {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         cpus: threads
         cpu : threads
         disks: "local-disk " + diskSize + " HDD"
@@ -178,7 +178,7 @@ task SnvstomnvsAnnotateExomeWgsCalled {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:20a48e2c422a43ce35e197243bda8dbf06c9a7b3175094524f74f8835cce85b6"
@@ -206,7 +206,7 @@ task CompressVcf {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/samtools@sha256:963b0b2f24908832efab8ddccb7a7f3ba5dca9803bc099be7cf3a455766610fd"
@@ -246,7 +246,7 @@ task IndexVcf {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         cpus: threads
         cpu : threads
         disks: "local-disk " + diskSize + " HDD"
@@ -281,7 +281,7 @@ task RenameMetadata {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:20a48e2c422a43ce35e197243bda8dbf06c9a7b3175094524f74f8835cce85b6"
@@ -312,7 +312,7 @@ task MergePrepSupport {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:20a48e2c422a43ce35e197243bda8dbf06c9a7b3175094524f74f8835cce85b6"
@@ -342,7 +342,7 @@ task MergePrep {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:20a48e2c422a43ce35e197243bda8dbf06c9a7b3175094524f74f8835cce85b6"
@@ -376,7 +376,7 @@ task RenameVcf {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:20a48e2c422a43ce35e197243bda8dbf06c9a7b3175094524f74f8835cce85b6"
@@ -408,7 +408,7 @@ task RenameVcfPon {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:20a48e2c422a43ce35e197243bda8dbf06c9a7b3175094524f74f8835cce85b6"
@@ -443,7 +443,7 @@ task SplitMultiAllelic {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         cpus: threads
         cpu : threads
         disks: "local-disk " + diskSize + " HDD"
@@ -482,7 +482,7 @@ task SplitMultiAllelicRegions {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         cpus: threads
         cpu : threads
         disks: "local-disk " + diskSize + " HDD"
@@ -513,7 +513,7 @@ task SplitMnv {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:20a48e2c422a43ce35e197243bda8dbf06c9a7b3175094524f74f8835cce85b6"
@@ -558,7 +558,7 @@ task RemoveContig {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:20a48e2c422a43ce35e197243bda8dbf06c9a7b3175094524f74f8835cce85b6"
@@ -596,7 +596,7 @@ task Gatk4MergeSortVcf {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         cpus: threads
         cpu : threads
         disks: "local-disk " + diskSize + " HDD"
@@ -639,7 +639,7 @@ task MergeCallers {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         cpus: threads
         cpu : threads
         disks: "local-disk " + diskSize + " HDD"
@@ -675,7 +675,7 @@ task StartCandidates {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/bedtools@sha256:9e737f5c96c00cf3b813d419d7a7b474c4013c9aa9dfe704eb36417570c6474e"
@@ -704,7 +704,7 @@ task GetCandidates {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:20a48e2c422a43ce35e197243bda8dbf06c9a7b3175094524f74f8835cce85b6"
@@ -737,7 +737,7 @@ task VcfToBed {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:20a48e2c422a43ce35e197243bda8dbf06c9a7b3175094524f74f8835cce85b6"
@@ -787,7 +787,7 @@ task LancetConfirm {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/lancet@sha256:25169d34b41de9564e03f02ebcbfb4655cf536449592b0bd58773195f9376e61"
@@ -823,7 +823,7 @@ task IntersectVcfs {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         cpus: threads
         cpu : threads
         disks: "local-disk " + diskSize + " HDD"
@@ -858,7 +858,7 @@ task MergeColumns {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:20a48e2c422a43ce35e197243bda8dbf06c9a7b3175094524f74f8835cce85b6"
@@ -889,7 +889,7 @@ task MergeColumnsPon {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:20a48e2c422a43ce35e197243bda8dbf06c9a7b3175094524f74f8835cce85b6"
@@ -924,7 +924,7 @@ task AddNygcAlleleCountsToVcf {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:20a48e2c422a43ce35e197243bda8dbf06c9a7b3175094524f74f8835cce85b6"
@@ -953,7 +953,7 @@ task AddFinalAlleleCountsToVcf {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:20a48e2c422a43ce35e197243bda8dbf06c9a7b3175094524f74f8835cce85b6"
@@ -985,7 +985,7 @@ task FilterPon {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:20a48e2c422a43ce35e197243bda8dbf06c9a7b3175094524f74f8835cce85b6"
@@ -1016,7 +1016,7 @@ task FilterVcf {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:20a48e2c422a43ce35e197243bda8dbf06c9a7b3175094524f74f8835cce85b6"
@@ -1045,7 +1045,7 @@ task SnvstomnvsCountsbasedfilterAnnotatehighconf {
     }
 
     runtime {
-        mem: memoryGb + "G"
+        memory: memoryGb + "G"
         disks: "local-disk " + diskSize + " HDD"
         memory : memoryGb + "GB"
         docker : "gcr.io/nygc-public/somatic_dna_tools@sha256:20a48e2c422a43ce35e197243bda8dbf06c9a7b3175094524f74f8835cce85b6"
